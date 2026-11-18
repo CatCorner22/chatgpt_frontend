@@ -15,7 +15,7 @@ function fixture() {
   );
   writeFileSync(
     join(root, ".output/server/index.mjs"),
-    'import { answer } from "./chunks/value.mjs"; export default {fetch(){ return new Response(String(answer)); }};',
+    'import { answer } from "./chunks/value.mjs"; var public_assets_data_default = {"/assets/app.js": {path: "../public/assets/app.js"}, "/robots.txt": {path: "../public/robots.txt"}}; export default {fetch(){ return new Response(String(answer)); }};',
   );
   writeFileSync(join(root, ".output/server/chunks/value.mjs"), "export const answer = 42;");
   writeFileSync(join(root, ".output/public/assets/app.js"), 'document.title = "Fixture";');
@@ -63,7 +63,11 @@ test("preserves every module and public asset plus logical storage declarations"
     );
     const config = JSON.parse(readFileSync(join(root, "dist/server/wrangler.json"), "utf8"));
     assert.equal(config.main, "index.js");
-    assert.equal(config.assets.directory, "../public");
+    assert.equal(config.assets.directory, "../client");
+    assert.equal(
+      readFileSync(join(root, "dist/client/assets/app.js"), "utf8"),
+      'document.title = "Fixture";',
+    );
     assert.deepEqual(config.compatibility_flags, ["nodejs_compat"]);
     assert.equal(config.r2_buckets, undefined, "physical bucket provisioning belongs to Sites");
     assert.deepEqual(JSON.parse(readFileSync(join(root, "dist/.openai/hosting.json"), "utf8")), {
@@ -127,3 +131,17 @@ for (const binding of ["d1", "r2"]) {
       }
     }));
 }
+
+test("rejects a missing client asset even when the Nitro public copy exists", () =>
+  useFixture((root) => {
+    prepareSitesArtifact(root);
+    rmSync(join(root, "dist/client/assets/app.js"), { force: true });
+    assert.throws(() => validateSitesArtifact(root), /Client asset bytes changed or missing/);
+  }));
+
+test("rejects a Nitro-declared URL that has no packaged public asset", () =>
+  useFixture((root) => {
+    const entry = join(root, ".output/server/index.mjs");
+    writeFileSync(entry, readFileSync(entry, "utf8").replace('"/robots.txt"', '"/missing.css"'));
+    assert.throws(() => prepareSitesArtifact(root), /Missing declared public asset/);
+  }));

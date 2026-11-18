@@ -6,7 +6,7 @@ This edition adds private hosted access, owner-scoped browser storage, complete 
 
 - Full application suite: 678 tests across 71 files passed on 2026-11-18.
 - TypeScript: full strict check passed.
-- Packaging: six tests passed; every generated server module and public asset is retained and checked byte-for-byte, and static Worker imports resolve inside the package.
+- Packaging: eight tests passed; every generated server module and public asset is retained and checked byte-for-byte, and static Worker imports resolve inside the package.
 - Independent bounded review covered account identity, cloud revisions, storage isolation, transfer preservation, failure states, auth navigation, and misleading service prompts. Confirmed findings were repaired.
 - Existing portable kit sources and dependency lockfile are unchanged from the earlier verified release.
 - No provider keys or production customer data were used in tests. In-memory storage and synthetic identities do not establish live account behavior.

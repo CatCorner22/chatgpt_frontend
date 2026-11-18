@@ -74,6 +74,52 @@ function verifyWorkerClosure(server) {
   }
 }
 
+function declaredPublicAssets(server, publicDirectory) {
+  const entry = join(server, "index.mjs");
+  const tree = ts.createSourceFile(
+    entry,
+    readFileSync(entry, "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.JS,
+  );
+  let manifest;
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === "public_assets_data_default"
+    )
+      manifest = node.initializer;
+    ts.forEachChild(node, visit);
+  }
+  visit(tree);
+  if (!manifest || !ts.isObjectLiteralExpression(manifest))
+    throw new Error("Nitro public asset manifest changed; review the packaging adapter");
+  const paths = manifest.properties.map((property) => {
+    if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.name))
+      throw new Error("Unexpected Nitro public asset declaration");
+    const path = property.name.text;
+    const target = resolve(publicDirectory, "." + path);
+    const local = relative(publicDirectory, target);
+    if (
+      !path.startsWith("/") ||
+      local === ".." ||
+      local.startsWith("../") ||
+      isAbsolute(local) ||
+      !existsSync(target) ||
+      !statSync(target).isFile()
+    )
+      throw new Error(`Missing declared public asset: ${path}`);
+    return path;
+  });
+  return paths;
+}
+
+function emittedWorkerConfig(config) {
+  return { ...config, main: "index.js", assets: { ...config.assets, directory: "../client" } };
+}
+
 function sourceContract(root) {
   const hosting = readJson(join(root, ".openai/hosting.json"));
   if (typeof hosting.project_id !== "string" || !hosting.project_id.trim())
@@ -118,14 +164,19 @@ export function validateSitesArtifact(root = scriptRoot) {
       if (!existsSync(target) || digest(source) !== digest(target))
         throw new Error(`Asset bytes changed or missing: ${name}`);
       if (directory === "server") serverFiles++;
-      else publicFiles++;
+      else {
+        const client = join(dist, "client", relative(join(output, "public"), source));
+        if (!existsSync(client) || digest(source) !== digest(client))
+          throw new Error(`Client asset bytes changed or missing: ${name}`);
+        publicFiles++;
+      }
     }
   }
   const emittedHosting = readJson(join(dist, ".openai/hosting.json"));
   if (JSON.stringify(hosting) !== JSON.stringify(emittedHosting))
     throw new Error("Site identity or bindings changed during packaging");
   const emittedConfig = readJson(join(dist, "server/wrangler.json"));
-  if (JSON.stringify(emittedConfig) !== JSON.stringify({ ...config, main: "index.js" }))
+  if (JSON.stringify(emittedConfig) !== JSON.stringify(emittedWorkerConfig(config)))
     throw new Error("Worker deployment configuration changed unexpectedly");
   if (
     readFileSync(join(dist, "server/index.js"), "utf8") !==
@@ -133,12 +184,15 @@ export function validateSitesArtifact(root = scriptRoot) {
   )
     throw new Error("Sites entry must preserve the generated Nitro handler");
   verifyWorkerClosure(join(dist, "server"));
+  const declaredAssets = declaredPublicAssets(join(dist, "server"), join(dist, "client"));
+  declaredPublicAssets(join(dist, "server"), join(dist, "public"));
   return {
     project_id: hosting.project_id,
     serverFiles,
     publicFiles,
     worker: "dist/server/index.js",
-    assets: "dist/public",
+    assets: "dist/client",
+    declaredAssets: declaredAssets.length,
   };
 }
 
@@ -149,10 +203,13 @@ export function prepareSitesArtifact(root = scriptRoot) {
   filesUnder(join(root, ".output/server"));
   filesUnder(join(root, ".output/public"));
   verifyWorkerClosure(join(root, ".output/server"));
+  declaredPublicAssets(join(root, ".output/server"), join(root, ".output/public"));
   const dist = join(root, "dist");
   rmSync(dist, { recursive: true, force: true });
   mkdirSync(join(dist, ".openai"), { recursive: true });
   cpSync(join(root, ".output/server"), join(dist, "server"), { recursive: true });
+  // Publish the ASSETS client layout while retaining Nitro's original public paths too.
+  cpSync(join(root, ".output/public"), join(dist, "client"), { recursive: true });
   cpSync(join(root, ".output/public"), join(dist, "public"), { recursive: true });
   cpSync(join(root, ".openai/hosting.json"), join(dist, ".openai/hosting.json"));
   writeFileSync(
@@ -162,7 +219,7 @@ export function prepareSitesArtifact(root = scriptRoot) {
   writeFileSync(join(dist, "server/index.js"), 'export { default } from "./index.mjs";\n');
   writeFileSync(
     join(dist, "server/wrangler.json"),
-    JSON.stringify({ ...config, main: "index.js" }, null, 2) + "\n",
+    JSON.stringify(emittedWorkerConfig(config), null, 2) + "\n",
   );
   return validateSitesArtifact(root);
 }

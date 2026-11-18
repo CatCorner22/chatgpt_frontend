@@ -9,13 +9,19 @@ export function useUser() {
   useEffect(() => {
     if (!hasCloudBackend()) return;
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active) setUser(data.user ?? null);
-    }).catch(() => {
-      if (active) setUser(null);
-    });
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (active) setUser(data.user ?? null);
+      })
+      .catch(() => {
+        if (active) setUser(null);
+      });
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null));
-    return () => { active = false; data.subscription.unsubscribe(); };
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
   return user;
 }

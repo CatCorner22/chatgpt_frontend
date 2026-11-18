@@ -6,7 +6,9 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  {
+    ignores: ["dist", ".output", ".vinxi", ".agent/**", "src/routeTree.gen.ts"],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -37,4 +39,17 @@ export default tseslint.config(
     },
   },
   eslintPluginPrettier,
+  {
+    // Lovable regenerates these files. Keep semantic checks without rewriting its output.
+    files: [
+      "src/integrations/supabase/auth-attacher.ts",
+      "src/integrations/supabase/auth-middleware.ts",
+      "src/integrations/supabase/client.server.ts",
+      "src/integrations/supabase/client.ts",
+      "src/integrations/supabase/cron-auth.ts",
+      "src/integrations/supabase/previewAuthStorage.ts",
+      "src/integrations/supabase/types.ts",
+    ],
+    rules: { "prettier/prettier": "off" },
+  },
 );

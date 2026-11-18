@@ -20,20 +20,33 @@ describe("Focus design ID", () => {
     expect(provenance(t)).not.toContain(t.headingFont);
   });
   it("is read from the page head or stylesheet comment", () => {
-    expect(readFocusTag(`<head><meta name="generator" content="Focus design ${id}"></head>`)).toBe(id);
+    expect(readFocusTag(`<head><meta name="generator" content="Focus design ${id}"></head>`)).toBe(
+      id,
+    );
     expect(readFocusTag(`<meta content='Focus design ${id}' name='generator'>`)).toBe(id);
     expect(readFocusTag("<p>hi</p>", `/* Focus design ${id} */ :root{}`)).toBe(id);
-    expect(analyzePage(`<html><head><meta name="generator" content="Focus design ${id}"></head><body>x</body></html>`, "").facts.focusId).toBe(id);
+    expect(
+      analyzePage(
+        `<html><head><meta name="generator" content="Focus design ${id}"></head><body>x</body></html>`,
+        "",
+      ).facts.focusId,
+    ).toBe(id);
   });
   it("ignores missing, malformed and padded tags", () => {
     expect(readFocusTag("<html></html>")).toBeNull();
     expect(readFocusTag(`<meta name="generator" content="Focus design f-XYZ">`)).toBeNull();
-    expect(readFocusTag(`<meta name="generator" content="Focus design ${id} <script>">`)).toBeNull();
+    expect(
+      readFocusTag(`<meta name="generator" content="Focus design ${id} <script>">`),
+    ).toBeNull();
     expect(readFocusTag(`<meta name="description" content="Focus design ${id}">`)).toBeNull();
   });
   it("matches the page to the saved design with the same values", () => {
     const e = { id: "a", title: "Mine", state: { tokens: t } } as unknown as LibraryEntry;
-    const other = { id: "b", title: "Other", state: { tokens: ORIGINALS[1]!.direction.tokens } } as unknown as LibraryEntry;
+    const other = {
+      id: "b",
+      title: "Other",
+      state: { tokens: ORIGINALS[1]!.direction.tokens },
+    } as unknown as LibraryEntry;
     expect(findByDesignId(id, [other, e])?.title).toBe("Mine");
     expect(findByDesignId("f-0000000000", [e])).toBeNull();
   });

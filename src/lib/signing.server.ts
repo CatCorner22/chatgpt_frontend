@@ -10,7 +10,10 @@ export async function signId(id: string): Promise<string> {
     ["sign"],
   );
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`focus:${id}`));
-  return [...new Uint8Array(mac)].slice(0, 8).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(mac)]
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export async function stampStatus(

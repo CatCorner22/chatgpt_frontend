@@ -13,7 +13,9 @@ describe("AI provider choice", () => {
     expect(c.model).toBe("claude-sonnet-5");
   });
   it("refuses when the chosen service has no key", () => {
-    expect(() => chooseProvider({ AI_PROVIDER: "anthropic", LOVABLE_API_KEY: "k" })).toThrow("AI is not configured.");
+    expect(() => chooseProvider({ AI_PROVIDER: "anthropic", LOVABLE_API_KEY: "k" })).toThrow(
+      "AI is not configured.",
+    );
   });
   it("refuses unknown services", () => {
     expect(() => chooseProvider({ AI_PROVIDER: "other", LOVABLE_API_KEY: "k" })).toThrow();
@@ -23,7 +25,18 @@ describe("AI provider choice", () => {
 describe("Lovable-only AI code stays in one place", () => {
   it("only ai.server.ts names the AI gateway", () => {
     const hits: string[] = [];
-    const walk = (d: string) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) { if (f !== "test") walk(p); } else if (/\.(ts|tsx)$/.test(f) && readFileSync(p, "utf8").includes("ai.gateway.lovable.dev")) hits.push(p); } };
+    const walk = (d: string) => {
+      for (const f of readdirSync(d)) {
+        const p = join(d, f);
+        if (statSync(p).isDirectory()) {
+          if (f !== "test") walk(p);
+        } else if (
+          /\.(ts|tsx)$/.test(f) &&
+          readFileSync(p, "utf8").includes("ai.gateway.lovable.dev")
+        )
+          hits.push(p);
+      }
+    };
     walk("src");
     expect(hits).toEqual(["src/lib/ai.server.ts"]);
   });

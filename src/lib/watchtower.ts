@@ -32,7 +32,9 @@ export function parseFindings(value: unknown): Finding[] {
 export function tagChange(history: unknown[]): "missing" | "changed" | null {
   const ids = history
     .slice(-2)
-    .map((h) => (h && typeof h === "object" && "designId" in h ? (h as { designId: unknown }).designId : null))
+    .map((h) =>
+      h && typeof h === "object" && "designId" in h ? (h as { designId: unknown }).designId : null,
+    )
     .map((v) => (typeof v === "string" ? v : null));
   if (ids.length < 2) return null;
   const [before, now] = ids;

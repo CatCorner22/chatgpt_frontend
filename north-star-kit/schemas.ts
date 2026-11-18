@@ -1,44 +1,57 @@
-import { z } from 'zod';
-import type { RuleRecord } from './types';
+import { z } from "zod";
+import type { RuleRecord } from "./types";
 
 export const sourceRefSchema = z.object({
   title: z.string().trim().min(1),
   url: z.url().optional(),
   section: z.string().min(1).optional(),
-  basis: z.enum(['read', 'abstract', 'snippet', 'builder']),
+  basis: z.enum(["read", "abstract", "snippet", "builder"]),
 });
-export const ruleRecordSchema = z.object({
-  id: z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
-  group: z.enum(['craft', 'state', 'behavior', 'neuro', 'floor']),
-  plain: z.string().trim().min(1),
-  why: z.string().trim().min(1),
-  appliesWhen: z.string().min(1).optional(),
-  check: z.discriminatedUnion('kind', [
-    z.object({ kind: z.literal('page-check'), fn: z.string().regex(/^[A-Za-z_$][\w$]*$/) }),
-    z.object({ kind: z.literal('person'), ask: z.string().trim().min(1) }),
-  ]),
-  overridable: z.boolean(),
-  evidence: z.enum(['measured', 'convention', 'expert-opinion']),
-  sources: z.array(sourceRefSchema).min(1),
-  reviewed: z.iso.date(),
-}).superRefine((rule, ctx) => {
-  if (rule.group === 'floor' && rule.overridable) {
-    ctx.addIssue({ code: 'custom', path: ['overridable'], message: 'A floor cannot be overridden.' });
-  }
-  if (rule.sources.every(source => source.basis === 'builder') && rule.evidence !== 'expert-opinion') {
-    ctx.addIssue({ code: 'custom', path: ['evidence'], message: 'A rule supported only by the builder is expert opinion.' });
-  }
-});
+export const ruleRecordSchema = z
+  .object({
+    id: z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
+    group: z.enum(["craft", "state", "behavior", "neuro", "floor"]),
+    plain: z.string().trim().min(1),
+    why: z.string().trim().min(1),
+    appliesWhen: z.string().min(1).optional(),
+    check: z.discriminatedUnion("kind", [
+      z.object({ kind: z.literal("page-check"), fn: z.string().regex(/^[A-Za-z_$][\w$]*$/) }),
+      z.object({ kind: z.literal("person"), ask: z.string().trim().min(1) }),
+    ]),
+    overridable: z.boolean(),
+    evidence: z.enum(["measured", "convention", "expert-opinion"]),
+    sources: z.array(sourceRefSchema).min(1),
+    reviewed: z.iso.date(),
+  })
+  .superRefine((rule, ctx) => {
+    if (rule.group === "floor" && rule.overridable) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["overridable"],
+        message: "A floor cannot be overridden.",
+      });
+    }
+    if (
+      rule.sources.every((source) => source.basis === "builder") &&
+      rule.evidence !== "expert-opinion"
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["evidence"],
+        message: "A rule supported only by the builder is expert opinion.",
+      });
+    }
+  });
 export const findingSchema = z.object({
   ruleId: z.string().min(1),
-  status: z.enum(['fails', 'holds', 'not-applicable', 'could-not-measure']),
+  status: z.enum(["fails", "holds", "not-applicable", "could-not-measure"]),
   where: z.string().optional(),
   measured: z.string().optional(),
   required: z.string().optional(),
   fix: z.string().optional(),
 });
 export const tokensSchema = z.record(
-  z.string().regex(/^--[a-zA-Z_][\w-]*$/, 'Use CSS custom property names.'),
+  z.string().regex(/^--[a-zA-Z_][\w-]*$/, "Use CSS custom property names."),
   z.string().trim().min(1).max(2000),
 );
 

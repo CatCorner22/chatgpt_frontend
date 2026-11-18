@@ -7,9 +7,18 @@ describe("local design creation", () => {
   it("keeps the owner's words and does not borrow testimonials or services", () => {
     const brief = "A ceramics studio in Portland. Wheel classes and small-batch tableware.";
     const result = createLocalDirections(brief, { audience: "", tone: "" }, "Clay House");
-    expect(result.content).toEqual({ brand: "Clay House", headline: "A ceramics studio in Portland.", sub: brief, cta: "Find out more", features: [], quote: "" });
+    expect(result.content).toEqual({
+      brand: "Clay House",
+      headline: "A ceramics studio in Portland.",
+      sub: brief,
+      cta: "Find out more",
+      features: [],
+      quote: "",
+    });
     expect(result.directions).toHaveLength(3);
-    expect(new Set(result.directions.map((direction) => JSON.stringify(direction.tokens))).size).toBe(3);
+    expect(
+      new Set(result.directions.map((direction) => JSON.stringify(direction.tokens))).size,
+    ).toBe(3);
   });
 
   it("uses actual keyword matches before fallback directions", () => {
@@ -17,18 +26,26 @@ describe("local design creation", () => {
     expect(result.directions[0]?.why).toMatch(/Selected from the design library for:/);
   });
 
-  it.each(["", "xqzv unexplained", "A coffee shop", "A software app", "A gothic tattoo studio"])("returns repeatable normalized choices for %j", (brief) => {
-    const result = createLocalDirections(brief);
-    expect(result).toEqual(createLocalDirections(brief));
-    expect(result.directions).toHaveLength(3);
-    for (const direction of result.directions) {
-      expect(direction.tokens).toEqual(normalizeTokens(direction.tokens));
-      expect(contrastNotes(direction.tokens).every((check) => check.ok)).toBe(true);
-    }
-  });
+  it.each(["", "xqzv unexplained", "A coffee shop", "A software app", "A gothic tattoo studio"])(
+    "returns repeatable normalized choices for %j",
+    (brief) => {
+      const result = createLocalDirections(brief);
+      expect(result).toEqual(createLocalDirections(brief));
+      expect(result.directions).toHaveLength(3);
+      for (const direction of result.directions) {
+        expect(direction.tokens).toEqual(normalizeTokens(direction.tokens));
+        expect(contrastNotes(direction.tokens).every((check) => check.ok)).toBe(true);
+      }
+    },
+  );
 
   it("handles blank content as an unfinished draft", () => {
-    expect(contentFromBrief(" ")).toMatchObject({ brand: "Untitled project", sub: "", features: [], quote: "" });
+    expect(contentFromBrief(" ")).toMatchObject({
+      brand: "Untitled project",
+      sub: "",
+      features: [],
+      quote: "",
+    });
   });
 
   it("does not mutate the authored design library", () => {
@@ -64,7 +81,10 @@ describe("local decisions", () => {
   });
 
   it("puts comfortable spacing alternatives first for older adults", () => {
-    const options = buildLocalOptions("density", normalizeTokens({ density: "compact" }), { audience: "older adults", tone: "" });
+    const options = buildLocalOptions("density", normalizeTokens({ density: "compact" }), {
+      audience: "older adults",
+      tone: "",
+    });
     expect(options[1]?.tokens.density).toBe("airy");
   });
 

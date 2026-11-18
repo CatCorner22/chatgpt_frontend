@@ -117,7 +117,12 @@ export function analyzePage(rawHtml: string, css: string) {
   // Focus packs put fonts in custom properties (--font-heading: "X"); read those too.
   const varFonts = [...all.matchAll(/--font-[\w-]+\s*:\s*["']?([^;}"',]+)/g)]
     .map((m) => (m[1] ?? "").trim())
-    .filter((f) => f && !f.startsWith("var(") && !["sans-serif", "serif", "monospace", "system-ui"].includes(f));
+    .filter(
+      (f) =>
+        f &&
+        !f.startsWith("var(") &&
+        !["sans-serif", "serif", "monospace", "system-ui"].includes(f),
+    );
   const fontList = [...new Set([...fonts, ...gfonts, ...varFonts])];
   const sizes = new Set(
     [...all.matchAll(/font-size\s*:\s*([\d.]+(?:px|rem|em))/g)].map((m) => m[1]),
@@ -283,10 +288,7 @@ export function analyzePage(rawHtml: string, css: string) {
   const scored = findings.filter((x) => !x.possible);
   const score = Math.round(
     (100 *
-      scored.reduce(
-        (s, x) => s + (x.ok ? 1 : 0) * { high: 3, medium: 2, low: 1 }[x.severity],
-        0,
-      )) /
+      scored.reduce((s, x) => s + (x.ok ? 1 : 0) * { high: 3, medium: 2, low: 1 }[x.severity], 0)) /
       scored.reduce((s, x) => s + { high: 3, medium: 2, low: 1 }[x.severity], 0),
   );
   return {
@@ -365,7 +367,14 @@ export function fitterBrief(
 }
 
 // Ease-of-use checks from the owner's evidence brief (WCAG 2.4.7, 3.3.2; Wiedenbeck 1999; Mathur 2019).
-const SHAME = ["no thanks, i", "i don't want", "i dont want", "i prefer to pay full", "i hate saving", "no, i like"];
+const SHAME = [
+  "no thanks, i",
+  "i don't want",
+  "i dont want",
+  "i prefer to pay full",
+  "i hate saving",
+  "no, i like",
+];
 export function usabilityFindings(html: string, css: string): Finding[] {
   const controls = [...html.matchAll(/<(button|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi)];
   const iconOnly = controls.filter((m) => {
@@ -380,7 +389,8 @@ export function usabilityFindings(html: string, css: string): Finding[] {
   );
   const placeholderOnly = [...html.matchAll(/<(input|textarea)\b([^>]*)>/gi)].filter((m) => {
     const a = m[2] ?? "";
-    if (!/placeholder\s*=/i.test(a) || /type\s*=\s*["']?(hidden|submit|button)/i.test(a)) return false;
+    if (!/placeholder\s*=/i.test(a) || /type\s*=\s*["']?(hidden|submit|button)/i.test(a))
+      return false;
     if (/aria-label(ledby)?\s*=/i.test(a)) return false;
     const id = a.match(/\bid\s*=\s*["']([^"']+)/i)?.[1];
     return !(id && labelled.has(id));
@@ -396,7 +406,9 @@ export function usabilityFindings(html: string, css: string): Finding[] {
       ok: iconOnly === 0,
       severity: "medium",
       detail: iconOnly
-        ? iconOnly === 1 ? "1 button or link shows only an icon, with no words or label." : `${iconOnly} buttons or links show only an icon, with no words or label.`
+        ? iconOnly === 1
+          ? "1 button or link shows only an icon, with no words or label."
+          : `${iconOnly} buttons or links show only an icon, with no words or label.`
         : "Every button and link has words or a label.",
       fix: "Put a short word next to each icon; first-time visitors find labelled icons faster.",
     },
@@ -406,7 +418,9 @@ export function usabilityFindings(html: string, css: string): Finding[] {
       ok: placeholderOnly === 0,
       severity: "medium",
       detail: placeholderOnly
-        ? placeholderOnly === 1 ? "1 form field uses grey hint text as its only label; it disappears when typing." : `${placeholderOnly} form fields use grey hint text as their only label; it disappears when typing.`
+        ? placeholderOnly === 1
+          ? "1 form field uses grey hint text as its only label; it disappears when typing."
+          : `${placeholderOnly} form fields use grey hint text as their only label; it disappears when typing.`
         : "Form fields have real labels.",
       fix: "Give each field a visible label above it and keep the hint separate.",
     },
@@ -428,7 +442,7 @@ export function usabilityFindings(html: string, css: string): Finding[] {
       detail: shame.length
         ? `Decline wording shames the visitor ("${shame[0]}…").`
         : "No guilt-trip wording on decline choices.",
-      fix: "Label the decline choice plainly, like \"No thanks\" or \"Not now\".",
+      fix: 'Label the decline choice plainly, like "No thanks" or "Not now".',
     },
   ];
 }
@@ -441,30 +455,55 @@ export function briefFindings(html: string, css: string): Finding[] {
   const lang = htmlTag.match(/\blang\s*=\s*["']?([a-z-]+)/i)?.[1]?.toLowerCase() ?? "";
   const rtlLang = /^(ar|he|fa|ur|yi|ps|sd|ug|ckb|dv)\b/.test(lang);
   const hasDir = /\bdir\s*=\s*["']?rtl/i.test(htmlTag);
-  const truncates = /text-overflow\s*:\s*ellipsis/i.test(all) && /(button|\.btn|nav)[^{]*\{[^}]*(white-space\s*:\s*nowrap|text-overflow)/i.test(css + html.replace(/[\s\S]*?<style[^>]*>([\s\S]*?)<\/style>[\s\S]*?/gi, "$1"));
-  const hardLR = rtlLang ? (all.match(/text-align\s*:\s*(left|right)|margin-(left|right)\s*:|padding-(left|right)\s*:/gi) ?? []).length : 0;
-  const pw = [...html.matchAll(/<input\b([^>]*)>/gi)].filter((m) => /type\s*=\s*["']?password/i.test(m[1] ?? ""));
-  const pasteBlocked = pw.some((m) => /onpaste\s*=\s*["'][^"']*(return\s+false|preventDefault)/i.test(m[1] ?? "")) ||
+  const truncates =
+    /text-overflow\s*:\s*ellipsis/i.test(all) &&
+    /(button|\.btn|nav)[^{]*\{[^}]*(white-space\s*:\s*nowrap|text-overflow)/i.test(
+      css + html.replace(/[\s\S]*?<style[^>]*>([\s\S]*?)<\/style>[\s\S]*?/gi, "$1"),
+    );
+  const hardLR = rtlLang
+    ? (
+        all.match(
+          /text-align\s*:\s*(left|right)|margin-(left|right)\s*:|padding-(left|right)\s*:/gi,
+        ) ?? []
+      ).length
+    : 0;
+  const pw = [...html.matchAll(/<input\b([^>]*)>/gi)].filter((m) =>
+    /type\s*=\s*["']?password/i.test(m[1] ?? ""),
+  );
+  const pasteBlocked =
+    pw.some((m) => /onpaste\s*=\s*["'][^"']*(return\s+false|preventDefault)/i.test(m[1] ?? "")) ||
     /addEventListener\(\s*["']paste["'][\s\S]{0,120}preventDefault/i.test(html);
   const small = [...all.matchAll(/(?:^|[;{\s"'])(width|height)\s*:\s*(\d+(?:\.\d+)?)px/gi)];
-  const tinyTargets = [...html.matchAll(/<(button|a)\b[^>]*style\s*=\s*["']([^"']*)["']/gi)].filter((m) => {
-    const st = m[2] ?? "";
-    const w = Number(st.match(/(?:^|;)\s*width\s*:\s*(\d+(?:\.\d+)?)px/i)?.[1] ?? 99);
-    const h = Number(st.match(/(?:^|;)\s*height\s*:\s*(\d+(?:\.\d+)?)px/i)?.[1] ?? 99);
-    return w < 24 || h < 24;
-  }).length;
+  const tinyTargets = [...html.matchAll(/<(button|a)\b[^>]*style\s*=\s*["']([^"']*)["']/gi)].filter(
+    (m) => {
+      const st = m[2] ?? "";
+      const w = Number(st.match(/(?:^|;)\s*width\s*:\s*(\d+(?:\.\d+)?)px/i)?.[1] ?? 99);
+      const h = Number(st.match(/(?:^|;)\s*height\s*:\s*(\d+(?:\.\d+)?)px/i)?.[1] ?? 99);
+      return w < 24 || h < 24;
+    },
+  ).length;
   void small;
   const forms = [...html.matchAll(/<form\b[\s\S]*?<\/form>/gi)].map(
-    (m) => (m[0].match(/<(input|select|textarea)\b(?![^>]*type\s*=\s*["']?(hidden|submit|button))/gi) ?? []).length,
+    (m) =>
+      (
+        m[0].match(/<(input|select|textarea)\b(?![^>]*type\s*=\s*["']?(hidden|submit|button))/gi) ??
+        []
+      ).length,
   );
   const longest = Math.max(0, ...forms);
   const interrupt =
     /<dialog\b[^>]*\bopen\b/i.test(html) ||
-    /(cookie|consent)[-_ ]?(banner|wall|modal|popup)|(newsletter|subscribe)[-_ ]?(modal|popup)/i.test(html) ||
+    /(cookie|consent)[-_ ]?(banner|wall|modal|popup)|(newsletter|subscribe)[-_ ]?(modal|popup)/i.test(
+      html,
+    ) ||
     /intercom|drift\.com|crisp\.chat|tawk\.to|zendesk|livechat/i.test(html);
-  const earlyError = [...html.matchAll(/<(input|textarea|select)\b([^>]*)>/gi)].some((m) =>
-    /aria-invalid\s*=\s*["']?true/i.test(m[2] ?? ""),
-  ) || /class\s*=\s*["'][^"']*\b(error|invalid)-?(message|text)?\b[^"']*["'][^>]*>\s*[^<\s][^<]{2,}/i.test(html);
+  const earlyError =
+    [...html.matchAll(/<(input|textarea|select)\b([^>]*)>/gi)].some((m) =>
+      /aria-invalid\s*=\s*["']?true/i.test(m[2] ?? ""),
+    ) ||
+    /class\s*=\s*["'][^"']*\b(error|invalid)-?(message|text)?\b[^"']*["'][^>]*>\s*[^<\s][^<]{2,}/i.test(
+      html,
+    );
   return [
     {
       id: "page-language",
@@ -476,7 +515,9 @@ export function briefFindings(html: string, css: string): Finding[] {
         : rtlLang && !hasDir
           ? "The page is in a right-to-left language but isn't marked right-to-left."
           : `The page language is set (${lang}).`,
-      fix: rtlLang ? 'Add dir="rtl" to the html tag.' : 'Add lang="en" (or the real language) to the html tag.',
+      fix: rtlLang
+        ? 'Add dir="rtl" to the html tag.'
+        : 'Add lang="en" (or the real language) to the html tag.',
     },
     {
       id: "wrap-room",
@@ -484,22 +525,24 @@ export function briefFindings(html: string, css: string): Finding[] {
       ok: !truncates,
       severity: "low",
       detail: truncates
-        ? "Buttons or menu items cut off long text with \"…\"; translations can be 30% longer or more."
+        ? 'Buttons or menu items cut off long text with "…"; translations can be 30% longer or more.'
         : "Buttons and menu items don't cut off text.",
       fix: "Let button and menu text wrap onto a second line instead of cutting it off.",
     },
     ...(rtlLang
-      ? [{
-          id: "rtl-sides",
-          area: "Language",
-          ok: hardLR === 0,
-          severity: "low" as const,
-          possible: true,
-          detail: hardLR
-            ? `${plural(hardLR, "style uses", "styles use")} fixed left or right on a right-to-left page.`
-            : "No fixed left/right styles found.",
-          fix: "Use start and end (for example text-align: start) so the layout mirrors; never mirror numbers or logos.",
-        }]
+      ? [
+          {
+            id: "rtl-sides",
+            area: "Language",
+            ok: hardLR === 0,
+            severity: "low" as const,
+            possible: true,
+            detail: hardLR
+              ? `${plural(hardLR, "style uses", "styles use")} fixed left or right on a right-to-left page.`
+              : "No fixed left/right styles found.",
+            fix: "Use start and end (for example text-align: start) so the layout mirrors; never mirror numbers or logos.",
+          },
+        ]
       : []),
     {
       id: "password-paste",
@@ -508,7 +551,9 @@ export function briefFindings(html: string, css: string): Finding[] {
       severity: "medium",
       detail: pasteBlocked
         ? "A password box blocks pasting, which stops password managers."
-        : pw.length ? "Password boxes allow pasting." : "No password boxes.",
+        : pw.length
+          ? "Password boxes allow pasting."
+          : "No password boxes.",
       fix: "Remove the paste block so people can use a password manager (WCAG 3.3.8).",
     },
     {
@@ -526,9 +571,12 @@ export function briefFindings(html: string, css: string): Finding[] {
       area: "Ease of use",
       ok: longest <= 12,
       severity: "low",
-      detail: longest > 12
-        ? `One form asks for ${longest} things on a single step.`
-        : longest ? `The longest form asks for ${longest} things.` : "No forms.",
+      detail:
+        longest > 12
+          ? `One form asks for ${longest} things on a single step.`
+          : longest
+            ? `The longest form asks for ${longest} things.`
+            : "No forms.",
       fix: "Ask only what this step needs, or split it into steps. Long checkouts are a common reason people leave.",
     },
     {
@@ -589,7 +637,8 @@ export function siteDrift(pages: SitePage[]): { url: string; reason: string }[] 
   const colorMode = mode(pages.map((p) => key(p.colors.slice(0, 6))));
   return pages.flatMap((p) => {
     const reasons = [
-      key(p.fonts) !== fontMode && `uses different fonts (${p.fonts.join(", ") || "device defaults"})`,
+      key(p.fonts) !== fontMode &&
+        `uses different fonts (${p.fonts.join(", ") || "device defaults"})`,
       key(p.colors.slice(0, 6)) !== colorMode && "uses different main colors",
     ].filter(Boolean) as string[];
     return reasons.length ? [{ url: p.url, reason: reasons.join(" and ") }] : [];

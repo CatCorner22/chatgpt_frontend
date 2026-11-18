@@ -1,5 +1,13 @@
 export function oauthReturnPath(value: unknown): string {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(value)) return "/";
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    // Reject control characters before URL parsing can normalize them.
+    // eslint-disable-next-line no-control-regex
+    /[\\\u0000-\u001f\u007f]/.test(value)
+  )
+    return "/";
   // A fixed parsing origin keeps route search validation safe during SSR.
   const origin = "https://app.invalid";
   try {

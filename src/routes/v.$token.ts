@@ -9,10 +9,18 @@ export const Route = createFileRoute("/v/$token")({
         const { publicClient } = await import("@/lib/northstar.functions");
         const { data } = await publicClient().rpc("get_vision", { _token: params.token });
         const row = data?.[0];
-        if (!row) return new Response("This live Vision is turned off or does not exist.", { status: 404 });
-        return new Response(`${row.vision}\n\n<!-- Live Vision from Focus · updated ${row.updated_at} -->\n`, {
-          headers: { "Content-Type": "text/markdown; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
-        });
+        if (!row)
+          return new Response("This live Vision is turned off or does not exist.", { status: 404 });
+        return new Response(
+          `${row.vision}\n\n<!-- Live Vision from Focus · updated ${row.updated_at} -->\n`,
+          {
+            headers: {
+              "Content-Type": "text/markdown; charset=utf-8",
+              "Cache-Control": "no-store",
+              "X-Robots-Tag": "noindex",
+            },
+          },
+        );
       },
     },
   },

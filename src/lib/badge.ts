@@ -11,10 +11,26 @@ export type BadgeReason = { ok: boolean; text: string };
 
 export function badgeReasons(c: BadgeCheck): BadgeReason[] {
   return [
-    { ok: c.stamp === "signed", text: c.stamp === "signed" ? "Signed Focus design code found" : c.stamp === "forged" ? "Design code signature does not match" : "No signed Focus design code on the page" },
-    { ok: c.idMatches, text: c.idMatches ? "Code matches this design" : "Code belongs to a different design" },
+    {
+      ok: c.stamp === "signed",
+      text:
+        c.stamp === "signed"
+          ? "Signed Focus design code found"
+          : c.stamp === "forged"
+            ? "Design code signature does not match"
+            : "No signed Focus design code on the page",
+    },
+    {
+      ok: c.idMatches,
+      text: c.idMatches ? "Code matches this design" : "Code belongs to a different design",
+    },
     { ok: c.score >= BADGE_MIN_SCORE, text: `Quality score ${c.score} (needs ${BADGE_MIN_SCORE})` },
-    { ok: c.highFails === 0, text: c.highFails ? `${c.highFails} serious problem${c.highFails === 1 ? "" : "s"} found` : "No serious problems found" },
+    {
+      ok: c.highFails === 0,
+      text: c.highFails
+        ? `${c.highFails} serious problem${c.highFails === 1 ? "" : "s"} found`
+        : "No serious problems found",
+    },
     { ok: c.matched === 5, text: `${c.matched} of 5 Vision colors and fonts used` },
   ];
 }
@@ -26,7 +42,9 @@ export type PageCheck = { url: string; check: BadgeCheck | null; error?: string 
 /** The site's weakest value for every rule, so it passes only when every page passes every rule. */
 export function mergeChecks(checks: BadgeCheck[]): BadgeCheck {
   return {
-    stamp: checks.every((c) => c.stamp === "signed") ? "signed" : checks.find((c) => c.stamp !== "signed")!.stamp,
+    stamp: checks.every((c) => c.stamp === "signed")
+      ? "signed"
+      : checks.find((c) => c.stamp !== "signed")!.stamp,
     idMatches: checks.every((c) => c.idMatches),
     score: Math.min(...checks.map((c) => c.score)),
     highFails: checks.reduce((n, c) => n + c.highFails, 0),
@@ -52,13 +70,21 @@ export function siteBadge(pages: PageCheck[]) {
     text: failing.length
       ? `${failing.length} of ${pages.length} page${pages.length === 1 ? "" : "s"} not passing: ${failing
           .slice(0, 4)
-          .map((p) => `${short(p.url)} (${p.check ? badgeReasons(p.check).find((r) => !r.ok)!.text : p.error ?? "could not be opened"})`)
+          .map(
+            (p) =>
+              `${short(p.url)} (${p.check ? badgeReasons(p.check).find((r) => !r.ok)!.text : (p.error ?? "could not be opened")})`,
+          )
           .join("; ")}${failing.length > 4 ? "; …" : ""}`
       : `All ${pages.length} page${pages.length === 1 ? "" : "s"} pass`,
   };
   const check = measured.length ? mergeChecks(measured.map((p) => p.check)) : null;
   const reasons = [whole, ...(check ? badgeReasons(check) : [])];
-  return { check, reasons, passing: whole.ok && !!check && badgePasses(check), pages: pages.length };
+  return {
+    check,
+    reasons,
+    passing: whole.ok && !!check && badgePasses(check),
+    pages: pages.length,
+  };
 }
 
 /** Plain, dated status line shared by the proof page and the badge image. */

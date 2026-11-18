@@ -13,7 +13,11 @@ export const DEFAULT_MODELS: Record<AiProvider, string> = {
   openai: "gpt-6.1-sol",
 };
 
-export function chooseProvider(env: Record<string, string | undefined>): { provider: AiProvider; apiKey: string; model: string } {
+export function chooseProvider(env: Record<string, string | undefined>): {
+  provider: AiProvider;
+  apiKey: string;
+  model: string;
+} {
   const raw = (env["AI_PROVIDER"] ?? "lovable").trim().toLowerCase() || "lovable";
   if (!(raw in PROVIDER_KEYS)) throw new Error("AI is not configured.");
   const provider = raw as AiProvider;

@@ -28,7 +28,10 @@ export async function evaluateBadge(url: string, rawTokens: unknown) {
   const pages: PageCheck[] = [{ url, check: await measure(first.html, first.css) }];
   for (const u of urls.slice(1)) {
     // A page we ran out of time for is unproven, so it counts as not passing.
-    if (Date.now() - started > 25000) { pages.push({ url: u, check: null, error: "not checked in time" }); continue; }
+    if (Date.now() - started > 25000) {
+      pages.push({ url: u, check: null, error: "not checked in time" });
+      continue;
+    }
     try {
       const src = await grabSiteSources(u);
       pages.push({ url: u, check: await measure(src.html, src.css) });
@@ -37,7 +40,15 @@ export async function evaluateBadge(url: string, rawTokens: unknown) {
     }
   }
   const site = siteBadge(pages);
-  return { tokens, check: site.check!, passing: site.passing, reasons: site.reasons, pages: site.pages, title, id };
+  return {
+    tokens,
+    check: site.check!,
+    passing: site.passing,
+    reasons: site.reasons,
+    pages: site.pages,
+    title,
+    id,
+  };
 }
 
 export async function recheckBadge(id: string) {

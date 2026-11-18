@@ -57,7 +57,9 @@ const directionsSchema = z.object({
 
 export const proposeDirections = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { brief: string; purpose: string; taste?: string }) => directionInput.parse(d))
+  .inputValidator((d: { brief: string; purpose: string; taste?: string }) =>
+    directionInput.parse(d),
+  )
   .handler(async ({ data, context }) => {
     if (data.brief.trim().length < 10)
       throw new Error("Describe your product in a sentence or two.");
@@ -114,7 +116,8 @@ const optionsSchema = z.object({
 export const proposeStep = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { brief: string; purpose: string; stepId: string; tokens: Tokens; history: string }) => stepInput.parse(d),
+    (d: { brief: string; purpose: string; stepId: string; tokens: Tokens; history: string }) =>
+      stepInput.parse(d),
   )
   .handler(async ({ data, context }) => {
     const step = STEPS.find((s) => s.id === data.stepId);

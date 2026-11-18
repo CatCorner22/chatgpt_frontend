@@ -1,21 +1,105 @@
-import type { RuleRecord } from '../types';
-import { builder, reviewed } from './sources';
+import type { RuleRecord } from "../types";
+import { builder, reviewed } from "./sources";
 
 const craft = (id: string, plain: string, why: string, ask: string): RuleRecord => ({
-  id, group: 'craft', plain, why, check: { kind: 'person', ask }, overridable: true,
-  evidence: 'expert-opinion', sources: [builder('Original craft guidance; not a scientific finding or a standards requirement.')], reviewed,
+  id,
+  group: "craft",
+  plain,
+  why,
+  check: { kind: "person", ask },
+  overridable: true,
+  evidence: "expert-opinion",
+  sources: [
+    builder("Original craft guidance; not a scientific finding or a standards requirement."),
+  ],
+  reviewed,
 });
 export const craftRules: RuleRecord[] = [
-  { ...craft('craft-tabular-numerals', 'Use equal-width digits in tables and changing counters.', 'Changing digit widths can disturb alignment and make numerical comparisons harder.', 'Inspect aligned values and counters.'), check: { kind: 'page-check', fn: 'checkTabularNumbers' }, appliesWhen: 'Numeric table cells and counters marked data-counter; a font may implement equal-width digits by default and needs review.' },
-  { ...craft('craft-text-wrap', 'Balance multi-line headings and give paragraphs a considered final line.', 'An awkward line break can make a heading feel accidental or detach the last word from its meaning.', 'Inspect headings and prose at several widths.'), check: { kind: 'page-check', fn: 'checkTextWrapping' }, appliesWhen: 'The check inspects text-wrap declarations; a person must judge the actual line breaks and browser support.' },
-  craft('craft-nested-radius', 'Make an inner rounded corner follow its outer corner minus the space between them.', 'Unrelated curves inside one another can leave visibly uneven corner spacing.', 'For nested rounded boxes, compare inner radius with max(0, outer radius minus padding), then judge border thickness and optical exceptions.'),
-  craft('craft-icon-alignment', 'Size icons for their neighboring text and align them by their visible shape.', 'An icon that appears too high, too low, or too heavy can obscure the label it supports.', 'Inspect each icon at its actual rendered size, including text wrapping and different writing systems.'),
-  craft('craft-press-feedback', 'Show button press feedback within 100 milliseconds of the action.', 'A delayed response can cause doubt or repeat presses.', 'Record pointer and keyboard activation under realistic load and measure the first visible feedback; 100 milliseconds is this project’s design target.'),
-  craft('craft-transition-timing', 'Use brief ease-out transitions of 100 to 300 milliseconds where motion helps explain a change.', 'Slow or unrelated movement can hold up a task and distract from the result.', 'Inspect interactive transitions and initial paint; omit entry animations and honor reduced motion. The timing range is a project preference, not a universal rule.'),
-  craft('craft-consistent-scales', 'Use the design spec’s type and spacing values consistently.', 'Accidental size differences weaken grouping and make similar controls harder to recognize.', 'Compare rendered font sizes and gaps with the supplied design spec; explain any deliberate exception.'),
-  craft('craft-layout-stability', 'Keep loaded content from unexpectedly moving other content.', 'A late shift can make someone lose their place or activate the wrong control.', 'Measure layout-shift performance entries during a complete load and representative tasks; report the observation window and exclusions. A still page cannot measure cumulative layout shift.'),
-  { ...craft('craft-image-dimensions', 'Give each image positive width and height attributes and a text-alternative attribute.', 'Missing dimensions can cause jumps, and a missing text-alternative attribute leaves an image’s purpose unclear.', 'Check image size, proportions, and whether its text alternative matches its purpose.'), check: { kind: 'page-check', fn: 'checkImages' }, appliesWhen: 'The check verifies positive width and height attributes and presence of alt; CSS-only sizing and final image purpose require review.' },
-  craft('craft-image-purpose', 'Preserve image proportions and give useful images meaningful text alternatives.', 'Stretched images distort information, while decorative images can add unwanted screen-reader noise.', 'Inspect loaded image proportions and alternative text; use an empty alternative for decorative images and verify the result with a screen reader.'),
-  craft('craft-typography-details', 'Use deliberate punctuation and keep a number beside its unit.', 'Stray spaces, broken number-unit pairs, and inconsistent punctuation can interrupt reading.', 'Read the content aloud and inspect quotation marks, apostrophes, dashes, double spaces, and number-unit pairs; preserve exact code and quotations.'),
-  craft('craft-dark-theme', 'Choose dark-theme surfaces, borders, shadows, and image brightness deliberately.', 'A simple inversion can flatten the hierarchy or make media painfully bright.', 'Inspect the dark theme in all states with real content; check contrast again and verify that images remain faithful to their purpose.'),
+  {
+    ...craft(
+      "craft-tabular-numerals",
+      "Use equal-width digits in tables and changing counters.",
+      "Changing digit widths can disturb alignment and make numerical comparisons harder.",
+      "Inspect aligned values and counters.",
+    ),
+    check: { kind: "page-check", fn: "checkTabularNumbers" },
+    appliesWhen:
+      "Numeric table cells and counters marked data-counter; a font may implement equal-width digits by default and needs review.",
+  },
+  {
+    ...craft(
+      "craft-text-wrap",
+      "Balance multi-line headings and give paragraphs a considered final line.",
+      "An awkward line break can make a heading feel accidental or detach the last word from its meaning.",
+      "Inspect headings and prose at several widths.",
+    ),
+    check: { kind: "page-check", fn: "checkTextWrapping" },
+    appliesWhen:
+      "The check inspects text-wrap declarations; a person must judge the actual line breaks and browser support.",
+  },
+  craft(
+    "craft-nested-radius",
+    "Make an inner rounded corner follow its outer corner minus the space between them.",
+    "Unrelated curves inside one another can leave visibly uneven corner spacing.",
+    "For nested rounded boxes, compare inner radius with max(0, outer radius minus padding), then judge border thickness and optical exceptions.",
+  ),
+  craft(
+    "craft-icon-alignment",
+    "Size icons for their neighboring text and align them by their visible shape.",
+    "An icon that appears too high, too low, or too heavy can obscure the label it supports.",
+    "Inspect each icon at its actual rendered size, including text wrapping and different writing systems.",
+  ),
+  craft(
+    "craft-press-feedback",
+    "Show button press feedback within 100 milliseconds of the action.",
+    "A delayed response can cause doubt or repeat presses.",
+    "Record pointer and keyboard activation under realistic load and measure the first visible feedback; 100 milliseconds is this project’s design target.",
+  ),
+  craft(
+    "craft-transition-timing",
+    "Use brief ease-out transitions of 100 to 300 milliseconds where motion helps explain a change.",
+    "Slow or unrelated movement can hold up a task and distract from the result.",
+    "Inspect interactive transitions and initial paint; omit entry animations and honor reduced motion. The timing range is a project preference, not a universal rule.",
+  ),
+  craft(
+    "craft-consistent-scales",
+    "Use the design spec’s type and spacing values consistently.",
+    "Accidental size differences weaken grouping and make similar controls harder to recognize.",
+    "Compare rendered font sizes and gaps with the supplied design spec; explain any deliberate exception.",
+  ),
+  craft(
+    "craft-layout-stability",
+    "Keep loaded content from unexpectedly moving other content.",
+    "A late shift can make someone lose their place or activate the wrong control.",
+    "Measure layout-shift performance entries during a complete load and representative tasks; report the observation window and exclusions. A still page cannot measure cumulative layout shift.",
+  ),
+  {
+    ...craft(
+      "craft-image-dimensions",
+      "Give each image positive width and height attributes and a text-alternative attribute.",
+      "Missing dimensions can cause jumps, and a missing text-alternative attribute leaves an image’s purpose unclear.",
+      "Check image size, proportions, and whether its text alternative matches its purpose.",
+    ),
+    check: { kind: "page-check", fn: "checkImages" },
+    appliesWhen:
+      "The check verifies positive width and height attributes and presence of alt; CSS-only sizing and final image purpose require review.",
+  },
+  craft(
+    "craft-image-purpose",
+    "Preserve image proportions and give useful images meaningful text alternatives.",
+    "Stretched images distort information, while decorative images can add unwanted screen-reader noise.",
+    "Inspect loaded image proportions and alternative text; use an empty alternative for decorative images and verify the result with a screen reader.",
+  ),
+  craft(
+    "craft-typography-details",
+    "Use deliberate punctuation and keep a number beside its unit.",
+    "Stray spaces, broken number-unit pairs, and inconsistent punctuation can interrupt reading.",
+    "Read the content aloud and inspect quotation marks, apostrophes, dashes, double spaces, and number-unit pairs; preserve exact code and quotations.",
+  ),
+  craft(
+    "craft-dark-theme",
+    "Choose dark-theme surfaces, borders, shadows, and image brightness deliberately.",
+    "A simple inversion can flatten the hierarchy or make media painfully bright.",
+    "Inspect the dark theme in all states with real content; check contrast again and verify that images remain faithful to their purpose.",
+  ),
 ];

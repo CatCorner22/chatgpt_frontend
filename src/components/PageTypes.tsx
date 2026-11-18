@@ -149,7 +149,9 @@ export function PageType({
           }}
         >
           <h1 style={{ ...h, fontSize: s(3) }}>Get in touch with {c.brand}</h1>
-          <p style={muted}>Form layout preview. Add your actual response policy before publishing.</p>
+          <p style={muted}>
+            Form layout preview. Add your actual response policy before publishing.
+          </p>
           <label style={{ fontWeight: 600 }}>
             Your name<span style={{ ...field, color: t.muted, fontWeight: 400 }}>Jordan Lee</span>
           </label>

@@ -2,22 +2,108 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({ meta: [
-    { title: "Terms of use — Focus" },
-    { name: "description", content: "Terms for Focus designs, existing-site transfers, automated reviews and public badges." },
-    { property: "og:title", content: "Terms of use — Focus" },
-    { property: "og:description", content: "Responsibilities and limits when using Focus." },
-    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-  ] }), component: Terms,
+  head: () => ({
+    meta: [
+      { title: "Terms of use — Focus" },
+      {
+        name: "description",
+        content:
+          "Terms for Focus designs, existing-site transfers, automated reviews and public badges.",
+      },
+      { property: "og:title", content: "Terms of use — Focus" },
+      { property: "og:description", content: "Responsibilities and limits when using Focus." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: Terms,
 });
 function Terms() {
-  return <LegalPage title="Terms of use">
-    <section><h2>About these terms</h2><p>Focus is operated by Blake Reagan in the United States. These terms describe use of its design studio and review tools. A public contact address and commercial terms still require confirmation before public paid launch.</p></section>
-    <section><h2>Your account and acceptable use</h2><p>Keep your sign-in details private. Only submit material and inspect sites you are allowed to use. Do not attack services, bypass access controls, submit malicious content, impersonate others or automate excessive requests. Access may be restricted to protect the service and other users.</p></section>
-    <section><h2>Your work and generated designs</h2><p>You keep your rights in the material you provide. You allow Focus and its service providers to process it to produce the results you request. You may use downloaded design values and instructions in your own projects, subject to any applicable third-party font, image or other asset licences. Generated output may not be unique, may be inaccurate, and does not guarantee rights clearance. Do not redistribute Focus's underlying direction catalogue or claim exclusive ownership of common design patterns.</p></section>
-    <section><h2>Existing-site transfers</h2><p>Save a named backup, preserve uncommitted work, and test one page first. Existing-site packs are additive guidance and scoped styles, not a complete application conversion. Never overwrite your files or rules with an existing-site pack. Keep routing, forms, permissions, data and business logic intact. You are responsible for reviewing any edits made by an outside coding tool and rerunning your original tasks before accepting them.</p><p>Fixed styles, external portals, custom themes, private pages, shadow DOM and third-party content can require manual integration. Removing the scope and newly added imports reverses CSS-only changes; changes made by a coding tool must be selectively restored. Focus cannot guarantee bug-free output or that every customer application remains unchanged.</p></section>
-    <section><h2>Reviews, badges and sharing</h2><p>Measured findings reflect the public evidence Focus can retrieve. Screenshot opinions are AI assessments, not measured proof. A site check covers a bounded set of discovered pages, not every possible route or user state. A badge is a dated result that may be withdrawn after rechecking; it is not an accessibility, security, legal or complete usability certification.</p><p>Share links and public proofs expose the material shown there. Only publish or submit showcase content you have permission to share.</p></section>
-    <section><h2>Payments and availability</h2><p>No checkout is currently implemented. Pricing, billing, cancellation and refund terms must be presented before any purchase; these terms do not establish a price or authorise a charge. Paid design access is intended to include unlimited designs, subject to reasonable service safeguards rather than a monthly design allowance.</p><p>Focus depends on hosting and AI services and may be interrupted. Keep your own copies of important work. To the extent permitted by law, results are provided without a promise that they are error-free or suitable for a particular purpose. Nothing here removes rights or remedies that applicable law makes mandatory.</p></section>
-    <section><h2>Privacy and changes</h2><p>Read the <Link to="/privacy">privacy policy</Link> for data handling. Material changes will be reflected in the update date and communicated where required. Dispute and jurisdiction terms, if needed for paid launch, require legal review rather than assumptions about your location.</p></section>
-  </LegalPage>;
+  return (
+    <LegalPage title="Terms of use">
+      <section>
+        <h2>About these terms</h2>
+        <p>
+          Focus is operated by Blake Reagan in the United States. These terms describe use of its
+          design studio and review tools. A public contact address and commercial terms still
+          require confirmation before public paid launch.
+        </p>
+      </section>
+      <section>
+        <h2>Your account and acceptable use</h2>
+        <p>
+          Keep your sign-in details private. Only submit material and inspect sites you are allowed
+          to use. Do not attack services, bypass access controls, submit malicious content,
+          impersonate others or automate excessive requests. Access may be restricted to protect the
+          service and other users.
+        </p>
+      </section>
+      <section>
+        <h2>Your work and generated designs</h2>
+        <p>
+          You keep your rights in the material you provide. You allow Focus and its service
+          providers to process it to produce the results you request. You may use downloaded design
+          values and instructions in your own projects, subject to any applicable third-party font,
+          image or other asset licences. Generated output may not be unique, may be inaccurate, and
+          does not guarantee rights clearance. Do not redistribute Focus's underlying direction
+          catalogue or claim exclusive ownership of common design patterns.
+        </p>
+      </section>
+      <section>
+        <h2>Existing-site transfers</h2>
+        <p>
+          Save a named backup, preserve uncommitted work, and test one page first. Existing-site
+          packs are additive guidance and scoped styles, not a complete application conversion.
+          Never overwrite your files or rules with an existing-site pack. Keep routing, forms,
+          permissions, data and business logic intact. You are responsible for reviewing any edits
+          made by an outside coding tool and rerunning your original tasks before accepting them.
+        </p>
+        <p>
+          Fixed styles, external portals, custom themes, private pages, shadow DOM and third-party
+          content can require manual integration. Removing the scope and newly added imports
+          reverses CSS-only changes; changes made by a coding tool must be selectively restored.
+          Focus cannot guarantee bug-free output or that every customer application remains
+          unchanged.
+        </p>
+      </section>
+      <section>
+        <h2>Reviews, badges and sharing</h2>
+        <p>
+          Measured findings reflect the public evidence Focus can retrieve. Screenshot opinions are
+          AI assessments, not measured proof. A site check covers a bounded set of discovered pages,
+          not every possible route or user state. A badge is a dated result that may be withdrawn
+          after rechecking; it is not an accessibility, security, legal or complete usability
+          certification.
+        </p>
+        <p>
+          Share links and public proofs expose the material shown there. Only publish or submit
+          showcase content you have permission to share.
+        </p>
+      </section>
+      <section>
+        <h2>Payments and availability</h2>
+        <p>
+          No checkout is currently implemented. Pricing, billing, cancellation and refund terms must
+          be presented before any purchase; these terms do not establish a price or authorise a
+          charge. Paid design access is intended to include unlimited designs, subject to reasonable
+          service safeguards rather than a monthly design allowance.
+        </p>
+        <p>
+          Focus depends on hosting and AI services and may be interrupted. Keep your own copies of
+          important work. To the extent permitted by law, results are provided without a promise
+          that they are error-free or suitable for a particular purpose. Nothing here removes rights
+          or remedies that applicable law makes mandatory.
+        </p>
+      </section>
+      <section>
+        <h2>Privacy and changes</h2>
+        <p>
+          Read the <Link to="/privacy">privacy policy</Link> for data handling. Material changes
+          will be reflected in the update date and communicated where required. Dispute and
+          jurisdiction terms, if needed for paid launch, require legal review rather than
+          assumptions about your location.
+        </p>
+      </section>
+    </LegalPage>
+  );
 }

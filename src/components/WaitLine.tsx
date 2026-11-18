@@ -19,7 +19,11 @@ export function WaitLine({
       />
       {wait.text}
       {wait.canCancel && (
-        <button type="button" className="min-h-6 px-1 font-medium text-foreground underline" onClick={onCancel}>
+        <button
+          type="button"
+          className="min-h-6 px-1 font-medium text-foreground underline"
+          onClick={onCancel}
+        >
           Cancel
         </button>
       )}

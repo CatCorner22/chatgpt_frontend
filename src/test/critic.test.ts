@@ -130,16 +130,24 @@ describe("ease-of-use checks from the evidence brief", () => {
   const get = (html: string, css = "", id = "") =>
     usabilityFindings(html, css).find((f) => f.id === id)!;
   it("flags an icon-only button and passes a labelled one", () => {
-    expect(get('<button><svg></svg></button>', "", "icon-label").ok).toBe(false);
+    expect(get("<button><svg></svg></button>", "", "icon-label").ok).toBe(false);
     expect(get('<button aria-label="Close"><svg></svg></button>', "", "icon-label").ok).toBe(true);
   });
   it("flags placeholder used as the only label", () => {
     expect(get('<input placeholder="Email">', "", "placeholder-label").ok).toBe(false);
-    expect(get('<label for="e">Email</label><input id="e" placeholder="you@x.com">', "", "placeholder-label").ok).toBe(true);
+    expect(
+      get(
+        '<label for="e">Email</label><input id="e" placeholder="you@x.com">',
+        "",
+        "placeholder-label",
+      ).ok,
+    ).toBe(true);
   });
   it("flags removed focus outline without replacement", () => {
     expect(get("<a>x</a>", "a{outline:none}", "focus").ok).toBe(false);
-    expect(get("<a>x</a>", "a{outline:none} a:focus-visible{outline:2px solid}", "focus").ok).toBe(true);
+    expect(get("<a>x</a>", "a{outline:none} a:focus-visible{outline:2px solid}", "focus").ok).toBe(
+      true,
+    );
   });
   it("flags shame wording on decline", () => {
     expect(get("<button>No thanks, I hate saving money</button>", "", "shame").ok).toBe(false);
@@ -158,7 +166,8 @@ describe("design pack carries the ease-of-use rules", () => {
 
 import { briefFindings, analyzePage as ap2 } from "@/lib/critic";
 describe("second evidence brief checks", () => {
-  const get = (html: string, id: string, css = "") => briefFindings(html, css).find((f) => f.id === id);
+  const get = (html: string, id: string, css = "") =>
+    briefFindings(html, css).find((f) => f.id === id);
   it("needs a page language, and dir=rtl for Arabic", () => {
     expect(get("<html><body>x</body></html>", "page-language")!.ok).toBe(false);
     expect(get('<html lang="ar"><body>x</body></html>', "page-language")!.ok).toBe(false);
@@ -182,7 +191,10 @@ describe("second evidence brief checks", () => {
   });
   it("possible issues never change the score", () => {
     const a = ap2('<html lang="en"><body><p>hi</p></body></html>', "").score;
-    const b = ap2('<html lang="en"><body><p>hi</p><div class="cookie-banner">c</div></body></html>', "").score;
+    const b = ap2(
+      '<html lang="en"><body><p>hi</p><div class="cookie-banner">c</div></body></html>',
+      "",
+    ).score;
     expect(b).toBe(a);
   });
   it("short pack carries the wait and translation rules", async () => {
@@ -196,21 +208,40 @@ describe("second evidence brief checks", () => {
 describe("fonts set through custom properties", () => {
   it("counts --font-heading / --font-body values as the page's fonts", async () => {
     const { analyzePage, compareToPrescription } = await import("@/lib/critic");
-    const r = analyzePage('<style>:root{--font-heading:"Playfair Display", serif;--font-body:"Literata", sans-serif}</style>', "");
+    const r = analyzePage(
+      '<style>:root{--font-heading:"Playfair Display", serif;--font-body:"Literata", sans-serif}</style>',
+      "",
+    );
     expect(r.facts.fonts).toEqual(["playfair display", "literata"]);
-    expect(compareToPrescription(r.facts, { headingFont: "Playfair Display", bodyFont: "Literata", bg: "#000", ink: "#000", accent: "#000" }).matched).toBeGreaterThanOrEqual(2);
+    expect(
+      compareToPrescription(r.facts, {
+        headingFont: "Playfair Display",
+        bodyFont: "Literata",
+        bg: "#000",
+        ink: "#000",
+        accent: "#000",
+      }).matched,
+    ).toBeGreaterThanOrEqual(2);
   });
 });
 
 describe("whole-site check", () => {
   it("collects same-site pages only, without files, anchors or duplicates", async () => {
     const { sameSiteLinks } = await import("@/lib/critic");
-    const html = '<a href="/about">a</a><a href="/about#x">b</a><a href="https://other.com/x">c</a><a href="/menu.pdf">d</a><a href="#top">e</a><a href="https://shop.example.com/">f</a>';
-    expect(sameSiteLinks(html, "https://shop.example.com/")).toEqual(["https://shop.example.com/about"]);
+    const html =
+      '<a href="/about">a</a><a href="/about#x">b</a><a href="https://other.com/x">c</a><a href="/menu.pdf">d</a><a href="#top">e</a><a href="https://shop.example.com/">f</a>';
+    expect(sameSiteLinks(html, "https://shop.example.com/")).toEqual([
+      "https://shop.example.com/about",
+    ]);
   });
   it("names the page whose fonts differ from most of the site", async () => {
     const { siteDrift } = await import("@/lib/critic");
-    const p = (url: string, fonts: string[]) => ({ url, fonts, colors: ["#111111", "#ffffff"], score: 90 });
+    const p = (url: string, fonts: string[]) => ({
+      url,
+      fonts,
+      colors: ["#111111", "#ffffff"],
+      score: 90,
+    });
     const d = siteDrift([p("/", ["fraunces"]), p("/a", ["fraunces"]), p("/b", ["inter"])]);
     expect(d.map((x) => x.url)).toEqual(["/b"]);
     expect(siteDrift([p("/", ["fraunces"])])).toEqual([]);

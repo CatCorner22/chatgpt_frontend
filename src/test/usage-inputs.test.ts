@@ -7,15 +7,33 @@ describe("expensive request payload protection", () => {
     expect(directionInput.safeParse({ brief: "x".repeat(2000), purpose: "" }).success).toBe(true);
   });
   it("rejects nested or unbounded token data before prompt serialization", () => {
-    const data = { brief: "A shop", purpose: "", stepId: "type", history: "", tokens: { nested: { secret: "x" } } };
+    const data = {
+      brief: "A shop",
+      purpose: "",
+      stepId: "type",
+      history: "",
+      tokens: { nested: { secret: "x" } },
+    };
     expect(stepInput.safeParse(data).success).toBe(false);
-    expect(stepInput.safeParse({ ...data, tokens: { headingFont: "x".repeat(101) } }).success).toBe(false);
+    expect(stepInput.safeParse({ ...data, tokens: { headingFont: "x".repeat(101) } }).success).toBe(
+      false,
+    );
     expect(stepInput.safeParse({ ...data, tokens: {} }).success).toBe(true);
-    expect(stepInput.safeParse({ ...data, tokens: Object.fromEntries(Array.from({ length: 25 }, (_, i) => [`key${i}`, "x"])) }).success).toBe(false);
+    expect(
+      stepInput.safeParse({
+        ...data,
+        tokens: Object.fromEntries(Array.from({ length: 25 }, (_, i) => [`key${i}`, "x"])),
+      }).success,
+    ).toBe(false);
   });
   it("rejects oversize screenshot and URL inputs before external calls", () => {
-    expect(screenshotInput.safeParse({ image: "data:image/png;base64," + "A".repeat(4_000_000) }).success).toBe(false);
-    expect(screenshotInput.safeParse({ image: "data:image/svg+xml;base64,AAAA" }).success).toBe(false);
+    expect(
+      screenshotInput.safeParse({ image: "data:image/png;base64," + "A".repeat(4_000_000) })
+        .success,
+    ).toBe(false);
+    expect(screenshotInput.safeParse({ image: "data:image/svg+xml;base64,AAAA" }).success).toBe(
+      false,
+    );
     expect(urlInput.safeParse({ url: "x".repeat(501) }).success).toBe(false);
   });
 });

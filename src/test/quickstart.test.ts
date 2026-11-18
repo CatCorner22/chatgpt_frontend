@@ -15,8 +15,12 @@ describe("short version", () => {
 import { resumeLabel } from "@/lib/library";
 describe("continue a saved design", () => {
   it("names the next question, counting the short version as 3", () => {
-    expect(resumeLabel({ stage: "exam", stepIndex: 4, picks: [1, 2, 3, 4] })).toBe("Continue at question 5 of 8");
-    expect(resumeLabel({ stage: "exam", stepIndex: 1, picks: [1], quick: true })).toBe("Continue at question 2 of 3");
+    expect(resumeLabel({ stage: "exam", stepIndex: 4, picks: [1, 2, 3, 4] })).toBe(
+      "Continue at question 5 of 8",
+    );
+    expect(resumeLabel({ stage: "exam", stepIndex: 1, picks: [1], quick: true })).toBe(
+      "Continue at question 2 of 3",
+    );
     expect(resumeLabel({ stage: "rx", picks: [] })).toBe("Open its Vision");
   });
 });

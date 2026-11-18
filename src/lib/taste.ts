@@ -52,7 +52,9 @@ export function tasteText(list: TasteEntry[], max = 600) {
 /** Marks a design's choices as having produced a site that passed its badge. */
 export function markPassed(list: TasteEntry[], picks: Pick[], brand: string): TasteEntry[] {
   return rememberTaste(list, picks, brand).map((e) =>
-    e.brand === brand && picks.some((p) => p.step === e.step && p.label === e.label) ? { ...e, passed: true } : e,
+    e.brand === brand && picks.some((p) => p.step === e.step && p.label === e.label)
+      ? { ...e, passed: true }
+      : e,
   );
 }
 
@@ -66,7 +68,9 @@ export function styleSoFar(list: TasteEntry[]) {
     byStep.set(e.step, m);
   }
   return [...byStep.entries()].map(([step, m]) => {
-    const [label, c] = [...m.entries()].sort((a, b) => b[1].passed - a[1].passed || b[1].n - a[1].n)[0]!;
+    const [label, c] = [...m.entries()].sort(
+      (a, b) => b[1].passed - a[1].passed || b[1].n - a[1].n,
+    )[0]!;
     return { step, label, times: c.n, passed: c.passed };
   });
 }

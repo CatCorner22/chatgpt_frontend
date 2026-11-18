@@ -23,13 +23,22 @@ async function shrink(file: File): Promise<string> {
   c.width = Math.round(img.width * k);
   c.height = Math.round(img.height * k);
   const context = c.getContext("2d");
-  if (!context) { img.close(); throw new Error("Could not process the screenshot."); }
+  if (!context) {
+    img.close();
+    throw new Error("Could not process the screenshot.");
+  }
   context.drawImage(img, 0, 0, c.width, c.height);
   img.close();
   return c.toDataURL("image/jpeg", 0.85);
 }
 
-export function ShotReview({ rx, onReviewed }: { rx: Tokens | null; onReviewed?: (review: ReviewEvidence) => void }) {
+export function ShotReview({
+  rx,
+  onReviewed,
+}: {
+  rx: Tokens | null;
+  onReviewed?: (review: ReviewEvidence) => void;
+}) {
   const run = useServerFn(critiqueShot);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -48,7 +57,22 @@ export function ShotReview({ rx, onReviewed }: { rx: Tokens | null; onReviewed?:
       if (!job.current(id)) return; // cancelled
       setR(result);
       const mismatches = result.prescription.filter((p) => !p.followed).map((p) => p.item);
-      onReviewed?.({ kind: "screenshot", target: "Uploaded app or website screen", at: new Date().toISOString(), score: null, summary: result.verdict, checks: result.prescription.map((p) => ({ name: p.item, ok: p.followed, detail: p.note, fix: p.followed ? "" : `Match the Vision: ${p.item}` })), prescription: result.prescription.map((p) => ({ name: p.item, ok: p.followed })), priorities: result.priorities, repair: fitterBrief("uploaded screen", [], mismatches, result.priorities) });
+      onReviewed?.({
+        kind: "screenshot",
+        target: "Uploaded app or website screen",
+        at: new Date().toISOString(),
+        score: null,
+        summary: result.verdict,
+        checks: result.prescription.map((p) => ({
+          name: p.item,
+          ok: p.followed,
+          detail: p.note,
+          fix: p.followed ? "" : `Match the Vision: ${p.item}`,
+        })),
+        prescription: result.prescription.map((p) => ({ name: p.item, ok: p.followed })),
+        priorities: result.priorities,
+        repair: fitterBrief("uploaded screen", [], mismatches, result.priorities),
+      });
     } catch (x) {
       if (job.current(id)) setErr((x as Error).message);
     } finally {
@@ -179,7 +203,13 @@ export function ShotReview({ rx, onReviewed }: { rx: Tokens | null; onReviewed?:
             <Button className="min-w-44" onClick={() => void copy("shot", brief)}>
               {copied === "shot" ? "Copied ✓" : "Copy repair brief"}
             </Button>
-            <AdvisorPanel target="Uploaded app or website screenshot" summary={r.verdict} priorities={r.priorities} brief={brief} measured={false} />
+            <AdvisorPanel
+              target="Uploaded app or website screenshot"
+              summary={r.verdict}
+              priorities={r.priorities}
+              brief={brief}
+              measured={false}
+            />
           </div>
         </div>
       )}

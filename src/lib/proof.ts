@@ -14,6 +14,11 @@ h1{font-size:56px;color:#fff}.card{border-radius:16px;box-shadow:0 10px 30px rgb
 
 // Wraps the studio's rendered preview in a minimal document, as a builder following the Vision would ship it.
 export function wrapPreview(inner: string, title: string, fonts: string[]) {
-  const links = fonts.map((f) => `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, "+")}" rel="stylesheet">`).join("");
+  const links = fonts
+    .map(
+      (f) =>
+        `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, "+")}" rel="stylesheet">`,
+    )
+    .join("");
   return `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>${links}</head><body>${inner}</body></html>`;
 }

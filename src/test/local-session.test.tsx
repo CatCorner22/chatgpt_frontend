@@ -4,7 +4,14 @@ import { useUser } from "@/hooks/useSession";
 
 vi.mock("@/lib/runtime-config", () => ({ hasCloudBackend: () => false }));
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: new Proxy({}, { get() { throw new Error("Local mode must not initialize Supabase"); } }),
+  supabase: new Proxy(
+    {},
+    {
+      get() {
+        throw new Error("Local mode must not initialize Supabase");
+      },
+    },
+  ),
 }));
 
 function SessionState() {

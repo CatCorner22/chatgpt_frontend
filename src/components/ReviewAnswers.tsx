@@ -5,7 +5,15 @@ import { questionCount, STEPS, type Content, type Pick, type Tokens } from "@/li
 import { useDesignFonts } from "@/lib/useDesignFonts";
 
 // One screen, one task: confirm the answers before the Vision is made. Each row has a Change link.
-export function ReviewAnswers({ tokens, content, picks, quick, onChange, onCreate, onAnswerRest }: {
+export function ReviewAnswers({
+  tokens,
+  content,
+  picks,
+  quick,
+  onChange,
+  onCreate,
+  onAnswerRest,
+}: {
   tokens: Tokens;
   content: Content;
   picks: Pick[];
@@ -22,7 +30,9 @@ export function ReviewAnswers({ tokens, content, picks, quick, onChange, onCreat
     <main className="mx-auto grid max-w-6xl gap-8 px-5 py-10 md:px-10 lg:grid-cols-[1fr_24rem]">
       <section>
         <p className="eyebrow">Before your Vision</p>
-        <h1 className="mt-2 font-display text-4xl leading-tight md:text-5xl">Check your {total} answers</h1>
+        <h1 className="mt-2 font-display text-4xl leading-tight md:text-5xl">
+          Check your {total} answers
+        </h1>
         <p className="mt-3 max-w-prose text-muted-foreground">
           Your Vision is made from these choices. Change any of them now, or create your Vision.
         </p>
@@ -32,7 +42,9 @@ export function ReviewAnswers({ tokens, content, picks, quick, onChange, onCreat
             return (
               <li key={st.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Question {i + 1} · {st.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Question {i + 1} · {st.title}
+                  </p>
                   <p className="font-medium">{pick ? pick.label : "Kept as it was"}</p>
                   {pick?.reason && <p className="text-sm text-muted-foreground">“{pick.reason}”</p>}
                 </div>
@@ -67,4 +79,3 @@ export function ReviewAnswers({ tokens, content, picks, quick, onChange, onCreat
     </main>
   );
 }
-

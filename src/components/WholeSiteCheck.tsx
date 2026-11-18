@@ -42,10 +42,15 @@ export function WholeSiteCheck({ url }: { url: string }) {
         Check the whole site
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Follows up to 9 links on the same site, scores every page, and names pages whose fonts or colors don't match the
-        rest. Measured only.
+        Follows up to 9 links on the same site, scores every page, and names pages whose fonts or
+        colors don't match the rest. Measured only.
       </p>
-      <Button className="mt-3" variant="outline" disabled={busy || url.trim().length < 4} onClick={() => void go()}>
+      <Button
+        className="mt-3"
+        variant="outline"
+        disabled={busy || url.trim().length < 4}
+        onClick={() => void go()}
+      >
         {busy ? "Checking pages…" : "Check up to 10 pages"}
       </Button>
       <WaitLine
@@ -55,7 +60,11 @@ export function WholeSiteCheck({ url }: { url: string }) {
           setBusy(false);
         }}
       />
-      {err && <p role="alert" className="mt-3 text-sm text-destructive">{err}</p>}
+      {err && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {err}
+        </p>
+      )}
       {r && (
         <div className="mt-4 space-y-4">
           <p className="text-sm font-semibold" role="status">
@@ -68,7 +77,9 @@ export function WholeSiteCheck({ url }: { url: string }) {
               <p className="font-semibold">Pages that don't match the rest of the site</p>
               <ul className="mt-1 list-disc pl-5">
                 {r.drift.map((d) => (
-                  <li key={d.url}>{path(d.url)} {d.reason}.</li>
+                  <li key={d.url}>
+                    {path(d.url)} {d.reason}.
+                  </li>
                 ))}
               </ul>
             </div>
@@ -86,7 +97,9 @@ export function WholeSiteCheck({ url }: { url: string }) {
             <tbody>
               {r.pages.map((p) => (
                 <tr key={p.url} className="border-t border-border">
-                  <td className="max-w-0 truncate py-1.5 pr-2" title={p.url}>{path(p.url)}</td>
+                  <td className="max-w-0 truncate py-1.5 pr-2" title={p.url}>
+                    {path(p.url)}
+                  </td>
                   <td className="py-1.5">{p.error ? "—" : p.score}</td>
                   <td className="py-1.5">{p.error ?? p.fails}</td>
                 </tr>

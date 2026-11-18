@@ -16,7 +16,7 @@ import { dirname, join, resolve } from "node:path";
 import JSZip from "jszip";
 import { normalizeTokens } from "@/lib/design";
 import { prepareSourceTrial } from "@/lib/source-trial";
-import { buildSourceTrialPackage } from "@/lib/source-trial-package";
+import { buildSourceTrialPackage, SOURCE_TRIAL_KICKOFF } from "@/lib/source-trial-package";
 import { EMPTY_TARGET_DRAFT, type TargetDraft } from "@/lib/target";
 
 const files = [
@@ -308,6 +308,45 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     expect(guide).toMatch(/after.*rollback|rollback.*after/s);
     expect(plan).toMatch(/not-run|not run/);
     expect(plan).toMatch(/browser.*pending|browser.*not run/i);
+  });
+
+  it("requests the exact mapped files and separate evidence without claiming a runtime result", async () => {
+    const source = files.map((file) => ({
+      path: file.path.replace("src/Booking", "src/flow/booking_page"),
+      content: file.content.replace("./Booking.module.css", "./booking_page.module.css"),
+    }));
+    const prepared = await prepare(source);
+    const zip = await JSZip.loadAsync(
+      await buildSourceTrialPackage(prepared, { draft, designTitle: "Returned file comparison" }),
+      { checkCRC32: true },
+    );
+    for (const name of ["START-HERE.md", "AGENT-HANDOFF.md"]) {
+      const guide = await zip.file(`focus-source-trial/${name}`)!.async("string");
+      for (const file of prepared.contract.files) expect(guide).toContain(`\`${file.path}\``);
+      expect(guide).toMatch(/owner.*exact original TSX and CSS/i);
+      expect(guide).toMatch(/return.*exact final TSX and CSS/i);
+      expect(guide).toMatch(/do not reformat/i);
+      expect(guide).toMatch(/evidence report separately/i);
+      expect(guide).toMatch(/selected file byte identity/i);
+      expect(guide).toMatch(/does not prove.*deployment.*tests/s);
+      expect(guide).not.toContain("unavailable safe preview");
+      expect(guide).toMatch(/independently authorized isolated source\/build checks/);
+      expect(guide).toMatch(
+        /rendered preview is unavailable.*browser and visitor checks as not-run/s,
+      );
+      expect(guide).toMatch(/not a completed trial/);
+    }
+    expect(SOURCE_TRIAL_KICKOFF).toMatch(/exact final TSX and CSS/);
+    expect(SOURCE_TRIAL_KICKOFF).toMatch(/separate evidence report/);
+    expect(
+      Object.values(zip.files)
+        .filter((file) => !file.dir)
+        .map((file) => file.name)
+        .sort(),
+    ).toEqual(bundleFiles.map((name) => `focus-source-trial/${name}`).sort());
+    expect(
+      JSON.parse(await zip.file("focus-source-trial/trial-contract.json")!.async("string")),
+    ).toEqual(prepared.contract);
   });
 
   it("refuses stale identity, unsupported context, incomplete scope and tampered prepared artifacts", async () => {

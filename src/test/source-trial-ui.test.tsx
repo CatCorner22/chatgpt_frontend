@@ -406,4 +406,51 @@ describe("Optional source trial", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Browser blocked download");
     expect(screen.queryByText(/Download started/)).toBeNull();
   });
+
+  it("checks original returned bytes and removes the result when role confirmation is withdrawn", async () => {
+    render(<SourceTrialPanel {...props()} />);
+    await prepared();
+    fireEvent.click(screen.getByText("Check files returned by your coding assistant"));
+    fireEvent.change(screen.getByLabelText("Returned page file (.tsx)"), {
+      target: { files: [new File([component], "Booking.tsx")] },
+    });
+    fireEvent.change(screen.getByLabelText("Returned style file (.module.css)"), {
+      target: { files: [new File([stylesheet], "Booking.module.css")] },
+    });
+    const compare = screen.getByRole("button", { name: "Check returned files" });
+    await waitFor(() => expect(compare).toBeEnabled());
+    fireEvent.click(compare);
+    expect(
+      await screen.findByRole("heading", { name: "Both selected files match the original bytes" }),
+    ).toBeVisible();
+    expect(operations.download).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("checkbox", { name: /These are the page parts/ }));
+    expect(screen.queryByRole("region", { name: "Returned file comparison" })).toBeNull();
+    expect(screen.queryByText("Check files returned by your coding assistant")).toBeNull();
+  });
+
+  it("cannot restore a returned-file check after the original source context changes", async () => {
+    render(<SourceTrialPanel {...props()} />);
+    await prepared();
+    fireEvent.click(screen.getByText("Check files returned by your coding assistant"));
+    let finish!: (bytes: ArrayBuffer) => void;
+    const returned = new File([component], "Booking.tsx");
+    Object.defineProperty(returned, "arrayBuffer", {
+      value: () =>
+        new Promise<ArrayBuffer>((resolve) => {
+          finish = resolve;
+        }),
+    });
+    fireEvent.change(screen.getByLabelText("Returned page file (.tsx)"), {
+      target: { files: [returned] },
+    });
+    await waitFor(() => expect(finish).toBeTypeOf("function"));
+    fireEvent.change(screen.getByLabelText("Page file path in the project"), {
+      target: { value: "src/Other.tsx" },
+    });
+    await act(async () => finish(new TextEncoder().encode(component).buffer));
+    expect(screen.queryByRole("region", { name: "Returned file comparison" })).toBeNull();
+    expect(screen.queryByLabelText("Returned page file (.tsx)")).toBeNull();
+    expect(operations.download).not.toHaveBeenCalled();
+  });
 });

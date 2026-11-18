@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SourceTrialReturnPanel } from "@/components/SourceTrialReturnPanel";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/exportPack";
 import type { Tokens } from "@/lib/design";
@@ -328,6 +329,24 @@ export function SourceTrialPanel({
     setError("");
     setNotice("Preparation cancelled. No project files have been changed.");
   }
+  function captureReturnContext() {
+    const selected = proposalNow.current;
+    if (!selected)
+      throw new Error("Prepare the current proposal again before checking returned files.");
+    const verify = () => {
+      selected.verify();
+      if (
+        !mounted.current ||
+        proposalNow.current !== selected ||
+        sourceRevision.current !== selected.revision ||
+        latestContext.current !== selected.contextKey ||
+        !confirmedNow.current
+      )
+        throw new Error("The proposal changed. Prepare it again before checking returned files.");
+    };
+    verify();
+    return verify;
+  }
 
   const reading = inputs.component.reading || inputs.stylesheet.reading;
   const visibleProposal = proposal?.contextKey === contextKey ? proposal : null;
@@ -655,6 +674,10 @@ export function SourceTrialPanel({
                 task and undo results, and anything not run. A written claim alone is not proof that
                 those checks happened.
               </p>
+              <SourceTrialReturnPanel
+                prepared={visibleProposal.value}
+                captureContext={captureReturnContext}
+              />
             </section>
           )}
           {(reading || busy) && (

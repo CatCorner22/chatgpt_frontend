@@ -3,6 +3,7 @@ import { createHash, webcrypto } from "node:crypto";
 import { normalizeTokens } from "@/lib/design";
 import { normalizePageSettings } from "@/lib/page-settings";
 import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
+import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import { restoreStudioSave } from "@/lib/studio-recovery";
 import { isDesignStep, record, redo, undo } from "@/lib/undo";
 import {
@@ -78,10 +79,8 @@ function state(imageFraming?: unknown): State {
   };
 }
 
-// Matches the whole-page artifact passed by Studio to LaunchPanel.
-function artifact(s: State) {
-  return { content: s.content, page: s.page, experience: s.purpose.experience, nav: s.nav };
-}
+// Use Studio's actual artifact boundary, including independently versioned renderer changes.
+const artifact = buildStudioLaunchArtifact;
 const libraryState = (s: State) => s as unknown as LibraryState;
 const asState = (s: Record<string, unknown>) => migrate(s as Partial<State>);
 function memoryStore(initial: Record<string, string> = {}) {
@@ -117,7 +116,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("image framing persistence and evidence identity", () => {
-  it("keeps legacy/default page bytes, work hash and launch fingerprint unchanged", () => {
+  it("keeps legacy/default page bytes, work hash and current-renderer launch identity unchanged", () => {
     const legacy = { ...state(), page: legacyPage };
     const raw = JSON.stringify(legacy);
     const opened = migrate(JSON.parse(raw));
@@ -129,7 +128,8 @@ describe("image framing persistence and evidence identity", () => {
     expect(JSON.stringify(explicitDefault.page)).toBe(JSON.stringify(legacyPage));
     expect(explicitDefault.page).not.toHaveProperty("imageFraming");
     expect(workHash(opened)).toBe("672765259");
-    expect(launchFingerprint(tokens, artifact(opened))).toBe("artifact-v1:6b52f7b458b71630");
+    // The no-feature content-flow renderer revision changes evidence identity, not saved work.
+    expect(launchFingerprint(tokens, artifact(opened))).toBe("artifact-v1:63fb8b14380a96a0");
     expect(workHash(explicitDefault)).toBe(workHash(legacy));
     expect(launchFingerprint(tokens, artifact(explicitDefault))).toBe(
       launchFingerprint(tokens, artifact(legacy)),

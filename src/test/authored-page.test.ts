@@ -204,8 +204,8 @@ describe("authored page export", () => {
       ).html,
     );
     expect(page.querySelector('nav[aria-label="Explore this page"]')).toBeNull();
-    expect(page.querySelector("#details")?.textContent).toContain(content.sub);
-    expect(page.querySelector(".action")?.getAttribute("href")).toBe("#details");
+    expect(page.querySelector(".hero-sub")?.textContent).toBe(content.sub);
+    expect(page.querySelector("#details, .action")).toBeNull();
   });
 
   it("gives Journal a lead and a separate section index pointing to numbered, named details", () => {
@@ -239,7 +239,8 @@ describe("authored page export", () => {
     );
     expect(page.querySelector("aside")).toBeNull();
     expect(page.querySelector(".journal-lead h1")?.textContent).toBe(content.headline);
-    expect(page.querySelector("#details")?.textContent).toContain(content.sub);
+    expect(page.querySelector(".journal-lead .hero-sub")?.textContent).toBe(content.sub);
+    expect(page.querySelector("#details")).toBeNull();
   });
 
   it("places only the owner's supplied Journal image with the lead", () => {

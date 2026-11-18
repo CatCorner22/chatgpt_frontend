@@ -274,8 +274,8 @@ export function AuthoredPagePanel({
           aria-describedby="page-action-help"
         />
         <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
-          Use your actual booking page, contact address, or destination. Without one, the page links
-          to its details.
+          Use your actual booking page, contact address, or destination. Without a valid address,
+          the page links to supplied feature details; when there are none, no main action is shown.
         </p>
       </div>
       <details className="border-y border-border py-2">

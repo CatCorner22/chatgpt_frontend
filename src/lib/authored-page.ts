@@ -1,5 +1,6 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
+import { getAuthoredFeatures } from "./authored-content";
 import { AUTHORED_FONT_COVERAGE, buildEmbeddedFonts } from "./authored-fonts";
 import {
   compactImageFraming,
@@ -165,13 +166,6 @@ export function buildAuthoredPage(
         "Text on the surface color uses a separate readable color. The original background and surface colors are preserved.",
     });
   const action = actionDestination(options.actionUrl);
-  if (!action)
-    readiness.push({
-      id: "action",
-      message: text(options.actionUrl)
-        ? "The action destination is invalid. Use an http, https, mailto, or tel address. The page links to its details until you add one."
-        : "Add a real action destination when ready. For now, the main link explores the page details.",
-    });
   const image = rasterImage(options.image);
   if (options.image && !image)
     readiness.push({
@@ -185,9 +179,22 @@ export function buildAuthoredPage(
   const headline = text(content.headline) || brand;
   const sub = text(content.sub);
   const quote = text(content.quote);
-  const features = (Array.isArray(content.features) ? content.features : []).filter(
-    (feature) => feature && (text(feature.title) || text(feature.body)),
-  );
+  const features = getAuthoredFeatures(content.features);
+  const hasDetails = features.length > 0;
+  const hasHeroAction = !!action || hasDetails;
+  if (!action)
+    readiness.push({
+      id: "action",
+      message: `${
+        text(options.actionUrl)
+          ? "The action destination is invalid. Use an http, https, mailto, or tel address."
+          : "Add a real action destination when ready."
+      } ${
+        hasDetails
+          ? "For now, the main link explores the page details."
+          : "No action is shown until you add a valid destination or feature details."
+      }`,
+    });
   const actionLabel = action ? text(content.cta) || "Continue" : "Explore details";
   if (!text(content.brand) || brand === "Untitled project")
     readiness.push({ id: "brand", message: "Give this page its real project or business name." });
@@ -449,7 +456,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
             ? `<img class="owner-image" src="${escape(image.src)}" alt="${escape(image.alt)}" width="1200" height="900" decoding="async">`
             : ornament(composition)
         }</figure>`;
-  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub && features.length ? `<p class="hero-sub">${escape(sub)}</p>` : ""}<div class="hero-actions">${actionLink()}</div></div>`;
+  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
   const featureLinks = features
     .map(
       (feature, index) =>
@@ -473,12 +480,18 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
         : `<section id="feature-${index + 1}" class="feature-row" tabindex="-1" aria-labelledby="feature-${index + 1}-title"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</section>`;
     })
     .join("\n");
-  const details = `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / Details</span><h2 id="details-title">A closer look.</h2></div>${rows ? `<div class="feature-list">${rows}</div>` : sub ? `<p class="detail-prose">${escape(sub)}</p>` : ""}</section>`;
+  const details = hasDetails
+    ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / Details</span><h2 id="details-title">A closer look.</h2></div><div class="feature-list">${rows}</div></section>`
+    : "";
   const quoteSection = quote
     ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>“${escape(quote.replace(/^["“]+|["”]+$/g, ""))}”</p></blockquote></section>`
     : "";
-  const closing = action
-    ? `<section class="closing" aria-label="Next step"><h2>${escape(text(content.cta) || "Continue")}</h2>${actionLink()}</section>`
+  const closing =
+    action && (hasDetails || quote)
+      ? `<section class="closing" aria-label="Next step"><h2>${escape(text(content.cta) || "Continue")}</h2>${actionLink()}</section>`
+      : "";
+  const navigation = hasHeroAction
+    ? `<nav class="site-nav" aria-label="Main">${hasDetails ? `<a href="#details">Explore details</a>` : ""}${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
     : "";
   const html = `<!doctype html>
 <html lang="en">
@@ -494,7 +507,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
 <body class="${composition}" id="top">
   <a class="skip" href="#main">Skip to content</a>
   <div class="site-shell">
-    <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a><nav class="site-nav" aria-label="Main"><a href="#details">Explore details</a>${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav></header>
+    <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a>${navigation}</header>
     <main id="main" tabindex="-1">${hero}${details}${quoteSection}${closing}</main>
     <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">Back to top ↑</a></footer>
   </div>
@@ -546,8 +559,13 @@ Both forms are generated by the same page renderer, with the same content and CS
 
 This is a static authored page with native links and disclosures, where present.
 No scripts, font services, image services, accounts, or submission backend are
-included. An action goes to the supplied destination; without a valid destination,
-it explores this page’s details.
+included. ${
+    action
+      ? "The action goes to the supplied destination."
+      : hasDetails
+        ? "Without a valid destination, the action explores this page’s supplied feature details."
+        : "No action is shown because no valid destination or feature details were supplied."
+  }
 
 Composition: ${composition}
 Earlier hero arrangement: ${t.heroLayout}

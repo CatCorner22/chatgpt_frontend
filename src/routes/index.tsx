@@ -66,6 +66,7 @@ import { ComponentSheet } from "@/components/ComponentSheet";
 import type { OpenMode } from "@/components/QuickStart";
 import { SkinBar } from "@/components/SkinBar";
 import { LaunchPanel } from "@/components/LaunchPanel";
+import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import type { GalleryItem } from "@/lib/gallery";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -1567,12 +1568,7 @@ function Rx({ s, update, ask }: P) {
             title={s.content.brand}
             tokens={s.tokens}
             tool={tool}
-            artifact={{
-              content: s.content,
-              page: s.page,
-              experience: s.purpose.experience,
-              nav: s.nav,
-            }}
+            artifact={buildStudioLaunchArtifact(s)}
           />
         )}
         {s.tokens && s.content && (

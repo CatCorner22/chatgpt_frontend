@@ -253,23 +253,23 @@
   outline-offset: 2px;
 }
 
-/* The studio surface: warm paper, forest ink, and room to think. */
+/* Cat Samurai: crisp light, forest ink, purposeful color, and room to think. */
 :root {
-  --background: oklch(0.977 0.007 95);
+  --background: #f8fcfb;
   --foreground: oklch(0.27 0.035 155);
-  --card: oklch(0.995 0.003 95);
+  --card: #ffffff;
   --card-foreground: oklch(0.27 0.035 155);
-  --popover: oklch(0.995 0.003 95);
+  --popover: #ffffff;
   --popover-foreground: oklch(0.27 0.035 155);
   --primary: oklch(0.35 0.06 155);
-  --primary-foreground: oklch(0.99 0.003 95);
-  --secondary: oklch(0.93 0.015 120);
-  --muted: oklch(0.94 0.009 100);
+  --primary-foreground: #ffffff;
+  --secondary: #e7f2ed;
+  --muted: #eaf3f0;
   --muted-foreground: oklch(0.49 0.018 145);
   --accent: oklch(0.47 0.075 155);
-  --accent-foreground: oklch(0.99 0.003 95);
-  --border: oklch(0.87 0.012 115);
-  --input: oklch(0.84 0.015 115);
+  --accent-foreground: #ffffff;
+  --border: #d2e1db;
+  --input: #bdcfc6;
   --ring: oklch(0.44 0.08 155);
 }
 body {
@@ -354,6 +354,462 @@ button:disabled {
 }
 .reverie-portrait .reverie-art {
   width: 320px;
+}
+
+/* Garden Path: illustration carries the atmosphere; native controls carry the work. */
+.garden-page {
+  min-height: 100vh;
+}
+.garden-layout {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 42px 40px 64px;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.15fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.garden-landscape {
+  min-width: 0;
+}
+.garden-motto {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 550;
+  line-height: 1.4;
+}
+.garden-map {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  margin-top: 16px;
+  isolation: isolate;
+}
+.garden-river {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+  z-index: -1;
+}
+.garden-reverie {
+  position: absolute;
+  width: 44%;
+  height: auto;
+  pointer-events: none;
+  transition:
+    left 650ms ease,
+    top 650ms ease;
+}
+.garden-map ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.garden-map li {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44%;
+}
+.garden-map button {
+  width: 100%;
+  min-height: 64px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #66816d;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #173e2b;
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.5vw, 20px);
+  font-weight: 550;
+  line-height: 1.18;
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+.garden-map button:hover {
+  background: #edf8f4;
+}
+.garden-map button[aria-current="step"] {
+  background: #d7eee6;
+  border: 2px solid #315640;
+}
+.garden-stop-number {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.garden-short-label {
+  display: none;
+}
+.garden-map-caption {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin-top: 10px;
+  max-width: 35ch;
+}
+.garden-work {
+  min-width: 0;
+  padding-top: 2px;
+}
+.garden-work-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 44px;
+}
+.garden-work-top .eyebrow {
+  color: #8c4b34;
+}
+.garden-brief-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.garden-brief-toggle input {
+  width: 19px;
+  height: 19px;
+  accent-color: #24513a;
+}
+.garden-work h1 {
+  margin-top: 26px;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 48px);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  font-weight: 550;
+}
+.garden-work h1:focus {
+  outline: none;
+}
+.garden-work h1:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 8px;
+}
+.garden-intro {
+  font-size: 18px;
+  line-height: 1.65;
+  margin-top: 20px;
+  max-width: 50ch;
+}
+.garden-goals {
+  margin-top: 34px;
+  min-width: 0;
+  border-top: 1px solid var(--border);
+}
+.garden-goal {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.garden-goal input {
+  width: 23px;
+  height: 23px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #24513a;
+}
+.garden-goal strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 25px);
+  line-height: 1.25;
+  font-weight: 550;
+}
+.garden-goal span > span {
+  display: block;
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.garden-goal .garden-tradeoff {
+  color: #536354;
+  font-size: 14px;
+}
+.garden-task {
+  margin-top: 28px;
+}
+.garden-purpose {
+  font-size: 19px;
+  line-height: 1.5;
+}
+.garden-task ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin-top: 18px;
+}
+.garden-task li {
+  padding-left: 5px;
+  margin-top: 10px;
+  line-height: 1.65;
+}
+.garden-context {
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #536354;
+}
+.garden-options {
+  border-block: 1px solid var(--border);
+  margin-top: 24px;
+}
+.garden-options summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 12px 0;
+  cursor: pointer;
+  font-size: 14px;
+  list-style: none;
+}
+.garden-options dl {
+  padding: 0 0 20px;
+}
+.garden-options dl > div + div {
+  margin-top: 18px;
+}
+.garden-options dt {
+  font-weight: 600;
+}
+.garden-options dd {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 5px;
+}
+.garden-options dd span {
+  display: block;
+  color: #536354;
+}
+.garden-evidence {
+  margin-top: 24px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.garden-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.garden-primary {
+  min-height: 50px;
+  padding: 13px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: #24513a;
+  color: #ffffff;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+.garden-primary:hover {
+  background: #173e2b;
+}
+.garden-primary:disabled {
+  opacity: 0.65;
+}
+.garden-text-action {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-align: left;
+}
+.garden-return-note {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 16px;
+  color: #536354;
+}
+.garden-learn {
+  margin-top: 32px;
+  border-block: 1px solid var(--border);
+}
+.garden-learn > summary {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 0;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  line-height: 1.5;
+}
+.garden-learn summary svg {
+  flex-shrink: 0;
+}
+.garden-lesson-chevron {
+  margin-left: auto;
+}
+.garden-learn[open] .garden-lesson-chevron {
+  transform: rotate(180deg);
+}
+.garden-lessons {
+  padding: 8px 0 24px;
+  max-width: 65ch;
+}
+.garden-lessons article + article {
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+  margin-top: 28px;
+}
+.garden-lessons h2 {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.garden-lessons p {
+  margin-top: 15px;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.garden-example {
+  border-left: 3px solid #b2bf9c;
+  padding: 4px 0 4px 20px;
+  margin-top: 22px;
+}
+.garden-example h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.garden-example p {
+  font-size: 15px;
+  margin-top: 6px;
+}
+.garden-lessons > button {
+  margin-top: 22px;
+}
+.garden-footer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.garden-footer a {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.garden-storage-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fff0ee;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #733d33;
+  border-radius: 6px;
+}
+@media (max-width: 800px) {
+  .garden-layout {
+    display: block;
+    padding: 24px 20px 48px;
+  }
+  .garden-motto {
+    font-size: 20px;
+    text-align: center;
+  }
+  .garden-map {
+    aspect-ratio: auto;
+    margin-top: 8px;
+  }
+  .garden-river {
+    display: none;
+  }
+  .garden-reverie {
+    position: static;
+    display: block;
+    width: 128px;
+    margin: 0 auto;
+    transition: none;
+  }
+  .garden-map ol {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .garden-map li {
+    position: static;
+    transform: none;
+    width: auto;
+    min-width: 0;
+  }
+  .garden-map button {
+    flex-direction: column;
+    gap: 5px;
+    padding: 9px 3px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 12px;
+    min-height: 60px;
+  }
+  .garden-full-label {
+    display: none;
+  }
+  .garden-short-label {
+    display: block;
+  }
+  .garden-map-caption {
+    text-align: center;
+    max-width: none;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .garden-work {
+    margin-top: 28px;
+  }
+  .garden-work h1 {
+    margin-top: 17px;
+    font-size: clamp(30px, 6vw, 42px);
+  }
+  .garden-intro {
+    font-size: 17px;
+  }
+  .garden-goals {
+    margin-top: 24px;
+  }
+  .garden-goal {
+    padding: 22px 0;
+    gap: 14px;
+  }
+  .garden-learn {
+    margin-top: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garden-reverie,
+  .garden-map button {
+    transition: none;
+  }
 }
 .brand-handoff-note {
   display: flex;
@@ -791,6 +1247,7 @@ button:disabled {
   gap: 78px;
   padding: 65px 0 70px;
 }
+.start-design h1,
 .start-design h2,
 .collection-heading h2 {
   font-size: 34px;
@@ -820,6 +1277,53 @@ button:disabled {
   border: 1px solid var(--border);
   background: var(--card);
   border-radius: 12px;
+}
+.studio-welcome--calm .start-design {
+  padding-top: 44px;
+}
+.studio-welcome--calm #start-title {
+  font-size: clamp(30px, 3vw, 42px);
+  font-family: var(--font-display);
+}
+.studio-welcome--calm .reverie-art {
+  width: 150px;
+  margin-top: 28px;
+}
+.studio-welcome--calm .brief-workspace {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.studio-collection-disclosure {
+  max-width: 1240px;
+  margin: 0 auto 48px;
+  padding: 0 40px;
+}
+.studio-collection-disclosure > summary {
+  cursor: pointer;
+  min-height: 52px;
+  padding: 16px 0;
+  border-block: 1px solid var(--border);
+  font-weight: 500;
+}
+.studio-collection-disclosure .starter-collection {
+  padding-inline: 0;
+}
+@media (max-width: 800px) {
+  .studio-welcome--calm .start-design {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 28px;
+  }
+  .studio-welcome--calm .start-design > div > p {
+    max-width: 55ch;
+  }
+  .studio-welcome--calm .reverie-art {
+    width: 100px;
+  }
+  .studio-collection-disclosure {
+    padding-inline: 20px;
+  }
 }
 .brief-label-row {
   display: flex;

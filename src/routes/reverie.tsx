@@ -68,7 +68,9 @@ export function AboutReverie() {
               <Link to="/welcome">Let me show you around</Link>
             </Button>
             <Button asChild variant="outline" className="min-h-11">
-              <Link to="/">Explore the design studio</Link>
+              <Link to="/" search={{ view: "studio" }}>
+                Explore the design studio
+              </Link>
             </Button>
           </div>
         </section>

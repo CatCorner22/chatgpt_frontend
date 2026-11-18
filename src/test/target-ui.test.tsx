@@ -27,8 +27,15 @@ vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus naviga
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => options,
   useBlocker: operations.blocker,
-  Link: ({ to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
-    <a href={to} {...props} />
+  Link: ({
+    to,
+    search,
+    ...props
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: Record<string, string> }) => (
+    <a
+      href={to + (search && Object.keys(search).length ? `?${new URLSearchParams(search)}` : "")}
+      {...props}
+    />
   ),
 }));
 import { Target } from "@/routes/target";
@@ -259,7 +266,7 @@ describe("Target guided preparation", () => {
     render(<Target />);
     expect(await screen.findByRole("link", { name: "Create a Vision" })).toHaveAttribute(
       "href",
-      "/",
+      "/?view=studio",
     );
     expect(screen.getByRole("link", { name: "Open My designs" })).toHaveAttribute(
       "href",

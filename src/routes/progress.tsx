@@ -194,7 +194,9 @@ export function Horizon() {
             <Link to="/library">Open my design library</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/">Open design studio</Link>
+            <Link to="/" search={{ view: "studio" }}>
+              Open design studio
+            </Link>
           </Button>
           <Button asChild variant="outline">
             <Link to="/critic" search={{ mode: "check" }}>

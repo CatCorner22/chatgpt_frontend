@@ -71,7 +71,7 @@ function Projects() {
       STUDIO_KEY,
       JSON.stringify({ ...(p.state as object), projectId: p.id }),
     );
-    navigate({ to: "/" });
+    navigate({ to: "/", search: { view: "studio" } });
   };
   const [hidden, setHidden] = useState<string[]>([]);
   const [asking, setAsking] = useState<{ id: string; title: string } | null>(null);
@@ -157,7 +157,9 @@ function Projects() {
                 Design page and press “Save to my account”.
               </p>
               <Button asChild className="mt-4">
-                <Link to="/">Start a design</Link>
+                <Link to="/" search={{ view: "studio" }}>
+                  Start a design
+                </Link>
               </Button>
             </div>
           )}

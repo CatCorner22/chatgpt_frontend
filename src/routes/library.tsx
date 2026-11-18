@@ -233,7 +233,7 @@ function Library() {
   const open = (e: LibraryEntry) => {
     try {
       focusSessionStorage.setItem("refraction:pending-rescue", JSON.stringify(e.state));
-      void navigate({ to: "/" });
+      void navigate({ to: "/", search: { view: "studio" } });
     } catch {
       toast.error("Could not open this design. Your current design is unchanged.");
     }
@@ -400,7 +400,7 @@ function Library() {
                   : "Your next design belongs here."}
               </h2>
               <Button asChild className="mt-5">
-                <Link to="/">
+                <Link to="/" search={{ view: "studio" }}>
                   Make a design
                   <ArrowRight />
                 </Link>

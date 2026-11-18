@@ -21,8 +21,11 @@ vi.mock("@tanstack/react-router", () => ({
     to,
     search,
     ...props
-  }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: { mode: string } }) => (
-    <a href={to + (search ? `?mode=${search.mode}` : "")} {...props} />
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: Record<string, string> }) => (
+    <a
+      href={to + (search && Object.keys(search).length ? `?${new URLSearchParams(search)}` : "")}
+      {...props}
+    />
   ),
 }));
 import { Horizon } from "@/routes/progress";
@@ -161,7 +164,10 @@ describe("Horizon progress view", () => {
       "href",
       "/library",
     );
-    expect(screen.getByRole("link", { name: "Open design studio" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Open design studio" })).toHaveAttribute(
+      "href",
+      "/?view=studio",
+    );
     expect(screen.getByRole("link", { name: "Check a live site" })).toHaveAttribute(
       "href",
       "/critic?mode=check",

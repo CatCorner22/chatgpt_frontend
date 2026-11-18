@@ -58,7 +58,7 @@ export function RescuePanel({
         "refraction:pending-rescue",
         JSON.stringify(rescueStudio(source, direction, experience)),
       );
-      await navigate({ to: "/" });
+      await navigate({ to: "/", search: { view: "studio" } });
     } catch {
       toast.error("Couldn't open the redesign. Your current design has not been changed.");
     }

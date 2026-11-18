@@ -12,8 +12,11 @@ vi.mock("@tanstack/react-router", () => ({
     to,
     search,
     ...props
-  }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: { mode: string } }) => (
-    <a href={to + (search ? `?mode=${search.mode}` : "")} {...props} />
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: Record<string, string> }) => (
+    <a
+      href={to + (search && Object.keys(search).length ? `?${new URLSearchParams(search)}` : "")}
+      {...props}
+    />
   ),
 }));
 import { WelcomeSession } from "@/routes/welcome";
@@ -74,7 +77,10 @@ describe("Reverie-guided welcome session", () => {
     expect(screen.getByText(/Your guide is complete/)).toBeInTheDocument();
     expect(screen.getByText(/Your project still needs its own task tests/)).toBeInTheDocument();
     expect(screen.getByText(/Guide progress could not be saved/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Return to studio/ })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /Return to studio/ })).toHaveAttribute(
+      "href",
+      "/?view=studio",
+    );
   });
 
   it("marks only tour completion, with no release or library writes", async () => {

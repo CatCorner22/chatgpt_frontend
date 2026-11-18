@@ -5,6 +5,9 @@ import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
 import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
 import { ContentEditor } from "@/components/ContentEditor";
 import { StudioWelcome, StarterCollection } from "@/components/StudioWelcome";
+import { GardenHome } from "@/components/GardenHome";
+import { readGardenPreferences } from "@/lib/garden-preferences";
+import { useStudioNavigationGuard } from "@/hooks/useStudioNavigationGuard";
 import { IntegrationChoice } from "@/components/IntegrationChoice";
 import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
@@ -95,6 +98,8 @@ import { cardFor } from "@/lib/knowledge";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { view?: "studio" } =>
+    search["view"] === "studio" ? { view: "studio" } : {},
   head: () => ({
     meta: [
       { title: "Focus — your point of view, by design" },
@@ -112,8 +117,13 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Studio,
+  component: FocusHome,
 });
+
+function FocusHome() {
+  const { view } = Route.useSearch();
+  return view === "studio" ? <Studio /> : <GardenHome />;
+}
 
 // Library backups and reopening a design retain its bounded Undo/Redo timeline.
 // archiveDesign removes generated option caches before writing this state.
@@ -170,7 +180,7 @@ function Studio() {
               : value,
           );
         },
-        EMPTY,
+        { ...EMPTY, integration: readGardenPreferences(focusLocalStorage).value.goal },
         `${KEY}:recovery:${new Date().toISOString()}:${crypto.randomUUID()}`,
         (raw) => studioHistoryNeedsRecovery(JSON.parse(raw)),
       );
@@ -302,6 +312,7 @@ function Studio() {
   const [ask, setAsk] = useState<null | "new" | "retake">(null);
   const dirty = hasUnsavedWork(s);
   useLeaveGuard(dirty);
+  useStudioNavigationGuard({ persistenceFailed: !!persistenceIssue, busy: saving });
   const reset = (k: "new" | "retake") =>
     setS((o) =>
       k === "new"
@@ -353,7 +364,7 @@ function Studio() {
     );
   return (
     <div className="min-h-screen">
-      <AppHeader onLogo={() => update({ stage: "brief" })}>
+      <AppHeader>
         {s.stage !== "brief" && (
           <>
             <div className="flex items-center gap-4">
@@ -640,7 +651,10 @@ function Brief({ s, update }: P) {
           </div>
         }
       />
-      <StarterCollection onOpen={(g) => openGallery(g)} />
+      <details className="studio-collection-disclosure">
+        <summary>Or browse the design collection</summary>
+        <StarterCollection onOpen={(g) => openGallery(g)} />
+      </details>
     </>
   );
 }

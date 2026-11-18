@@ -126,7 +126,9 @@ function AuthPage() {
             {hosted.user ? (
               <>
                 <Button asChild>
-                  <Link to="/">Open the studio</Link>
+                  <Link to="/" search={{ view: "studio" }}>
+                    Open the studio
+                  </Link>
                 </Button>
                 <Link to="/library" className="text-sm underline">
                   My designs
@@ -165,7 +167,9 @@ function AuthPage() {
             Account sync is not connected in this installation.
           </p>
           <Button asChild className="mt-7">
-            <Link to="/">Open the studio</Link>
+            <Link to="/" search={{ view: "studio" }}>
+              Open the studio
+            </Link>
           </Button>
           <Link to="/library" className="ml-5 inline-flex min-h-11 items-center text-sm underline">
             Saved designs

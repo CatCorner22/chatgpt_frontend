@@ -100,7 +100,7 @@ function Proof() {
         {!mine.own && (
           <p className="mb-6 rounded-sm border border-accent/50 bg-accent/10 p-3 text-sm">
             This compares a sample design.{" "}
-            <Link to="/" className="underline">
+            <Link to="/" search={{ view: "studio" }} className="underline">
               Make your own
             </Link>{" "}
             and it will appear here instead.
@@ -158,7 +158,9 @@ function Proof() {
           </figure>
         </div>
         <Button asChild className="mt-8">
-          <Link to="/">Make your own</Link>
+          <Link to="/" search={{ view: "studio" }}>
+            Make your own
+          </Link>
         </Button>
       </main>
     </div>

@@ -48,7 +48,7 @@ function Reset() {
       <div className="max-w-md">
         <h1 className="font-display text-4xl">No password needed here.</h1>
         <p className="mt-4 leading-relaxed text-muted-foreground">This installation keeps your designs in this browser. Account sync and password recovery are not connected.</p>
-        <Button asChild className="mt-6"><Link to="/">Open the studio</Link></Button>
+        <Button asChild className="mt-6"><Link to="/" search={{ view: "studio" }}>Open the studio</Link></Button>
       </div>
     </main>
   );

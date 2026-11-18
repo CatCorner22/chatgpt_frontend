@@ -143,7 +143,7 @@ function Brands() {
   const open = (e: LibraryEntry) => {
     try {
       focusSessionStorage.setItem("refraction:pending-rescue", JSON.stringify(e.state));
-      void navigate({ to: "/" });
+      void navigate({ to: "/", search: { view: "studio" } });
     } catch {
       toast.error("Could not open this build. Your current design is unchanged.");
     }
@@ -215,7 +215,9 @@ function Brands() {
               Make a design first. It appears here under its brand name.
             </p>
             <Button asChild className="mt-4">
-              <Link to="/">Make a design</Link>
+              <Link to="/" search={{ view: "studio" }}>
+                Make a design
+              </Link>
             </Button>
           </div>
         )}

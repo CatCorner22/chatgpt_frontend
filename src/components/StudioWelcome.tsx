@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUpRight,
-  Asterisk,
-  Check,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, Asterisk, SlidersHorizontal, Sparkles } from "lucide-react";
 import { GALLERY, type GalleryItem } from "@/lib/gallery";
 import { DesignPreview } from "@/components/DesignPreview";
 import { Gallery } from "@/components/Gallery";
@@ -17,17 +9,10 @@ import type { ReactNode } from "react";
 import type { Integration } from "@/lib/design";
 import { IntegrationChoice } from "./IntegrationChoice";
 import { ReverieArt } from "@/components/BrandArt";
-import { useHostedSession } from "@/components/HostedBoundary";
-import { REVERIE } from "@/lib/reverie";
 
 const featured = ["purr-and-paper", "midnight-muse", "wildflower-hour"]
   .map((id) => GALLERY.find((g) => g.id === id)!)
   .filter(Boolean);
-const palettes = [
-  { name: "Garden", bg: "#e8ecdf", ink: "#263e32", accent: "#a9b78e" },
-  { name: "Terracotta", bg: "#f0e3d7", ink: "#5a352d", accent: "#bd8b71" },
-  { name: "Ink", bg: "#e5e9ee", ink: "#253949", accent: "#9caec1" },
-];
 
 export function StudioWelcome({
   brief,
@@ -58,145 +43,17 @@ export function StudioWelcome({
   integration: Integration;
   onIntegration: (value: Integration) => void;
 } & { onOpen?: never }) {
-  const [palette, setPalette] = useState(0);
-  const hosted = useHostedSession();
-  const p = palettes[palette]!;
   return (
-    <main id="main-content" className="studio-welcome">
-      <aside className="welcome-tour-invitation" aria-labelledby="welcome-tour-heading">
-        <ReverieArt pose="library" />
-        <div>
-          <h2 id="welcome-tour-heading" className="font-display text-xl">
-            Welcome to Focus. Meet Reverie.
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{REVERIE.introduction}</p>
-        </div>
-        <Link to="/welcome" className="welcome-tour-link">
-          Take the welcome tour <ArrowRight size={16} aria-hidden="true" />
-        </Link>
-      </aside>
-      <section className="welcome-hero" aria-labelledby="welcome-title">
-        <div className="welcome-intro">
-          <div className="studio-kicker">
-            <span /> A little clarity. A lot of possibility.
-          </div>
-          <h1 id="welcome-title">
-            Good design.
-            <br />
-            Your <em>point of view.</em>
-          </h1>
-          <p className="welcome-description">
-            Turn what you have in mind into a design that feels like you. Explore a direction, make
-            it yours, and take it anywhere.
-          </p>
-          <a href="#start-design" className="welcome-primary">
-            Find my direction <ArrowRight size={18} />
-          </a>
-          <a href="#design-library" className="welcome-secondary">
-            Explore the collection <ArrowDown size={15} />
-          </a>
-          <div className="welcome-note">
-            <Check size={15} /> {hosted ? "Your private workspace" : "No account needed"}{" "}
-            <span>·</span> Saved in your browser
-          </div>
-        </div>
-        <div className="welcome-art">
-          <div className="specimen-chrome">
-            <span className="specimen-dots">
-              <i />
-              <i />
-              <i />
-            </span>
-            <span>Your next great idea</span>
-            <span>↗</span>
-          </div>
-          <div className="welcome-specimen" style={{ background: p.bg, color: p.ink }}>
-            <div className="specimen-nav">
-              <strong>form & field</strong>
-              <span>Objects for everyday living</span>
-            </div>
-            <div className="specimen-body">
-              <div>
-                <span className="specimen-eyebrow">LESS, BUT WITH MEANING</span>
-                <h2>
-                  A slower
-                  <br />
-                  kind of living.
-                </h2>
-                <p>
-                  Thoughtful objects. Natural materials.
-                  <br />A little more room to just be.
-                </p>
-                <span className="specimen-link">
-                  Discover the collection <ArrowUpRight size={14} />
-                </span>
-              </div>
-              <div className="specimen-sculpture" aria-hidden="true">
-                <div className="sculpture-shadow" />
-                <div className="sculpture-circle" style={{ background: p.accent }} />
-                <div className="sculpture-vase" style={{ color: p.accent }} />
-                <div className="sculpture-stem" />
-                <div className="sculpture-leaf leaf-one" style={{ background: p.ink }} />
-                <div className="sculpture-leaf leaf-two" style={{ background: p.ink }} />
-              </div>
-            </div>
-            <div className="specimen-bottom">
-              <span>A concept, made yours.</span>
-              <span>01 / 03</span>
-            </div>
-          </div>
-          <div className="specimen-controls">
-            <div>
-              <span className="palette-label">Try a different mood</span>
-              <div className="palette-options">
-                {palettes.map((x, i) => (
-                  <button
-                    key={x.name}
-                    type="button"
-                    onClick={() => setPalette(i)}
-                    aria-label={`${x.name} preview palette`}
-                    aria-pressed={palette === i}
-                    style={{ background: x.ink }}
-                  >
-                    <span className="sr-only">{x.name}</span>
-                    {palette === i && <Check size={14} />}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <span className="specimen-caption">
-              Small choices.
-              <br />
-              <strong>A whole different feeling.</strong>
-            </span>
-          </div>
-        </div>
-      </section>
-      <div className="studio-workflow" aria-label="How Focus works">
-        <span>
-          <b>01</b> Find your direction
-        </span>
-        <ArrowRight size={15} />
-        <span>
-          <b>02</b> Make it your own
-        </span>
-        <ArrowRight size={15} />
-        <span>
-          <b>03</b> Build with confidence
-        </span>
-      </div>
+    <main id="main-content" className="studio-welcome studio-welcome--calm">
       <section id="start-design" className="start-design" aria-labelledby="start-title">
         <div>
-          <p className="eyebrow">A blank page, with a head start</p>
-          <h2 id="start-title">
-            What are you
-            <br />
-            bringing to life?
-          </h2>
+          <p className="eyebrow">Vision · your design direction</p>
+          <h1 id="start-title">What should this page help people do?</h1>
           <p>
-            Tell us a little about your project. We’ll match it with three looks from the
-            collection.
+            Tell me who it is for, what they need, and the feeling you have in mind. We’ll find
+            three starting points from the collection.
           </p>
+          <ReverieArt pose="library" />
           <div className="local-method">
             <Sparkles size={18} />
             <span>

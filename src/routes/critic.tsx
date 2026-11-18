@@ -594,7 +594,9 @@ function Critic() {
                 floors built in.
               </p>
               <Button asChild className="mt-3">
-                <Link to="/">Start designing</Link>
+                <Link to="/" search={{ view: "studio" }}>
+                  Start designing
+                </Link>
               </Button>
             </div>
           </section>

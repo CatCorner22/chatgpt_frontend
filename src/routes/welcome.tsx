@@ -85,7 +85,7 @@ export function WelcomeSession() {
             </p>
           </div>
           <Button asChild variant="outline">
-            <Link to="/">
+            <Link to="/" search={{ view: "studio" }}>
               Return to studio <ArrowRight size={16} />
             </Link>
           </Button>
@@ -191,7 +191,12 @@ export function WelcomeSession() {
                   )}
                   {(step.id === "welcome" || step.id === "design" || step.id === "pack") && (
                     <Button asChild variant="outline">
-                      <Link to="/" target="_blank" rel="noopener noreferrer">
+                      <Link
+                        to="/"
+                        search={{ view: "studio" }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Open design studio <ExternalLink size={14} />
                         <span className="sr-only"> (new tab)</span>
                       </Link>

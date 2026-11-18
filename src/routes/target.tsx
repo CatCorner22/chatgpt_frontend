@@ -476,7 +476,11 @@ export function Target() {
                       {entries.length === 0 && !libraryIssue && (
                         <p className="mt-3 text-sm">
                           No saved designs are available yet.{" "}
-                          <Link to="/" className="underline underline-offset-4">
+                          <Link
+                            to="/"
+                            search={{ view: "studio" }}
+                            className="underline underline-offset-4"
+                          >
                             Create a Vision
                           </Link>
                           , save it, then return here.

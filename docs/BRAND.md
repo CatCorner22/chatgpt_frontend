@@ -10,7 +10,7 @@ The approved “Aim & Imagine” identity features **Reverie**, the same cream-a
 - Telescope: Reverie in an ivory spacesuit beside a small cream-and-coral spaceship, for advanced tools.
 - Target: Reverie shooting a coral basketball into a small hoop, for preparing a design for a real project.
 
-Reverie introduces herself in the studio and welcome guide. **Explore → About Reverie** opens her first-person profile at `/reverie`, explains her name and leads into the welcome guide. Shared introduction copy lives in `src/lib/reverie.ts`; supporting illustrations use `ReverieArt`. Refer to her by name and use she/her when pronouns are needed.
+Reverie introduces herself in the studio and welcome guide. **Help → About Reverie** opens her first-person profile at `/reverie`, explains her name and leads into the welcome guide. Shared introduction copy lives in `src/lib/reverie.ts`; supporting illustrations use `ReverieArt`. Refer to her by name and use she/her when pronouns are needed.
 
 Character development and sticker assets have a separate Reverie handoff pack; application branding remains in this repository. Naming a capability does not replace descriptive labels or imply that a project has passed a quality gate.
 

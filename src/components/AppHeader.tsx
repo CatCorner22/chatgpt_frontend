@@ -6,12 +6,32 @@ import { hasCloudBackend } from "@/lib/runtime-config";
 import { useHostedSession } from "@/components/HostedBoundary";
 import { BrandLogo } from "@/components/BrandArt";
 
-export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?: () => void }) {
+export function AppHeader({ children }: { children?: ReactNode }) {
   const user = useUser();
   const hosted = useHostedSession();
   const active = { "aria-current": "page" as const };
   return (
-    <header className="studio-header">
+    <header
+      className="studio-header"
+      onClickCapture={(event) => {
+        const summary = event.target instanceof Element ? event.target.closest("summary") : null;
+        const opening = summary?.parentElement;
+        if (!(opening instanceof HTMLDetailsElement) || opening.open) return;
+        for (const menu of event.currentTarget.querySelectorAll<HTMLDetailsElement>(
+          "details[open]",
+        )) {
+          if (menu !== opening) menu.open = false;
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        const menu = event.target instanceof Element ? event.target.closest("details[open]") : null;
+        if (menu instanceof HTMLDetailsElement) {
+          menu.open = false;
+          menu.querySelector("summary")?.focus();
+        }
+      }}
+    >
       <a
         href="#main-content"
         onClick={(event) => {
@@ -28,40 +48,27 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
         Skip to content
       </a>
       <div className="studio-header-main">
-        <Link to="/" onClick={onLogo} className="studio-logo" aria-label="Focus home">
+        <Link to="/" search={{}} className="studio-logo" aria-label="Focus home">
           <BrandLogo decorative />
         </Link>
         <nav className="studio-navigation" aria-label="Main">
-          <Link to="/" activeOptions={{ exact: true }} activeProps={active}>
-            Design studio
+          <Link to="/" search={{}} activeOptions={{ exact: true }} activeProps={active}>
+            Your journey
           </Link>
           <Link to="/library" activeProps={active}>
             My designs
           </Link>
-          <Link
-            to="/target"
-            activeProps={active}
-            title="Target — prepare your design for a real project"
-          >
-            Target
-          </Link>
-          <Link
-            to="/progress"
-            activeProps={active}
-            title="Horizon — project progress and next steps"
-          >
-            Horizon
-          </Link>
-          <Link to="/telescope" activeProps={active} title="Telescope — advanced build tools">
-            Telescope
-          </Link>
           <details className="studio-more">
             <summary>
-              Explore <ChevronDown size={13} />
+              Tools <ChevronDown size={13} />
             </summary>
             <div className="studio-more-menu">
-              <Link to="/welcome">Welcome to Focus</Link>
-              <Link to="/reverie">About Reverie</Link>
+              <Link to="/" search={{ view: "studio" }}>
+                Design studio · Vision
+              </Link>
+              <Link to="/target">Prepare the build · Target</Link>
+              <Link to="/telescope">Inspect a build · Telescope</Link>
+              <Link to="/progress">Project progress · Horizon</Link>
               <Link to="/quality">Quality lab</Link>
               <Link to="/review-room">Blind review room</Link>
               <Link to="/taste">Discover my taste</Link>
@@ -69,6 +76,16 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
               <Link to="/brands">Brand collections</Link>
               <Link to="/watchtower">Site monitor</Link>
               <Link to="/proof">Before & after</Link>
+            </div>
+          </details>
+          <details className="studio-more">
+            <summary>
+              Help <ChevronDown size={13} />
+            </summary>
+            <div className="studio-more-menu">
+              <Link to="/welcome">Detailed walkthrough</Link>
+              <Link to="/reverie">About Reverie</Link>
+              <Link to="/privacy">Privacy and your data</Link>
             </div>
           </details>
         </nav>

@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppHeader } from "@/components/AppHeader";
 import { Route as AuthRoute } from "@/routes/auth";
@@ -28,6 +28,47 @@ beforeEach(() => {
   });
 });
 describe("hosted account navigation", () => {
+  it("opens only one header disclosure at a time, including the account menu", () => {
+    const { container } = render(<AppHeader />);
+    const tools = screen.getByText("Tools").closest("summary")!;
+    const help = screen.getByText("Help").closest("summary")!;
+    const account = screen.getByText("Your account").closest("summary")!;
+    for (const summary of [tools, help, account, tools]) {
+      // Activate a nested icon as well as the summary text; both belong to the control.
+      fireEvent.click(summary.querySelector("svg") ?? summary);
+      expect(summary.parentElement).toHaveAttribute("open");
+      expect(container.querySelectorAll("details[open]")).toHaveLength(1);
+      for (const sibling of [tools, help, account]) {
+        if (sibling !== summary) expect(sibling.parentElement).not.toHaveAttribute("open");
+      }
+    }
+    expect(screen.getByText("Detailed walkthrough")).not.toBeVisible();
+    expect(screen.getByText("Your online library")).not.toBeVisible();
+    expect(screen.getByText("Design studio · Vision")).toBeVisible();
+    fireEvent.click(tools);
+    expect(container.querySelectorAll("details[open]")).toHaveLength(0);
+  });
+
+  it.each([
+    ["Tools", "Quality lab"],
+    ["Help", "Detailed walkthrough"],
+    ["Your account", "Your online library"],
+  ])("closes %s with Escape from a menu link and returns focus to its summary", (label, link) => {
+    render(<AppHeader />);
+    const summary = screen.getByText(label).closest("summary")!;
+    fireEvent.click(summary);
+    const destination = screen.getByRole("link", { name: link });
+    destination.focus();
+    expect(destination).toHaveFocus();
+    fireEvent.keyDown(destination, { key: "ArrowDown" });
+    expect(summary.parentElement).toHaveAttribute("open");
+    expect(destination).toHaveFocus();
+    fireEvent.keyDown(destination, { key: "Escape" });
+    expect(summary.parentElement).not.toHaveAttribute("open");
+    expect(destination).not.toBeVisible();
+    expect(summary).toHaveFocus();
+  });
+
   it("identifies the actual hosted account and signs out in the top-level window", () => {
     render(<AppHeader />);
     expect(screen.getByText("a@example.test")).toBeInTheDocument();

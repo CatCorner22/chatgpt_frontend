@@ -54,7 +54,9 @@ describe("local existing-site rescue", () => {
     expect(screen.getByRole("heading", { name: source.content.headline })).toBeInTheDocument();
     expect(screen.getByText(source.content.sub)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open redesign Vision" }));
-    await waitFor(() => expect(calls.navigate).toHaveBeenCalledWith({ to: "/" }));
+    await waitFor(() =>
+      expect(calls.navigate).toHaveBeenCalledWith({ to: "/", search: { view: "studio" } }),
+    );
     const pending = JSON.parse(sessionStorage.getItem("refraction:pending-rescue")!);
     expect(pending.content).toEqual(source.content);
     expect(pending.integration).toBe("existing");

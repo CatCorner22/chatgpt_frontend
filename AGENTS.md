@@ -30,7 +30,8 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Focus architecture (formerly Refraction)
-- **Reverie** is Focus's cream-and-ginger cat guide (she/her). Her name means "a pleasant daydream." Use her name in app copy and current character documentation; preserve the approved artwork. Her profile is `/reverie` under Explore → About Reverie.
+- **Cat Samurai** is Blake’s design and engineering principle: calm, playful, distinctive, and intuitive on the surface; disciplined, reliable, powerful, clear, and logical underneath. Calm never means boring. **No beige app surfaces or default beige aesthetic.** Preserve Reverie and the Garden Path, use meaningful color and optional depth, and verify behavior without claiming zero defects. See `docs/CAT-SAMURAI.md`.
+- **Reverie** is Focus's cream-and-ginger cat guide (she/her). Her name means "a pleasant daydream." Use her name in app copy and current character documentation; preserve the approved artwork. Her profile is `/reverie` under Help → About Reverie.
 - **North Star** is the user's defined project goal: "vibe-coded frontend UI, UX, etc. that is as good as the best human coders." Use that meaning consistently. Technical correctness, visual craft, task usability, responsive and interaction behavior, and a reliable customer handoff all matter; passing tests alone does not establish human-quality equivalence. See `docs/NORTH-STAR-REVIEW.md` for the current priorities and evidence limits.
 - Design values are tokens (`src/lib/design.ts`); AI output always passes `normalizeTokens` before use — never trust raw AI values.
 - The decision engine (`src/lib/engine.ts`) holds all cross-decision rules in one table; rules point only from earlier to later layers so no loops form; each rule has a test in `src/test/engine.test.ts`.

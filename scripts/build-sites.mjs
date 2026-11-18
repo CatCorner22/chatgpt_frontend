@@ -78,6 +78,17 @@ function sourceContract(root) {
   const hosting = readJson(join(root, ".openai/hosting.json"));
   if (typeof hosting.project_id !== "string" || !hosting.project_id.trim())
     throw new Error("hosting.json must contain the registered Site project_id");
+  // Sites provisions storage from logical binding names, not Wrangler binding objects.
+  for (const key of ["d1", "r2"]) {
+    const binding = hosting[key];
+    if (
+      binding != null &&
+      (typeof binding !== "string" || !binding.trim() || binding !== binding.trim())
+    )
+      throw new Error(
+        `hosting.json ${key} must be null or a non-empty logical binding name string`,
+      );
+  }
   if (hosting.static != null)
     throw new Error(
       "Focus needs a Worker deployment; remove static from the source hosting manifest",

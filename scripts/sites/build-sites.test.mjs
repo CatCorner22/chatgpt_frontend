@@ -11,7 +11,7 @@ function fixture() {
     mkdirSync(join(root, dir), { recursive: true });
   writeFileSync(
     join(root, ".openai/hosting.json"),
-    JSON.stringify({ project_id: "fixture-site", d1: null, r2: { binding: "BUCKET" } }),
+    JSON.stringify({ project_id: "fixture-site", d1: null, r2: "BUCKET" }),
   );
   writeFileSync(
     join(root, ".output/server/index.mjs"),
@@ -69,7 +69,7 @@ test("preserves every module and public asset plus logical storage declarations"
     assert.deepEqual(JSON.parse(readFileSync(join(root, "dist/.openai/hosting.json"), "utf8")), {
       project_id: "fixture-site",
       d1: null,
-      r2: { binding: "BUCKET" },
+      r2: "BUCKET",
     });
     const worker = await import(join(root, "dist/server/index.js"));
     assert.equal(await worker.default.fetch().text(), "42");
@@ -108,3 +108,22 @@ test("refuses static or incompatible Worker configuration", () =>
     );
     assert.throws(() => prepareSitesArtifact(root), /ASSETS/);
   }));
+
+for (const binding of ["d1", "r2"]) {
+  test(`validates ${binding} as a logical binding string or null`, () =>
+    useFixture((root) => {
+      const manifest = join(root, ".openai/hosting.json");
+      for (const value of [{ binding: "BUCKET" }, [], true, 42, "", "   ", " BUCKET "]) {
+        writeFileSync(manifest, JSON.stringify({ project_id: "fixture-site", [binding]: value }));
+        assert.throws(() => prepareSitesArtifact(root), /logical binding name/);
+      }
+      for (const value of [null, binding === "r2" ? "BUCKET" : "DB"]) {
+        writeFileSync(manifest, JSON.stringify({ project_id: "fixture-site", [binding]: value }));
+        prepareSitesArtifact(root);
+        assert.equal(
+          JSON.parse(readFileSync(join(root, "dist/.openai/hosting.json"), "utf8"))[binding],
+          value,
+        );
+      }
+    }));
+}

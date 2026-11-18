@@ -1,10 +1,30 @@
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import { Plus, Minus, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Content } from "@/lib/design";
+
+type FocusTarget = number | "add" | "quote";
+type PendingFocus = {
+  source: Content;
+  before: string;
+  expected: string;
+  origin: HTMLButtonElement;
+  target: FocusTarget;
+  stopListening: () => void;
+};
+
+const contentSnapshot = (content: Content) =>
+  JSON.stringify([
+    content.brand,
+    content.headline,
+    content.sub,
+    content.cta,
+    content.quote,
+    content.features.map(({ title, body }) => [title, body]),
+  ]);
 
 /** Real owner content stays separate from design decisions and sample starter copy. */
 export function ContentEditor({
@@ -19,18 +39,108 @@ export function ContentEditor({
   autoFocus?: boolean;
 }) {
   const id = useId();
-  const change = (field: Exclude<keyof Content, "features">, value: string) =>
+  const editorRef = useRef<HTMLDetailsElement>(null);
+  const featureRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const addRef = useRef<HTMLButtonElement>(null);
+  const quoteRef = useRef<HTMLTextAreaElement>(null);
+  const pendingFocus = useRef<PendingFocus | null>(null);
+  const cancelFocus = () => {
+    pendingFocus.current?.stopListening();
+    pendingFocus.current = null;
+  };
+
+  // The parent owns content. Focus acknowledges only this exact accepted edit,
+  // never a guessed feature count or a later unrelated parent update.
+  useLayoutEffect(() => {
+    const pending = pendingFocus.current;
+    if (!pending) return;
+    const current = contentSnapshot(content);
+    if (content === pending.source && current === pending.before) return;
+    pending.stopListening();
+    pendingFocus.current = null;
+    const document = pending.origin.ownerDocument;
+    const stillHere = document.activeElement === pending.origin;
+    const removedControl =
+      document.activeElement === document.body &&
+      (!pending.origin.isConnected || pending.origin.disabled);
+    if (current !== pending.expected || !editorRef.current?.open || (!stillHere && !removedControl))
+      return;
+    const target =
+      pending.target === "add"
+        ? addRef.current
+        : pending.target === "quote"
+          ? quoteRef.current
+          : featureRefs.current[pending.target];
+    if (target?.isConnected) target.focus();
+  });
+
+  useLayoutEffect(
+    () => () => {
+      pendingFocus.current?.stopListening();
+      pendingFocus.current = null;
+    },
+    [],
+  );
+
+  const changeAndFocus = (next: Content, target: FocusTarget, origin: HTMLButtonElement) => {
+    cancelFocus();
+    const document = origin.ownerDocument;
+    const view = document.defaultView;
+    const pending: PendingFocus = {
+      source: content,
+      before: contentSnapshot(content),
+      expected: contentSnapshot(next),
+      origin,
+      target,
+      stopListening: () => {},
+    };
+    const cancel = () => {
+      if (pendingFocus.current === pending) cancelFocus();
+    };
+    const movedFocus = (event: FocusEvent) => {
+      if (event.target !== origin) cancel();
+    };
+    pending.stopListening = () => {
+      document.removeEventListener("focusin", movedFocus);
+      document.removeEventListener("pointerdown", cancel, true);
+      document.removeEventListener("keydown", cancel, true);
+      view?.removeEventListener("blur", cancel);
+    };
+    pendingFocus.current = pending;
+    document.addEventListener("focusin", movedFocus);
+    document.addEventListener("pointerdown", cancel, true);
+    document.addEventListener("keydown", cancel, true);
+    view?.addEventListener("blur", cancel);
+    try {
+      onChange(next);
+    } catch (error) {
+      cancel();
+      throw error;
+    }
+  };
+  const change = (field: Exclude<keyof Content, "features">, value: string) => {
+    cancelFocus();
     onChange({ ...content, [field]: value });
-  const changeFeature = (index: number, field: "title" | "body", value: string) =>
+  };
+  const changeFeature = (index: number, field: "title" | "body", value: string) => {
+    cancelFocus();
     onChange({
       ...content,
       features: content.features.map((feature, at) =>
         at === index ? { ...feature, [field]: value } : feature,
       ),
     });
+  };
 
   return (
-    <details open={defaultOpen} className="group border-y border-border py-5">
+    <details
+      ref={editorRef}
+      open={defaultOpen}
+      onToggle={(event) => {
+        if (!event.currentTarget.open) cancelFocus();
+      }}
+      className="group border-y border-border py-5"
+    >
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-3">
           <PenLine className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -100,18 +210,26 @@ export function ContentEditor({
                   variant="ghost"
                   size="sm"
                   aria-label={`Remove feature ${index + 1}`}
-                  onClick={() =>
-                    onChange({
-                      ...content,
-                      features: content.features.filter((_, at) => at !== index),
-                    })
-                  }
+                  onClick={(event) => {
+                    const features = content.features.filter((_, at) => at !== index);
+                    changeAndFocus(
+                      {
+                        ...content,
+                        features,
+                      },
+                      features.length ? Math.min(index, features.length - 1) : "add",
+                      event.currentTarget,
+                    );
+                  }}
                 >
                   <Minus className="size-3.5" aria-hidden="true" />
                   Remove
                 </Button>
               </div>
               <Input
+                ref={(element) => {
+                  featureRefs.current[index] = element;
+                }}
                 id={`${id}-feature-${index}`}
                 value={feature.title}
                 maxLength={120}
@@ -133,13 +251,19 @@ export function ContentEditor({
             </div>
           ))}
           <Button
+            ref={addRef}
             type="button"
             variant="outline"
             size="sm"
             disabled={content.features.length >= 8}
-            onClick={() =>
-              onChange({ ...content, features: [...content.features, { title: "", body: "" }] })
-            }
+            onClick={(event) => {
+              if (content.features.length >= 8) return;
+              changeAndFocus(
+                { ...content, features: [...content.features, { title: "", body: "" }] },
+                content.features.length,
+                event.currentTarget,
+              );
+            }}
           >
             <Plus className="size-4" aria-hidden="true" />
             Add a feature
@@ -151,6 +275,7 @@ export function ContentEditor({
             <span className="font-normal text-muted-foreground">(optional)</span>
           </Label>
           <Textarea
+            ref={quoteRef}
             id={`${id}-quote`}
             value={content.quote}
             maxLength={1000}
@@ -167,7 +292,14 @@ export function ContentEditor({
             testimonial.
           </p>
           {content.quote && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => change("quote", "")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={(event) =>
+                changeAndFocus({ ...content, quote: "" }, "quote", event.currentTarget)
+              }
+            >
               Remove quote
             </Button>
           )}

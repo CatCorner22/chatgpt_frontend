@@ -1,5 +1,18 @@
 import type { Content } from "./design";
 
+/** Preserve owner punctuation; only surrounding whitespace is presentation padding. */
+export function getAuthoredQuote(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** Compare with v14 output for review invalidation only. Never render the legacy text. */
+export function authoredQuoteChangesLegacyOutput(value: unknown): boolean {
+  const quote = getAuthoredQuote(value);
+  if (!quote) return false;
+  const legacy = "“" + quote.replace(/^["“]+|["”]+$/g, "") + "”";
+  return quote !== legacy;
+}
+
 /** A disclosure needs additional content, not merely a visible heading. */
 export function hasAuthoredFeatureDescription(feature: Content["features"][number]): boolean {
   return typeof feature?.body === "string" && !!feature.body.trim();

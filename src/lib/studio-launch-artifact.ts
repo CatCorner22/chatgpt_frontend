@@ -1,5 +1,9 @@
 import type { State } from "./studio-state";
-import { getAuthoredFeatures, hasAuthoredFeatureDescription } from "./authored-content";
+import {
+  authoredQuoteChangesLegacyOutput,
+  getAuthoredFeatures,
+  hasAuthoredFeatureDescription,
+} from "./authored-content";
 
 type LaunchState = Pick<State, "content" | "page" | "purpose" | "nav" | "integration">;
 
@@ -23,5 +27,8 @@ export function buildStudioLaunchArtifact(state: LaunchState) {
     nav: state.nav,
     // Preserve prior revisions and exact legacy identities for unaffected renderer branches.
     ...(authoredOutputRevision ? { authoredOutputRevision } : {}),
+    ...(isAuthoredPage && authoredQuoteChangesLegacyOutput(state.content?.quote)
+      ? { authoredQuoteRevision: "quote-text-v1" as const }
+      : {}),
   };
 }

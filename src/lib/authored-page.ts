@@ -1,6 +1,10 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
-import { getAuthoredFeatures, hasAuthoredFeatureDescription } from "./authored-content";
+import {
+  getAuthoredFeatures,
+  getAuthoredQuote,
+  hasAuthoredFeatureDescription,
+} from "./authored-content";
 import { AUTHORED_FONT_COVERAGE, buildEmbeddedFonts } from "./authored-fonts";
 import {
   compactImageFraming,
@@ -178,7 +182,7 @@ export function buildAuthoredPage(
   const brand = text(content.brand) || "Untitled project";
   const headline = text(content.headline) || brand;
   const sub = text(content.sub);
-  const quote = text(content.quote);
+  const quote = getAuthoredQuote(content.quote);
   const features = getAuthoredFeatures(content.features);
   const firstDescription = features.findIndex(hasAuthoredFeatureDescription);
   const hasStaticProductFeatures =
@@ -491,7 +495,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
     ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / Details</span><h2 id="details-title">A closer look.</h2></div><div class="feature-list">${rows}</div></section>`
     : "";
   const quoteSection = quote
-    ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>“${escape(quote.replace(/^["“]+|["”]+$/g, ""))}”</p></blockquote></section>`
+    ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>${escape(quote)}</p></blockquote></section>`
     : "";
   const closing =
     action && (hasDetails || quote)

@@ -28,26 +28,176 @@ const review: ReviewEvidence = {
   priorities: [],
   repair: "Add viewport",
 };
+const passingReview: ReviewEvidence = {
+  ...review,
+  score: 100,
+  checks: [{ name: "phone", ok: true, detail: "Phone setting present", fix: "" }],
+  repair: "",
+};
+
+describe("launch readiness safeguards", () => {
+  const details = (reviews: ReviewEvidence[], url = "https://example.com") => ({
+    ...EMPTY_LAUNCH,
+    url,
+    reviews,
+    tasks: TASKS.map((task) => task.id),
+  });
+
+  it("refuses a known measured failure even after every owner confirmation", () => {
+    const failed = details([{ ...review, score: 100 }]);
+    expect(canLaunch(failed)).toBe(false);
+    expect(() => markLaunched(failed, "2026-11-18T00:00:00Z")).toThrow();
+  });
+
+  it("refuses an unresolved design mismatch from the current page review", () => {
+    expect(
+      canLaunch(details([{ ...passingReview, prescription: [{ name: "fonts", ok: false }] }])),
+    ).toBe(false);
+  });
+
+  it.each([
+    "https://other.example/",
+    "https://example.com/other",
+    "https://example.com/?view=other",
+    "https://example.com/#other",
+  ])("does not apply reviews of %s to the current built address", (target) =>
+    expect(canLaunch(details([{ ...passingReview, target }]))).toBe(false),
+  );
+
+  it("does not treat screenshot opinion or an empty review as measured URL evidence", () => {
+    expect(canLaunch(details([{ ...passingReview, kind: "screenshot", score: null }]))).toBe(false);
+    expect(
+      canLaunch(
+        details([{ ...passingReview, checks: [], prescription: [{ name: "fonts", ok: true }] }]),
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps a prior failure open when a later partial review omits it", () => {
+    const partial = {
+      ...passingReview,
+      checks: [{ name: "headings", ok: true, detail: "One heading", fix: "" }],
+    };
+    expect(canLaunch(details([review, partial]))).toBe(false);
+    expect(canLaunch(details([review, partial, passingReview]))).toBe(true);
+  });
+
+  it("cannot hide an unresolved current-page failure behind another page or screenshot", () => {
+    expect(
+      canLaunch(details([review, { ...passingReview, target: "https://other.example/" }])),
+    ).toBe(false);
+    expect(
+      canLaunch(details([review, { ...passingReview, kind: "screenshot", score: null }])),
+    ).toBe(false);
+  });
+
+  it("accepts equivalent canonical URLs without mixing failures from unrelated pages", () => {
+    expect(
+      canLaunch(
+        details(
+          [{ ...review, target: "https://other.example/" }, passingReview],
+          "https://EXAMPLE.com:443",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("preserves historical launch records when their prior evidence would no longer qualify", () => {
+    const historical = {
+      ...details([review]),
+      status: "launched",
+      launchedAt: "2026-11-17T00:00:00Z",
+    };
+    const parsed = parseDetails(historical);
+    expect(parsed).toEqual(historical);
+    expect(canLaunch(parsed)).toBe(false);
+    expect(parsed.status).toBe("launched");
+    expect(parsed.launchedAt).toBe(historical.launchedAt);
+  });
+
+  it("keeps explicitly possible findings advisory while still requiring measured checks", () => {
+    const advisory = {
+      name: "interruption",
+      ok: false,
+      detail: "Possible cookie dialog",
+      fix: "Review it",
+      possible: true,
+    };
+    expect(
+      canLaunch(details([{ ...passingReview, checks: [...passingReview.checks, advisory] }])),
+    ).toBe(true);
+    expect(canLaunch(details([{ ...passingReview, checks: [advisory] }]))).toBe(false);
+  });
+
+  it("requires a fresh classification before treating an old unflagged finding as advisory", () => {
+    const old = {
+      ...passingReview,
+      checks: [
+        ...passingReview.checks,
+        { name: "interruption", ok: false, detail: "Possible dialog", fix: "Review it" },
+      ],
+    };
+    const fresh = {
+      ...passingReview,
+      checks: [...passingReview.checks, { ...old.checks[1]!, possible: true }],
+    };
+    expect(canLaunch(details([old]))).toBe(false);
+    expect(canLaunch(details([old, fresh]))).toBe(true);
+    expect(old.checks[1]!.ok).toBe(false);
+  });
+});
 describe("launch evidence", () => {
   const artifact = {
-    content: { brand: "Clay House", headline: "Made for everyday rituals.", features: [{ title: "Classes", body: "Small groups." }] },
-    page: { composition: "studio", actionUrl: "https://example.com/book", imageId: "a".repeat(64), imageAlt: "A handmade cup" },
-    experience: "website", nav: "top-menu",
+    content: {
+      brand: "Clay House",
+      headline: "Made for everyday rituals.",
+      features: [{ title: "Classes", body: "Small groups." }],
+    },
+    page: {
+      composition: "studio",
+      actionUrl: "https://example.com/book",
+      imageId: "a".repeat(64),
+      imageAlt: "A handmade cup",
+    },
+    experience: "website",
+    nav: "top-menu",
   };
   const withLaunch = (art?: unknown) => {
     const list = upsertProgress([], "a", "Clay House", tokens, "2026-11-17T01:00:00Z", art);
-    return list.map(record => ({ ...record, details: markLaunched({
-      ...addEvidence(EMPTY_LAUNCH, review), url: "https://example.com", tasks: TASKS.map(task => task.id),
-    }, "2026-11-17T02:00:00Z") }));
+    return list.map((record) => ({
+      ...record,
+      details: markLaunched(
+        {
+          ...addEvidence(EMPTY_LAUNCH, passingReview),
+          url: "https://example.com",
+          tasks: TASKS.map((task) => task.id),
+        },
+        "2026-11-17T02:00:00Z",
+      ),
+    }));
   };
   it("invalidates old token-only evidence once when the full artifact is supplied", () => {
     const legacy = withLaunch();
     expect(legacy[0]?.fingerprint).toBe(designFingerprint(tokens));
-    const migrated = upsertProgress(legacy, "a", "Clay House", tokens, "2026-11-18T01:00:00Z", artifact);
+    const migrated = upsertProgress(
+      legacy,
+      "a",
+      "Clay House",
+      tokens,
+      "2026-11-18T01:00:00Z",
+      artifact,
+    );
     expect(migrated[0]?.details).toEqual(EMPTY_LAUNCH);
     expect(migrated[0]?.completedAt).toBe(legacy[0]?.completedAt);
     const verified = withLaunch(artifact);
-    const same = upsertProgress(verified, "a", "Clay House", tokens, "2026-11-18T01:00:00Z", artifact);
+    const same = upsertProgress(
+      verified,
+      "a",
+      "Clay House",
+      tokens,
+      "2026-11-18T01:00:00Z",
+      artifact,
+    );
     expect(same[0]?.details.status).toBe("launched");
   });
   it("invalidates confirmations for content, layout, destination, image, description, or navigation changes", () => {
@@ -62,7 +212,14 @@ describe("launch evidence", () => {
       { ...artifact, experience: "app" },
     ];
     for (const changed of changes) {
-      const next = upsertProgress(launched, "a", "Clay House", tokens, "2026-11-18T01:00:00Z", changed)[0]!;
+      const next = upsertProgress(
+        launched,
+        "a",
+        "Clay House",
+        tokens,
+        "2026-11-18T01:00:00Z",
+        changed,
+      )[0]!;
       expect(next.details.status).toBe("ready");
       expect(next.details.reviews).toEqual([]);
       expect(next.details.tasks).toEqual([]);
@@ -71,9 +228,19 @@ describe("launch evidence", () => {
   });
   it("uses canonical bounded artifact identity without changing the public token design ID", () => {
     const reordered = {
-      nav: artifact.nav, experience: artifact.experience,
-      page: { imageAlt: artifact.page.imageAlt, imageId: artifact.page.imageId, actionUrl: artifact.page.actionUrl, composition: artifact.page.composition },
-      content: { features: artifact.content.features, headline: artifact.content.headline, brand: artifact.content.brand },
+      nav: artifact.nav,
+      experience: artifact.experience,
+      page: {
+        imageAlt: artifact.page.imageAlt,
+        imageId: artifact.page.imageId,
+        actionUrl: artifact.page.actionUrl,
+        composition: artifact.page.composition,
+      },
+      content: {
+        features: artifact.content.features,
+        headline: artifact.content.headline,
+        brand: artifact.content.brand,
+      },
     };
     expect(launchFingerprint(tokens, reordered)).toBe(launchFingerprint(tokens, artifact));
     const before = designId(tokens);
@@ -95,7 +262,7 @@ describe("launch evidence", () => {
   });
   it("launch requires a public address, actual review and all four confirmations", () => {
     const d = {
-      ...addEvidence(EMPTY_LAUNCH, review),
+      ...addEvidence(EMPTY_LAUNCH, passingReview),
       url: "https://example.com",
       tasks: TASKS.map((t) => t.id),
     };
@@ -107,7 +274,7 @@ describe("launch evidence", () => {
   it("new reviews invalidate earlier task and launch confirmations", () => {
     const d = markLaunched(
       {
-        ...addEvidence(EMPTY_LAUNCH, review),
+        ...addEvidence(EMPTY_LAUNCH, passingReview),
         url: "https://example.com",
         tasks: TASKS.map((t) => t.id),
       },

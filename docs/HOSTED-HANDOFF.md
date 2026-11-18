@@ -37,6 +37,16 @@ The working-page ZIP's `focus-project.json` is a developer source archive, not a
 
 The website download does not create a booking service, payment system or contact backend. Its action leads to the real destination you provide. See `CUSTOMER-HANDOFF.md` for standalone page hosting and existing-site acceptance.
 
+## Prepare an existing React or Next.js project with Target
+
+Open **Target** from the main navigation. Choose a saved design and **Restyle an existing app or website**, then the GitHub React/Next.js path. Describe one page, the improvement a visitor should notice, the tasks that must keep working, the named backup, the isolated preview, and how the trial will be undone.
+
+Target prepares one validated ZIP containing your selected design's actual tokens and project-specific instructions in `DESIGN.md`. Its prompts guide your coding tool through inspecting the repository, making a scoped change, testing and fixing it, demonstrating selective rollback, and preparing the change for owner review. Follow the included folder-collision instructions before extracting anything. A branch needs a preview with test accounts and sandbox integrations; it must not write to production data.
+
+Target has no writable GitHub or hosting connection. **Prepared for a trial** means the pack is ready to be tried; it does not mean a change was applied, a task passed, or a release was approved. Target answers remain in this browser and are not included in online library copies. Download the pack and keep your project test evidence separately.
+
+Use **Telescope** for a local built-file inventory and an exact-file receipt. Its files stay in the tab and are never executed or uploaded. Download its task plan before leaving. Use **Horizon** for previously recorded project progress; historical records do not certify the current app.
+
 ## Account and storage behavior
 
 Use **Your account → Sign out** for full sign-out navigation. Your browser work is retained in a namespace belonging to that verified account. Returning under another account does not import it. Returning under the original account makes it available again. This isolation is not encryption against someone with access to the browser profile or device storage.

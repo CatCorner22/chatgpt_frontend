@@ -180,6 +180,14 @@ export function WelcomeSession() {
                   </details>
                 )}
                 <div className="mt-6 flex flex-wrap gap-3">
+                  {step.id === "pack" && (
+                    <Button asChild>
+                      <Link to="/target" target="_blank" rel="noopener noreferrer">
+                        Open Target <ExternalLink size={14} />
+                        <span className="sr-only"> (new tab)</span>
+                      </Link>
+                    </Button>
+                  )}
                   {(step.id === "welcome" || step.id === "design" || step.id === "pack") && (
                     <Button asChild variant="outline">
                       <Link to="/" target="_blank" rel="noopener noreferrer">

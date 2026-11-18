@@ -1,4 +1,5 @@
 import { normalizeTokens, type Content, type Direction } from "./design";
+import { STORY_STARTERS } from "./gallery-collection";
 
 // Hand-made starter designs. Tokens still pass normalizeTokens like AI output.
 import originals from "./directions.data.json";
@@ -23,9 +24,11 @@ export type GalleryItem = {
 };
 export const MADE_FOR_YOU = "Made for you";
 
-const raw: (Omit<GalleryItem, "direction"> & {
+export type GalleryDraft = Omit<GalleryItem, "direction"> & {
   direction: Omit<Direction, "tokens"> & { tokens: unknown };
-})[] = [
+};
+
+const raw: GalleryDraft[] = [
   {
     id: "summertime-sadness",
     inspiration: "Lana Del Rey",
@@ -265,6 +268,7 @@ const raw: (Omit<GalleryItem, "direction"> & {
       quote: "They brought my childhood bear back to life.",
     },
   },
+  ...STORY_STARTERS,
 ];
 
 const made: GalleryItem[] = raw.map((g) => ({

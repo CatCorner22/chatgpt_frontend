@@ -38,8 +38,22 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
           <Link to="/library" activeProps={active}>
             My designs
           </Link>
-          <Link to="/quality" activeProps={active}>
-            Quality lab
+          <Link
+            to="/target"
+            activeProps={active}
+            title="Target — prepare your design for a real project"
+          >
+            Target
+          </Link>
+          <Link
+            to="/progress"
+            activeProps={active}
+            title="Horizon — project progress and next steps"
+          >
+            Horizon
+          </Link>
+          <Link to="/telescope" activeProps={active} title="Telescope — advanced build tools">
+            Telescope
           </Link>
           <details className="studio-more">
             <summary>
@@ -47,12 +61,12 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
             </summary>
             <div className="studio-more-menu">
               <Link to="/welcome">Welcome to Focus</Link>
+              <Link to="/quality">Quality lab</Link>
               <Link to="/review-room">Blind review room</Link>
               <Link to="/taste">Discover my taste</Link>
               <Link to="/critic">Check a live site</Link>
               <Link to="/brands">Brand collections</Link>
               <Link to="/watchtower">Site monitor</Link>
-              <Link to="/progress">My progress</Link>
               <Link to="/proof">Before & after</Link>
             </div>
           </details>

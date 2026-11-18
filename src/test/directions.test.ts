@@ -4,7 +4,8 @@ import { ORIGINALS, GALLERY } from "@/lib/gallery";
 describe("original Directions", () => {
   it("loads all 38 alongside the made-for-you designs", () => {
     expect(ORIGINALS).toHaveLength(38);
-    expect(GALLERY.length).toBe(43);
+    // The original 38, five earlier starters, and six new story-inspired starters.
+    expect(GALLERY.length).toBe(49);
     expect(new Set(GALLERY.map((g) => g.id)).size).toBe(GALLERY.length);
   });
   it("keeps Galactic Goth's exact values", () => {

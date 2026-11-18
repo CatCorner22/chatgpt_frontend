@@ -84,6 +84,7 @@ function Privacy() {
             not connected here.
           </p>
         </section>
+        <PreparationPrivacy />
         <section>
           <h2>Hosting and fonts</h2>
           <p>
@@ -155,6 +156,7 @@ function Privacy() {
           cannot erase copies already downloaded.
         </p>
       </section>
+      <PreparationPrivacy />
       <section>
         <h2>Visitor analytics</h2>
         <p>
@@ -205,5 +207,26 @@ function Privacy() {
         </p>
       </section>
     </LegalPage>
+  );
+}
+
+function PreparationPrivacy() {
+  return (
+    <section>
+      <h2>Target answers and Telescope files</h2>
+      <p>
+        Target keeps your preparation answers in this browser's workspace. They are not part of
+        online library copies. A Target download includes your project descriptions, task list and
+        backup and preview plans. Review those details before sharing the pack or pasting its
+        prompts into another tool. Do not include passwords, access tokens or customer records.
+      </p>
+      <p>
+        Telescope reads selected HTML, ZIP and receipt files locally in the open tab. It does not
+        execute customer code, fetch its resources, upload the files or save them in browser
+        storage. Leaving or reloading removes the session. Downloaded receipts and task plans
+        include filenames, observations and the task descriptions you entered; those copies remain
+        under their holders' control.
+      </p>
+    </section>
   );
 }

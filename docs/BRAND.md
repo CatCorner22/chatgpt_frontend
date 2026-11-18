@@ -6,6 +6,11 @@ The approved “Aim & Imagine” identity uses the same cream-and-ginger cat wit
 - Vision: round glasses, a small palette, and a smiling flower painting.
 - Supporting poses: a design book in the saved-design welcome state, and a small parcel beside the customer handoff.
 - Compact face: browser and touch icons.
+- Horizon: Spirit with a small map and a coral sunrise, for project progress and next steps.
+- Telescope: Spirit in an ivory spacesuit beside a small cream-and-coral spaceship, for advanced tools.
+- Target: Spirit shooting a coral basketball into a small hoop, for preparing a design for a real project.
+
+The character's name is **Spirit**. Character development and sticker assets have a separate handoff pack; application branding remains in this repository. Naming a capability does not replace descriptive labels or imply that a project has passed a quality gate.
 
 `BrandArt.tsx` keeps wordmarks and decorative poses consistent. Wordmarks have an accessible name except when the surrounding home link supplies it. Supporting illustrations are decorative, have reserved dimensions, and do not convey success or validation status. The customer’s exported page, design tokens, and restyle assets do not contain these brand illustrations.
 

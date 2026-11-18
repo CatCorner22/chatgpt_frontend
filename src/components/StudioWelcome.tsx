@@ -19,7 +19,7 @@ import { IntegrationChoice } from "./IntegrationChoice";
 import { CatMascot } from "@/components/BrandArt";
 import { useHostedSession } from "@/components/HostedBoundary";
 
-const featured = ["garden-ledger", "graphite-precision", "ember-noir"]
+const featured = ["purr-and-paper", "midnight-muse", "wildflower-hour"]
   .map((id) => GALLERY.find((g) => g.id === id)!)
   .filter(Boolean);
 const palettes = [
@@ -318,7 +318,9 @@ export function StarterCollection({ onOpen }: { onOpen: (g: GalleryItem) => void
         <div>
           <p className="eyebrow">A considered collection</p>
           <h2 id="collection-title">Start somewhere good.</h2>
-          <p>Distinctive starting points. Yours to make your own.</p>
+          <p>
+            Cats, cinematic romance, quiet gardens, and a little mystery. Yours to make your own.
+          </p>
         </div>
         <button
           type="button"
@@ -339,7 +341,9 @@ export function StarterCollection({ onOpen }: { onOpen: (g: GalleryItem) => void
               </div>
               <div className="featured-meta">
                 <div>
-                  <span>{["WARM & ORGANIC", "QUIET & PRECISE", "BOLD & ATMOSPHERIC"][i]}</span>
+                  <span>
+                    {["CATS & COZY PAGES", "LITERARY & MYSTERIOUS", "PEACEFUL & BOTANICAL"][i]}
+                  </span>
                   <h3>{g.direction.name}</h3>
                 </div>
                 <ArrowUpRight size={21} />

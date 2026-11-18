@@ -20,6 +20,7 @@ export const reviewEvidenceSchema = z.object({
       z.object({
         name: z.string().max(200),
         ok: z.boolean(),
+        possible: z.boolean().optional(),
         detail: z.string().max(2000),
         fix: z.string().max(3000),
       }),
@@ -119,12 +120,27 @@ export function addEvidence(d: LaunchDetails, review: ReviewEvidence): LaunchDet
     tasks: [],
   };
 }
+/** Readiness concerns this exact reviewed URL; owner confirmations cannot clear known failures. */
+export function launchBlocker(d: LaunchDetails): string | null {
+  const target = safeUrl(d.url)?.href;
+  if (!target) return "Add the public address of your built page first.";
+  const pageReviews = d.reviews
+    .filter((review) => review.kind === "page" && safeUrl(review.target)?.href === target)
+    .map((review) => ({ ...review, target }));
+  if (!pageReviews.at(-1)?.checks.some((check) => !check.possible))
+    return "Review this exact built page first. Screenshot feedback does not verify a live address.";
+  if (!fixPlan(pageReviews)?.passed)
+    return "Resolve and recheck the recorded findings for this page before recording a launch.";
+  if (!TASKS.every((task) => d.tasks.includes(task.id)))
+    return "Complete all four task confirmations on the reviewed result before recording a launch.";
+  return null;
+}
 export function canLaunch(d: LaunchDetails): boolean {
-  return !!safeUrl(d.url) && d.reviews.length > 0 && TASKS.every((t) => d.tasks.includes(t.id));
+  return launchBlocker(d) === null;
 }
 export function markLaunched(d: LaunchDetails, at: string): LaunchDetails {
-  if (!canLaunch(d))
-    throw new Error("Add a public address, review the result and complete all task checks first.");
+  const blocker = launchBlocker(d);
+  if (blocker) throw new Error(blocker);
   return { ...d, status: "launched", launchedAt: d.launchedAt ?? at };
 }
 export function evidenceChange(reviews: ReviewEvidence[]) {
@@ -216,6 +232,15 @@ export function fixPlan(reviews: ReviewEvidence[]) {
   const last = reviews.at(-1);
   if (!last) return null;
   const same = reviews.filter((r) => r.kind === last.kind && r.target === last.target);
+  // Older records omitted this classification. A fresh same-page review may identify a
+  // finding as advisory, but an omitted check alone can never clear an earlier failure.
+  const advisoryChecks = new Set<string>();
+  for (const review of same) {
+    for (const check of review.checks) {
+      if (check.possible) advisoryChecks.add(check.name);
+      else advisoryChecks.delete(check.name);
+    }
+  }
   const items = (review: ReviewEvidence): { item: FixItem; ok: boolean }[] => [
     ...review.prescription.map((p) => ({
       ok: p.ok,
@@ -226,15 +251,17 @@ export function fixPlan(reviews: ReviewEvidence[]) {
         source: "prescription" as const,
       },
     })),
-    ...review.checks.map((c) => ({
-      ok: c.ok,
-      item: {
-        key: `m:${c.name}`,
-        title: c.detail,
-        fix: c.fix,
-        source: "measured" as const,
-      },
-    })),
+    ...review.checks
+      .filter((c) => !c.possible && !advisoryChecks.has(c.name))
+      .map((c) => ({
+        ok: c.ok,
+        item: {
+          key: `m:${c.name}`,
+          title: c.detail,
+          fix: c.fix,
+          source: "measured" as const,
+        },
+      })),
   ];
   // Keep an issue open until a later review explicitly reports that same check holds.
   // A partial review that omits the check provides no evidence of a repair.

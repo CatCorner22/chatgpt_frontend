@@ -3,13 +3,21 @@ export function BrandLogo({
   variant = "focus",
   decorative = false,
 }: {
-  variant?: "focus" | "vision";
+  variant?: "focus" | "vision" | "horizon" | "telescope" | "target";
   decorative?: boolean;
 }) {
   return (
     <img
-      src={variant === "focus" ? "/brand/focus-aim.png" : "/brand/vision-imagine.png"}
-      alt={decorative ? "" : variant === "focus" ? "Focus" : "Vision"}
+      src={
+        {
+          focus: "/brand/focus-aim.png",
+          vision: "/brand/vision-imagine.png",
+          horizon: "/brand/horizon-next.png",
+          telescope: "/brand/telescope-explore.png",
+          target: "/brand/target-prepare.png",
+        }[variant]
+      }
+      alt={decorative ? "" : variant.charAt(0).toUpperCase() + variant.slice(1)}
       width={variant === "focus" ? 768 : 1020}
       height={variant === "focus" ? 256 : 340}
       className={`brand-logo brand-logo--${variant}`}

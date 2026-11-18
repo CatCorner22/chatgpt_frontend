@@ -23,7 +23,9 @@ import { Route as QualityRouteImport } from './routes/quality'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewRoomRouteImport } from './routes/review-room'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as TargetRouteImport } from './routes/target'
 import { Route as TasteRouteImport } from './routes/taste'
+import { Route as TelescopeRouteImport } from './routes/telescope'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WatchtowerRouteImport } from './routes/watchtower'
 import { Route as WelcomeRouteImport } from './routes/welcome'
@@ -106,9 +108,19 @@ const ShowcaseRoute = ShowcaseRouteImport.update({
   path: '/showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TargetRoute = TargetRouteImport.update({
+  id: '/target',
+  path: '/target',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TasteRoute = TasteRouteImport.update({
   id: '/taste',
   path: '/taste',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TelescopeRoute = TelescopeRouteImport.update({
+  id: '/telescope',
+  path: '/telescope',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -187,7 +199,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
+  '/telescope': typeof TelescopeRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
   '/welcome': typeof WelcomeRoute
@@ -215,7 +229,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
+  '/telescope': typeof TelescopeRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
   '/welcome': typeof WelcomeRoute
@@ -245,7 +261,9 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
+  '/telescope': typeof TelescopeRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
   '/welcome': typeof WelcomeRoute
@@ -275,7 +293,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/review-room'
     | '/showcase'
+    | '/target'
     | '/taste'
+    | '/telescope'
     | '/terms'
     | '/watchtower'
     | '/welcome'
@@ -303,7 +323,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/review-room'
     | '/showcase'
+    | '/target'
     | '/taste'
+    | '/telescope'
     | '/terms'
     | '/watchtower'
     | '/welcome'
@@ -332,7 +354,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/review-room'
     | '/showcase'
+    | '/target'
     | '/taste'
+    | '/telescope'
     | '/terms'
     | '/watchtower'
     | '/welcome'
@@ -362,7 +386,9 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewRoomRoute: typeof ReviewRoomRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  TargetRoute: typeof TargetRoute
   TasteRoute: typeof TasteRoute
+  TelescopeRoute: typeof TelescopeRoute
   TermsRoute: typeof TermsRoute
   WatchtowerRoute: typeof WatchtowerRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -475,11 +501,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/target': {
+      id: '/target'
+      path: '/target'
+      fullPath: '/target'
+      preLoaderRoute: typeof TargetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/taste': {
       id: '/taste'
       path: '/taste'
       fullPath: '/taste'
       preLoaderRoute: typeof TasteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/telescope': {
+      id: '/telescope'
+      path: '/telescope'
+      fullPath: '/telescope'
+      preLoaderRoute: typeof TelescopeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -597,7 +637,9 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewRoomRoute: ReviewRoomRoute,
   ShowcaseRoute: ShowcaseRoute,
+  TargetRoute: TargetRoute,
   TasteRoute: TasteRoute,
+  TelescopeRoute: TelescopeRoute,
   TermsRoute: TermsRoute,
   WatchtowerRoute: WatchtowerRoute,
   WelcomeRoute: WelcomeRoute,

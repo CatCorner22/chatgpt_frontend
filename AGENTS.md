@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Focus architecture (formerly Refraction)
+- **North Star** is the user's defined project goal: "vibe-coded frontend UI, UX, etc. that is as good as the best human coders." Use that meaning consistently. Technical correctness, visual craft, task usability, responsive and interaction behavior, and a reliable customer handoff all matter; passing tests alone does not establish human-quality equivalence. See `docs/NORTH-STAR-REVIEW.md` for the current priorities and evidence limits.
 - Design values are tokens (`src/lib/design.ts`); AI output always passes `normalizeTokens` before use — never trust raw AI values.
 - The decision engine (`src/lib/engine.ts`) holds all cross-decision rules in one table; rules point only from earlier to later layers so no loops form; each rule has a test in `src/test/engine.test.ts`.
 - AI calls live in `src/lib/design.functions.ts` via `src/lib/ai.server.ts` (Responses API, structured output); the browser never sees prompts or keys.

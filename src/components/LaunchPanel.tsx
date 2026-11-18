@@ -11,8 +11,8 @@ import { compareToPrescription, fitterBrief, safeUrl } from "@/lib/critic";
 import {
   TASKS,
   addEvidence,
-  canLaunch,
   evidenceChange,
+  launchBlocker,
   launchFingerprint,
   markLaunched,
   readProgress,
@@ -43,6 +43,8 @@ export function LaunchPanel({
 }) {
   const [record, setRecord] = useState<ProgressRecord | null>(null);
   const [url, setUrl] = useState("");
+  const currentPageUrl = useRef(url);
+  currentPageUrl.current = url;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [accountSaved, setAccountSaved] = useState(false);
@@ -55,7 +57,9 @@ export function LaunchPanel({
   const mounted = useRef(false);
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; };
+    return () => {
+      mounted.current = false;
+    };
   }, []);
   useEffect(() => {
     setBusy(false);
@@ -80,7 +84,12 @@ export function LaunchPanel({
   }, [id, title, fingerprint]);
   const persist = (next: ProgressRecord) => {
     // A request started for an earlier build must never restore its old confirmations.
-    if (!mounted.current || next.id !== currentBuild.current.id || next.fingerprint !== currentBuild.current.fingerprint) return;
+    if (
+      !mounted.current ||
+      next.id !== currentBuild.current.id ||
+      next.fingerprint !== currentBuild.current.fingerprint
+    )
+      return;
     try {
       const all = readProgress();
       writeProgress(
@@ -102,7 +111,13 @@ export function LaunchPanel({
     setError("");
     try {
       const r = await review({ data: { url: target.toString() } });
-      if (!mounted.current || record.id !== currentBuild.current.id || record.fingerprint !== currentBuild.current.fingerprint) return;
+      if (
+        !mounted.current ||
+        record.id !== currentBuild.current.id ||
+        record.fingerprint !== currentBuild.current.fingerprint ||
+        safeUrl(currentPageUrl.current)?.href !== target.href
+      )
+        return;
       const cmp = compareToPrescription(r.facts, tokens);
       const evidence: ReviewEvidence = {
         kind: "page",
@@ -110,7 +125,13 @@ export function LaunchPanel({
         at: new Date().toISOString(),
         score: r.score,
         summary: r.review?.verdict ?? "Measured page-code checks only; visual opinion unavailable.",
-        checks: r.findings.map((f) => ({ name: f.id, ok: f.ok, detail: f.detail, fix: f.fix })),
+        checks: r.findings.map((f) => ({
+          name: f.id,
+          ok: f.ok,
+          detail: f.detail,
+          fix: f.fix,
+          ...(f.possible ? { possible: true } : {}),
+        })),
         prescription: cmp.items,
         priorities: r.review?.priorities ?? [],
         repair: fitterBrief(
@@ -125,10 +146,19 @@ export function LaunchPanel({
         details: { ...addEvidence(record.details, evidence), url: target.toString() },
       });
     } catch (e) {
-      if (mounted.current && record.id === currentBuild.current.id && record.fingerprint === currentBuild.current.fingerprint)
+      if (
+        mounted.current &&
+        record.id === currentBuild.current.id &&
+        record.fingerprint === currentBuild.current.fingerprint &&
+        safeUrl(currentPageUrl.current)?.href === target.href
+      )
         setError(e instanceof Error ? e.message : "Could not review this page.");
     } finally {
-      if (mounted.current && record.id === currentBuild.current.id && record.fingerprint === currentBuild.current.fingerprint)
+      if (
+        mounted.current &&
+        record.id === currentBuild.current.id &&
+        record.fingerprint === currentBuild.current.fingerprint
+      )
         setBusy(false);
     }
   };
@@ -140,6 +170,14 @@ export function LaunchPanel({
     );
   const latest = record.details.reviews.at(-1);
   const change = evidenceChange(record.details.reviews);
+  const blocker =
+    record.details.status === "launched"
+      ? null
+      : busy
+        ? "Wait for the current page review or save to finish before recording a launch."
+        : url !== record.details.url
+          ? "Finish updating the address, then review that page and confirm the tasks."
+          : launchBlocker(record.details);
   return (
     <section className="space-y-4 border-t border-border pt-6" aria-labelledby="launch-title">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -148,7 +186,7 @@ export function LaunchPanel({
         </h2>
         <Button asChild variant="link">
           <Link to="/progress">
-            My progress
+            Horizon
             <ArrowRight />
           </Link>
         </Button>
@@ -236,6 +274,23 @@ export function LaunchPanel({
               latest.kind === "page" && safeUrl(latest.target) ? () => void checkPage() : undefined
             }
           />
+          {latest.checks.some((check) => check.possible && !check.ok) && (
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">Possible issues to review with the owner</p>
+              <p className="text-muted-foreground">
+                These are suggestions to inspect, not confirmed failures or automatic passes.
+              </p>
+              <ul className="list-disc space-y-1 pl-5">
+                {latest.checks
+                  .filter((check) => check.possible && !check.ok)
+                  .map((check) => (
+                    <li key={check.name}>
+                      {check.detail} {check.fix}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
           <ul className="text-sm" aria-label="Matches your design">
             {latest.prescription.map((c) => (
               <li key={c.name}>
@@ -314,9 +369,15 @@ export function LaunchPanel({
           </label>
         ))}
       </fieldset>
+      {blocker && (
+        <p id="launch-readiness" role="status" className="text-sm text-muted-foreground">
+          {blocker}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         <Button
-          disabled={!canLaunch(record.details) || record.details.status === "launched"}
+          disabled={!!blocker || record.details.status === "launched"}
+          aria-describedby={blocker ? "launch-readiness" : undefined}
           onClick={() => {
             try {
               persist({
@@ -338,14 +399,27 @@ export function LaunchPanel({
               setBusy(true);
               try {
                 await save({ data: record });
-                if (!mounted.current || record.id !== currentBuild.current.id || record.fingerprint !== currentBuild.current.fingerprint) return;
+                if (
+                  !mounted.current ||
+                  record.id !== currentBuild.current.id ||
+                  record.fingerprint !== currentBuild.current.fingerprint
+                )
+                  return;
                 setAccountSaved(true);
                 toast.success("Launch evidence saved to your account");
               } catch (e) {
-                if (mounted.current && record.id === currentBuild.current.id && record.fingerprint === currentBuild.current.fingerprint)
+                if (
+                  mounted.current &&
+                  record.id === currentBuild.current.id &&
+                  record.fingerprint === currentBuild.current.fingerprint
+                )
                   setError(e instanceof Error ? e.message : "Could not save account evidence.");
               } finally {
-                if (mounted.current && record.id === currentBuild.current.id && record.fingerprint === currentBuild.current.fingerprint)
+                if (
+                  mounted.current &&
+                  record.id === currentBuild.current.id &&
+                  record.fingerprint === currentBuild.current.fingerprint
+                )
                   setBusy(false);
               }
             }}

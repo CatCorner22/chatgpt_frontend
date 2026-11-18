@@ -10,6 +10,7 @@ export const ONBOARDING_STEPS = [
       "Focus helps you choose a visual direction, review a public page, and prepare a design handoff. You keep control of your project and its release.",
     tasks: [
       "For a new project, explore the Design studio and choose a direction. For a working app or website, follow the existing-project path in this guide.",
+      "Your design plan is called Vision. Target helps you prepare a saved design for a real project. Horizon shows project progress and next steps. Telescope holds advanced build inspection and test-planning tools.",
       "You can open the tools as you go and return to this guide. Opening the guide does not replace your current design.",
       "Reading a guide is preparation, not proof that a project is ready. Your own app still needs testing before changes go live.",
     ],
@@ -62,8 +63,9 @@ export const ONBOARDING_STEPS = [
     title: "Take the right pieces with you.",
     cat: "Packed with care. Let's check the label together.",
     summary:
-      "On Vision, choose your coding tool and Download existing-site pack. If a website preview hides these controls, open Design specification & handoff tools first.",
+      "Open Target to choose a saved design and answer a few questions about your project, visitor tasks, backup and trial. You can also download an existing-site pack from Vision, under Design specification & handoff tools.",
     tasks: [
+      "In Target, choose Restyle an existing app or website. Describe one visible improvement and the tasks that must keep working. Its project-specific prompts and design pack prepare the trial; they do not apply changes for you.",
       "Extract the ZIP into a new, empty location. It contains a focus-restyle folder. If that folder already exists in the destination project, stop and choose a fresh name; never merge over existing files.",
       "Read START-HERE.md, PRESERVE.md and UNDO.md inside the pack before asking your coding tool to change anything.",
       "Give the tool DESIGN.md and FOCUS-RULES.md, then use What to say to your tool, step by step in Focus. Append any optional rule reminder; never replace existing customer rules or configuration.",

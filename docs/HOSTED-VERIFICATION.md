@@ -4,10 +4,12 @@ This edition adds private hosted access, owner-scoped browser storage, complete 
 
 ## Evidence
 
-- Full application suite: 678 tests across 71 files passed on 2026-11-18.
+- Full application suite: 830 tests across 81 files passed on 2026-11-18.
 - TypeScript: full strict check passed.
 - Packaging: eight tests passed; every generated server module and public asset is retained and checked byte-for-byte, and static Worker imports resolve inside the package.
 - Independent bounded review covered account identity, cloud revisions, storage isolation, transfer preservation, failure states, auth navigation, and misleading service prompts. Confirmed findings were repaired.
+- Current additions include 42 Target tests, 28 Telescope tests, six new gallery designs with new/existing ZIP round trips, Horizon recovery checks, and stricter launch-evidence regressions. Target independently rechecks the owner, saved design and answers before delivering an asynchronously prepared pack. Telescope rejects unsafe ZIP structures and bounds actual text expansion and scanning; it never executes the selected files.
+- Changed-file lint has no errors; one existing LaunchPanel effect-dependency warning remains. The build succeeds with existing dependency-directive and chunk-size warnings. These are not claims of a clean dependency/security audit.
 - Existing portable kit sources and dependency lockfile are unchanged from the earlier verified release.
 - No provider keys or production customer data were used in tests. In-memory storage and synthetic identities do not establish live account behavior.
 

@@ -6,6 +6,17 @@
 
 A design studio for finding a visual direction, making it your own, and checking the result. This version builds on the supplied Focus project and includes an independent North Star kit.
 
+The app's paths have plain purposes:
+
+- **Vision** is your saved design plan and handoff.
+- **Target** (`/target`) prepares a saved design for a real project with guided questions, a validated pack and project-specific prompts. GitHub with React or Next.js is the first supported preparation path; application and verification happen in your own project workflow.
+- **Horizon** (`/progress`) shows recorded progress and useful next steps without certifying a release.
+- **Telescope** (`/telescope`) inspects bounded local HTML/ZIP files, compares exact-file receipts and prepares manual interaction tests. It does not execute customer code or run a browser test.
+
+The **Made for you** gallery includes six new original starters: Purr & Paper, Velvet Afterglow, Midnight Muse, Wildflower Hour, Cocoa Atelier and Moonlit Mischief. Their sample copy can be customized; existing-site packs keep the customer's original content and behavior as the source of truth.
+
+The project's defined **North Star** is frontend UI and UX as good as the best human coders. See [the current review and priorities](docs/NORTH-STAR-REVIEW.md) for the evidence, remaining gaps and next acceptance criteria.
+
 ## Run locally
 
 Use Node 22.12 or newer and npm. No environment file or account is required for the local studio.
@@ -19,7 +30,7 @@ Open http://localhost:3000. The npm lockfile is authoritative; the original Bun 
 
 ## What works without a backend
 
-- Match a brief against 43 authored design directions.
+- Match a brief against 49 authored design directions.
 - Choose and refine colors, fonts, scale, spacing, shape, layout, and detail using deterministic local options.
 - Edit your actual business name, headline, services, call to action, and optional customer quote.
 - Save designs automatically in this browser, resume them, and use the existing library and undo controls.

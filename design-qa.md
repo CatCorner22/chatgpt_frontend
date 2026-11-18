@@ -1,4 +1,4 @@
-# Cat branding and welcome-session QA
+# Reverie branding and welcome-session QA
 
 final result: blocked
 
@@ -25,7 +25,7 @@ final result: blocked
 - Typography: reference lettering preserved in raster wordmarks; existing UI font declarations retained. Rendered wrapping, fallback and focus readability remain unverified.
 - Spacing/layout: explicit image dimensions and responsive header wrapping implemented; actual overflow and alignment remain unverified.
 - Colors: reference cream, ginger, forest green and coral preserved; actual rendered page contrast remains unverified.
-- Images: approved cat theme used, not code-drawn substitutes. Transparent PNG artifacts inspected after encoding; browser sharpness at intended sizes remains unverified.
+- Images: approved Reverie artwork used, not code-drawn substitutes. Transparent PNG artifacts inspected after encoding; browser sharpness at intended sizes remains unverified.
 - Copy: guide progress must describe reading the tour, not certify release readiness; existing-site instructions explicitly separate review, staging trial, customer acceptance and publication.
 
 ## Findings and implementation checklist

@@ -1,3 +1,5 @@
+import { REVERIE } from "./reverie";
+
 export const ONBOARDING_KEY = "focus:welcome:v1";
 
 export const ONBOARDING_STEPS = [
@@ -5,7 +7,7 @@ export const ONBOARDING_STEPS = [
     id: "welcome",
     shortTitle: "Meet Focus",
     title: "Welcome to Focus. Let's make something feel like you.",
-    cat: "I'll show you the path, one small step at a time.",
+    reverie: REVERIE.introduction,
     summary:
       "Focus helps you choose a visual direction, review a public page, and prepare a design handoff. You keep control of your project and its release.",
     tasks: [
@@ -19,7 +21,7 @@ export const ONBOARDING_STEPS = [
     id: "protect",
     shortTitle: "Protect your work",
     title: "Make a place where it's safe to try.",
-    cat: "Let's keep the original comfortable while we explore.",
+    reverie: "Let's keep the original comfortable while we explore.",
     summary:
       "Start with a separate local or staging copy. A branch alone is not enough if it still uses production data or integrations.",
     tasks: [
@@ -33,7 +35,7 @@ export const ONBOARDING_STEPS = [
     id: "review",
     shortTitle: "Review a page",
     title: "Bring your published page into view.",
-    cat: "I can look at the page without moving the furniture.",
+    reverie: "I can look at the page without moving the furniture.",
     summary:
       "Open Check a live site and paste a public page address you are authorized to review. On the hosted app, sign in first. This reads the page; it does not connect a writable project account.",
     tasks: [
@@ -47,7 +49,7 @@ export const ONBOARDING_STEPS = [
     id: "design",
     shortTitle: "Choose a direction",
     title: "Give your existing project a clear Vision.",
-    cat: "A little color, a little clarity. Still your project.",
+    reverie: "A little color, a little clarity. Still your project.",
     summary:
       "In the Design studio, under Where will this design go?, choose Restyle my existing site or app. Opening the studio keeps your current work; the guide does not reset it or switch its mode for you.",
     tasks: [
@@ -61,7 +63,7 @@ export const ONBOARDING_STEPS = [
     id: "pack",
     shortTitle: "Prepare the handoff",
     title: "Take the right pieces with you.",
-    cat: "Packed with care. Let's check the label together.",
+    reverie: "Packed with care. Let's check the label together.",
     summary:
       "Open Target to choose a saved design and answer a few questions about your project, visitor tasks, backup and trial. You can also download an existing-site pack from Vision, under Design specification & handoff tools.",
     tasks: [
@@ -76,7 +78,7 @@ export const ONBOARDING_STEPS = [
     id: "trial",
     shortTitle: "Try one page",
     title: "One page first. Keep everything that works.",
-    cat: "Small, reversible steps are my favorite kind.",
+    reverie: "Small, reversible steps are my favorite kind.",
     summary:
       "Ask your coding tool for a visual-only change to one page in the isolated preview. Review the proposed file changes before accepting them.",
     tasks: [
@@ -94,7 +96,7 @@ export const ONBOARDING_STEPS = [
     id: "verify",
     shortTitle: "Test and undo",
     title: "Prove the trial works—and that you can undo it.",
-    cat: "Let's try the real tasks, not just admire the picture.",
+    reverie: "Let's try the real tasks, not just admire the picture.",
     summary:
       "Use the same isolated preview, test data and sandbox integrations. Record evidence for the same tasks before and after the change.",
     tasks: [
@@ -108,7 +110,7 @@ export const ONBOARDING_STEPS = [
     id: "publish",
     shortTitle: "Review and release",
     title: "Publish through your own tool, with evidence in hand.",
-    cat: "A thoughtful finish matters as much as a lovely beginning.",
+    reverie: "A thoughtful finish matters as much as a lovely beginning.",
     summary:
       "The project owner reviews the tested changes, before-and-after evidence and rollback plan before approving a release. Finishing this tour is not release approval.",
     tasks: [

@@ -61,6 +61,7 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
             </summary>
             <div className="studio-more-menu">
               <Link to="/welcome">Welcome to Focus</Link>
+              <Link to="/reverie">About Reverie</Link>
               <Link to="/quality">Quality lab</Link>
               <Link to="/review-room">Blind review room</Link>
               <Link to="/taste">Discover my taste</Link>

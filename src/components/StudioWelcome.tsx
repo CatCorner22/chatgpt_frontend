@@ -16,8 +16,9 @@ import { useDesignFonts } from "@/lib/useDesignFonts";
 import type { ReactNode } from "react";
 import type { Integration } from "@/lib/design";
 import { IntegrationChoice } from "./IntegrationChoice";
-import { CatMascot } from "@/components/BrandArt";
+import { ReverieArt } from "@/components/BrandArt";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { REVERIE } from "@/lib/reverie";
 
 const featured = ["purr-and-paper", "midnight-muse", "wildflower-hour"]
   .map((id) => GALLERY.find((g) => g.id === id)!)
@@ -63,14 +64,12 @@ export function StudioWelcome({
   return (
     <main id="main-content" className="studio-welcome">
       <aside className="welcome-tour-invitation" aria-labelledby="welcome-tour-heading">
-        <CatMascot pose="library" />
+        <ReverieArt pose="library" />
         <div>
           <h2 id="welcome-tour-heading" className="font-display text-xl">
-            Welcome to Focus. Let's find your way.
+            Welcome to Focus. Meet Reverie.
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your cat guide walks you from a first idea to a carefully tested update for your site.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{REVERIE.introduction}</p>
         </div>
         <Link to="/welcome" className="welcome-tour-link">
           Take the welcome tour <ArrowRight size={16} aria-hidden="true" />

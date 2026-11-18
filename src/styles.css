@@ -338,19 +338,22 @@ button:disabled {
 .brand-logo--telescope {
   width: 330px;
 }
-.cat-mascot {
+.reverie-art {
   display: block;
   max-width: 100%;
   height: auto;
   object-fit: contain;
   flex-shrink: 0;
 }
-.cat-mascot--library {
+.reverie-art--library {
   width: 180px;
   max-width: 100%;
 }
-.cat-mascot--handoff {
+.reverie-art--handoff {
   width: 112px;
+}
+.reverie-portrait .reverie-art {
+  width: 320px;
 }
 .brand-handoff-note {
   display: flex;
@@ -381,7 +384,7 @@ button:disabled {
   border-radius: 14px;
   background: var(--card);
 }
-.welcome-tour-invitation .cat-mascot {
+.welcome-tour-invitation .reverie-art {
   width: 100px;
 }
 .welcome-tour-link {
@@ -1099,7 +1102,7 @@ button:disabled {
     gap: 4px 8px;
     padding: 12px;
   }
-  .welcome-tour-invitation .cat-mascot {
+  .welcome-tour-invitation .reverie-art {
     width: 72px;
   }
   .welcome-tour-link {
@@ -1111,7 +1114,7 @@ button:disabled {
     gap: 8px;
     padding-right: 12px;
   }
-  .cat-mascot--handoff {
+  .reverie-art--handoff {
     width: 84px;
   }
   .studio-navigation {

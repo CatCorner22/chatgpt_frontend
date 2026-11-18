@@ -1,10 +1,10 @@
-# Welcome guide, cat identity, and customer handoff hardening
+# Welcome guide, Reverie identity, and customer handoff hardening
 
 Release status: prepared for acceptance; held from production while browser testing is unavailable.
 
 ## Experience
 
-The approved Focus archer and Vision painter replace the old geometric logo. The same cat appears with a design book and handoff parcel. These illustrations belong to Focus, never to the customer's exported website.
+The approved Focus archer and Vision painter replace the old geometric logo. Reverie also appears with a design book and handoff parcel. These illustrations belong to Focus, never to the customer's exported website.
 
 The home page and Explore menu open `/welcome`, an eight-step guide from first use through public-page review, existing-project design, pack extraction, a staged trial, task testing and selective rollback, and an owner-reviewed release. Each step explains the next action, with links to the relevant tool and an optional downloadable trial checklist. Reading progress resumes locally within the hosted owner's storage namespace. Storage denial leaves the session usable and visibly reports that progress cannot be saved. Tour completion does not create release evidence or mark a customer project safe.
 

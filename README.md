@@ -6,6 +6,8 @@
 
 A design studio for finding a visual direction, making it your own, and checking the result. This version builds on the supplied Focus project and includes an independent North Star kit.
 
+Meet **Reverie**, your gentle guide to Focus, in the welcome session or **Explore → About Reverie** (`/reverie`). Her name means "a pleasant daydream."
+
 The app's paths have plain purposes:
 
 - **Vision** is your saved design plan and handoff.

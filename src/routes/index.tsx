@@ -19,7 +19,7 @@ import { Journey } from "@/components/Journey";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { BadgePanel } from "@/components/BadgePanel";
 import { LiveVisionPanel } from "@/components/LiveVisionPanel";
-import { BrandLogo, CatMascot } from "@/components/BrandArt";
+import { BrandLogo, ReverieArt } from "@/components/BrandArt";
 import { WaitLine } from "@/components/WaitLine";
 import { ReviewAnswers } from "@/components/ReviewAnswers";
 import { designId } from "@/lib/launch";
@@ -1438,7 +1438,7 @@ function Rx({ s, update, ask }: P) {
           ))}
         </fieldset>
         <div className="brand-handoff-note">
-          <CatMascot pose="handoff" />
+          <ReverieArt pose="handoff" />
           <p>
             <strong>A thoughtful handoff, one step at a time.</strong>
             <br />

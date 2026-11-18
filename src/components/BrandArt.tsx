@@ -1,4 +1,4 @@
-/** App identity only: these assets are never injected into a customer's export. */
+/** Reverie is Focus's guide. App identity assets never enter a customer's export. */
 export function BrandLogo({
   variant = "focus",
   decorative = false,
@@ -26,14 +26,14 @@ export function BrandLogo({
   );
 }
 
-export function CatMascot({ pose }: { pose: "library" | "handoff" }) {
+export function ReverieArt({ pose }: { pose: "library" | "handoff" }) {
   return (
     <img
       src={`/brand/cat-${pose}.png`}
       alt=""
       width={pose === "library" ? 384 : 320}
       height={pose === "library" ? 351 : 292}
-      className={`cat-mascot cat-mascot--${pose}`}
+      className={`reverie-art reverie-art--${pose}`}
       loading="lazy"
       decoding="async"
     />

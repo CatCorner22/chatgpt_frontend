@@ -25,7 +25,7 @@ import {
 import { STUDIO_KEY } from "@/lib/projects";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 import { downloadBlob } from "@/lib/exportPack";
-import { CatMascot } from "@/components/BrandArt";
+import { ReverieArt } from "@/components/BrandArt";
 import {
   createLibraryBackup,
   restoreLibraryBackup,
@@ -392,7 +392,7 @@ function Library() {
           <p className="mt-8">Loading your designs…</p>
         ) : !list.length ? (
           <div className="brand-library-empty mt-12">
-            {!libraryError && !recoveries.length && <CatMascot pose="library" />}
+            {!libraryError && !recoveries.length && <ReverieArt pose="library" />}
             <div>
               <h2 className="font-display text-3xl">
                 {libraryError || recoveries.length

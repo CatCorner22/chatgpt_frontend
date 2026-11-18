@@ -29,7 +29,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("cat-guided welcome session", () => {
+describe("Reverie-guided welcome session", () => {
   it("resumes reading without touching studio work and supports back/direct navigation", async () => {
     localStorage.setItem("focus-studio", "existing-customer-draft");
     localStorage.setItem(ONBOARDING_KEY, JSON.stringify({ version: 1, step: 2, finished: false }));

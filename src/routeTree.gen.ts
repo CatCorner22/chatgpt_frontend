@@ -21,6 +21,7 @@ import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as QualityRouteImport } from './routes/quality'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReverieRouteImport } from './routes/reverie'
 import { Route as ReviewRoomRouteImport } from './routes/review-room'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as TargetRouteImport } from './routes/target'
@@ -96,6 +97,11 @@ const QualityRoute = QualityRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReverieRoute = ReverieRouteImport.update({
+  id: '/reverie',
+  path: '/reverie',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewRoomRoute = ReviewRoomRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/proof': typeof ProofRoute
   '/quality': typeof QualityRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
   '/target': typeof TargetRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/proof': typeof ProofRoute
   '/quality': typeof QualityRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
   '/target': typeof TargetRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/proof': typeof ProofRoute
   '/quality': typeof QualityRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
   '/target': typeof TargetRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/proof'
     | '/quality'
     | '/reset-password'
+    | '/reverie'
     | '/review-room'
     | '/showcase'
     | '/target'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/proof'
     | '/quality'
     | '/reset-password'
+    | '/reverie'
     | '/review-room'
     | '/showcase'
     | '/target'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/proof'
     | '/quality'
     | '/reset-password'
+    | '/reverie'
     | '/review-room'
     | '/showcase'
     | '/target'
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   ProofRoute: typeof ProofRoute
   QualityRoute: typeof QualityRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ReverieRoute: typeof ReverieRoute
   ReviewRoomRoute: typeof ReviewRoomRoute
   ShowcaseRoute: typeof ShowcaseRoute
   TargetRoute: typeof TargetRoute
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reverie': {
+      id: '/reverie'
+      path: '/reverie'
+      fullPath: '/reverie'
+      preLoaderRoute: typeof ReverieRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review-room': {
@@ -635,6 +655,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProofRoute: ProofRoute,
   QualityRoute: QualityRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ReverieRoute: ReverieRoute,
   ReviewRoomRoute: ReviewRoomRoute,
   ShowcaseRoute: ShowcaseRoute,
   TargetRoute: TargetRoute,

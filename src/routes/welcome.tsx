@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Download, ExternalLink } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
-import { BrandLogo, CatMascot } from "@/components/BrandArt";
+import { BrandLogo, ReverieArt } from "@/components/BrandArt";
 import { Button } from "@/components/ui/button";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/exportPack";
@@ -80,8 +80,8 @@ export function WelcomeSession() {
               Welcome to Focus
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              A friendly guide from first idea to a tested handoff. Follow along at your own pace,
-              and come back through Explore → Welcome to Focus whenever you need a hand.
+              Join Reverie for a guide from first idea to a tested handoff. Follow along at your own
+              pace, and come back through Explore → Welcome to Focus whenever you need a hand.
             </p>
           </div>
           <Button asChild variant="outline">
@@ -131,10 +131,11 @@ export function WelcomeSession() {
               >
                 <div className="mb-5 flex items-center gap-4">
                   <div className="w-24 shrink-0 sm:w-28" aria-hidden="true">
-                    <CatMascot pose={progress.step >= 4 ? "handoff" : "library"} />
+                    <ReverieArt pose={progress.step >= 4 ? "handoff" : "library"} />
                   </div>
                   <p className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3 text-sm leading-relaxed">
-                    {step.cat}
+                    <span className="mb-1 block font-medium">Reverie</span>
+                    {step.reverie}
                   </p>
                 </div>
                 <p className="eyebrow" aria-live="polite">

@@ -1,16 +1,18 @@
-# Focus and Vision cat identity
+# Reverie — the Focus and Vision identity
 
-The approved “Aim & Imagine” identity uses the same cream-and-ginger cat with dark forest outlines throughout the application:
+The approved “Aim & Imagine” identity features **Reverie**, the same cream-and-ginger guide with dark forest outlines throughout the application. She is gentle, curious, artistic and thoughtful. Her name means **a pleasant daydream**, pronounced **REV-uh-ree**.
 
 - Focus: a toy bow and suction-cup arrow aimed at an intact coral balloon.
 - Vision: round glasses, a small palette, and a smiling flower painting.
 - Supporting poses: a design book in the saved-design welcome state, and a small parcel beside the customer handoff.
 - Compact face: browser and touch icons.
-- Horizon: Spirit with a small map and a coral sunrise, for project progress and next steps.
-- Telescope: Spirit in an ivory spacesuit beside a small cream-and-coral spaceship, for advanced tools.
-- Target: Spirit shooting a coral basketball into a small hoop, for preparing a design for a real project.
+- Horizon: Reverie with a small map and a coral sunrise, for project progress and next steps.
+- Telescope: Reverie in an ivory spacesuit beside a small cream-and-coral spaceship, for advanced tools.
+- Target: Reverie shooting a coral basketball into a small hoop, for preparing a design for a real project.
 
-The character's name is **Spirit**. Character development and sticker assets have a separate handoff pack; application branding remains in this repository. Naming a capability does not replace descriptive labels or imply that a project has passed a quality gate.
+Reverie introduces herself in the studio and welcome guide. **Explore → About Reverie** opens her first-person profile at `/reverie`, explains her name and leads into the welcome guide. Shared introduction copy lives in `src/lib/reverie.ts`; supporting illustrations use `ReverieArt`. Refer to her by name and use she/her when pronouns are needed.
+
+Character development and sticker assets have a separate Reverie handoff pack; application branding remains in this repository. Naming a capability does not replace descriptive labels or imply that a project has passed a quality gate.
 
 `BrandArt.tsx` keeps wordmarks and decorative poses consistent. Wordmarks have an accessible name except when the surrounding home link supplies it. Supporting illustrations are decorative, have reserved dimensions, and do not convey success or validation status. The customer’s exported page, design tokens, and restyle assets do not contain these brand illustrations.
 

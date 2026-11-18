@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
 import { normalizeTokens } from "@/lib/design";
@@ -335,6 +335,58 @@ describe("compact authored workspace", () => {
     expect(screen.getByLabelText("Where should the main action lead?")).toBeVisible();
     expect(screen.getByText("See it. Use it. Take it with you.").closest("section")).toHaveClass(
       "authored-workspace--compact",
+    );
+  });
+});
+
+describe("Product descriptions in the editor and delivered source", () => {
+  it("adds and removes a real disclosure as its description changes, preserving the title", async () => {
+    const current = props();
+    function EditableProduct() {
+      const [words, setWords] = useState({
+        ...content,
+        features: [{ title: "Materials included", body: "" }],
+      });
+      return (
+        <AuthoredPagePanel
+          {...current}
+          content={words}
+          onContent={setWords}
+          settings={{ ...current.settings, composition: "product" }}
+        />
+      );
+    }
+    const preview = () =>
+      new DOMParser().parseFromString(
+        screen.getByTitle("Working page preview").getAttribute("srcdoc")!,
+        "text/html",
+      );
+    render(<EditableProduct />);
+    expect(preview().querySelector("#feature-1 h3")?.textContent).toBe("Materials included");
+    expect(preview().querySelector("#feature-1 summary")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit the page’s words" }));
+    fireEvent.change(screen.getByLabelText("Feature 1 description"), {
+      target: { value: "Bring only your curiosity." },
+    });
+    expect(preview().querySelector("details#feature-1")?.hasAttribute("open")).toBe(true);
+    expect(preview().querySelector("#feature-1 p")?.textContent).toBe("Bring only your curiosity.");
+    startZip();
+    await waitFor(() => expect(calls.download).toHaveBeenCalledTimes(1));
+    const expanded = new DOMParser().parseFromString(calls.files[0]!["index.html"]!, "text/html");
+    expect(expanded.body.innerHTML).toBe(preview().body.innerHTML);
+
+    fireEvent.change(screen.getByLabelText("Feature 1 description"), {
+      target: { value: " \n\t" },
+    });
+    expect(preview().querySelector("#feature-1 summary")).toBeNull();
+    expect(preview().querySelector("#feature-1 h3")?.textContent).toBe("Materials included");
+    startZip();
+    await waitFor(() => expect(calls.download).toHaveBeenCalledTimes(2));
+    const staticRow = new DOMParser().parseFromString(calls.files[1]!["index.html"]!, "text/html");
+    expect(staticRow.body.innerHTML).toBe(preview().body.innerHTML);
+    expect(screen.getByTitle("Working page preview").getAttribute("srcdoc")).toContain(
+      `<style>${calls.files[1]!["styles.css"]}</style>`,
     );
   });
 });

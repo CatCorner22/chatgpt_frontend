@@ -82,6 +82,14 @@ async function realArchive() {
   );
 }
 
+async function reminderInstructions(archive: JSZip) {
+  const add = await archive.file("focus-restyle/ADD-TO-YOUR-RULES.md")!.async("string");
+  const undo = await archive.file("focus-restyle/UNDO.md")!.async("string");
+  const blocks = add.match(/<!-- FOCUS-RESTYLE:BEGIN -->[\s\S]*?<!-- FOCUS-RESTYLE:END -->/g);
+  expect(blocks).toHaveLength(1);
+  return { add, undo, block: blocks![0]! };
+}
+
 /** Model the guide's explicit STOP-on-collision procedure, with exclusive writes. */
 async function extractIntoFreshFolder(zip: JSZip, customerDirectory: string) {
   const files = Object.entries(zip.files).filter(([, entry]) => !entry.dir);
@@ -140,6 +148,55 @@ describe("customer transfer acceptance: real archive and documented manual proce
     );
   });
 
+  it("the real ZIP tells recipients to leave existing and ambiguous rule reminders untouched", async () => {
+    const directory = await customerFixture();
+    const archive = await realArchive();
+    const { add, undo, block } = await reminderInstructions(archive);
+    expect(add).not.toMatch(/update it once|update (?:an?|the|your) existing/i);
+    expect(add).toMatch(/including malformed or duplicate markers/i);
+    expect(add).toMatch(/leave the entire rule file untouched and skip this optional step/i);
+    expect(undo).toMatch(/if the reminder step was skipped, leave the rule file untouched/i);
+
+    // Rehearse the documented skip in an owned fixture. This is not an installer
+    // or a claim that an external coding assistant will follow the instructions.
+    for (const prior of [
+      block.replaceAll("focus-restyle/", "customer-approved/"),
+      "<!-- FOCUS-RESTYLE:BEGIN -->\nOriginal incomplete reminder.\n",
+      "<!-- FOCUS-RESTYLE:END -->\n",
+      "<!-- FOCUS-RESTYLE:BEGN -->\nOriginal misspelled marker.\n",
+      `${block}\n${block}`,
+    ]) {
+      const original = `${originalFiles["AGENTS.md"]}\n${prior}\n`;
+      await writeFile(join(directory, "AGENTS.md"), original);
+      const before = await fileHashes(directory);
+      await extractIntoFreshFolder(archive, directory);
+      expect(await readFile(join(directory, "AGENTS.md"), "utf8")).toBe(original);
+      const after = await fileHashes(directory);
+      for (const [name, hash] of Object.entries(before)) expect(after[name], name).toBe(hash);
+      await rm(join(directory, "focus-restyle"), { recursive: true });
+    }
+
+    for (const name of ["PRESERVE.md", "FOCUS-RULES.md", "PROMPT-SHORT.md", "DESIGN.md"]) {
+      const guidance = await archive.file(`focus-restyle/${name}`)!.async("string");
+      expect(guidance, name).toMatch(/pre-existing or ambiguous.*reminder/i);
+    }
+  });
+
+  it("exports stop conditions for missing records, later edits and ambiguous reminder rollback", async () => {
+    const { add, undo } = await reminderInstructions(await realArchive());
+    expect(add).toMatch(
+      /record the rule file path, its original bytes and the exact bytes you append/i,
+    );
+    expect(undo).toMatch(/original record proves no reminder was present/i);
+    expect(undo).toMatch(/exact recorded insertion occurs once, unchanged/i);
+    expect(undo).toMatch(/record is missing|missing record/i);
+    expect(undo).toMatch(/modified, malformed or duplicated/i);
+    expect(undo).toMatch(/stop.*manual review with the backup/i);
+    expect(undo).toMatch(/preserve all later unrelated edits/i);
+    expect(undo).toMatch(/never delete between markers by guesswork/i);
+    expect(undo).toMatch(/or replace the whole file from the backup/i);
+  });
+
   it("selective rollback restores every original file while retaining later unrelated changes", async () => {
     const directory = await customerFixture();
     const original = await fileHashes(directory);
@@ -149,8 +206,9 @@ describe("customer transfer acceptance: real archive and documented manual proce
     // customer app: original routes, form, authorization and data stay in place.
     const imports =
       'import "../focus-restyle/focus-tokens.css";\nimport "../focus-restyle/focus-bridge.css";\n';
-    const ruleBlock =
-      "\n<!-- FOCUS-RESTYLE:BEGIN -->\nRead focus-restyle/FOCUS-RULES.md.\n<!-- FOCUS-RESTYLE:END -->\n";
+    const { block, undo } = await reminderInstructions(archive);
+    const ruleBlock = `\n${block}\n`;
+    expect(undo).toMatch(/exact recorded insertion occurs once, unchanged/i);
     const newHeadTag = '<meta name="generator" content="Focus trial">';
     await writeFile(join(directory, "src/entry.ts"), originalFiles["src/entry.ts"] + imports);
     await writeFile(join(directory, "AGENTS.md"), originalFiles["AGENTS.md"] + ruleBlock);
@@ -204,7 +262,6 @@ describe("customer transfer acceptance: real archive and documented manual proce
     expect(await readFile(join(directory, "customer-later-note.txt"), "utf8")).toBe(
       "Unrelated work after the trial.\n",
     );
-    const undo = await archive.file("focus-restyle/UNDO.md")!.async("string");
     expect(undo).toMatch(/preserve any later unrelated work/i);
     expect(undo).toMatch(/never hard-reset/i);
     expect(undo).toMatch(/repeat the original visitor tasks/i);

@@ -1,6 +1,6 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
-import { getAuthoredFeatures } from "./authored-content";
+import { getAuthoredFeatures, hasAuthoredFeatureDescription } from "./authored-content";
 import { AUTHORED_FONT_COVERAGE, buildEmbeddedFonts } from "./authored-fonts";
 import {
   compactImageFraming,
@@ -180,6 +180,10 @@ export function buildAuthoredPage(
   const sub = text(content.sub);
   const quote = text(content.quote);
   const features = getAuthoredFeatures(content.features);
+  const firstDescription = features.findIndex(hasAuthoredFeatureDescription);
+  const hasStaticProductFeatures =
+    composition === "product" &&
+    features.some((feature) => !hasAuthoredFeatureDescription(feature));
   const hasDetails = features.length > 0;
   const hasHeroAction = !!action || hasDetails;
   if (!action)
@@ -345,7 +349,7 @@ ${t.buttonStyle === "underline" ? ".action { border-width: 0 0 2px; border-radiu
 .feature-disclosure summary h3 { flex: 1; }
 .feature-disclosure .feature-body { padding-block-end: 1.75rem; padding-inline-start: 3rem; }
 .feature-disclosure summary:hover h3 { text-decoration: underline; text-underline-offset: .2em; }
-.product .quote-section { text-align: center; }
+${hasStaticProductFeatures ? ".feature-static-heading { display: flex; align-items: baseline; gap: clamp(.75rem, 3vw, 1.25rem); padding-block: 1.5rem; }\n.feature-static-heading h3 { min-inline-size: 0; flex: 1; }\n" : ""}.product .quote-section { text-align: center; }
 .product .quote-section blockquote { margin-inline: auto; }
 .showcase .site-shell { max-inline-size: none; padding-inline: 0; }
 .showcase .site-header, .showcase .hero-copy, .showcase .feature-index, .showcase .details-section, .showcase .quote-section, .showcase .closing, .showcase .site-footer { max-inline-size: 1440px; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 5rem); }
@@ -475,9 +479,12 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
     .map((feature, index) => {
       const number = String(index + 1).padStart(2, "0");
       const heading = text(feature.title) || `Detail ${index + 1}`;
-      return composition === "product"
-        ? `<details id="feature-${index + 1}" class="feature-disclosure"${index === 0 ? " open" : ""}><summary><span class="feature-number">${number}</span><h3>${escape(heading)}</h3></summary>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</details>`
-        : `<section id="feature-${index + 1}" class="feature-row" tabindex="-1" aria-labelledby="feature-${index + 1}-title"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</section>`;
+      if (composition === "product") {
+        if (!hasAuthoredFeatureDescription(feature))
+          return `<section id="feature-${index + 1}" class="feature-disclosure" aria-labelledby="feature-${index + 1}-title"><div class="feature-static-heading"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3></div></section>`;
+        return `<details id="feature-${index + 1}" class="feature-disclosure"${index === firstDescription ? " open" : ""}><summary><span class="feature-number">${number}</span><h3>${escape(heading)}</h3></summary><p class="feature-body">${escape(feature.body)}</p></details>`;
+      }
+      return `<section id="feature-${index + 1}" class="feature-row" tabindex="-1" aria-labelledby="feature-${index + 1}-title"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</section>`;
     })
     .join("\n");
   const details = hasDetails

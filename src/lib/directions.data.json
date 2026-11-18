@@ -1,0 +1,2190 @@
+[
+ {
+  "id": "graphite-precision",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Software, professional services, anything that should feel rigorous.",
+  "risk": "Severe. It needs strong headlines, because nothing decorative will carry weak ones.",
+  "extras": {
+   "accent2": null,
+   "finish": "ring",
+   "touch": "none",
+   "atmosphere": "line-grid",
+   "buttonFinish": "gloss"
+  },
+  "brief": "A business that wants this look: Exact, quiet, engineered. Black, white, and a faint grid of lines. Best for: Software, professional services, anything that should feel rigorous.",
+  "direction": {
+   "name": "Graphite Precision",
+   "mood": "Exact, quiet, engineered. Black, white, and a faint grid of lines.",
+   "why": "Severe. It needs strong headlines, because nothing decorative will carry weak ones.",
+   "tokens": {
+    "bg": "#fafafa",
+    "surface": "#ffffff",
+    "ink": "#0f0f0f",
+    "muted": "#565656",
+    "accent": "#0f0f0f",
+    "accentInk": "#fafafa",
+    "headingFont": "Instrument Sans",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 8,
+    "density": "balanced",
+    "heroLayout": "stacked",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Graphite Precision",
+   "headline": "Exact, quiet, engineered.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Software",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Professional services",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Anything that should feel rigorous",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "soft-daylight",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Consumer products, health, hospitality: anything that should feel effortless.",
+  "risk": "Needs generous space and good photographs; cramped content breaks the calm.",
+  "extras": {
+   "accent2": null,
+   "finish": "float",
+   "touch": "none",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Bright, airy, unhurried. Boxes float on soft shadows in clear light. Best for: Consumer products, health, hospitality: anything that should feel effortless.",
+  "direction": {
+   "name": "Soft Daylight",
+   "mood": "Bright, airy, unhurried. Boxes float on soft shadows in clear light.",
+   "why": "Needs generous space and good photographs; cramped content breaks the calm.",
+   "tokens": {
+    "bg": "#f8fafd",
+    "surface": "#ffffff",
+    "ink": "#13161a",
+    "muted": "#595d61",
+    "accent": "#006edc",
+    "accentInk": "#fafcff",
+    "headingFont": "Manrope",
+    "bodyFont": "Manrope",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 999,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Soft Daylight",
+   "headline": "Bright, airy, unhurried.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Consumer products",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Health",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Hospitality",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "clinical-calm",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Clinics, dental and medical practices, care services.",
+  "risk": "Teal is a familiar color in health care; the fine edges around the boxes and the sturdy letters keep this one from looking like a template.",
+  "extras": {
+   "accent2": null,
+   "finish": "ring",
+   "touch": "none",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Clean, reassuring, plainly spoken. Nothing to worry about here. Best for: Clinics, dental and medical practices, care services.",
+  "direction": {
+   "name": "Clinical Calm",
+   "mood": "Clean, reassuring, plainly spoken. Nothing to worry about here.",
+   "why": "Teal is a familiar color in health care; the fine edges around the boxes and the sturdy letters keep this one from looking like a template.",
+   "tokens": {
+    "bg": "#f4fcfb",
+    "surface": "#ffffff",
+    "ink": "#091514",
+    "muted": "#4e5c5b",
+    "accent": "#005f5f",
+    "accentInk": "#f8fdfd",
+    "headingFont": "Public Sans",
+    "bodyFont": "Public Sans",
+    "headingCase": "normal",
+    "scale": 1.28,
+    "radius": 10,
+    "density": "airy",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Clinical Calm",
+   "headline": "Clean, reassuring, plainly spoken.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Clinics",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Dental and medical practices",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Care services",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "quiet-luxury",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "High-end services, galleries, architects, private practices.",
+  "risk": "Restraint this strict exposes every weak photograph and every loose sentence.",
+  "extras": {
+   "accent2": null,
+   "finish": "flat",
+   "touch": "none",
+   "atmosphere": "plain",
+   "buttonFinish": "outline"
+  },
+  "brief": "A business that wants this look: Nearly nothing, perfectly placed. Thin letters with small feet, wide margins, no lines. Best for: High-end services, galleries, architects, private practices.",
+  "direction": {
+   "name": "Quiet Luxury",
+   "mood": "Nearly nothing, perfectly placed. Thin letters with small feet, wide margins, no lines.",
+   "why": "Restraint this strict exposes every weak photograph and every loose sentence.",
+   "tokens": {
+    "bg": "#fcfaf7",
+    "surface": "#ffffff",
+    "ink": "#1c1813",
+    "muted": "#635e58",
+    "accent": "#fcfaf7",
+    "accentInk": "#1c1813",
+    "headingFont": "Fraunces",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 0,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "outline",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Quiet Luxury",
+   "headline": "Nearly nothing, perfectly placed.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "High-end services",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Galleries",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Architects",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "cobalt-wash",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Young brands and products that want to be recognized by color alone.",
+  "risk": "Photographs take on the tint of the page; look at your own photographs on this page before you commit.",
+  "extras": {
+   "accent2": null,
+   "finish": "soft-shadow",
+   "touch": "marker",
+   "atmosphere": "plain",
+   "buttonFinish": "gloss"
+  },
+  "brief": "A business that wants this look: The whole page breathes one color. Fresh, modern, unmistakable. Best for: Young brands and products that want to be recognized by color alone.",
+  "direction": {
+   "name": "Cobalt Wash",
+   "mood": "The whole page breathes one color. Fresh, modern, unmistakable.",
+   "why": "Photographs take on the tint of the page; look at your own photographs on this page before you commit.",
+   "tokens": {
+    "bg": "#ecf3ff",
+    "surface": "#f9fbff",
+    "ink": "#09101b",
+    "muted": "#4f5766",
+    "accent": "#1256d8",
+    "accentInk": "#fafcff",
+    "headingFont": "Manrope",
+    "bodyFont": "Manrope",
+    "headingCase": "normal",
+    "scale": 1.34,
+    "radius": 14,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Cobalt Wash",
+   "headline": "The whole page breathes one color.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Young brands and products that want to be recognized by color alone",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "sunlit-studio",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Makers, cafes, wellness, family businesses.",
+  "risk": "Yellow buttons need dark labels, and the Studio sets them. It also darkens yellow links, though not all the way to the guideline for reading text; \u201cFix for me\u201d under \u201cContrast checks\u201d takes them there.",
+  "extras": {
+   "accent2": null,
+   "finish": "float",
+   "touch": "color-band",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Morning light in a workshop: golden, open, optimistic. Best for: Makers, cafes, wellness, family businesses.",
+  "direction": {
+   "name": "Sunlit Studio",
+   "mood": "Morning light in a workshop: golden, open, optimistic.",
+   "why": "Yellow buttons need dark labels, and the Studio sets them. It also darkens yellow links, though not all the way to the guideline for reading text; \u201cFix for me\u201d under \u201cContrast checks\u201d takes them there.",
+   "tokens": {
+    "bg": "#fdfaf3",
+    "surface": "#ffffff",
+    "ink": "#151006",
+    "muted": "#5d574a",
+    "accent": "#efbd24",
+    "accentInk": "#130f06",
+    "headingFont": "Outfit",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.32,
+    "radius": 20,
+    "density": "airy",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Sunlit Studio",
+   "headline": "Morning light in a workshop.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Makers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Cafes",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Wellness",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "quiet-orbit",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Software, science and education, consultancies, anything that should feel clear and forward-looking.",
+  "risk": "Its restraint is the point: one color, no glow. Add more decoration and it turns into a costume.",
+  "extras": {
+   "accent2": null,
+   "finish": "ring",
+   "touch": "none",
+   "atmosphere": "stars",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A bright, still morning in space: a near-white page with a cool tint, one calm indigo, a few faint stars, and soft round shapes. Smooth and modern. Best for: Software, science and education, consultancies, anything that should feel clear and forward-looking.",
+  "direction": {
+   "name": "Quiet Orbit",
+   "mood": "A bright, still morning in space: a near-white page with a cool tint, one calm indigo, a few faint stars, and soft round shapes. Smooth and modern.",
+   "why": "Its restraint is the point: one color, no glow. Add more decoration and it turns into a costume.",
+   "tokens": {
+    "bg": "#f8faff",
+    "surface": "#ffffff",
+    "ink": "#0f131b",
+    "muted": "#555a64",
+    "accent": "#3f50ad",
+    "accentInk": "#fafcff",
+    "headingFont": "Manrope",
+    "bodyFont": "Inter",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 20,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "stars"
+   }
+  },
+  "content": {
+   "brand": "Quiet Orbit",
+   "headline": "A bright, still morning in space.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Software",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Science and education",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Consultancies",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "steady-steps",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Programs that people follow over weeks: coaching, therapy and recovery support, habit and health programs, courses.",
+  "risk": "It shows the look on the sample website only. A daily check-in screen or a progress screen is a different kind of page, which the Studio does not draw yet.",
+  "extras": {
+   "accent2": null,
+   "finish": "soft-shadow",
+   "touch": "big-numerals",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A soft mint page with a calm green-teal, friendly round letters, clear buttons, and plenty of room. Encouraging and easy to return to every day. Best for: Programs that people follow over weeks: coaching, therapy and recovery support, habit and health programs, courses.",
+  "direction": {
+   "name": "Steady Steps",
+   "mood": "A soft mint page with a calm green-teal, friendly round letters, clear buttons, and plenty of room. Encouraging and easy to return to every day.",
+   "why": "It shows the look on the sample website only. A daily check-in screen or a progress screen is a different kind of page, which the Studio does not draw yet.",
+   "tokens": {
+    "bg": "#e0f9f1",
+    "surface": "#f2fefa",
+    "ink": "#161004",
+    "muted": "#5f5747",
+    "accent": "#006453",
+    "accentInk": "#f8fdfb",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.3,
+    "radius": 16,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Steady Steps",
+   "headline": "A soft mint page with a calm green-teal, friendly round letters, clear buttons, and plenty of room.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Programs that people follow over weeks",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Coaching",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Therapy and recovery support",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "field-manual",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Leadership and training programs, consultancies, veterans\u2019 groups, outdoor and safety courses, checklists and guides.",
+  "risk": "It borrows the order of a military document and none of its emblems. It can feel stern where warmth is expected.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "big-numerals",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A printed manual: a paper-white page, black ink, one olive green, typewriter-style capital headings, thin lines, and numbered parts. Orderly and plain-spoken. Best for: Leadership and training programs, consultancies, veterans\u2019 groups, outdoor and safety courses, checklists and guides.",
+  "direction": {
+   "name": "Field Manual",
+   "mood": "A printed manual: a paper-white page, black ink, one olive green, typewriter-style capital headings, thin lines, and numbered parts. Orderly and plain-spoken.",
+   "why": "It borrows the order of a military document and none of its emblems. It can feel stern where warmth is expected.",
+   "tokens": {
+    "bg": "#fafaf6",
+    "surface": "#ffffff",
+    "ink": "#0b0c06",
+    "muted": "#53534b",
+    "accent": "#3f4e22",
+    "accentInk": "#fbfcf9",
+    "headingFont": "JetBrains Mono",
+    "bodyFont": "Public Sans",
+    "headingCase": "uppercase",
+    "scale": 1.24,
+    "radius": 0,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Field Manual",
+   "headline": "A printed manual.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Leadership and training programs",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Consultancies",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Veterans\u2019 groups",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "ink-and-seal",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Craft, tea, ceramics, architecture, writing: work that should speak quietly and be looked at twice.",
+  "risk": "Quiet can read as empty. A business that nobody knows yet must show its craft in the photographs, and must keep the facts a customer needs (what, where, hours, price) near the top.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "none",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Warm paper, soft black ink, and a few small orange-red marks, like the seal on a letter. Wide empty margins, thin lines, square corners. Nothing shines and nothing moves. Best for: Craft, tea, ceramics, architecture, writing: work that should speak quietly and be looked at twice.",
+  "direction": {
+   "name": "Ink and Seal",
+   "mood": "Warm paper, soft black ink, and a few small orange-red marks, like the seal on a letter. Wide empty margins, thin lines, square corners. Nothing shines and nothing moves.",
+   "why": "Quiet can read as empty. A business that nobody knows yet must show its craft in the photographs, and must keep the facts a customer needs (what, where, hours, price) near the top.",
+   "tokens": {
+    "bg": "#fefaf1",
+    "surface": "#ffffff",
+    "ink": "#181205",
+    "muted": "#615949",
+    "accent": "#181205",
+    "accentInk": "#fefaf1",
+    "headingFont": "Instrument Sans",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.2,
+    "radius": 0,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Ink and Seal",
+   "headline": "Warm paper, soft black ink, and a few small orange-red marks, like the seal on a letter.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Craft",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Tea",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Ceramics",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "unbleached-indigo",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Makers, small hotels, clinics, studios: places that want calm without coldness.",
+  "risk": "The blue is deep and quiet, so the button depends on its place and its size to be found. Check that a first-time visitor finds it within a few seconds.",
+  "extras": {
+   "accent2": null,
+   "finish": "tonal",
+   "touch": "none",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Unbleached cloth and deep blue dye. Words and picture stand side by side on the first screen, areas are set apart by a change of tone in place of lines, and the blue marks what a visitor can press. Best for: Makers, small hotels, clinics, studios: places that want calm without coldness.",
+  "direction": {
+   "name": "Unbleached and Indigo",
+   "mood": "Unbleached cloth and deep blue dye. Words and picture stand side by side on the first screen, areas are set apart by a change of tone in place of lines, and the blue marks what a visitor can press.",
+   "why": "The blue is deep and quiet, so the button depends on its place and its size to be found. Check that a first-time visitor finds it within a few seconds.",
+   "tokens": {
+    "bg": "#fffaec",
+    "surface": "#ffffff",
+    "ink": "#181000",
+    "muted": "#61573b",
+    "accent": "#1b4a76",
+    "accentInk": "#f9fcff",
+    "headingFont": "DM Sans",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.24,
+    "radius": 2,
+    "density": "airy",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Unbleached and Indigo",
+   "headline": "Unbleached cloth and deep blue dye.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Makers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Small hotels",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Clinics",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "plain-label",
+  "group": "Light and calm",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Makers and small shops whose goods should speak for themselves: a bakery, a bookshop, a pottery, a hardware store.",
+  "risk": "Without strong photographs of the goods the page has nothing to show. Plain goods on a plain ground is also the look of some well-known shops: keep your own name and your own colors in plain sight, and copy no other shop\u2019s label, colors, or lettering.",
+  "extras": {
+   "accent2": null,
+   "finish": "flat",
+   "touch": "none",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A near-white ground, plain letters, a black button, and one dark green for small marks and links. No emblem, no badge, no decoration: the goods do the talking. Best for: Makers and small shops whose goods should speak for themselves: a bakery, a bookshop, a pottery, a hardware store.",
+  "direction": {
+   "name": "Plain Ground",
+   "mood": "A near-white ground, plain letters, a black button, and one dark green for small marks and links. No emblem, no badge, no decoration: the goods do the talking.",
+   "why": "Without strong photographs of the goods the page has nothing to show. Plain goods on a plain ground is also the look of some well-known shops: keep your own name and your own colors in plain sight, and copy no other shop\u2019s label, colors, or lettering.",
+   "tokens": {
+    "bg": "#fcf9f7",
+    "surface": "#ffffff",
+    "ink": "#120e0b",
+    "muted": "#5a5551",
+    "accent": "#120e0b",
+    "accentInk": "#fcf9f7",
+    "headingFont": "Public Sans",
+    "bodyFont": "Public Sans",
+    "headingCase": "normal",
+    "scale": 1.24,
+    "radius": 0,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Plain Ground",
+   "headline": "A near-white ground, plain letters, a black button, and one dark green for small marks and links.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Makers and small shops whose goods should speak for themselves",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "A bakery",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "A bookshop",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "midnight-aurora",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Products and studios that want atmosphere and a sense of technology.",
+  "risk": "Dark frosted boxes with a glow are a current fashion; they will look dated sooner than a plainer look.",
+  "extras": {
+   "accent2": null,
+   "finish": "glass",
+   "touch": "none",
+   "atmosphere": "aurora",
+   "buttonFinish": "glow"
+  },
+  "brief": "A business that wants this look: A deep night sky with soft colored light behind frosted, see-through boxes. Luminous and calm. Best for: Products and studios that want atmosphere and a sense of technology.",
+  "direction": {
+   "name": "Midnight Aurora",
+   "mood": "A deep night sky with soft colored light behind frosted, see-through boxes. Luminous and calm.",
+   "why": "Dark frosted boxes with a glow are a current fashion; they will look dated sooner than a plainer look.",
+   "tokens": {
+    "bg": "#060a13",
+    "surface": "#0e121d",
+    "ink": "#ecf1fd",
+    "muted": "#a7aebb",
+    "accent": "#679cff",
+    "accentInk": "#0b0f18",
+    "headingFont": "Manrope",
+    "bodyFont": "Manrope",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 12,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Midnight Aurora",
+   "headline": "A deep night sky with soft colored light behind frosted, see-through boxes.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Products and studios that want atmosphere and a sense of technology",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "ember-noir",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Restaurants, bars, studios, craftspeople, evening businesses.",
+  "risk": "Dark pages make daytime photographs look out of place.",
+  "extras": {
+   "accent2": null,
+   "finish": "tonal",
+   "touch": "marker",
+   "atmosphere": "spotlight",
+   "buttonFinish": "gloss"
+  },
+  "brief": "A business that wants this look: Charcoal and firelight. Warm, confident, a little theatrical. Best for: Restaurants, bars, studios, craftspeople, evening businesses.",
+  "direction": {
+   "name": "Ember Noir",
+   "mood": "Charcoal and firelight. Warm, confident, a little theatrical.",
+   "why": "Dark pages make daytime photographs look out of place.",
+   "tokens": {
+    "bg": "#130e09",
+    "surface": "#1c1612",
+    "ink": "#ede6e2",
+    "muted": "#aca49e",
+    "accent": "#ffb169",
+    "accentInk": "#160d07",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 10,
+    "density": "balanced",
+    "heroLayout": "poster",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Ember Noir",
+   "headline": "Charcoal and firelight.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Restaurants",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Bars",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Studios",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "evening-formal",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Fine dining, events, jewelry, hotels.",
+  "risk": "Thin, elegant letters need to be large to stay readable, so small text stays in the plainer letter style.",
+  "extras": {
+   "accent2": null,
+   "finish": "tonal",
+   "touch": "none",
+   "atmosphere": "spotlight",
+   "buttonFinish": "outline"
+  },
+  "brief": "A business that wants this look: Candlelight and engraved invitations. Dark, slow, elegant. Best for: Fine dining, events, jewelry, hotels.",
+  "direction": {
+   "name": "Evening Formal",
+   "mood": "Candlelight and engraved invitations. Dark, slow, elegant.",
+   "why": "Thin, elegant letters need to be large to stay readable, so small text stays in the plainer letter style.",
+   "tokens": {
+    "bg": "#140e16",
+    "surface": "#1d171f",
+    "ink": "#e9e2eb",
+    "muted": "#a8a0aa",
+    "accent": "#140e16",
+    "accentInk": "#e5bf6d",
+    "headingFont": "Playfair Display",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 4,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "outline",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Evening Formal",
+   "headline": "Candlelight and engraved invitations.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Fine dining",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Events",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Jewelry",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "control-room",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Dashboards, operations tools, technical services.",
+  "risk": "Too tightly packed for a public information site; made for people who work in it all day.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "none",
+   "atmosphere": "dot-grid",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: An instrument panel: dense, exact, numbers first. Best for: Dashboards, operations tools, technical services.",
+  "direction": {
+   "name": "Control Room",
+   "mood": "An instrument panel: dense, exact, numbers first.",
+   "why": "Too tightly packed for a public information site; made for people who work in it all day.",
+   "tokens": {
+    "bg": "#050b11",
+    "surface": "#0d141a",
+    "ink": "#e9f1f8",
+    "muted": "#a5aeb6",
+    "accent": "#36dcec",
+    "accentInk": "#051214",
+    "headingFont": "Space Grotesk",
+    "bodyFont": "Manrope",
+    "headingCase": "normal",
+    "scale": 1.2,
+    "radius": 3,
+    "density": "compact",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Control Room",
+   "headline": "An instrument panel.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Dashboards",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Operations tools",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Technical services",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "vector-horizon",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Technology products, engineering firms, anything that sells the future.",
+  "risk": "Capital letters and outlined letters tire the eye in long passages, so keep the text short. The look borrows from film screens; on a plain local business it can feel like a costume.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "outline-type",
+   "atmosphere": "line-grid",
+   "buttonFinish": "glow"
+  },
+  "brief": "A business that wants this look: A flight deck at night: thin lines, a faint grid, capital letters, and one electric color. Precise and forward-looking. Best for: Technology products, engineering firms, anything that sells the future.",
+  "direction": {
+   "name": "Vector Horizon",
+   "mood": "A flight deck at night: thin lines, a faint grid, capital letters, and one electric color. Precise and forward-looking.",
+   "why": "Capital letters and outlined letters tire the eye in long passages, so keep the text short. The look borrows from film screens; on a plain local business it can feel like a costume.",
+   "tokens": {
+    "bg": "#010a16",
+    "surface": "#05131f",
+    "ink": "#e8f4ff",
+    "muted": "#a0b1c1",
+    "accent": "#00ddef",
+    "accentInk": "#051214",
+    "headingFont": "Space Grotesk",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 2,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Vector Horizon",
+   "headline": "A flight deck at night.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Technology products",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Engineering firms",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Anything that sells the future",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "galactic-goth",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Studios, musicians, tattoo and piercing shops, game and book makers, evening venues.",
+  "risk": "Purple on a dark page is on published lists of looks that many AI-made pages share; the stars, the deep red, and the elegant headings keep this one specific. The elegant heading letters need to be large to stay readable, so reading text stays in plain letters.",
+  "extras": {
+   "accent2": "#ff6f7a",
+   "finish": "glass",
+   "touch": "none",
+   "atmosphere": "stars",
+   "buttonFinish": "glow"
+  },
+  "brief": "A business that wants this look: Deep space in velvet: a violet-black sky full of stars, frosted boxes, royal purple, and one deep red. Dramatic and elegant. Best for: Studios, musicians, tattoo and piercing shops, game and book makers, evening venues.",
+  "direction": {
+   "name": "Galactic Goth",
+   "mood": "Deep space in velvet: a violet-black sky full of stars, frosted boxes, royal purple, and one deep red. Dramatic and elegant.",
+   "why": "Purple on a dark page is on published lists of looks that many AI-made pages share; the stars, the deep red, and the elegant headings keep this one specific. The elegant heading letters need to be large to stay readable, so reading text stays in plain letters.",
+   "tokens": {
+    "bg": "#0d0615",
+    "surface": "#160e1f",
+    "ink": "#f5eeff",
+    "muted": "#b3a9c0",
+    "accent": "#ba86ff",
+    "accentInk": "#110d17",
+    "headingFont": "Playfair Display",
+    "bodyFont": "Manrope",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 14,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "stars"
+   }
+  },
+  "content": {
+   "brand": "Galactic Goth",
+   "headline": "Deep space in velvet.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Studios",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Musicians",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Tattoo and piercing shops",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "marquee-deco",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Theaters, cocktail bars, hotels, jewelers, events with a sense of occasion.",
+  "risk": "Gold on black reads as luxury only when everything else is restrained; one more decoration tips it into a casino. Thin capital letters need generous size.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "color-band",
+   "atmosphere": "spotlight",
+   "buttonFinish": "outline"
+  },
+  "brief": "A business that wants this look: A theater front from the 1920s: black and gold, even capital letters, square corners, and a light from above. Best for: Theaters, cocktail bars, hotels, jewelers, events with a sense of occasion.",
+  "direction": {
+   "name": "Marquee Deco",
+   "mood": "A theater front from the 1920s: black and gold, even capital letters, square corners, and a light from above.",
+   "why": "Gold on black reads as luxury only when everything else is restrained; one more decoration tips it into a casino. Thin capital letters need generous size.",
+   "tokens": {
+    "bg": "#0d0905",
+    "surface": "#15120c",
+    "ink": "#f5f1eb",
+    "muted": "#b2aea6",
+    "accent": "#0d0905",
+    "accentInk": "#e7bf57",
+    "headingFont": "Outfit",
+    "bodyFont": "DM Sans",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 0,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "outline",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Marquee Deco",
+   "headline": "A theater front from the 1920s.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Theaters",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Cocktail bars",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Hotels",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "vegas-modern",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Venues, shows, restaurants, luxury services, product launches, anything that should feel like an arrival.",
+  "risk": "Black with gold promises quality. Weak photographs or thin content will look worse here than on a plain page.",
+  "extras": {
+   "accent2": null,
+   "finish": "glass",
+   "touch": "none",
+   "atmosphere": "spotlight",
+   "buttonFinish": "gloss"
+  },
+  "brief": "A business that wants this look: A new resort at night: a black page, warm gold, glass boxes, a single light from above, and large confident letters. Sleek and impressive. Best for: Venues, shows, restaurants, luxury services, product launches, anything that should feel like an arrival.",
+  "direction": {
+   "name": "Vegas Modern",
+   "mood": "A new resort at night: a black page, warm gold, glass boxes, a single light from above, and large confident letters. Sleek and impressive.",
+   "why": "Black with gold promises quality. Weak photographs or thin content will look worse here than on a plain page.",
+   "tokens": {
+    "bg": "#0b0705",
+    "surface": "#14100c",
+    "ink": "#f9f4f0",
+    "muted": "#b6b0ab",
+    "accent": "#eebb58",
+    "accentInk": "#140f06",
+    "headingFont": "Manrope",
+    "bodyFont": "Inter",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 10,
+    "density": "balanced",
+    "heroLayout": "poster",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Vegas Modern",
+   "headline": "A new resort at night.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Venues",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Shows",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Restaurants",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "long-conversation",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Podcasts and interviews, writers, gyms and martial-arts schools, comedy, long reads.",
+  "risk": "Dark and warm is easy on the eyes for an evening and heavy for a quick errand; the reading text must stay large.",
+  "extras": {
+   "accent2": "#ffaaa3",
+   "finish": "ring",
+   "touch": "none",
+   "atmosphere": "spotlight",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A dark studio late at night: warm amber light, a deep red, sturdy plain letters, and plenty of room to read. Curious and unhurried. Best for: Podcasts and interviews, writers, gyms and martial-arts schools, comedy, long reads.",
+  "direction": {
+   "name": "Long Conversation",
+   "mood": "A dark studio late at night: warm amber light, a deep red, sturdy plain letters, and plenty of room to read. Curious and unhurried.",
+   "why": "Dark and warm is easy on the eyes for an evening and heavy for a quick errand; the reading text must stay large.",
+   "tokens": {
+    "bg": "#0e0603",
+    "surface": "#170e09",
+    "ink": "#fef3ed",
+    "muted": "#bbaea7",
+    "accent": "#feb354",
+    "accentInk": "#150e06",
+    "headingFont": "Manrope",
+    "bodyFont": "Inter",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 6,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Long Conversation",
+   "headline": "A dark studio late at night.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Podcasts and interviews",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Writers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Gyms and martial-arts schools",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "before-dawn",
+  "group": "Dark and dramatic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Coaches and trainers, endurance events, gyms, anyone whose message is discipline.",
+  "risk": "There is nothing soft here. A visitor who needs reassurance will not find it in this look.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "big-numerals",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: The road at five in the morning: a near-black page, one hard orange like a safety vest, heavy capital letters, and square edges. Stripped down and relentless. Best for: Coaches and trainers, endurance events, gyms, anyone whose message is discipline.",
+  "direction": {
+   "name": "Before Dawn",
+   "mood": "The road at five in the morning: a near-black page, one hard orange like a safety vest, heavy capital letters, and square edges. Stripped down and relentless.",
+   "why": "There is nothing soft here. A visitor who needs reassurance will not find it in this look.",
+   "tokens": {
+    "bg": "#07080b",
+    "surface": "#0e1113",
+    "ink": "#f3f5f8",
+    "muted": "#aeb1b5",
+    "accent": "#ffae81",
+    "accentInk": "#170d08",
+    "headingFont": "Space Grotesk",
+    "bodyFont": "Inter",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 0,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Before Dawn",
+   "headline": "The road at five in the morning.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Coaches and trainers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Endurance events",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Gyms",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "paper-and-ink",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Writers, advisers, law, education: places where words matter.",
+  "risk": "Paper texture, letters with small feet, and thin lines together are a familiar magazine look; the one red color and the numbered list keep this one specific.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "marker",
+   "atmosphere": "grain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A well-edited magazine: paper grain, ink, and one red pencil. Best for: Writers, advisers, law, education: places where words matter.",
+  "direction": {
+   "name": "Paper and Ink",
+   "mood": "A well-edited magazine: paper grain, ink, and one red pencil.",
+   "why": "Paper texture, letters with small feet, and thin lines together are a familiar magazine look; the one red color and the numbered list keep this one specific.",
+   "tokens": {
+    "bg": "#fefaf1",
+    "surface": "#ffffff",
+    "ink": "#171105",
+    "muted": "#605848",
+    "accent": "#171105",
+    "accentInk": "#fefaf1",
+    "headingFont": "Newsreader",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.34,
+    "radius": 2,
+    "density": "airy",
+    "heroLayout": "poster",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Paper and Ink",
+   "headline": "A well-edited magazine.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Writers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Advisers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Law",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "garden-ledger",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Garden, food, sustainability, outdoor and craft businesses.",
+  "risk": "Dark green can look black in small text, so the text sizes here stay large.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "big-numerals",
+   "atmosphere": "grain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A seed catalog: deep green, sturdy letters with small feet, orderly lists. Best for: Garden, food, sustainability, outdoor and craft businesses.",
+  "direction": {
+   "name": "Garden Ledger",
+   "mood": "A seed catalog: deep green, sturdy letters with small feet, orderly lists.",
+   "why": "Dark green can look black in small text, so the text sizes here stay large.",
+   "tokens": {
+    "bg": "#f5fdf6",
+    "surface": "#ffffff",
+    "ink": "#08140a",
+    "muted": "#4d5c50",
+    "accent": "#005729",
+    "accentInk": "#f9fdfa",
+    "headingFont": "Literata",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.3,
+    "radius": 6,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Garden Ledger",
+   "headline": "A seed catalog.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Garden",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Food",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Sustainability",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "frontier-gazette",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Ranches, outfitters, diners and saloons, craft makers, country inns.",
+  "risk": "Cream paper with letters that have small feet is on published lists of newer looks that many AI-made pages share; the heavy capitals, the rust red, and the paper grain keep this one specific. It is a costume: it suits a business with a story to tell, and it will look odd on a clinic or a software product.",
+  "extras": {
+   "accent2": "#005c94",
+   "finish": "borders",
+   "touch": "corner-tag",
+   "atmosphere": "grain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A small-town newspaper and a wanted poster: sun-faded paper, heavy capital letters, rust red, and denim blue. Best for: Ranches, outfitters, diners and saloons, craft makers, country inns.",
+  "direction": {
+   "name": "Frontier Gazette",
+   "mood": "A small-town newspaper and a wanted poster: sun-faded paper, heavy capital letters, rust red, and denim blue.",
+   "why": "Cream paper with letters that have small feet is on published lists of newer looks that many AI-made pages share; the heavy capitals, the rust red, and the paper grain keep this one specific. It is a costume: it suits a business with a story to tell, and it will look odd on a clinic or a software product.",
+   "tokens": {
+    "bg": "#fff9f1",
+    "surface": "#ffffff",
+    "ink": "#1b0e00",
+    "muted": "#6c532b",
+    "accent": "#992e01",
+    "accentInk": "#fffbf9",
+    "headingFont": "Playfair Display",
+    "bodyFont": "Literata",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 0,
+    "density": "balanced",
+    "heroLayout": "stacked",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Frontier Gazette",
+   "headline": "A small-town newspaper and a wanted poster.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Ranches",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Outfitters",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Diners and saloons",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "motel-neon",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Musicians, photographers, vintage shops, bars and diners, writers, anything that trades on nostalgia.",
+  "risk": "Melancholy is a narrow mood; it suits a story and can feel heavy on a page that only sells a service. The elegant heading letters need to be large to stay readable.",
+  "extras": {
+   "accent2": "#00d4f6",
+   "finish": "ring",
+   "touch": "none",
+   "atmosphere": "grain",
+   "buttonFinish": "glow"
+  },
+  "brief": "A business that wants this look: Night on an old California highway: a near-black blue page, a warm rose pink like a lit sign, tall elegant letters, and a faint film grain. Wistful and cinematic. Best for: Musicians, photographers, vintage shops, bars and diners, writers, anything that trades on nostalgia.",
+  "direction": {
+   "name": "Motel Neon",
+   "mood": "Night on an old California highway: a near-black blue page, a warm rose pink like a lit sign, tall elegant letters, and a faint film grain. Wistful and cinematic.",
+   "why": "Melancholy is a narrow mood; it suits a story and can feel heavy on a page that only sells a service. The elegant heading letters need to be large to stay readable.",
+   "tokens": {
+    "bg": "#050617",
+    "surface": "#0c0f21",
+    "ink": "#f2f5ff",
+    "muted": "#aab0c9",
+    "accent": "#ff9eaa",
+    "accentInk": "#170c0d",
+    "headingFont": "Playfair Display",
+    "bodyFont": "Newsreader",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 3,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Motel Neon",
+   "headline": "Night on an old California highway.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Musicians",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Photographers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Vintage shops",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "malibu-sunset",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Surf and swim shops, beach rentals, wellness studios, cafes, coastal real estate, travel.",
+  "risk": "Sunset colors turn sweet quickly; the look needs real photographs of a real place to stay grown-up.",
+  "extras": {
+   "accent2": "#00686d",
+   "finish": "soft-shadow",
+   "touch": "color-band",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: The Pacific coast at the end of the day: pale sand, a coral sun, a touch of ocean teal, and easy round letters. Sunlit and unhurried. Best for: Surf and swim shops, beach rentals, wellness studios, cafes, coastal real estate, travel.",
+  "direction": {
+   "name": "Malibu Sunset",
+   "mood": "The Pacific coast at the end of the day: pale sand, a coral sun, a touch of ocean teal, and easy round letters. Sunlit and unhurried.",
+   "why": "Sunset colors turn sweet quickly; the look needs real photographs of a real place to stay grown-up.",
+   "tokens": {
+    "bg": "#fff9f2",
+    "surface": "#ffffff",
+    "ink": "#1e0f00",
+    "muted": "#685641",
+    "accent": "#a32600",
+    "accentInk": "#fffbf9",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 14,
+    "density": "airy",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Malibu Sunset",
+   "headline": "The Pacific coast at the end of the day.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Surf and swim shops",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Beach rentals",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Wellness studios",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "miami-beach-deco",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Hotels and guest houses, restaurants, spas, galleries, event venues.",
+  "risk": "The nod to the past is slight on purpose. Push the capitals and the lines further and it becomes a fancy-dress party.",
+  "extras": {
+   "accent2": "#006150",
+   "finish": "borders",
+   "touch": "none",
+   "atmosphere": "plain",
+   "buttonFinish": "outline"
+  },
+  "brief": "A business that wants this look: A sun-warmed hotel front from the 1930s: cream walls, soft coral, a line of sea green, capital letters with air between them, and clean thin lines. Warm and relaxed, with a quiet nod to Art Deco. Best for: Hotels and guest houses, restaurants, spas, galleries, event venues.",
+  "direction": {
+   "name": "Miami Beach Deco",
+   "mood": "A sun-warmed hotel front from the 1930s: cream walls, soft coral, a line of sea green, capital letters with air between them, and clean thin lines. Warm and relaxed, with a quiet nod to Art Deco.",
+   "why": "The nod to the past is slight on purpose. Push the capitals and the lines further and it becomes a fancy-dress party.",
+   "tokens": {
+    "bg": "#fff9f1",
+    "surface": "#ffffff",
+    "ink": "#1c1002",
+    "muted": "#665744",
+    "accent": "#fff9f1",
+    "accentInk": "#8c2e26",
+    "headingFont": "Outfit",
+    "bodyFont": "DM Sans",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 22,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "outline",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Miami Beach Deco",
+   "headline": "A sun-warmed hotel front from the 1930s.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Hotels and guest houses",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Restaurants",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Spas",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "smoky-mountain-autumn",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Cabins and lodges, outfitters, farms and orchards, craftspeople, local guides, churches and community groups.",
+  "risk": "Orange with green can read as a seasonal sale. The haze and the bookish letters keep it calm; bright photographs help.",
+  "extras": {
+   "accent2": "#006336",
+   "finish": "tonal",
+   "touch": "marker",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: The ridges in October: a warm parchment page, burnt orange leaves, deep evergreen, bookish letters, and a soft morning haze. Calm and rooted. Best for: Cabins and lodges, outfitters, farms and orchards, craftspeople, local guides, churches and community groups.",
+  "direction": {
+   "name": "Smoky Mountain Autumn",
+   "mood": "The ridges in October: a warm parchment page, burnt orange leaves, deep evergreen, bookish letters, and a soft morning haze. Calm and rooted.",
+   "why": "Orange with green can read as a seasonal sale. The haze and the bookish letters keep it calm; bright photographs help.",
+   "tokens": {
+    "bg": "#fff9f2",
+    "surface": "#ffffff",
+    "ink": "#1d0d00",
+    "muted": "#68543d",
+    "accent": "#883500",
+    "accentInk": "#fffbf9",
+    "headingFont": "Newsreader",
+    "bodyFont": "Literata",
+    "headingCase": "normal",
+    "scale": 1.36,
+    "radius": 6,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Smoky Mountain Autumn",
+   "headline": "The ridges in October.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Cabins and lodges",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Outfitters",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Farms and orchards",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "childhood-nostalgia",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Family businesses, diners, thrift and antique shops, memoirs and family histories, anything that says \u201cyou are welcome here\u201d.",
+  "risk": "Nostalgia slides into costume when it piles on old patterns. This look uses the colors and the warmth of the time, and none of its ornaments.",
+  "extras": {
+   "accent2": "#5f4a00",
+   "finish": "tonal",
+   "touch": "none",
+   "atmosphere": "grain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A small-town living room in the 1980s, remembered kindly: wood-brown, harvest gold, a soft lamp-lit page, friendly letters, and a little grain like an old photograph. Warm and safe. Best for: Family businesses, diners, thrift and antique shops, memoirs and family histories, anything that says \u201cyou are welcome here\u201d.",
+  "direction": {
+   "name": "Childhood Nostalgia",
+   "mood": "A small-town living room in the 1980s, remembered kindly: wood-brown, harvest gold, a soft lamp-lit page, friendly letters, and a little grain like an old photograph. Warm and safe.",
+   "why": "Nostalgia slides into costume when it piles on old patterns. This look uses the colors and the warmth of the time, and none of its ornaments.",
+   "tokens": {
+    "bg": "#fff9f3",
+    "surface": "#ffffff",
+    "ink": "#1e0c00",
+    "muted": "#6e5135",
+    "accent": "#773a00",
+    "accentInk": "#fffbf9",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "Newsreader",
+    "headingCase": "normal",
+    "scale": 1.3,
+    "radius": 8,
+    "density": "airy",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Childhood Nostalgia",
+   "headline": "A small-town living room in the 1980s, remembered kindly.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Family businesses",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Diners",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Thrift and antique shops",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "mountain-rhinestone",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Charities and reading programs, music and theater, bakeries, salons, family attractions.",
+  "risk": "Pink with yellow is cheerful by nature; it is the wrong voice for bad news or for a formal office.",
+  "extras": {
+   "accent2": "#6c5900",
+   "finish": "soft-shadow",
+   "touch": "marker",
+   "atmosphere": "spotlight",
+   "buttonFinish": "gloss"
+  },
+  "brief": "A business that wants this look: A big-hearted stage in the hills: warm cream, a bright rose pink, a butterfly yellow, round generous shapes, and elegant letters. Joyful and kind. Best for: Charities and reading programs, music and theater, bakeries, salons, family attractions.",
+  "direction": {
+   "name": "Mountain Rhinestone",
+   "mood": "A big-hearted stage in the hills: warm cream, a bright rose pink, a butterfly yellow, round generous shapes, and elegant letters. Joyful and kind.",
+   "why": "Pink with yellow is cheerful by nature; it is the wrong voice for bad news or for a formal office.",
+   "tokens": {
+    "bg": "#fff9f6",
+    "surface": "#ffffff",
+    "ink": "#200d06",
+    "muted": "#6b544a",
+    "accent": "#a30660",
+    "accentInk": "#fffafc",
+    "headingFont": "Playfair Display",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 999,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Mountain Rhinestone",
+   "headline": "A big-hearted stage in the hills.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Charities and reading programs",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Music and theater",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Bakeries",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "blue-hour-chapel",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Musicians, wedding and portrait photographers, florists, vintage clothing, poetry and memoir.",
+  "risk": "The faded colors are quiet on purpose; a page that must shout an offer will fight this look.",
+  "extras": {
+   "accent2": "#6e3d3d",
+   "finish": "flat",
+   "touch": "none",
+   "atmosphere": "grain",
+   "buttonFinish": "outline"
+  },
+  "brief": "A business that wants this look: An old photograph of a summer that is over: sun-faded cream, dusty blue, a faded red, tall elegant letters, and soft grain. Glamorous and sad at once. Best for: Musicians, wedding and portrait photographers, florists, vintage clothing, poetry and memoir.",
+  "direction": {
+   "name": "Blue Hour Chapel",
+   "mood": "An old photograph of a summer that is over: sun-faded cream, dusty blue, a faded red, tall elegant letters, and soft grain. Glamorous and sad at once.",
+   "why": "The faded colors are quiet on purpose; a page that must shout an offer will fight this look.",
+   "tokens": {
+    "bg": "#fff9f0",
+    "surface": "#ffffff",
+    "ink": "#1c1304",
+    "muted": "#655a48",
+    "accent": "#fff9f0",
+    "accentInk": "#295171",
+    "headingFont": "Playfair Display",
+    "bodyFont": "Newsreader",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 2,
+    "density": "airy",
+    "heroLayout": "stacked",
+    "buttonStyle": "outline",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Blue Hour Chapel",
+   "headline": "An old photograph of a summer that is over.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Musicians",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Wedding and portrait photographers",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Florists",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "woody-creek-winter",
+  "group": "Warm and nostalgic",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Writers and journalists, small presses, newsletters, bars, ranch and mountain businesses.",
+  "risk": "Typewriter-style headings read as a manuscript; they tire the eye in long menus and dense pages.",
+  "extras": {
+   "accent2": "#7f4400",
+   "finish": "borders",
+   "touch": "marker",
+   "atmosphere": "grain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A writer\u2019s kitchen table in the Rockies: a snow-white page, weathered wood brown, a red like a typewriter ribbon, and typewriter-style headings. Personal and a little unruly. Best for: Writers and journalists, small presses, newsletters, bars, ranch and mountain businesses.",
+  "direction": {
+   "name": "Woody Creek Winter",
+   "mood": "A writer\u2019s kitchen table in the Rockies: a snow-white page, weathered wood brown, a red like a typewriter ribbon, and typewriter-style headings. Personal and a little unruly.",
+   "why": "Typewriter-style headings read as a manuscript; they tire the eye in long menus and dense pages.",
+   "tokens": {
+    "bg": "#fff9f4",
+    "surface": "#ffffff",
+    "ink": "#140b04",
+    "muted": "#5e5248",
+    "accent": "#a20519",
+    "accentInk": "#fffbfa",
+    "headingFont": "JetBrains Mono",
+    "bodyFont": "Literata",
+    "headingCase": "normal",
+    "scale": 1.3,
+    "radius": 2,
+    "density": "balanced",
+    "heroLayout": "editorial",
+    "buttonStyle": "solid",
+    "texture": "grain"
+   }
+  },
+  "content": {
+   "brand": "Woody Creek Winter",
+   "headline": "A writer\u2019s kitchen table in the Rockies.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Writers and journalists",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Small presses",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Newsletters",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "poster-block",
+  "group": "Bold and playful",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Bold local brands, events, food, anything that should be remembered at a glance.",
+  "risk": "Tiring over many pages; hard to pair with photographs.",
+  "extras": {
+   "accent2": null,
+   "finish": "borders",
+   "touch": "outline-type",
+   "atmosphere": "plain",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A printed poster: one loud color, heavy letters, square corners. Best for: Bold local brands, events, food, anything that should be remembered at a glance.",
+  "direction": {
+   "name": "Poster Block",
+   "mood": "A printed poster: one loud color, heavy letters, square corners.",
+   "why": "Tiring over many pages; hard to pair with photographs.",
+   "tokens": {
+    "bg": "#fff9f0",
+    "surface": "#ffffff",
+    "ink": "#160d01",
+    "muted": "#5f5443",
+    "accent": "#de3f25",
+    "accentInk": "#120706",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "Instrument Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 0,
+    "density": "balanced",
+    "heroLayout": "poster",
+    "buttonStyle": "solid",
+    "texture": "none"
+   }
+  },
+  "content": {
+   "brand": "Poster Block",
+   "headline": "A printed poster.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Bold local brands",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Events",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Food",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "sticker-pop",
+  "group": "Bold and playful",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Children, pets, creative shops, friendly neighborhood businesses.",
+  "risk": "A strong current fashion (designers call it neo-brutalism); too casual for serious subjects.",
+  "extras": {
+   "accent2": "#60a7ff",
+   "finish": "hard-shadow",
+   "touch": "corner-tag",
+   "atmosphere": "dot-grid",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: Cheerful and tactile: thick outlines, solid sticker-like shadows, two bright colors. Best for: Children, pets, creative shops, friendly neighborhood businesses.",
+  "direction": {
+   "name": "Sticker Pop",
+   "mood": "Cheerful and tactile: thick outlines, solid sticker-like shadows, two bright colors.",
+   "why": "A strong current fashion (designers call it neo-brutalism); too casual for serious subjects.",
+   "tokens": {
+    "bg": "#f4fdf7",
+    "surface": "#ffffff",
+    "ink": "#05120a",
+    "muted": "#4b5b50",
+    "accent": "#6cbd2e",
+    "accentInk": "#0c1109",
+    "headingFont": "Outfit",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.3,
+    "radius": 999,
+    "density": "balanced",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Sticker Pop",
+   "headline": "Cheerful and tactile.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Children",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Pets",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Creative shops",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "ocean-drive",
+  "group": "Bold and playful",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Hotels, salons, boutiques, cocktail bars, travel, events.",
+  "risk": "Pink with turquoise is a loud pair; it reads as fashion, and a firm or a clinic may find it too playful.",
+  "extras": {
+   "accent2": "#006969",
+   "finish": "soft-shadow",
+   "touch": "color-band",
+   "atmosphere": "horizon",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A 1980s beach city: pale pastel walls, a deep flamingo pink, a touch of turquoise, and thin clean letters. Breezy and stylish. Best for: Hotels, salons, boutiques, cocktail bars, travel, events.",
+  "direction": {
+   "name": "Ocean Drive",
+   "mood": "A 1980s beach city: pale pastel walls, a deep flamingo pink, a touch of turquoise, and thin clean letters. Breezy and stylish.",
+   "why": "Pink with turquoise is a loud pair; it reads as fashion, and a firm or a clinic may find it too playful.",
+   "tokens": {
+    "bg": "#fff8fb",
+    "surface": "#ffffff",
+    "ink": "#1e1017",
+    "muted": "#68565e",
+    "accent": "#a50060",
+    "accentInk": "#fffafc",
+    "headingFont": "Outfit",
+    "bodyFont": "DM Sans",
+    "headingCase": "normal",
+    "scale": 1.42,
+    "radius": 18,
+    "density": "balanced",
+    "heroLayout": "split",
+    "buttonStyle": "solid",
+    "texture": "glow"
+   }
+  },
+  "content": {
+   "brand": "Ocean Drive",
+   "headline": "A 1980s beach city.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Hotels",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Salons",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Boutiques",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "mall-sunset",
+  "group": "Bold and playful",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Music, games, streetwear, retro events, creative studios.",
+  "risk": "This look is a quotation of an internet style; it is fun for a subculture and wrong for anything that must be taken at face value.",
+  "extras": {
+   "accent2": "#00d7e0",
+   "finish": "hard-shadow",
+   "touch": "corner-tag",
+   "atmosphere": "line-grid",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A 1980s dream of the future: a violet night, hot magenta and cyan, a grid of lines, and wide capital letters. Playful and unreal. Best for: Music, games, streetwear, retro events, creative studios.",
+  "direction": {
+   "name": "Mall Sunset",
+   "mood": "A 1980s dream of the future: a violet night, hot magenta and cyan, a grid of lines, and wide capital letters. Playful and unreal.",
+   "why": "This look is a quotation of an internet style; it is fun for a subculture and wrong for anything that must be taken at face value.",
+   "tokens": {
+    "bg": "#0b0418",
+    "surface": "#140a22",
+    "ink": "#f7f3ff",
+    "muted": "#b5abca",
+    "accent": "#ff90e9",
+    "accentInk": "#150c13",
+    "headingFont": "Space Grotesk",
+    "bodyFont": "Space Grotesk",
+    "headingCase": "uppercase",
+    "scale": 1.3,
+    "radius": 0,
+    "density": "balanced",
+    "heroLayout": "stacked",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Mall Sunset",
+   "headline": "A 1980s dream of the future.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Music",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Games",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Streetwear",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ },
+ {
+  "id": "desert-fever",
+  "group": "Bold and playful",
+  "inspiration": "Blake's original Directions",
+  "bestFor": "Zines, bands, bars, street food, festivals, art projects.",
+  "risk": "This look is a joke that the visitor must be in on. It is wrong for anything that asks for trust, money, or health information.",
+  "extras": {
+   "accent2": "#316400",
+   "finish": "hard-shadow",
+   "touch": "corner-tag",
+   "atmosphere": "dot-grid",
+   "buttonFinish": "flat"
+  },
+  "brief": "A business that wants this look: A road trip through the desert that went wrong in an interesting way: bleached sand, acid orange, a sour green, very large heavy headings, and boxes like stickers. Loud and a little unhinged. Best for: Zines, bands, bars, street food, festivals, art projects.",
+  "direction": {
+   "name": "Desert Fever",
+   "mood": "A road trip through the desert that went wrong in an interesting way: bleached sand, acid orange, a sour green, very large heavy headings, and boxes like stickers. Loud and a little unhinged.",
+   "why": "This look is a joke that the visitor must be in on. It is wrong for anything that asks for trust, money, or health information.",
+   "tokens": {
+    "bg": "#fffaee",
+    "surface": "#ffffff",
+    "ink": "#120900",
+    "muted": "#635024",
+    "accent": "#8d3700",
+    "accentInk": "#fffbf9",
+    "headingFont": "Bricolage Grotesque",
+    "bodyFont": "Space Grotesk",
+    "headingCase": "normal",
+    "scale": 1.5,
+    "radius": 4,
+    "density": "balanced",
+    "heroLayout": "poster",
+    "buttonStyle": "solid",
+    "texture": "grid"
+   }
+  },
+  "content": {
+   "brand": "Desert Fever",
+   "headline": "A road trip through the desert that went wrong in an interesting way.",
+   "sub": "Sample words for the preview. Replace them with your own business's words.",
+   "cta": "Get started",
+   "features": [
+    {
+     "title": "Zines",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Bands",
+     "body": "Sample service description - replace with yours."
+    },
+    {
+     "title": "Bars",
+     "body": "Sample service description - replace with yours."
+    }
+   ],
+   "quote": "Sample quote - use a real customer's words, never invented ones."
+  }
+ }
+]

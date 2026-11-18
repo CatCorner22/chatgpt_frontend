@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browser audit runtime defects</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: #172a26; font: 16px/1.4 system-ui, sans-serif; }
+    main { max-width: 600px; padding: 20px; margin: auto; }
+    h1, h2 { text-wrap: balance; }
+    p { text-wrap: pretty; }
+    label { display: block; }
+    button, input { min-width: 44px; min-height: 44px; font: inherit; padding: 8px; background: #fff; color: #172a26; border: 1px solid #172a26; }
+    #spacing-defect { max-width: 270px; height: 46px; overflow: hidden; line-height: 1.4; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    #moving-marker { width: 24px; height: 24px; margin: 20px; border-radius: 50%; background: #264c40; animation: move 2s linear infinite; }
+    @keyframes move { to { transform: translateX(40px); } }
+    @media (forced-colors: active) { #forced-color-defect { display: none; } }
+  </style>
+</head>
+<body>
+  <main id="content">
+    <h1>Deliberate runtime defects</h1>
+    <p id="spacing-defect">Keep every word visible when the text spacing changes.</p>
+    <label for="email" class="sr-only">Your email</label>
+    <input id="email" type="email" autocomplete="email">
+    <div id="moving-marker" aria-hidden="true"></div>
+    <button id="forced-color-defect" type="button">This disappears in forced colors</button>
+    <button id="toggle" type="button" aria-expanded="false" aria-controls="details">Show booking details</button>
+    <p id="details" hidden>Booking details are ready.</p>
+  </main>
+  <script>
+    document.getElementById('toggle').addEventListener('click', () => {
+      document.getElementById('details').hidden = false;
+      document.getElementById('toggle').setAttribute('aria-expanded', 'true');
+    });
+    setTimeout(() => {
+      const late = document.createElement('div');
+      late.textContent = 'This late block deliberately shifts the page.';
+      late.style.height = '120px';
+      document.getElementById('content').prepend(late);
+    }, 250);
+  </script>
+</body>
+</html>

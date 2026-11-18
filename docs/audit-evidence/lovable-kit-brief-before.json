@@ -1,0 +1,121 @@
+{
+  "malformedAndPlaceholder": {
+    "ours": {
+      "valid": false,
+      "issues": [
+        {
+          "field": "headline",
+          "message": "Replace the placeholder “your tagline here” with your own content."
+        },
+        {
+          "field": "contact",
+          "message": "Add at least one genuine way to contact the business."
+        }
+      ]
+    },
+    "reference": {
+      "ok": false,
+      "problems": [
+        {
+          "field": "contact",
+          "problem": "at least one real contact detail"
+        },
+        {
+          "field": "headline",
+          "problem": "still holds placeholder text \"your tagline here\""
+        }
+      ]
+    }
+  },
+  "avoidWord": {
+    "ours": {
+      "valid": true,
+      "data": {
+        "businessName": "Harbour Bindery",
+        "description": "We hand-sew lay-flat notebooks in Halifax.",
+        "audience": "People who write every day",
+        "mainJob": "Order a notebook",
+        "headline": "Cheap notebooks",
+        "features": [
+          {
+            "title": "Field notebook",
+            "description": "A compact notebook for field work."
+          },
+          {
+            "title": "Studio notebook",
+            "description": "A larger notebook for studio work."
+          },
+          {
+            "title": "Spine repairs",
+            "description": "Repair damaged notebook spines."
+          }
+        ],
+        "contact": {
+          "email": "hello@harbourbindery.ca"
+        },
+        "proof": [
+          {
+            "kind": "number",
+            "content": "4,100 notebooks sewn since 2019",
+            "attribution": "Owner supplied tally",
+            "source": "Synthetic audit fixture"
+          }
+        ],
+        "voice": {
+          "formality": "conversational",
+          "energy": "calm",
+          "detail": "concise"
+        },
+        "wordsToAvoid": [
+          "cheap"
+        ]
+      },
+      "issues": []
+    },
+    "reference": {
+      "ok": false,
+      "problems": [
+        {
+          "field": "headline",
+          "problem": "uses a word to avoid: \"cheap\""
+        }
+      ]
+    }
+  },
+  "substringFalsePositive": {
+    "ours": {
+      "valid": false,
+      "issues": [
+        {
+          "field": "headline",
+          "message": "Replace the placeholder “your company” with your own content."
+        }
+      ]
+    },
+    "reference": {
+      "ok": false,
+      "problems": [
+        {
+          "field": "headline",
+          "problem": "still holds placeholder text \"your company\""
+        }
+      ]
+    }
+  },
+  "cyclicMalformedReference": "RangeError: Maximum call stack size exceeded",
+  "hardcodedRem": {
+    "normalization": "16px",
+    "root20PxObservation": {
+      "offSpec": [
+        {
+          "kind": "length",
+          "value": "20px"
+        }
+      ],
+      "unusedTokens": [
+        "--gap"
+      ],
+      "malformedTokens": []
+    }
+  }
+}

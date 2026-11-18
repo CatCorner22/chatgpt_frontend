@@ -1,0 +1,10 @@
+{
+  "name": "Open the booking details with a keyboard",
+  "steps": [
+    { "action": "focus", "selector": "#toggle" },
+    { "action": "press", "key": "Enter" },
+    { "action": "expect-visible", "selector": "#details" },
+    { "action": "expect-text", "selector": "#details", "text": "Booking details are ready." },
+    { "action": "expect-focus", "selector": "#toggle" }
+  ]
+}

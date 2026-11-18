@@ -1,0 +1,269 @@
+{
+  "missingFloor": {
+    "ours": {
+      "label": null,
+      "complete": false,
+      "failed": [],
+      "unmeasured": [
+        "floor-a"
+      ],
+      "summary": "There is not enough evidence to establish every supplied floor."
+    },
+    "reference": {
+      "grade": "Crafted",
+      "reasons": [
+        "no floor, design-spec or craft rule fails; tells and person checks are reported separately"
+      ]
+    }
+  },
+  "unknownFailure": {
+    "ours": {
+      "label": "Crafted",
+      "complete": true,
+      "failed": [
+        "made-up-floor"
+      ],
+      "unmeasured": [],
+      "summary": "The supplied floor and measurable craft checks hold. Human review remains necessary."
+    },
+    "reference": {
+      "grade": "Meets floor",
+      "reasons": [
+        "made-up-floor fails"
+      ]
+    }
+  },
+  "unknownReceipt": {
+    "ours": {
+      "measured": [
+        {
+          "ruleId": "made-up-floor",
+          "check": "made-up-floor",
+          "status": "fails",
+          "where": "#a",
+          "value": "No value supplied by this check",
+          "required": "See the rule"
+        }
+      ],
+      "couldNotMeasure": [
+        {
+          "ruleId": "floor-a",
+          "check": "Floor A",
+          "status": "could-not-measure",
+          "why": "This check was not run."
+        },
+        {
+          "ruleId": "craft-a",
+          "check": "Craft A",
+          "status": "could-not-measure",
+          "why": "This check was not run."
+        }
+      ],
+      "personChecks": [
+        "Read the content aloud and check that it is clear and natural.",
+        "Confirm that the content, contact details, and evidence are true.",
+        "Complete the main task with a screen reader.",
+        "Test the main task with the intended neurodivergent users."
+      ]
+    },
+    "reference": {
+      "measured": [
+        {
+          "ruleId": "made-up-floor",
+          "status": "fails",
+          "where": "#a"
+        }
+      ],
+      "couldNotMeasure": [],
+      "personMustCheck": [
+        "Does the page read well aloud?",
+        "Is every claim and detail on the page true?",
+        "Does it work with a screen reader from start to finish?",
+        "Does it work for the neurodivergent people it is meant for? Only testing with them shows this."
+      ],
+      "notApplicable": []
+    }
+  },
+  "differentLocation": {
+    "ours": {
+      "round": 2,
+      "stopped": false,
+      "items": [
+        {
+          "key": "floor-a\u0000#a",
+          "ruleId": "floor-a",
+          "where": "#a",
+          "fix": "Run this check again; the latest round did not establish whether the earlier problem is resolved.",
+          "priority": 0,
+          "status": "could-not-measure"
+        }
+      ],
+      "remaining": [
+        {
+          "key": "floor-a\u0000#a",
+          "ruleId": "floor-a",
+          "where": "#a",
+          "fix": "Run this check again; the latest round did not establish whether the earlier problem is resolved.",
+          "priority": 0,
+          "status": "could-not-measure"
+        }
+      ],
+      "fixed": []
+    },
+    "reference": {
+      "round": 2,
+      "stopped": false,
+      "items": [],
+      "fixed": [
+        "floor-a@#a"
+      ],
+      "unconfirmed": [],
+      "stillOpen": []
+    }
+  },
+  "contradictoryCurrent": {
+    "ours": {
+      "round": 2,
+      "stopped": false,
+      "items": [],
+      "remaining": [],
+      "fixed": [
+        "floor-a\u0000#a"
+      ]
+    },
+    "reference": {
+      "round": 2,
+      "stopped": false,
+      "items": [
+        {
+          "tier": 0,
+          "ruleId": "floor-a",
+          "where": "#a",
+          "fix": "Make floor-a hold."
+        }
+      ],
+      "fixed": [],
+      "unconfirmed": [],
+      "stillOpen": [
+        "floor-a@#a"
+      ]
+    }
+  },
+  "twoMissingRounds": {
+    "ours": {
+      "round": 3,
+      "stopped": false,
+      "items": [
+        {
+          "key": "floor-a\u0000#a",
+          "ruleId": "floor-a",
+          "where": "#a",
+          "fix": "Run this check again; the latest round did not establish whether the earlier problem is resolved.",
+          "priority": 0,
+          "status": "could-not-measure"
+        }
+      ],
+      "remaining": [
+        {
+          "key": "floor-a\u0000#a",
+          "ruleId": "floor-a",
+          "where": "#a",
+          "fix": "Run this check again; the latest round did not establish whether the earlier problem is resolved.",
+          "priority": 0,
+          "status": "could-not-measure"
+        }
+      ],
+      "fixed": []
+    },
+    "reference": {
+      "round": 3,
+      "stopped": false,
+      "items": [],
+      "fixed": [],
+      "unconfirmed": [],
+      "stillOpen": []
+    }
+  },
+  "oneReviewerManyPages": {
+    "ours": {
+      "groups": {
+        "spec": {
+          "total": 30,
+          "reviewers": 1,
+          "judgedHuman": 0,
+          "shareJudgedHuman": 0,
+          "reviewerWeightedShare": 0,
+          "reviewerInterval95": [
+            0,
+            1
+          ],
+          "meanQuality": 5
+        },
+        "human": {
+          "total": 30,
+          "reviewers": 1,
+          "judgedHuman": 30,
+          "shareJudgedHuman": 1,
+          "reviewerWeightedShare": 1,
+          "reviewerInterval95": [
+            0,
+            1
+          ],
+          "meanQuality": 5
+        }
+      },
+      "comparison": {
+        "pairedReviewers": 1,
+        "difference": -1,
+        "interval95": [
+          -1,
+          1
+        ],
+        "differs": false
+      },
+      "statement": "The evidence does not establish a difference. This is not evidence that the groups are equivalent.",
+      "limitations": "Hoeffding intervals use independent reviewers and are conditional on the supplied pages. They do not establish general performance across pages, absence of bias, or equivalence. Quality ratings are descriptive."
+    },
+    "reference": {
+      "spec": {
+        "group": "spec",
+        "answers": 30,
+        "judgedHumanShare": 0,
+        "ci95": [
+          0,
+          0.114
+        ],
+        "meanQuality": 5
+      },
+      "human": {
+        "group": "human",
+        "answers": 30,
+        "judgedHumanShare": 1,
+        "ci95": [
+          0.886,
+          1
+        ],
+        "meanQuality": 5
+      },
+      "differ": true,
+      "statement": "Reviewers told the groups apart: 0% of spec-built pages were judged human versus 100% of human-made pages.",
+      "reviewers": 1,
+      "pages": 60
+    }
+  },
+  "malformedIdOurs": "rejected",
+  "malformedIdReference": {
+    "invalid": "ds-741638a519",
+    "empty": "ds-741638a519"
+  },
+  "caseSensitiveIds": {
+    "ours": [
+      "d-4cb4bbed5b0034d3",
+      "d-4b88820db5f98673"
+    ],
+    "reference": [
+      "ds-4cb4bbede1",
+      "ds-4b88820d19"
+    ]
+  }
+}

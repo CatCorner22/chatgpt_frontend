@@ -1,0 +1,1 @@
+ALTER TABLE public.watched_sites ADD COLUMN design_id text;

@@ -1,0 +1,41 @@
+{
+  "browser": "Chromium",
+  "viewportCases": [
+    {
+      "width": 1280,
+      "fixture": "good",
+      "checks": 10,
+      "findings": 31,
+      "failedFindings": 0,
+      "unknownFindings": 2
+    },
+    {
+      "width": 1280,
+      "fixture": "flawed",
+      "checks": 10,
+      "findings": 24,
+      "failedFindings": 10,
+      "unknownFindings": 0
+    },
+    {
+      "width": 320,
+      "fixture": "good",
+      "checks": 10,
+      "findings": 31,
+      "failedFindings": 0,
+      "unknownFindings": 2
+    },
+    {
+      "width": 320,
+      "fixture": "flawed",
+      "checks": 10,
+      "findings": 24,
+      "failedFindings": 10,
+      "unknownFindings": 0
+    }
+  ],
+  "notes": [
+    "Each function was stringified and injected separately, with no imports or captured variables.",
+    "Passing the good fixture means no planted static or snapshot defect was found; it does not certify interaction, zoom, dynamic behavior, or conformance."
+  ]
+}

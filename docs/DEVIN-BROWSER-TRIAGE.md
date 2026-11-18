@@ -1,0 +1,35 @@
+# Browser findings checked against this project
+
+The attached judge report names `CatCorner22/Devin_Frontend` at commits `2466cbb…` and `7a8fac8`. This project is the separately uploaded Focus codebase. The report's findings and test totals were treated as claims to investigate, not as results for this code. None of its external scripts or shell payloads was executed.
+
+This review covers F-2, F-3, F-4, F-5, F-11, and F-12. F-27's narrow company/business placeholder correction was also synchronized with the kit's content validator. Tests use local, project-owned fixtures and the installed Chromium browser.
+
+| Finding | Local disposition | Reproduction and resulting behavior |
+| --- | --- | --- |
+| F-2: desktop width proves 320px reflow | **Already handled; regression confirmed** | A 900px block at a 1280px viewport returns `could-not-measure` for the full reflow floor. At 320px it fails. The existing checker never claims the whole floor holds from a single viewport. The runner retains 320px, 768px, and 1440px scenarios. |
+| F-3: identifiers forge report sections | **Reproduced and repaired at the browser boundary** | A button ID containing line breaks, a bidi control, a forged heading, and oversized text previously appeared unchanged in `where`. Page-check locations and quoted text now remove control/format characters, collapse whitespace, and bound length. The runner validates finding shapes, preserves its trusted rule ID, and sanitizes exported strings after identity comparisons. Structured JSON lists remain separate. This does not make semantic instructions inside page text trustworthy. |
+| F-4: page scripts forge checks or hang evaluation | **Reproduced and repaired for the runner** | Replacing `Document.prototype.querySelectorAll` hid an 8px button; overwriting the main-world observer state falsified CLS support. Checks, measurements, spacing overrides, and the early observer now run in a Chromium isolated world. Protocol and host deadlines bound each evaluation. A nonterminating check is interrupted and a subsequent evaluation still works. A page whose own script never terminates produces navigation gaps across six scenarios; the audit returns and the test process exits. |
+| F-5: shadow/frame faults vanish | **Coverage gap reproduced; explicit uncertainty added** | An open shadow root, a custom element with a closed root, and an iframe previously allowed document-only checks to say there were no matching elements without a local gap marker. Every page check now adds `could-not-measure` when it encounters frames, open roots, or custom elements that may hide content. Observable outer-document failures remain in the results. Traversal of embedded documents and shadow trees is **not implemented**. Closed roots on ordinary elements cannot reliably be enumerated with standard DOM calls. |
+| F-11: clipped content evades reflow measurement | **Detection gap reproduced and repaired** | A 900px table inside an `overflow-x:hidden` container at 320px has no page overflow but loses columns. The original floor remained unknown rather than falsely passing, yet missed the defect. It now detects meaningful content extending beyond the viewport behind a clipping ancestor. A reachable `overflow-x:auto` data region is a tested negative control and is not reported as clipped loss. This is not a complete test for overlap or every way content can disappear. |
+| F-12: a visually hidden label counts as visible | **Reported common case already handled; regression confirmed** | A conventional 1px, clipped `sr-only` label fails the visible-label check. This implementation already required a box larger than 1px and rejected the relevant hidden styles. No claim is made that this fixture covers every possible CSS hiding technique. |
+| F-27: real company prose counts as placeholder text | **Reproduced and repaired for shared-validator parity** | “Signs for your company van” and an inline `<strong>your company</strong>` fragment inside that sentence no longer warn. Standalone labels such as `[Your company name here]` still do. Ambiguous phrases are considered in their whole prose block; explicit stock phrases retain the existing warning behavior. |
+
+## Boundary changes
+
+The portable functions remain strict TypeScript and self-contained when injected. They do not gain a driver, network access, or a new runtime dependency. Their new coverage gaps make the limitations visible at the affected rule, rather than relying only on a document-wide note.
+
+The browser driver remains outside the kit. `scripts/audit/isolated-realm.mjs` uses Chromium's isolated execution context and protocol evaluation timeout. Page scripts cannot replace that context's `Document`, DOM prototypes, globals, or observer state. The page still controls its actual DOM, can react to interactions, and can change between snapshots. This is a measured visit, not an adversarial attestation or a guarantee about future content.
+
+`scripts/audit/report-values.mjs` checks data shapes and bounds display strings. Invalid results become unmeasured findings rather than fabricated passes. Raw identifiers are used transiently for baseline comparisons and sanitized only for export, since distinct identifiers can collapse to the same display form. Report locations are descriptions; callers should not execute them or treat them as unique commands.
+
+Direct consumers of portable page functions must supply their own isolated browser context and evaluation deadline. The functions themselves cannot establish that boundary through standard DOM APIs. The supplied audit runner does establish it.
+
+## Verification
+
+- `node --test scripts/audit/*.test.mjs`: **44 tests passed**, including the existing good/flawed/runtime fixtures and nine targeted judge regressions. The full log is `artifacts/devin-browser-triage/audit-suite.txt`.
+- The F-3 test failed before cleaning the raw ID and passed after the change. F-4 failed before isolation and passed with isolation. F-5 failed before coverage markers. F-11 failed before clipped-content detection; its reachable-scroll negative control caught an intermediate false positive and passed after refinement.
+- The frozen-page recovery test recorded six navigation gaps and completed in about 15 seconds in the full run. Its separate log is `artifacts/devin-browser-triage/timeout-recovery.txt`. It does not assert a universal performance guarantee.
+- `npm test` inside `north-star-kit`: **62 tests passed**. `npm run typecheck`: **passed**. Logs are `artifacts/devin-browser-triage/kit-suite.txt` and `kit-types.txt`. These are local kit results; the separate portable-copy record must be refreshed whenever kit source changes.
+- Changed-file ESLint: **7 files, 0 errors, 0 warnings**, recorded in `artifacts/devin-browser-triage/lint-results.json`. The formatting and regex lint corrections do not change the checker contract.
+
+Release screenshots, exported-page audits, the final isolated-copy run, and application production checks are separate evidence. Earlier report artifacts must not be presented as results from these changed sources until regenerated.

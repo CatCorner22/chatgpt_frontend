@@ -1,0 +1,50 @@
+# A blinded comparison of pages
+
+This protocol tests how this panel judges these pages. It does not prove that all future pages are indistinguishable from work by a skilled person.
+
+1. Write down the intended audience, page task, comparison groups, recruitment plan, meaningful difference and analysis before collecting answers. Use real content and comparable task complexity in both groups. Record known differences in budget and time spent.
+2. Recruit independent reviewers who have not built or seen the pages. Include the people expected to use the result; do not treat one neurodivergent participant as representative of everyone. Designers and end users can be separate, named panels.
+3. Select pages using a declared sampling method. Include independent projects and creators. Remove creator names and metadata that reveal the group, while keeping the content and interactions needed for the task. Record any changes made for masking.
+4. An organizer outside this kit shuffles and counterbalances page order. Use anonymous page IDs, identical viewports and task instructions. Keep the source-group mapping hidden from reviewers and the person administering the test. Do not show side-by-side near-duplicates that reveal the experiment.
+5. Ask each reviewer to complete the task, then answer “Made by a person or by AI?” and “Overall quality, from 1 (very poor) to 7 (excellent).” Collect a brief reason and record task success separately. Require one answer per reviewer per page. Allow breaks without time pressure.
+6. The supplied pilot plan starts with 30 independent reviewers, six matched tasks and 12 pages, split equally between groups, with human references from at least three independent creators. These counts are builder recommendations, not validated minima or a power calculation. Before a confirmatory study, use pilot variability and a predeclared smallest meaningful difference to plan sample size with a statistician. Both reviewer and page counts matter; hundreds of ratings from a few people or a few pages do not solve this.
+7. Use `scoreBlindTest` for descriptive raw shares, reviewer-weighted shares and conservative 95% reviewer-level Hoeffding intervals. Its paired comparison averages each reviewer's proportions before comparing groups, so repeated ratings do not inflate the participant count. These intervals assume independent reviewers and apply only to the pages shown. They are intentionally conservative. A confirmatory study intended to generalize across pages needs a model or resampling design accounting for both reviewer and page clustering, supplied outside this kit.
+8. Publish the sampling plan, exclusions, missing responses, group counts, intervals, page and reviewer counts, task success and verbatim feedback with permission. A comparison interval spanning zero means insufficient evidence of a difference; it does not demonstrate equivalence. An equivalence study must predeclare bounds and use a suitable analysis.
+
+Biases to record include cherry-picked pages, memorable templates, unequal content quality, recognizable creator signatures, guesses about the study's aim, reviewer expertise, small creator pools, repeated page exposure, device differences, group imbalance, fatigue and selective exclusions. Do not tell reviewers which answer is desired.
+
+The interval implementation is original code using the bounded-variable Hoeffding inequality. The builder has not opened the original publication in this session; this is documented implementation reasoning, not a claim of source review.
+
+## Practical benchmark: craft, task success and attribution
+
+`createBenchmarkPlan()` supplies six different matched tasks: mobile service booking, desktop editorial reading, mobile product comparison, desktop workspace interaction, mobile form recovery, and desktop data investigation. Both pages in a pair must receive the same brief, real content, assets, data, interaction requirements and viewport. The draft has **no submitted pages, human references, participant records or results**. Obtain those honestly before running a study. Human references should come from independently verified experienced practitioners, with permission to use their work; the manifest records provenance without pretending to verify it.
+
+The organizer stores `benchmarkManifestSchema` privately. It contains group labels, creator codes, source provenance, artifact hashes, recruitment and stopping plans, and the proposed decision thresholds. Freeze artifact bytes and record an external preregistration reference before the first rating in a confirmatory study. The kit validates hash strings and registration fields; it cannot establish that the actual files match, the registration happened on time, or the recorded people are independent.
+
+The organizer separately exports a `reviewerPacketSchema` JSON file using `createReviewerPacket(manifest, sampleOrder)`. The caller supplies a randomized and counterbalanced sample order. The packet excludes group labels, creator codes, provenance, thresholds and hashes. Use opaque sample identifiers and neutral asset locations; inspect the supplied assets, filenames, browser titles and visible content for source clues. Removing metadata fields does not guarantee successful masking.
+
+Reviewers enter arbitrary codes, not their names. They inspect one page at a time, perform the task if an interactive page is available, then record six anchored 1–7 scores: hierarchy, reading/typography, composition/detail, fit/distinctiveness, interaction clarity, and content/credibility. Anchors at 1, 4 and 7 describe concrete behavior. They record whether the task was completed, blocked or not tested, and whether the page seems person-made, generated or uncertain. A static image cannot supply actual interaction or task-completion evidence: interaction is null and task outcome is not-tested.
+
+Lock these primary answers before any side-by-side discussion. A later paired preference or debrief can help explain choices, but it is secondary evidence and cannot revise the original ratings. The reviewer room exports only `{version, benchmarkId, evaluations}`. Merge actual reviewer bundles with the organizer manifest for analysis after the declared fixed collection endpoint; never keep adding participants until a favorable interval appears.
+
+## What would support the North Star
+
+The goal has several distinct parts. Similar attribution rates alone could describe two equally poor pages. The benchmark therefore separates:
+
+| Endpoint | Declared comparison | Draft policy value |
+| --- | --- | --- |
+| Each quality dimension | Candidate is not meaningfully worse than the human reference | No more than 0.5 points worse on a 1–7 scale |
+| Each absolute quality score | Candidate clears a minimum standard | At least 5 on the 1–7 scale |
+| Task completion | Candidate is not meaningfully worse than the human reference | No more than 5 percentage points worse |
+| Absolute task completion | Candidate clears a minimum standard | At least 90% |
+| Person-made attribution | Rates are within a declared practical equivalence margin | Difference between −10 and +10 percentage points |
+
+These values are builder-chosen draft policies. They are not validated industry thresholds, evidence about the product, or substitutes for discussing what matters to the intended users. Agree and freeze them before confirmatory collection. Quality and task comparisons use noninferiority so a clearly better candidate is not punished for differing from the reference. Attribution uses two-sided equivalence. “No statistically detected difference” is never accepted as equivalence.
+
+`evaluateBenchmark` averages the same full task panel within each reviewer first, then uses independent reviewers as the unit of analysis. It reports 15 simultaneous 95% Hoeffding intervals, using a Bonferroni adjustment: six quality differences, six absolute quality means, task-success difference and absolute mean, and attribution difference. Quality differences range from −6 to +6; proportion differences range from −1 to +1. A metric is within bounds only when its whole interval fits the declared allowed region. It is outside bounds only when its whole interval lies beyond the region; otherwise it is inconclusive. A detectable small difference can still be inside a practical bound.
+
+The report lists all individual task differences because strengths and weaknesses can cancel in a panel average. It reports reviewer-code counts separately from rating counts, incomplete records, tested-task denominators and uncertain origin guesses. Incomplete reviewers are described and excluded from complete-panel summaries, but any such exclusion blocks confirmation rather than silently treating the remaining people as representative. A draft protocol, missing matched page, wrong fixed sample count or missing primary endpoint also blocks confirmation.
+
+This conservative fallback is deliberately demanding. A 30-reviewer pilot will normally have intervals too wide to establish tight bounds even when scores are similar. That is **insufficient evidence**, not a verdict of poor design. Use the pilot to find task failures, improve rating anchors, measure variance and debug masking. Plan a separate preregistered confirmatory study with a statistician using an appropriate paired or crossed reviewer/page analysis, a meaningful margin and prospective sample-size calculation. The kit does not implement that broader model or claim pilot power.
+
+Even when all bounds are supported, the defensible statement is limited: panel-average quality and task performance met the declared noninferiority and absolute criteria, and person-made attribution rates fit the declared equivalence margin **for these pages, reviewers and conditions, under the study assumptions**. It does not prove universal perceptual indistinguishability, authorship, legal conformance or performance on untested tasks. Intended-user testing, including people with relevant reading and interaction needs, remains a separate necessary source of evidence.

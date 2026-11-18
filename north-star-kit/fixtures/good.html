@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'none'; base-uri 'none'">
+  <title>Riverbend studio — measured example</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { background: #fcfcf8; color: #172a26; font: 18px/1.6 system-ui, sans-serif; }
+    body { margin: 0; background: #fcfcf8; }
+    main { max-width: 48rem; margin: auto; padding: 24px; }
+    h1, h2, h3 { line-height: 1.15; text-wrap: balance; }
+    p { text-wrap: pretty; }
+    label { display: block; font-weight: 600; }
+    input, button, a { min-height: 44px; font: inherit; }
+    input { max-width: 100%; width: 100%; border: 1px solid #526b62; border-radius: 6px; padding: 8px; background: white; color: #172a26; }
+    button { padding: 8px 20px; color: white; background: #264c40; border: 1px solid #264c40; border-radius: 6px; margin-block: 16px; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #172a26; outline-offset: 4px; }
+    th, td { font-variant-numeric: tabular-nums; text-align: start; padding: 8px; }
+    table { border-collapse: collapse; width: 100%; }
+    td, th { border-bottom: 1px solid #bdc9c1; }
+    img { display: block; max-width: 100%; height: auto; }
+    .note { font-size: 16px; }
+    @media (prefers-reduced-motion: reduce) { * { animation: none; transition: none; } }
+    @media (forced-colors: active) { button, input { border: 2px solid ButtonText; } }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="mark.svg" alt="" width="64" height="64">
+    <h1>Make something with your hands.</h1>
+    <p>Riverbend is a fictional pottery studio used to test this kit. A small class, a patient teacher, and a lump of clay are all you need to begin.</p>
+    <h2>Studio sessions</h2>
+    <table>
+      <caption>Example class availability</caption>
+      <thead><tr><th scope="col">Session</th><th scope="col">Places</th></tr></thead>
+      <tbody><tr><th scope="row">Wheel basics</th><td>12</td></tr><tr><th scope="row">Hand building</th><td>8</td></tr></tbody>
+    </table>
+    <h2>Ask about a session</h2>
+    <form>
+      <label for="email">Your email</label>
+      <input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-help">
+      <p id="email-help" class="note">This is a local test fixture. It does not send or save your information.</p>
+      <button type="button">Ask about a class</button>
+    </form>
+    <p class="note">Passing the automated checks is only part of a review. Real tasks, keyboard interaction, zoom, content, and assistive technology still need testing.</p>
+  </main>
+</body>
+</html>

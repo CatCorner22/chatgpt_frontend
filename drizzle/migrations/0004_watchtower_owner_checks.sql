@@ -1,0 +1,10 @@
+CREATE TABLE public.watched_sites (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, url text NOT NULL, label text NOT NULL DEFAULT '', enabled boolean NOT NULL DEFAULT true, next_check timestamptz NOT NULL DEFAULT now(), checked_at timestamptz, score integer, findings jsonb NOT NULL DEFAULT '[]', history jsonb NOT NULL DEFAULT '[]', error text, lease_until timestamptz, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(user_id,url));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.watched_sites TO authenticated;
+GRANT ALL ON public.watched_sites TO service_role;
+ALTER TABLE public.watched_sites ENABLE ROW LEVEL SECURITY;
+CREATE POLICY watched_owner ON public.watched_sites FOR ALL TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
+CREATE INDEX watched_due ON public.watched_sites(next_check) WHERE enabled;
+CREATE INDEX watched_owner_idx ON public.watched_sites(user_id);
+CREATE FUNCTION public.claim_watchtower(_id uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN UPDATE public.watched_sites SET lease_until = now() + interval '5 minutes' WHERE id = _id AND (lease_until IS NULL OR lease_until < now()); RETURN FOUND; END; $$;
+REVOKE ALL ON FUNCTION public.claim_watchtower(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_watchtower(uuid) TO service_role;

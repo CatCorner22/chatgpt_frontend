@@ -1,0 +1,1 @@
+- This connector is OAuth-only and reads through the caller's RLS; never add public or service-role tools.

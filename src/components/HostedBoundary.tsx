@@ -1,0 +1,277 @@
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+  initializeBrowserOwner,
+  isHostedBuild,
+  lockBrowserOwner,
+  resumeBrowserOwner,
+} from "@/lib/browser-storage";
+
+export type HostedSession = {
+  user: { id: string; email: string | null } | null;
+  storageAvailable: boolean;
+  mode: "hosted" | "preview";
+};
+const HostedContext = createContext<HostedSession | null>(null);
+
+export function useHostedSession(): HostedSession | null {
+  return useContext(HostedContext);
+}
+
+function parseSession(value: unknown): HostedSession {
+  if (!value || typeof value !== "object") throw new Error("Invalid session response");
+  const data = value as Record<string, unknown>;
+  if (
+    typeof data["storageAvailable"] !== "boolean" ||
+    !["hosted", "preview"].includes(String(data["mode"]))
+  ) {
+    throw new Error("Invalid session response");
+  }
+  if (data["mode"] === "preview") {
+    if (!import.meta.env.DEV || data["user"] !== null || data["storageAvailable"] !== false) {
+      throw new Error("Preview identity is unavailable in a deployed studio");
+    }
+    return { user: null, mode: "preview", storageAvailable: false };
+  }
+  const user = data["user"];
+  if (user === null) return { user: null, mode: "hosted", storageAvailable: false };
+  if (!user || typeof user !== "object") throw new Error("Invalid session response");
+  const identity = user as Record<string, unknown>;
+  if (
+    typeof identity["id"] !== "string" ||
+    !identity["id"] ||
+    identity["id"].length > 1000 ||
+    !(identity["email"] === null || typeof identity["email"] === "string")
+  )
+    throw new Error("Invalid session response");
+  return {
+    user: { id: identity["id"], email: identity["email"] },
+    mode: "hosted",
+    storageAvailable: data["storageAvailable"],
+  };
+}
+
+async function readSession(response: Response): Promise<HostedSession> {
+  const limit = 16_384;
+  if (Number(response.headers.get("Content-Length")) > limit)
+    throw new Error("Invalid session response");
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Missing session response");
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > limit) throw new Error("Invalid session response");
+      chunks.push(value);
+    }
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return parseSession(JSON.parse(new TextDecoder().decode(bytes)));
+}
+
+type BoundaryState = {
+  kind: "checking" | "ready" | "unverified" | "blocked";
+  session: HostedSession | null;
+  message: string;
+  signIn: boolean;
+};
+
+/** Hosted pages never mount against an unverified or mutable browser storage owner. */
+export function HostedBoundary(props: { children: ReactNode; queryClient: QueryClient }) {
+  return isHostedBuild() ? <VerifiedHostedBoundary {...props} /> : props.children;
+}
+
+function VerifiedHostedBoundary({
+  children,
+  queryClient,
+}: {
+  children: ReactNode;
+  queryClient: QueryClient;
+}) {
+  const [state, setState] = useState<BoundaryState>({
+    kind: "checking",
+    session: null,
+    message: "",
+    signIn: false,
+  });
+  const retry = useRef<() => void>(() => {});
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    let owner: string | null = null;
+    let terminal = false;
+    let paused = false;
+    let lastSession: HostedSession | null = null;
+    let request: AbortController | undefined;
+    let deadline: number | undefined;
+
+    function block(message: string, signIn = false) {
+      terminal = true;
+      lockBrowserOwner();
+      void queryClient.cancelQueries();
+      queryClient.clear();
+      setState({ kind: "blocked", message, signIn, session: null });
+    }
+
+    function pause() {
+      paused = true;
+      lockBrowserOwner();
+      void queryClient.cancelQueries();
+      setState({
+        kind: "unverified",
+        session: lastSession,
+        signIn: false,
+        message:
+          "We could not verify your account. Your open work has been kept. Check your connection, then retry to continue with the same account.",
+      });
+    }
+
+    async function verify(explicitRetry = false, protect = false) {
+      if (terminal || (paused && !explicitRetry)) return;
+      const attempt = ++generation;
+      request?.abort();
+      window.clearTimeout(deadline);
+      const controller = new AbortController();
+      request = controller;
+      if (protect || explicitRetry) setState((previous) => ({ ...previous, kind: "checking" }));
+      const timeout = window.setTimeout(() => {
+        if (!active || attempt !== generation) return;
+        generation++;
+        controller.abort();
+        pause();
+      }, 10_000);
+      deadline = timeout;
+      try {
+        const response = await fetch("/api/hosted/session", {
+          credentials: "same-origin",
+          cache: "no-store",
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) throw new Error("Session service unavailable");
+        const session = await readSession(response);
+        if (!active || attempt !== generation) return;
+        if (session.mode === "hosted" && !session.user) {
+          block("Sign in to open your private studio and saved designs.", true);
+          return;
+        }
+        const nextOwner =
+          session.mode === "preview" ? "preview:development" : `sites:${session.user!.id}`;
+        if (owner !== null && owner !== nextOwner) {
+          block("Your account changed. Reload to open the correct account's designs.");
+          return;
+        }
+        if (owner === null) initializeBrowserOwner(nextOwner);
+        else resumeBrowserOwner(nextOwner);
+        owner = nextOwner;
+        paused = false;
+        lastSession = session;
+        setState({ kind: "ready", session, message: "", signIn: false });
+      } catch {
+        if (!active || attempt !== generation) return;
+        pause();
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    const checkVisible = () => {
+      if (document.visibilityState === "visible") void verify(false, true);
+    };
+    const checkFocus = () => {
+      void verify(false, true);
+    };
+    const checkRestored = (event: PageTransitionEvent) => {
+      if (event.persisted) void verify(false, true);
+    };
+    retry.current = () => {
+      void verify(true, true);
+    };
+    void verify();
+    window.addEventListener("focus", checkFocus);
+    window.addEventListener("pageshow", checkRestored);
+    document.addEventListener("visibilitychange", checkVisible);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void verify();
+    }, 45_000);
+    return () => {
+      active = false;
+      generation++;
+      request?.abort();
+      window.clearTimeout(deadline);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", checkFocus);
+      window.removeEventListener("pageshow", checkRestored);
+      document.removeEventListener("visibilitychange", checkVisible);
+    };
+  }, [queryClient]);
+
+  return (
+    <>
+      {state.kind !== "ready" && (
+        <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
+          <div className="max-w-lg text-center">
+            <p className="mb-5 text-sm font-semibold tracking-[0.2em] text-muted-foreground">
+              FOCUS
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {state.kind === "checking" ? "Opening your studio" : "Your private studio"}
+            </h1>
+            <p role="status" className="mt-4 text-base text-muted-foreground">
+              {state.kind === "checking"
+                ? "Verifying your account before opening saved work…"
+                : state.message}
+            </p>
+            {state.kind === "unverified" && (
+              <button
+                type="button"
+                onClick={() => retry.current()}
+                className="mt-7 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 py-3 font-medium text-primary-foreground"
+              >
+                Retry account verification
+              </button>
+            )}
+            {state.kind === "blocked" && (
+              <a
+                href={state.signIn ? "/signin-with-chatgpt" : "/"}
+                target="_top"
+                className="mt-7 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 py-3 font-medium text-primary-foreground"
+              >
+                {state.signIn ? "Sign in with ChatGPT" : "Reload securely"}
+              </a>
+            )}
+          </div>
+        </main>
+      )}
+      {state.session && (
+        <div hidden={state.kind !== "ready"} inert={state.kind !== "ready"}>
+          <HostedContext.Provider value={state.session}>
+            {state.session.mode === "preview" && (
+              <div
+                role="status"
+                className="border-b border-border bg-muted px-5 py-3 text-center text-sm text-muted-foreground"
+              >
+                Development preview. Designs stay in this preview browser; online saves require the
+                hosted studio.
+              </div>
+            )}
+            {children}
+          </HostedContext.Provider>
+        </div>
+      )}
+    </>
+  );
+}

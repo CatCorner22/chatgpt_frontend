@@ -1,0 +1,434 @@
+{
+  "version": 1,
+  "notes": [
+    "A needsRealBrowser value of null marks a rule requiring a person, not an automated check.",
+    "Static HTML cannot prove runtime behavior. Some page checks only detect failures and otherwise return could-not-measure.",
+    "Each injected function accepts the page Document and captures no external values."
+  ],
+  "rules": [
+    {
+      "ruleId": "floor-no-autoplay",
+      "group": "floor",
+      "checkKind": "page-check",
+      "functionName": "checkAutoplay",
+      "needsRealBrowser": false,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "floor-flashing",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-motion-control",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-reduced-motion",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-contrast-modes",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-task-time",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-text-spacing",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-reflow",
+      "group": "floor",
+      "checkKind": "page-check",
+      "functionName": "checkReflow",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "floor-zoom-content",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-error-recovery",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-visible-labels",
+      "group": "floor",
+      "checkKind": "page-check",
+      "functionName": "checkVisibleLabels",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "floor-text-contrast",
+      "group": "floor",
+      "checkKind": "page-check",
+      "functionName": "checkTextContrast",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "neuro-no-justification",
+      "group": "neuro",
+      "checkKind": "page-check",
+      "functionName": "checkJustification",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "neuro-readable-layout",
+      "group": "neuro",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "neuro-interruptions",
+      "group": "neuro",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "neuro-density",
+      "group": "neuro",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "neuro-predictability",
+      "group": "neuro",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "state-complete-feedback",
+      "group": "state",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-keyboard-task",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-visible-focus",
+      "group": "floor",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "behavior-dialog",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "behavior-composite-keys",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "floor-target-size",
+      "group": "floor",
+      "checkKind": "page-check",
+      "functionName": "checkTargetSize",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "behavior-comfort-targets",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "behavior-loading-space",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "behavior-empty-next-step",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "behavior-reversible-actions",
+      "group": "behavior",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-tabular-numerals",
+      "group": "craft",
+      "checkKind": "page-check",
+      "functionName": "checkTabularNumbers",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "craft-text-wrap",
+      "group": "craft",
+      "checkKind": "page-check",
+      "functionName": "checkTextWrapping",
+      "needsRealBrowser": true,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "craft-nested-radius",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-icon-alignment",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-press-feedback",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-transition-timing",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-consistent-scales",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-layout-stability",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-image-dimensions",
+      "group": "craft",
+      "checkKind": "page-check",
+      "functionName": "checkImages",
+      "needsRealBrowser": false,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "craft-image-purpose",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-typography-details",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "craft-dark-theme",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-generic-gradient",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-identical-cards",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-all-centered",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-emoji-icons",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-uniform-surfaces",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-placeholder-copy",
+      "group": "craft",
+      "checkKind": "page-check",
+      "functionName": "checkPlaceholderCopy",
+      "needsRealBrowser": false,
+      "fixture": "fixtures/flawed.html",
+      "controlFixture": "fixtures/good.html"
+    },
+    {
+      "ruleId": "tells-stock-headlines",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    },
+    {
+      "ruleId": "tells-flat-heading-weight",
+      "group": "craft",
+      "checkKind": "person",
+      "functionName": null,
+      "needsRealBrowser": null,
+      "fixture": null,
+      "controlFixture": null
+    }
+  ],
+  "scriptedWalks": "data/states.ts#scriptedWalks"
+}

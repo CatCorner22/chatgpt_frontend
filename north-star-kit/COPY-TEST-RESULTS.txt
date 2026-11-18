@@ -1,0 +1,61 @@
+Final isolated-copy verification after logic and browser-check hardening — November 18, 2026
+
+Source: /workspace/focus/north-star-kit
+Copy: /tmp/north-star-hardened-copy-mk2g9dj5/north-star-kit
+Node: v24.22.1
+The copy is outside the application dependency tree and has its own node_modules.
+
+$ npm ci --ignore-scripts --no-audit --no-fund
+added 48 packages in 2s
+
+$ npm test
+> north-star-kit@0.1.0 test
+> vitest run
+
+RUN v4.1.12 /tmp/north-star-hardened-copy-mk2g9dj5/north-star-kit
+Test Files  5 passed (5)
+Tests       62 passed (62)
+Duration    1.44s
+Exit code: 0
+
+$ npm run typecheck
+> north-star-kit@0.1.0 typecheck
+> tsc --noEmit
+Exit code: 0
+
+$ npm ls --depth=0
+north-star-kit@0.1.0 /tmp/north-star-hardened-copy-mk2g9dj5/north-star-kit
+├── typescript@5.9.3
+├── vitest@4.1.12
+└── zod@4.6.7
+
+No source dependency on the application or its node_modules was used in this copy test.
+Only the three listed top-level dependencies were declared. The package manager
+also installs their ordinary transitive dependencies.
+
+The first baseline copy passed 45 tests across 4 files; the benchmark extension
+passed 58 across 5 files. This latest copy adds four regressions for unknown rule
+IDs, contradictory repair evidence/history, and real-prose placeholder handling.
+Synthetic benchmark test answers are not human study evidence.
+
+Final source proof:
+All 30 TypeScript source/config/test files matched byte-for-byte between the
+application folder and isolated copy after tests completed. The copied source
+includes the corrected fully-transparent RGBA background handling, safe report
+text, explicit detectable frame/shadow coverage gaps, clipped-reflow checks,
+and the final logic and placeholder corrections. Hashes below cover TypeScript
+implementation, configuration and test files; subsequent handoff-document edits
+are outside that source-hash scope.
+
+page-checks/checks.ts SHA-256:
+5296fb46bf58ae56d9337b15f9ad0a9f7583e8d6a945c2a62736695eb06c6730
+
+page-checks/tokens.ts SHA-256:
+03db654d7dc8463b189adab6de65f2ef61ed776eee77deea2238a2120351ea2e
+
+SHA-256 of sorted relative-path -> file-SHA-256 JSON (compact JSON separators):
+2c4fb0bf53e340d3625c35cf84ec3e1bbf5009cf491dfcd2f146339191b5bbae
+
+Real-browser regressions and isolated-world execution are separate from this
+portable suite, in the consuming application's scripts/audit/ tooling. This
+copy test does not count those browser checks as portable Vitest cases.

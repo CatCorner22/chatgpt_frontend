@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'none'; base-uri 'none'">
+  <title>Deliberately flawed local fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { background: #ffffff; color: #172a26; font: 18px/1.6 system-ui, sans-serif; margin: 0; }
+    main { padding: 24px; }
+    h1, h2 { text-wrap: balance; }
+    p { text-wrap: pretty; }
+    input, button { min-height: 44px; font: inherit; color: #172a26; background: white; border: 1px solid #526b62; padding: 8px; }
+    table { font-variant-numeric: tabular-nums; }
+    #bad-target { width: 12px; height: 12px; min-height: 0; padding: 0; border: 1px solid #172a26; }
+    #bad-wrap { text-wrap: wrap; }
+    #bad-numerals { font-variant-numeric: normal; font-feature-settings: normal; }
+    #bad-alignment { text-align: justify; max-width: 36rem; }
+    #bad-contrast { color: #bbbbbb; background: #ffffff; }
+    #bad-overflow { width: 1600px; border-bottom: 1px solid #172a26; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Known defects for the checker</h1>
+    <p>Each marked element contains a deliberate problem. This page is a test fixture.</p>
+    <audio id="bad-autoplay" data-defect="floor-no-autoplay" autoplay></audio>
+    <input id="bad-label" data-defect="floor-visible-labels" placeholder="Email" type="email">
+    <div id="bad-overflow" data-defect="floor-reflow">This fixed-width block deliberately overflows the page.</div>
+    <button id="bad-target" data-defect="floor-target-size" type="button" aria-label="Close"></button>
+    <img id="bad-image" data-defect="craft-image-dimensions" src="mark.svg">
+    <p id="bad-copy" data-defect="tells-placeholder-copy">Your tagline here</p>
+    <table><caption>Example seats</caption><tbody><tr><td id="bad-numerals" data-defect="craft-tabular-numerals">123.45</td></tr></tbody></table>
+    <h2 id="bad-wrap" data-defect="craft-text-wrap">A heading with ordinary wrapping instead of balanced lines</h2>
+    <p id="bad-alignment" data-defect="neuro-no-justification">This paragraph uses justified alignment, stretching the gaps between words and making the rhythm of reading less predictable.</p>
+    <p id="bad-contrast" data-defect="floor-text-contrast">This text deliberately has too little contrast.</p>
+  </main>
+</body>
+</html>

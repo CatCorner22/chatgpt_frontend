@@ -14,6 +14,7 @@ import {
   type Tokens,
 } from "./design";
 import { RULES, type Purpose } from "./engine";
+import { compactImageFraming, getImageFramingCss, IMAGE_NARROW_BREAKPOINT } from "./image-framing";
 import type { PageSettings } from "./page-settings";
 import { PAGE_COMPOSITIONS, isPageComposition, type PageComposition } from "./page-compositions";
 import type { NavId } from "./nav";
@@ -686,6 +687,39 @@ function ordered<T extends object>(value: T): T {
     Object.entries(value).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
   ) as T;
 }
+function pageSnapshot(page: PageSettings): PageSettings {
+  const snapshot = { ...page },
+    framing = compactImageFraming(page.imageFraming);
+  delete snapshot.imageFraming;
+  if (framing) snapshot.imageFraming = ordered(framing);
+  return ordered(snapshot);
+}
+function imageFramingOutput(input: StratosphereInput, invalid: boolean) {
+  if (invalid)
+    return { available: false, value: "Invalid current values; image framing not evaluated." };
+  if (profileOf(input) !== "authored-website")
+    return {
+      available: false,
+      value:
+        "Not applied: image framing belongs to the authored website. Existing-site and app specifications do not apply it to customer images.",
+    };
+  if (
+    typeof input.page.imageId !== "string" ||
+    !input.page.imageId.trim() ||
+    typeof input.page.imageAlt !== "string" ||
+    !input.page.imageAlt.trim()
+  )
+    return {
+      available: false,
+      value:
+        "Not applied: an authored image reference and a nonempty image description are required. Saved framing choices are retained.",
+    };
+  const framing = getImageFramingCss(input.page.imageFraming);
+  return {
+    available: true,
+    value: `Configured authored image CSS: object-fit: ${framing.fit}; object-position: ${framing.position}; position at or below ${IMAGE_NARROW_BREAKPOINT}px: ${framing.narrowPosition}. ${framing.fit === "contain" ? "The whole image stays centered in the existing frame." : "Cover fills the existing frame and may crop the image."} Image bytes and visual result are not verified by this graph.`,
+  };
+}
 function outputValue(input: StratosphereInput, group: StratosphereGroup): string {
   const t = input.tokens,
     authored = profileOf(input) === "authored-website",
@@ -812,6 +846,26 @@ export function deriveStratosphereGraph(input: StratosphereInput): StratosphereG
         blocked: !!unavailable,
       });
   }
+  const imageFraming = imageFramingOutput(input, !!invalid.length);
+  nodes.push(
+    node(
+      "output:image-framing",
+      "output",
+      "Image framing output",
+      imageFraming.value,
+      imageFraming.available,
+    ),
+  );
+  edges.push({
+    id: "composition-image-framing",
+    from: "group:composition",
+    to: "output:image-framing",
+    kind: "affects",
+    reason:
+      "Composition changes the image frame ratio, which affects the cover crop. Contain keeps the whole image centered in that same frame. Review the subject at wide and narrow widths; a saved image reference and description do not verify image bytes or visual quality.",
+    fields: ["page.composition", "page.imageFraming", "page.imageId", "page.imageAlt"],
+    blocked: !imageFraming.available,
+  });
   edges.push({
     id: "palette-action-contrast",
     from: "group:palette",
@@ -889,7 +943,7 @@ export function deriveStratosphereGraph(input: StratosphereInput): StratosphereG
     profile,
     snapshot: {
       tokens: ordered({ ...input.tokens }),
-      page: ordered({ ...input.page }),
+      page: pageSnapshot(input.page),
       purpose: ordered({ ...input.purpose }),
       integration: input.integration,
       nav: input.nav ?? null,

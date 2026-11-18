@@ -1886,10 +1886,11 @@ button:disabled {
   background: var(--card);
 }
 .authored-preview-toolbar button {
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-height: 44px;
   gap: 5px;
   padding: 5px 9px;
   border-radius: 5px;
@@ -1915,7 +1916,15 @@ button:disabled {
 }
 .authored-frame.is-phone {
   width: 320px;
-  max-width: 100%;
+  min-width: 320px;
+}
+.authored-frame.is-wide {
+  width: 1024px;
+  min-width: 1024px;
+}
+.authored-frame-stage:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 @media (max-width: 850px) {
   .authored-layout {

@@ -1,12 +1,19 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
 import { AUTHORED_FONT_COVERAGE, buildEmbeddedFonts } from "./authored-fonts";
+import {
+  compactImageFraming,
+  getImageFramingCss,
+  IMAGE_NARROW_BREAKPOINT,
+  type ImageFraming,
+} from "./image-framing";
 import { isPageComposition, type PageComposition } from "./page-compositions";
 
 export type PageOptions = {
   composition: PageComposition;
   actionUrl: string;
   image?: { src: string; alt: string };
+  imageFraming?: ImageFraming;
 };
 
 export const DEFAULT_PAGE_OPTIONS: PageOptions = { composition: "studio", actionUrl: "" };
@@ -172,6 +179,8 @@ export function buildAuthoredPage(
       message:
         "The image was omitted. Use an embedded PNG, JPEG, or WebP under 2 MiB with a meaningful description.",
     });
+  const framing = image && compactImageFraming(options.imageFraming);
+  const framed = framing ? getImageFramingCss(framing) : undefined;
   const brand = text(content.brand) || "Untitled project";
   const headline = text(content.headline) || brand;
   const sub = text(content.sub);
@@ -281,7 +290,7 @@ p { max-inline-size: 65ch; }
 ${t.buttonStyle === "underline" ? ".action { border-width: 0 0 2px; border-radius: 0; padding-inline: .25rem; }" : ""}
 .visual { position: relative; min-inline-size: 0; margin: 0; background: var(--surface); color: var(--surface-ink); border-radius: var(--radius); }
 .original-art { inline-size: 100%; aspect-ratio: 1; }
-.owner-image { inline-size: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius); }
+.owner-image { inline-size: 100%; aspect-ratio: 4/3; object-fit: ${framed?.fit ?? "cover"};${framed ? ` object-position: ${framed.position};` : ""} border-radius: var(--radius); }
 .visual-caption { padding: 1rem 1.5rem; color: var(--surface-muted); font-size: 1rem; border-block-start: 1px solid var(--surface-muted); }
 .studio .hero { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: clamp(2rem, 6vw, 6rem); }
 .studio .visual { align-self: stretch; display: grid; align-content: center; }
@@ -378,8 +387,8 @@ ${t.buttonStyle === "underline" ? ".action { border-width: 0 0 2px; border-radiu
 /* Decorative texture never sits behind reading text. */
 ${t.texture === "grid" ? ".visual { background-image: linear-gradient(var(--surface-muted) 1px, transparent 1px), linear-gradient(90deg, var(--surface-muted) 1px, transparent 1px); background-size: 4rem 4rem; } .visual .original-art { background: var(--surface); margin: 1.25rem; inline-size: calc(100% - 2.5rem); }" : ""}
 ${t.texture === "grain" ? ".visual::before { content: ''; position: absolute; inset: 0; pointer-events: none; border: 1px dotted var(--surface-muted); border-radius: inherit; }" : ""}
-@media (max-width: 760px) {
-  .site-header { padding-block: 1rem; }
+@media (max-width: ${IMAGE_NARROW_BREAKPOINT}px) {
+${framed && framed.narrowPosition !== framed.position ? `  .owner-image { object-position: ${framed.narrowPosition}; }\n` : ""}  .site-header { padding-block: 1rem; }
   .site-nav { column-gap: 1.1rem; }
   .hero, .studio .hero, .editorial .hero { grid-template-columns: minmax(0, 1fr); padding-block: 2.5rem; gap: 2rem; }
   .editorial .hero > .eyebrow { margin: 0; }
@@ -495,6 +504,11 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
     `<style>${css}</style>`,
     '<link rel="stylesheet" href="./styles.css">',
   );
+  const framingReadme = framed
+    ? framed.fit === "contain"
+      ? "\nThe whole image is centered within its layout frame. Update object-fit on\n.owner-image in styles.css to change how the image fits."
+      : `\nTo adjust the crop, edit object-position on .owner-image in styles.css. The\nnarrow layout uses the media rule at ${IMAGE_NARROW_BREAKPOINT} CSS pixels or less.`
+    : "";
   const sourceReadme = `FOCUS AUTHORED PAGE — EDITABLE SOURCE
 
 Open index.html with styles.css beside it. The source HTML loads that stylesheet;
@@ -522,7 +536,7 @@ Keep the original backup until the restored design and its image have been check
 
 To change words in this exported page, edit index.html. A supplied image is an
 embedded data URL; a developer can replace its src with a local image filename,
-keep an accurate alt description, and include that image file when hosting.
+keep an accurate alt description, and include that image file when hosting.${framingReadme}
 Edits to exported files do not update the original Focus design.
 
 The separate standalone HTML download embeds the same generated CSS. It needs

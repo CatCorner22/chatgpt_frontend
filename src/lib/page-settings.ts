@@ -1,5 +1,6 @@
 import { focusLocalStorage } from "@/lib/browser-storage";
 import type { PageOptions } from "./authored-page";
+import { compactImageFraming, type ImageFraming } from "./image-framing";
 import { isPageComposition } from "./page-compositions";
 
 /** Store uploaded image bytes once; undo snapshots contain only their stable key. */
@@ -8,6 +9,7 @@ export type PageSettings = {
   actionUrl: string;
   imageId: string | null;
   imageAlt: string;
+  imageFraming?: ImageFraming;
 };
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   composition: "studio",
@@ -20,6 +22,7 @@ export const MAX_PAGE_IMAGE_BYTES = 750_000;
 
 export function normalizePageSettings(input: unknown): PageSettings {
   const value = input && typeof input === "object" ? (input as Partial<PageSettings>) : {};
+  const imageFraming = compactImageFraming(value.imageFraming);
   return {
     composition: isPageComposition(value.composition) ? value.composition : "studio",
     actionUrl: typeof value.actionUrl === "string" ? value.actionUrl.slice(0, 2000) : "",
@@ -28,6 +31,7 @@ export function normalizePageSettings(input: unknown): PageSettings {
         ? value.imageId
         : null,
     imageAlt: typeof value.imageAlt === "string" ? value.imageAlt.slice(0, 500) : "",
+    ...(imageFraming ? { imageFraming } : {}),
   };
 }
 

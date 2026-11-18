@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
 import { normalizeTokens } from "@/lib/design";
-import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
+import { DEFAULT_PAGE_SETTINGS, type PageSettings } from "@/lib/page-settings";
 
 const calls = vi.hoisted(() => ({
   generate: vi.fn(),
@@ -336,5 +336,70 @@ describe("compact authored workspace", () => {
     expect(screen.getByText("See it. Use it. Take it with you.").closest("section")).toHaveClass(
       "authored-workspace--compact",
     );
+  });
+});
+
+describe("framing export consistency", () => {
+  const src = "data:image/png;base64,iVBORw0KGgo=";
+  const settings: PageSettings = {
+    ...DEFAULT_PAGE_SETTINGS,
+    imageId: "a".repeat(64),
+    imageAlt: "A bird near the right edge",
+    imageFraming: { fit: "cover", position: "right", narrowPosition: "top-left" },
+  };
+  it("delivers the same framing CSS, original image and description shown in the current preview", async () => {
+    const current = {
+      ...props(),
+      settings,
+      projectState: { ...props().projectState, page: settings },
+    };
+    render(<AuthoredPagePanel {...current} />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled(),
+    );
+    const preview = screen.getByTitle("Working page preview").getAttribute("srcdoc")!;
+    startZip();
+    await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
+    const files = calls.files[0]!;
+    expect(files["styles.css"]).toContain("object-position: right center");
+    expect(files["styles.css"]).toContain("object-position: left top");
+    expect(preview).toContain(files["styles.css"]);
+    expect(files["index.html"]).toContain(src);
+    expect(files["index.html"]).toContain(settings.imageAlt);
+    const project = JSON.parse(files["focus-project.json"]!);
+    expect(project.studio.page).toEqual(settings);
+    expect(project.embeddedImage).toEqual({ id: settings.imageId, src, alt: settings.imageAlt });
+    fireEvent.click(screen.getByRole("button", { name: "Download working HTML" }));
+    const blob = calls.download.mock.calls[1]![0] as Blob;
+    const delivered = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsText(blob);
+    });
+    expect(delivered).toBe(preview);
+  });
+  it("discards an in-flight ZIP after only framing changes and exports the new crop on retry", async () => {
+    const job = pending<Blob>();
+    calls.generate.mockReturnValueOnce(job.promise);
+    const current = { ...props(), settings };
+    const { rerender } = render(<AuthoredPagePanel {...current} />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled(),
+    );
+    startZip();
+    const next: PageSettings = {
+      ...settings,
+      imageFraming: { fit: "contain", position: "right", narrowPosition: "top-left" },
+    };
+    rerender(<AuthoredPagePanel {...current} settings={next} />);
+    await act(async () => job.resolve(new Blob(["old crop"])));
+    expect(calls.download).not.toHaveBeenCalled();
+    expect(current.onExport).not.toHaveBeenCalled();
+    expect(calls.error).toHaveBeenCalledWith(expect.stringMatching(/design changed/));
+    startZip();
+    await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
+    expect(calls.files[1]!["styles.css"]).toContain("object-fit: contain");
+    expect(current.onExport).toHaveBeenCalledOnce();
   });
 });

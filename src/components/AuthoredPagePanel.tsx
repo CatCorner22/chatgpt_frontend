@@ -15,6 +15,8 @@ import { buildAuthoredPage } from "@/lib/authored-page";
 import { readPageImage, savePageImage, type PageSettings } from "@/lib/page-settings";
 import { validatePageImageAsset } from "@/lib/page-image-asset";
 import { downloadBlob } from "@/lib/exportPack";
+import { ImageFramingControls } from "@/components/ImageFramingControls";
+import { compactImageFraming } from "@/lib/image-framing";
 import { ContentEditor } from "@/components/ContentEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,7 +76,7 @@ export function AuthoredPagePanel({
   const [imageHydrating, setImageHydrating] = useState(false);
   const imageLoading = imageUploading || imageHydrating;
   const [imageError, setImageError] = useState("");
-  const [phone, setPhone] = useState(false);
+  const [previewSize, setPreviewSize] = useState<"fit" | "wide" | "phone">("fit");
   const [packing, setPacking] = useState(false);
   const [editor, setEditor] = useState(false);
   const imageRequest = useRef(0);
@@ -144,9 +146,18 @@ export function AuthoredPagePanel({
       buildAuthoredPage(tokens, content, {
         composition: settings.composition,
         actionUrl: settings.actionUrl,
+        ...(settings.imageFraming ? { imageFraming: settings.imageFraming } : {}),
         ...(image ? { image: { src: image, alt: settings.imageAlt } } : {}),
       }),
-    [tokens, content, settings.composition, settings.actionUrl, settings.imageAlt, image],
+    [
+      tokens,
+      content,
+      settings.composition,
+      settings.actionUrl,
+      settings.imageAlt,
+      settings.imageFraming,
+      image,
+    ],
   );
 
   async function chooseImage(file: File | undefined) {
@@ -170,7 +181,9 @@ export function AuthoredPagePanel({
       checkOwner(owner);
       setImageError("");
       setImageSnapshot({ id, src });
-      onSettings({ ...latestSettings.current, imageId: id });
+      const next = { ...latestSettings.current, imageId: id };
+      if (id !== latestSettings.current.imageId) delete next.imageFraming;
+      onSettings(next);
     } catch (error) {
       if (sameSelection())
         setImageError(error instanceof Error ? error.message : "This image could not be added.");
@@ -299,6 +312,19 @@ export function AuthoredPagePanel({
             Required to include your image. Describe its subject or what it adds to the page.
           </p>
           {settings.imageId && (
+            <ImageFramingControls
+              value={settings.imageFraming}
+              disabled={imageLoading || !!missingImage || needsImageDescription}
+              onChange={(value) => {
+                const next = { ...settings };
+                const framing = compactImageFraming(value);
+                if (framing) next.imageFraming = framing;
+                else delete next.imageFraming;
+                onSettings(next);
+              }}
+            />
+          )}
+          {settings.imageId && (
             <Button
               size="sm"
               variant="ghost"
@@ -306,7 +332,9 @@ export function AuthoredPagePanel({
                 imageRequest.current++;
                 setImageUploading(false);
                 setImageSnapshot({ id: null, src: null });
-                onSettings({ ...settings, imageId: null });
+                const next = { ...settings, imageId: null };
+                delete next.imageFraming;
+                onSettings(next);
               }}
             >
               Remove image
@@ -458,30 +486,52 @@ export function AuthoredPagePanel({
               Exact export preview
             </span>
             <div className="flex gap-1">
-              <button type="button" aria-pressed={!phone} onClick={() => setPhone(false)}>
+              <button
+                type="button"
+                aria-pressed={previewSize === "fit"}
+                onClick={() => setPreviewSize("fit")}
+              >
                 <Monitor size={15} />
                 Fit
               </button>
-              <button type="button" aria-pressed={phone} onClick={() => setPhone(true)}>
+              <button
+                type="button"
+                aria-pressed={previewSize === "wide"}
+                onClick={() => setPreviewSize("wide")}
+              >
+                <Monitor size={15} />
+                1024 px
+              </button>
+              <button
+                type="button"
+                aria-pressed={previewSize === "phone"}
+                onClick={() => setPreviewSize("phone")}
+              >
                 <Smartphone size={15} />
                 320 px
               </button>
             </div>
           </div>
-          <div className="authored-frame-stage">
+          <div
+            className="authored-frame-stage"
+            role="region"
+            aria-label="Page preview canvas"
+            tabIndex={previewSize === "fit" ? undefined : 0}
+          >
             <iframe
               key={`${settings.imageId ?? "none"}:${image ? "loaded" : "empty"}`}
               title="Working page preview"
               srcDoc={built.html}
               sandbox="allow-popups allow-popups-to-escape-sandbox"
               referrerPolicy="no-referrer"
-              className={phone ? "authored-frame is-phone" : "authored-frame"}
+              className={`authored-frame${previewSize === "fit" ? "" : ` is-${previewSize}`}`}
             />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Section links work here. Test contact and booking destinations in the downloaded page.
-            Supported fonts travel with the page; other families or characters use local fallbacks.
-            No font service or script is required.
+            Fit uses the available space. The fixed 1024 px and 320 px previews may scroll sideways
+            inside the canvas. Section links work here. Test contact and booking destinations in the
+            downloaded page. Supported fonts travel with the page; other families or characters use
+            local fallbacks. No font service or script is required.
           </p>
         </div>
       </div>

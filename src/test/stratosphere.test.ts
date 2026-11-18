@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { normalizeTokens, contrast } from "@/lib/design";
 import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
 import { buildAuthoredPage } from "@/lib/authored-page";
+import { DEFAULT_IMAGE_FRAMING, IMAGE_POSITIONS } from "@/lib/image-framing";
 import {
   STRATOSPHERE_GROUPS,
   deriveStratosphereGraph,
@@ -243,6 +244,141 @@ describe("Stratosphere transitions", () => {
 });
 
 describe("Stratosphere graph and output boundaries", () => {
+  it("describes default authored image framing without treating an image reference as verified bytes", () => {
+    const current = input();
+    current.page.imageId = "a".repeat(64);
+    const graph = deriveStratosphereGraph(current);
+    const framing = graph.nodes.find((node) => node.id === "output:image-framing")!;
+    expect(framing).toMatchObject({ kind: "output", available: true, selectedOptionId: null });
+    expect(framing.value).toContain("object-fit: cover; object-position: center center");
+    expect(framing.value).toContain("at or below 760px: center center");
+    expect(framing.value).toContain("Image bytes and visual result are not verified");
+    expect(graph.snapshot.page).not.toHaveProperty("imageFraming");
+    expect(graph.edges.find((edge) => edge.id === "composition-image-framing")).toMatchObject({
+      from: "group:composition",
+      to: "output:image-framing",
+      kind: "affects",
+      blocked: false,
+      fields: ["page.composition", "page.imageFraming", "page.imageId", "page.imageAlt"],
+    });
+    expect(graph.edges.find((edge) => edge.id === "composition-image-framing")?.reason).toMatch(
+      /frame ratio.*crop/,
+    );
+    expect(graph.issues.some((issue) => issue.id === "browser-unverified")).toBe(true);
+  });
+
+  it.each([
+    ["top-left", "left top"],
+    ["top", "center top"],
+    ["top-right", "right top"],
+    ["left", "left center"],
+    ["center", "center center"],
+    ["right", "right center"],
+    ["bottom-left", "left bottom"],
+    ["bottom", "center bottom"],
+    ["bottom-right", "right bottom"],
+  ] as const)(
+    "reports the %s cover anchor and its independent narrow override",
+    (position, css) => {
+      expect(IMAGE_POSITIONS).toContain(position);
+      const current = input();
+      current.page.imageId = "b".repeat(64);
+      current.page.imageFraming = { fit: "cover", position, narrowPosition: "bottom-right" };
+      const framing = deriveStratosphereGraph(current).nodes.find(
+        (node) => node.id === "output:image-framing",
+      )!;
+      expect(framing.value).toContain(`object-fit: cover; object-position: ${css};`);
+      expect(framing.value).toContain("at or below 760px: right bottom");
+    },
+  );
+
+  it("reports contain as centered at every width despite retained cover anchors", () => {
+    const current = input();
+    current.page.imageId = "c".repeat(64);
+    current.page.imageFraming = {
+      fit: "contain",
+      position: "top-left",
+      narrowPosition: "bottom-right",
+    };
+    const graph = deriveStratosphereGraph(current);
+    const framing = graph.nodes.find((node) => node.id === "output:image-framing")!;
+    expect(framing.value).toContain("object-fit: contain; object-position: center center");
+    expect(framing.value).toContain("at or below 760px: center center");
+    expect(framing.value).not.toMatch(/left top|right bottom/);
+    expect(graph.snapshot.page.imageFraming).toEqual(current.page.imageFraming);
+  });
+
+  it.each(["existing", "app", "missing-image", "blank-description"])(
+    "does not apply image framing for %s even when choices are retained",
+    (scope) => {
+      const current = input();
+      current.page.imageId = "d".repeat(64);
+      current.page.imageFraming = { fit: "cover", position: "left", narrowPosition: "right" };
+      if (scope === "existing") current.integration = "existing";
+      if (scope === "app") current.purpose.experience = "app";
+      if (scope === "missing-image") current.page.imageId = null;
+      if (scope === "blank-description") current.page.imageAlt = " \n\t ";
+      const graph = deriveStratosphereGraph(current);
+      const framing = graph.nodes.find((node) => node.id === "output:image-framing")!;
+      expect(framing.available).toBe(false);
+      expect(framing.value).toMatch(/^Not applied:/);
+      expect(framing.value).not.toContain("object-fit:");
+      expect(graph.edges.find((edge) => edge.id === "composition-image-framing")?.blocked).toBe(
+        true,
+      );
+      expect(graph.snapshot.page.imageFraming).toEqual(current.page.imageFraming);
+    },
+  );
+
+  it("canonicalizes and detaches nested framing snapshots while omitting explicit legacy defaults", () => {
+    const current = input();
+    current.page.imageId = "e".repeat(64);
+    const legacy = deriveStratosphereGraph(current);
+    expect(
+      JSON.stringify(
+        deriveStratosphereGraph({
+          ...current,
+          page: { ...current.page, imageFraming: { ...DEFAULT_IMAGE_FRAMING } },
+        }),
+      ),
+    ).toBe(JSON.stringify(legacy));
+    current.page.imageFraming = { fit: "cover", position: "top", narrowPosition: "left" };
+    const graph = deriveStratosphereGraph(current);
+    const reordered = {
+      ...current,
+      page: {
+        ...current.page,
+        imageFraming: { narrowPosition: "left", position: "top", fit: "cover" },
+      },
+    } as StratosphereInput;
+    expect(JSON.stringify(deriveStratosphereGraph(reordered))).toBe(JSON.stringify(graph));
+    graph.snapshot.page.imageFraming!.position = "bottom";
+    expect(current.page.imageFraming.position).toBe("top");
+    expect(JSON.stringify(deriveStratosphereGraph(current))).not.toBe(JSON.stringify(legacy));
+  });
+
+  it("uses bounded framing CSS and does not evaluate invalid current designs", () => {
+    const current = input();
+    current.page.imageId = "f".repeat(64);
+    current.page.imageFraming = {
+      fit: "cover; color:red",
+      position: "url(https://example.test/image)",
+      narrowPosition: "left; background:red",
+    } as unknown as NonNullable<typeof current.page.imageFraming>;
+    const bounded = deriveStratosphereGraph(current);
+    expect(bounded.nodes.find((node) => node.id === "output:image-framing")?.value).toContain(
+      "object-fit: cover; object-position: center center",
+    );
+    expect(bounded.snapshot.page).not.toHaveProperty("imageFraming");
+    expect(JSON.stringify(bounded)).not.toMatch(/color:red|background:red|example.test\/image/);
+    current.tokens.scale = Number.POSITIVE_INFINITY;
+    const invalid = deriveStratosphereGraph(current);
+    expect(invalid.nodes.find((node) => node.id === "output:image-framing")).toMatchObject({
+      available: false,
+      value: "Invalid current values; image framing not evaluated.",
+    });
+  });
+
   it("distinguishes embedded authored fonts from local fallbacks and customer-app references", () => {
     const current = input();
     const pair = evaluateStratosphereCandidate(current, "fonts", "editorial");

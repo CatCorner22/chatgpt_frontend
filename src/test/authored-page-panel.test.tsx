@@ -1,9 +1,14 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
 import { normalizeTokens } from "@/lib/design";
-import { DEFAULT_PAGE_SETTINGS, readPageImage, savePageImage } from "@/lib/page-settings";
+import {
+  DEFAULT_PAGE_SETTINGS,
+  readPageImage,
+  savePageImage,
+  type PageSettings,
+} from "@/lib/page-settings";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/quality">{children}</a>,
@@ -156,5 +161,129 @@ describe("image upload lifetime", () => {
       finish("a".repeat(64));
     });
     expect(onSettings).toHaveBeenCalledWith({ ...revised, imageId: "a".repeat(64) });
+  });
+});
+
+describe("image framing in the authored workspace", () => {
+  const imageId = "a".repeat(64);
+  const framed: PageSettings = {
+    ...DEFAULT_PAGE_SETTINGS,
+    imageId,
+    imageAlt: "A bird on the right of the photograph",
+    imageFraming: { fit: "cover", position: "right", narrowPosition: "top" },
+  };
+  const props = () => ({
+    tokens: normalizeTokens({}),
+    content,
+    onSettings: vi.fn(),
+    onContent: vi.fn(),
+    onExport: vi.fn(),
+    projectState: {},
+  });
+  async function imageReady() {
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByText("Add your own image"));
+  }
+  it("updates the actual preview when framing changes and removes the default override on reset", async () => {
+    const onSettings = vi.fn();
+    function Workspace() {
+      const [settings, setSettings] = useState(framed);
+      return (
+        <AuthoredPagePanel
+          {...props()}
+          settings={settings}
+          onSettings={(next) => {
+            onSettings(next);
+            setSettings(next);
+          }}
+        />
+      );
+    }
+    render(<Workspace />);
+    await imageReady();
+    const html = () => screen.getByTitle("Working page preview").getAttribute("srcdoc")!;
+    expect(html()).toContain("object-position: right center");
+    fireEvent.change(screen.getByLabelText("Image position"), { target: { value: "bottom-left" } });
+    expect(html()).toContain("object-position: left bottom");
+    fireEvent.click(screen.getByRole("radio", { name: "Show the whole image" }));
+    expect(html()).toContain("object-fit: contain");
+    expect(html()).not.toContain("object-position: left bottom");
+    fireEvent.click(screen.getByRole("button", { name: "Reset image framing" }));
+    expect(onSettings).toHaveBeenLastCalledWith({
+      ...DEFAULT_PAGE_SETTINGS,
+      imageId,
+      imageAlt: framed.imageAlt,
+    });
+    expect(html()).not.toContain("object-fit: contain");
+    expect(savePageImage).not.toHaveBeenCalled();
+  });
+  it("keeps framing unavailable until the image has a description", async () => {
+    render(<AuthoredPagePanel {...props()} settings={{ ...framed, imageAlt: "" }} />);
+    await waitFor(() =>
+      expect(screen.queryByText("Checking and saving the image…")).not.toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByText("Add your own image"));
+    expect(screen.getByRole("radio", { name: "Fill the frame" })).toBeDisabled();
+    expect(screen.getByLabelText("Image position")).toBeDisabled();
+  });
+  it("removes the old framing with the image but retains the description", async () => {
+    const current = props();
+    render(<AuthoredPagePanel {...current} settings={framed} />);
+    await imageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Remove image" }));
+    expect(current.onSettings).toHaveBeenLastCalledWith({
+      ...DEFAULT_PAGE_SETTINGS,
+      imageAlt: framed.imageAlt,
+    });
+  });
+  it.each([true, false])(
+    "preserves framing only for identical image bytes (same ID: %s)",
+    async (same) => {
+      let finish!: (id: string) => void;
+      vi.mocked(savePageImage).mockReturnValue(
+        new Promise<string>((resolve) => {
+          finish = resolve;
+        }),
+      );
+      const current = props();
+      const { rerender } = render(<AuthoredPagePanel {...current} settings={framed} />);
+      await imageReady();
+      fireEvent.change(screen.getByLabelText(/PNG, JPEG, or WebP/), {
+        target: { files: [new File(["bytes"], "photo.png", { type: "image/png" })] },
+      });
+      const revised: PageSettings = {
+        ...framed,
+        actionUrl: "https://example.com",
+        imageFraming: { fit: "cover", position: "bottom", narrowPosition: "left" },
+      };
+      rerender(<AuthoredPagePanel {...current} settings={revised} />);
+      const nextId = same ? imageId : "b".repeat(64);
+      await act(async () => {
+        finish(nextId);
+      });
+      const expected = { ...revised, imageId: nextId };
+      if (!same) delete expected.imageFraming;
+      expect(current.onSettings).toHaveBeenLastCalledWith(expected);
+    },
+  );
+  it("offers explicit wide and narrow preview sizes without changing the design", () => {
+    const current = props();
+    render(<AuthoredPagePanel {...current} settings={DEFAULT_PAGE_SETTINGS} />);
+    const frame = screen.getByTitle("Working page preview");
+    const original = frame.getAttribute("srcdoc");
+    fireEvent.click(screen.getByRole("button", { name: "1024 px" }));
+    expect(frame).toHaveClass("is-wide");
+    expect(screen.getByRole("region", { name: "Page preview canvas" })).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "320 px" }));
+    expect(frame).toHaveClass("is-phone");
+    fireEvent.click(screen.getByRole("button", { name: "Fit" }));
+    expect(frame).not.toHaveClass("is-wide", "is-phone");
+    expect(frame.getAttribute("srcdoc")).toBe(original);
+    expect(current.onSettings).not.toHaveBeenCalled();
   });
 });

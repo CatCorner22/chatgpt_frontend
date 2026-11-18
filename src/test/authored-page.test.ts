@@ -21,8 +21,85 @@ const options: PageOptions = {
 };
 const parse = (html: string) => new DOMParser().parseFromString(html, "text/html");
 const fontDataUrl = /url\("data:font\/woff2;base64,[A-Za-z0-9+/]+={0,2}"\)/g;
+const framingImage = {
+  src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1kAAAAASUVORK5CYII=",
+  alt: 'Workshop portrait by the owner & "Reverie"',
+};
 
 describe("authored page export", () => {
+  it.each(["studio", "editorial", "product", "showcase", "journal"] as const)(
+    "delivers the same bounded crop rules, original image data and alt text in each %s artifact",
+    (composition) => {
+      const result = buildAuthoredPage(tokens, content, {
+        ...options,
+        composition,
+        image: framingImage,
+        imageFraming: { fit: "cover", position: "top-right", narrowPosition: "bottom-left" },
+      });
+      const preview = parse(result.html);
+      const editable = parse(result.files["index.html"]!);
+      expect(result.html).toContain(`<style>${result.css}</style>`);
+      expect(result.files["styles.css"]).toBe(result.css);
+      expect(preview.querySelector("style")?.textContent).toBe(result.css.replaceAll("\r\n", "\n"));
+      expect(editable.body.outerHTML).toBe(preview.body.outerHTML);
+      expect(editable.querySelector('link[rel="stylesheet"]')?.getAttribute("href")).toBe(
+        "./styles.css",
+      );
+      for (const page of [preview, editable]) {
+        expect(page.querySelectorAll("img")).toHaveLength(1);
+        const image = page.querySelector(".owner-image");
+        expect(image?.getAttribute("src")).toBe(framingImage.src);
+        expect(image?.getAttribute("alt")).toBe(framingImage.alt);
+        expect(image?.getAttribute("width")).toBe("1200");
+        expect(image?.getAttribute("height")).toBe("900");
+      }
+      expect(result.css).toMatch(
+        /\.owner-image \{[^}]*object-fit: cover;[^}]*object-position: right top;/,
+      );
+      expect(result.css).toMatch(
+        /@media \(max-width: 760px\) \{\s*\.owner-image \{ object-position: left bottom; \}/,
+      );
+      expect(result.files["README.txt"]).toContain("760 CSS pixels");
+    },
+  );
+
+  it("keeps a contained image centered regardless of dormant anchors or viewport", () => {
+    const result = buildAuthoredPage(tokens, content, {
+      ...options,
+      composition: "showcase",
+      image: framingImage,
+      imageFraming: { fit: "contain", position: "right", narrowPosition: "bottom" },
+    });
+    expect(result.css).toMatch(
+      /\.owner-image \{[^}]*object-fit: contain;[^}]*object-position: center center;/,
+    );
+    expect(result.css.match(/object-position:/g)).toHaveLength(1);
+    expect(result.css).toContain(".showcase .owner-image { aspect-ratio: 21/9");
+    expect(result.css).toContain(".showcase .owner-image { aspect-ratio: 4/3");
+    expect(result.files["README.txt"]).toContain("whole image");
+  });
+
+  it("does not change the output for absent images or for default and invalid framing", () => {
+    const baseline = buildAuthoredPage(tokens, content, { ...options, image: framingImage });
+    const defaultFraming = { fit: "cover", position: "center", narrowPosition: "same" } as const;
+    const hostile = {
+      fit: "</style><script>",
+      position: ["left"],
+      narrowPosition: "url(https://example.com)",
+    };
+    for (const imageFraming of [defaultFraming, hostile as unknown as typeof defaultFraming]) {
+      expect(
+        buildAuthoredPage(tokens, content, { ...options, image: framingImage, imageFraming }),
+      ).toEqual(baseline);
+    }
+    expect(
+      buildAuthoredPage(tokens, content, {
+        ...options,
+        imageFraming: { fit: "contain", position: "left", narrowPosition: "bottom" },
+      }),
+    ).toEqual(buildAuthoredPage(tokens, content, options));
+  });
+
   it.each(["studio", "editorial", "product", "showcase", "journal"] as const)(
     "uses the same renderer and CSS for the %s preview, standalone page, and editable source",
     (composition) => {

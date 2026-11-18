@@ -43,6 +43,26 @@ describe("portable page settings", () => {
     };
     expect(normalizePageSettings(valid)).toEqual(valid);
   });
+  it("preserves older serialized settings and saves only nondefault framing", () => {
+    const legacy = { ...DEFAULT_PAGE_SETTINGS, imageId: "a".repeat(64), imageAlt: "Stoneware" };
+    expect(JSON.stringify(normalizePageSettings(legacy))).toBe(JSON.stringify(legacy));
+    for (const imageFraming of [
+      null,
+      ["left"],
+      { fit: "cover", position: "center", narrowPosition: "same" },
+    ]) {
+      expect(normalizePageSettings({ ...legacy, imageFraming })).toEqual(legacy);
+    }
+    expect(
+      normalizePageSettings({
+        ...legacy,
+        imageFraming: { fit: "contain", position: "top", narrowPosition: "bottom-left" },
+      }),
+    ).toEqual({
+      ...legacy,
+      imageFraming: { fit: "contain", position: "top", narrowPosition: "bottom-left" },
+    });
+  });
   it("only restores embedded raster assets with a stable key", () => {
     const id = "a".repeat(64);
     localStorage.setItem("focus:page-image:" + id, "https://example.com/track");

@@ -6,12 +6,15 @@ Reviewed 18 November 2026. This is a source review and proposed implementation s
 
 - **Real:** Blake describes himself as a lay user, wants choices and their later consequences explained, prefers a calm and intuitive experience, and expects a useful frontend improvement without breaking the customer's working app.
 - **Real:** The selected first delivery platform is GitHub — React or Next.js. Paid AI spending is paused. No customer repository or isolated customer preview is available for this review.
+- **Real, subsequent clarification:** Blake said, “The developer will often be an LLM.” The recipient needs exact patches, machine-readable tasks, verification commands, stop conditions and a clear distinction between instructions and customer source data. Instructions alone cannot enforce an external model's behavior.
 - **Assumed review context:** A small-business owner brings a working booking page and wants a more coherent appearance while keeping booking intact. The owner can choose a page and compare results but needs plain-language instructions.
 - **Assumed review context:** A developer colleague receives the output and needs the exact proposed edits, their base version, checks, remaining uncertainty, and a selective way to undo the trial.
 
 These contexts are not interviews or observed usability sessions. Browser acceptance remains blocked by the available browser infrastructure.
 
-## What the current code delivers
+## Baseline: what version 8 delivered
+
+This table records the starting review before the [source-trial implementation](../SOURCE-TRIAL-RELEASE.md). It is retained to explain the customer-value gap, not as a description of the newer optional adapter.
 
 | Boundary             | Current evidence                                                                                                                                                | Missing link to customer value                                                                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

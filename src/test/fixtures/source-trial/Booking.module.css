@@ -1,0 +1,41 @@
+.page {
+  background-color: #f4f8fa;
+  color: #193d36;
+  font-family: Arial, sans-serif;
+  padding: 24px;
+}
+
+.heading {
+  color: #193d36;
+  font-family: Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.body {
+  color: #49645c;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.action {
+  background-color: #164b3e;
+  color: #ffffff;
+  border: 2px solid #164b3e;
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.action:focus-visible {
+  outline: 3px solid #245d9f;
+  outline-offset: 3px;
+}
+
+.action:disabled {
+  cursor: wait;
+}

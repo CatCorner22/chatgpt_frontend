@@ -39,7 +39,7 @@ The user requested the Focus / Vision / Horizon naming family and Telescope adva
 - **Vision:** the design studio, including a project’s visual plan and handoff.
 - **Horizon:** existing project progress and next steps, retaining `/progress` and historical data.
 - **Telescope:** advanced local artifact inspection, exact-file receipt comparison, interaction-test planning and access to the existing quality/reviewer tools.
-- **Target:** guided, project-specific preparation using a saved design, preservation tasks, an isolated trial and a rollback plan. Its validated design pack and prompts are preparation, not an automatic change to a customer app or proof of a successful upgrade.
+- **Target:** guided, project-specific preparation using a saved design, preservation tasks, an isolated trial and a rollback plan. Its optional [source trial](SOURCE-TRIAL-RELEASE.md) can now propose exact scoped edits for a narrowly supported React/Vite page and CSS module, with an inverse patch and file-identity checker. The standard design pack remains available. Neither path automatically changes a customer app or establishes a successful upgrade.
 
 Telescope's initial static inspection is not a rendered browser test, penetration test or production certification. Matching a report's file hash establishes which bytes it describes; it does not independently prove who performed the test or that its assertions are true. A manual test plan starts unrun.
 

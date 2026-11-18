@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BrandLogo } from "@/components/BrandArt";
+import { LazySourceTrialPanel } from "@/components/LazySourceTrialPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,8 @@ export function Target() {
   const [pendingRestore, setPendingRestore] = useState<ReturnType<typeof readTargetDraft> | null>(
     null,
   );
+  const [sourceOpen, setSourceOpen] = useState(false);
+  const sourceEpoch = useRef(0);
   const savedRaw = useRef<string | null>(null);
   const damagedRaw = useRef<string | null>(null);
   const mounted = useRef(false);
@@ -78,6 +81,11 @@ export function Target() {
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const errorSummary = useRef<HTMLDivElement>(null);
   const content = JSON.stringify(draft);
+  const moveToStep = (nextStep: TargetStep) => {
+    sourceEpoch.current++;
+    setSourceOpen(false);
+    setStep(nextStep);
+  };
   const unsaved = ready && content !== savedContent;
   const blocker = useBlocker({
     shouldBlockFn: () => unsaved,
@@ -153,6 +161,62 @@ export function Target() {
   const selected = entries.find((entry) => entry.id === draft.designId);
   const allIssues = targetStepIssues(draft, 3, entries);
   const prompts = selected && allIssues.length === 0 ? targetPrompts(draft, selected) : [];
+  const preparationKey = JSON.stringify([draft, selected]);
+  const latestPreparation = useRef(preparationKey);
+  latestPreparation.current = preparationKey;
+  // Both outputs use the same owner/library/draft boundary; source files never enter the draft.
+  const capturePreparationContext = () => {
+    if (!selected || allIssues.length)
+      throw new Error("Complete the trial plan and choose a saved design before preparing files.");
+    const owner = getBrowserOwnerId();
+    const entrySnapshot = JSON.stringify(selected);
+    const expectedDraft = savedRaw.current;
+    const expectedRevision = revision.current;
+    const expectedKey = preparationKey;
+    const designId = draft.designId;
+    const verify = () => {
+      if (
+        !mounted.current ||
+        revision.current !== expectedRevision ||
+        latestPreparation.current !== expectedKey
+      )
+        throw new Error("The trial plan changed. Review it before preparing another handoff.");
+      if (getBrowserOwnerId() !== owner)
+        throw new Error("Your account changed. Reload before preparing another handoff.");
+      const currentLibrary = readTargetLibrary();
+      if (currentLibrary.issue === "unavailable")
+        throw new Error(
+          "Your saved designs could not be rechecked. Reload designs before preparing the handoff.",
+        );
+      const currentEntry = currentLibrary.entries.find((entry) => entry.id === designId);
+      if (!currentEntry || JSON.stringify(currentEntry) !== entrySnapshot)
+        throw new Error(
+          "The selected saved design changed or could not be read. Reload designs and review the plan before preparing it again.",
+        );
+      const currentDraft = readTargetDraft();
+      if (currentDraft.issue === "unavailable")
+        throw new Error(
+          "Your session or saved answers could not be rechecked. Keep this tab open and retry after access is restored.",
+        );
+      if (savedRaw.current !== expectedDraft || currentDraft.raw !== expectedDraft)
+        throw new Error(
+          "Saved Target answers changed in another tab. Reload the saved answers or keep a copy of your current answers before retrying.",
+        );
+    };
+    verify();
+    return verify;
+  };
+  const captureSourceContext = () => {
+    const expectedEpoch = sourceEpoch.current;
+    const verify = capturePreparationContext();
+    return () => {
+      if (sourceEpoch.current !== expectedEpoch)
+        throw new Error(
+          "The source panel changed. Review the current files before preparing another proposal.",
+        );
+      verify();
+    };
+  };
   const next = () => {
     const problems = targetStepIssues(draft, step, entries);
     if (step === 0 && libraryIssue === "unavailable")
@@ -160,7 +224,7 @@ export function Target() {
     setIssues(problems);
     if (problems.length || step === 3) return;
     const nextStep = (step + 1) as TargetStep;
-    setStep(nextStep);
+    moveToStep(nextStep);
     setFurthest((current) => Math.max(current, nextStep));
   };
   const downloadAnswers = (original = false) => {
@@ -200,7 +264,7 @@ export function Target() {
     setPendingRestore(null);
     setBusy(false);
     setPrepared(false);
-    setStep(0);
+    moveToStep(0);
     setFurthest(0);
     setIssues([]);
     setStatus("Saved answers loaded. No changes have been applied to your project.");
@@ -249,40 +313,13 @@ export function Target() {
     }
     const job = ++generation.current;
     const draftRevision = revision.current;
-    const selectedSnapshot = JSON.stringify(selected);
     const draftSnapshot = { ...draft };
     setBusy(true);
     setPrepared(false);
     setStatus("");
     setIssues([]);
     try {
-      const owner = getBrowserOwnerId();
-      const verifySources = () => {
-        if (getBrowserOwnerId() !== owner)
-          throw new Error("Your account changed. Reload before preparing another handoff.");
-        const currentLibrary = readTargetLibrary();
-        if (currentLibrary.issue === "unavailable")
-          throw new Error(
-            "Your saved designs could not be rechecked. Reload designs before preparing the handoff.",
-          );
-        const currentEntry = currentLibrary.entries.find(
-          (entry) => entry.id === draftSnapshot.designId,
-        );
-        if (!currentEntry || JSON.stringify(currentEntry) !== selectedSnapshot)
-          throw new Error(
-            "The selected saved design changed or could not be read. Reload designs and review the plan before preparing it again.",
-          );
-        const currentDraft = readTargetDraft();
-        if (currentDraft.issue === "unavailable")
-          throw new Error(
-            "Your session or saved answers could not be rechecked. Keep this tab open and retry after access is restored.",
-          );
-        if (currentDraft.raw !== savedRaw.current)
-          throw new Error(
-            "Saved Target answers changed in another tab. Reload the saved answers or keep a copy of your current answers before retrying.",
-          );
-      };
-      verifySources();
+      const verifySources = capturePreparationContext();
       const blob = await prepareTargetPack(draftSnapshot, selected);
       if (!mounted.current || generation.current !== job || revision.current !== draftRevision)
         return;
@@ -323,8 +360,8 @@ export function Target() {
             </p>
             <p className="mt-3 leading-relaxed text-muted-foreground">
               Choose one improvement, protect what already works, and prepare the files and prompts
-              your developer needs. Target prepares a handoff; you or your developer apply it in
-              your own project.
+              your coding assistant or developer needs. Target prepares a handoff; you or your
+              builder apply it in your own project.
             </p>
           </div>
           <BrandLogo variant="target" decorative />
@@ -394,7 +431,7 @@ export function Target() {
                       disabled={index > furthest}
                       aria-current={step === index ? "step" : undefined}
                       onClick={() => {
-                        setStep(index as TargetStep);
+                        moveToStep(index as TargetStep);
                         setIssues([]);
                       }}
                     >
@@ -752,9 +789,39 @@ export function Target() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      After downloading, open START-HERE.md. Give the prompts below to your
-                      developer one at a time. Keep each result for review before moving on.
+                      After downloading, open START-HERE.md. Give the prompts below to your coding
+                      assistant or developer one at a time. Keep each result for review before
+                      moving on.
                     </p>
+                    {draft.integration === "existing" &&
+                      draft.platform === "react" &&
+                      selected &&
+                      allIssues.length === 0 &&
+                      libraryIssue !== "unavailable" && (
+                        <details open={sourceOpen} className="rounded-lg border border-border p-4">
+                          <summary
+                            className="min-h-11 cursor-pointer py-2 font-medium"
+                            aria-expanded={sourceOpen}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              sourceEpoch.current++;
+                              setSourceOpen((open) => !open);
+                            }}
+                          >
+                            Include a proposed code change · optional
+                          </summary>
+                          {sourceOpen && (
+                            <LazySourceTrialPanel
+                              key={preparationKey}
+                              contextKey={preparationKey}
+                              design={{ id: selected.id, tokens: selected.state.tokens }}
+                              designTitle={selected.title}
+                              draft={draft}
+                              captureContext={captureSourceContext}
+                            />
+                          )}
+                        </details>
+                      )}
                     <section aria-labelledby="target-prompts-heading">
                       <h3 id="target-prompts-heading" className="font-display text-2xl">
                         Your next conversations
@@ -807,7 +874,7 @@ export function Target() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setStep((step - 1) as TargetStep);
+                        moveToStep((step - 1) as TargetStep);
                         setIssues([]);
                       }}
                     >

@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { webcrypto } from "node:crypto";
 import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeTokens } from "@/lib/design";
@@ -10,6 +11,7 @@ const operations = vi.hoisted(() => ({
   download: vi.fn(),
   blocker: vi.fn(),
   owner: vi.fn(),
+  sourcePackage: vi.fn(),
 }));
 vi.mock("@/lib/target", async (original) => ({
   ...(await original<typeof import("@/lib/target")>()),
@@ -24,6 +26,10 @@ vi.mock("@/lib/browser-storage", async (original) => ({
   getBrowserOwnerId: operations.owner,
 }));
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus navigation</header> }));
+vi.mock("@/lib/source-trial-package", async (original) => ({
+  ...(await original<typeof import("@/lib/source-trial-package")>()),
+  buildSourceTrialPackage: operations.sourcePackage,
+}));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => options,
   useBlocker: operations.blocker,
@@ -96,19 +102,116 @@ function deferredPack() {
 }
 beforeEach(() => {
   vi.stubEnv("VITE_FOCUS_HOSTED", "false");
+  vi.stubGlobal("crypto", webcrypto);
   localStorage.clear();
   operations.prepare.mockReset().mockResolvedValue(new Blob(["validated ZIP"]));
   operations.download.mockReset();
   operations.blocker.mockReset().mockReturnValue({ status: "idle" });
   operations.owner.mockReset().mockReturnValue(null);
+  operations.sourcePackage.mockReset().mockResolvedValue(new Blob(["source trial package"]));
 });
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("Target guided preparation", () => {
+  it("keeps the source tools closed until requested and clears them on step exit without losing the plan", async () => {
+    seed();
+    await openReview();
+    expect(screen.queryByLabelText("What runs this page?")).toBeNull();
+    fireEvent.click(screen.getByText("Include a proposed code change · optional"));
+    expect(await screen.findByLabelText("What runs this page?")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("What runs this page?"), { target: { value: "vite" } });
+    fireEvent.change(screen.getByLabelText("Page file path in the project"), {
+      target: { value: "src/Booking.tsx" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.queryByLabelText("What runs this page?")).toBeNull();
+    expect(screen.getByLabelText("Where will the isolated trial run?")).toHaveValue(
+      complete.preview,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.queryByLabelText("What runs this page?")).toBeNull();
+    fireEvent.click(screen.getByText("Include a proposed code change · optional"));
+    expect(await screen.findByLabelText("What runs this page?")).toHaveValue("");
+    expect(JSON.parse(localStorage.getItem(TARGET_DRAFT_KEY)!)).toEqual(complete);
+    expect(operations.sourcePackage).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { integration: "new", platform: "react" },
+    { integration: "existing", platform: "lovable" },
+  ] as const)(
+    "keeps the $integration/$platform handoff free of source requirements",
+    async (scope) => {
+      seed({ ...complete, ...scope });
+      await openReview();
+      expect(screen.queryByText("Include a proposed code change · optional")).toBeNull();
+      expect(screen.getByRole("button", { name: "Prepare and download trial ZIP" })).toBeEnabled();
+    },
+  );
+
+  it.each(["design", "draft", "owner"] as const)(
+    "rechecks the parent %s before delivering a source proposal",
+    async (change) => {
+      seed();
+      await openReview();
+      fireEvent.click(screen.getByText("Include a proposed code change · optional"));
+      fireEvent.change(await screen.findByLabelText("What runs this page?"), {
+        target: { value: "vite" },
+      });
+      fireEvent.change(screen.getByLabelText("Page file path in the project"), {
+        target: { value: "src/Booking.tsx" },
+      });
+      fireEvent.change(screen.getByLabelText("Style file path in the project"), {
+        target: { value: "src/Booking.module.css" },
+      });
+      const component = `import styles from './Booking.module.css'; export default function Booking(){return <main className={styles.page}><h1 className={styles.heading}>Book</h1><p className={styles.body}>Choose a date.</p><a className={styles.action} href="/book">Continue</a></main>;}`;
+      const css = `.page{background-color:#f4f8fa}.heading{color:#112233}.body{color:#334455}.action{background-color:#334455;color:#ffffff}`;
+      fireEvent.change(screen.getByLabelText("Page file (.tsx)"), {
+        target: { files: [new File([component], "Booking.tsx")] },
+      });
+      fireEvent.change(screen.getByLabelText("Matching style file (.module.css)"), {
+        target: { files: [new File([css], "Booking.module.css")] },
+      });
+      await waitFor(() => expect(screen.getAllByText(/Read in this tab/)).toHaveLength(2));
+      fireEvent.click(screen.getByRole("button", { name: "Check whether this page is supported" }));
+      fireEvent.click(screen.getByRole("checkbox", { name: /These are the page parts/ }));
+      fireEvent.click(screen.getByRole("button", { name: "Prepare proposed edits" }));
+      await screen.findByRole("button", { name: "Download proposed code change" });
+      let finish!: (blob: Blob) => void;
+      operations.sourcePackage.mockImplementationOnce(
+        () =>
+          new Promise<Blob>((resolve) => {
+            finish = resolve;
+          }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Download proposed code change" }));
+      await waitFor(() => expect(operations.sourcePackage).toHaveBeenCalledOnce());
+      if (change === "design")
+        localStorage.setItem(
+          LIBRARY_KEY,
+          JSON.stringify({ version: 1, entries: [{ ...entry, title: "Changed elsewhere" }] }),
+        );
+      else if (change === "draft")
+        localStorage.setItem(
+          TARGET_DRAFT_KEY,
+          JSON.stringify({ ...complete, page: "Changed elsewhere" }),
+        );
+      else
+        operations.owner.mockImplementation(() => {
+          throw new Error("Session needs verification");
+        });
+      await act(async () => finish(new Blob(["source proposal"])));
+      expect(operations.download).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert")).toBeVisible();
+      expect(screen.queryByText("Prepared for a trial")).toBeNull();
+    },
+  );
+
   it("uses the saved design, keeps answers when moving backward, and blocks missing task details", async () => {
     seed({ ...EMPTY_TARGET_DRAFT, designId: entry.id });
     render(<Target />);

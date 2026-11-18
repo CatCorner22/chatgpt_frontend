@@ -16,6 +16,8 @@ import { useDesignFonts } from "@/lib/useDesignFonts";
 import type { ReactNode } from "react";
 import type { Integration } from "@/lib/design";
 import { IntegrationChoice } from "./IntegrationChoice";
+import { CatMascot } from "@/components/BrandArt";
+import { useHostedSession } from "@/components/HostedBoundary";
 
 const featured = ["garden-ledger", "graphite-precision", "ember-noir"]
   .map((id) => GALLERY.find((g) => g.id === id)!)
@@ -56,9 +58,24 @@ export function StudioWelcome({
   onIntegration: (value: Integration) => void;
 } & { onOpen?: never }) {
   const [palette, setPalette] = useState(0);
+  const hosted = useHostedSession();
   const p = palettes[palette]!;
   return (
     <main id="main-content" className="studio-welcome">
+      <aside className="welcome-tour-invitation" aria-labelledby="welcome-tour-heading">
+        <CatMascot pose="library" />
+        <div>
+          <h2 id="welcome-tour-heading" className="font-display text-xl">
+            Welcome to Focus. Let's find your way.
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your cat guide walks you from a first idea to a carefully tested update for your site.
+          </p>
+        </div>
+        <Link to="/welcome" className="welcome-tour-link">
+          Take the welcome tour <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </aside>
       <section className="welcome-hero" aria-labelledby="welcome-title">
         <div className="welcome-intro">
           <div className="studio-kicker">
@@ -80,7 +97,8 @@ export function StudioWelcome({
             Explore the collection <ArrowDown size={15} />
           </a>
           <div className="welcome-note">
-            <Check size={15} /> No account needed <span>·</span> Saved in your browser
+            <Check size={15} /> {hosted ? "Your private workspace" : "No account needed"}{" "}
+            <span>·</span> Saved in your browser
           </div>
         </div>
         <div className="welcome-art">

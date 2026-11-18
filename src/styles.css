@@ -313,26 +313,84 @@ button:disabled {
 }
 .studio-logo {
   display: inline-flex;
-  gap: 9px;
   align-items: center;
-  font-size: 29px;
-  letter-spacing: -1.4px;
-  font-weight: 700;
+  flex-shrink: 0;
+  border-radius: 8px;
 }
-.focus-symbol {
-  width: 27px;
-  height: 27px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  transform: rotate(-9deg);
+.studio-logo:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 5px;
 }
-.focus-symbol i {
-  background: var(--primary);
-  border-radius: 2px;
+.brand-logo {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
-.focus-symbol i:last-child {
-  opacity: 0.35;
+.brand-logo--focus {
+  width: 192px;
+}
+.brand-logo--vision {
+  width: 270px;
+}
+.cat-mascot {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.cat-mascot--library {
+  width: 180px;
+  max-width: 100%;
+}
+.cat-mascot--handoff {
+  width: 112px;
+}
+.brand-handoff-note {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px 12px 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.brand-handoff-note p {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.brand-library-empty {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.welcome-tour-invitation {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 10px 20px 10px 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+.welcome-tour-invitation .cat-mascot {
+  width: 100px;
+}
+.welcome-tour-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .studio-navigation {
   display: flex;
@@ -997,6 +1055,23 @@ button:disabled {
     transform-origin: right center;
   }
 }
+@media (max-width: 900px) {
+  .studio-header-main {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-block: 12px;
+  }
+  .studio-navigation {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .studio-header-main > .studio-more,
+  .studio-header-main > .studio-account {
+    margin-left: auto;
+  }
+}
 @media (max-width: 720px) {
   .studio-header-main {
     min-height: 75px;
@@ -1004,8 +1079,34 @@ button:disabled {
     flex-wrap: wrap;
     gap: 10px;
   }
-  .studio-logo {
-    font-size: 26px;
+  .brand-logo--focus {
+    width: 162px;
+  }
+  .brand-library-empty {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .welcome-tour-invitation {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 4px 8px;
+    padding: 12px;
+  }
+  .welcome-tour-invitation .cat-mascot {
+    width: 72px;
+  }
+  .welcome-tour-link {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    justify-self: start;
+  }
+  .brand-handoff-note {
+    gap: 8px;
+    padding-right: 12px;
+  }
+  .cat-mascot--handoff {
+    width: 84px;
   }
   .studio-navigation {
     order: 3;

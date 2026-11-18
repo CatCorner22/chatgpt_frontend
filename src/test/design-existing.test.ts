@@ -40,9 +40,23 @@ function appendStyle(css: string) {
 afterEach(() => {
   document.head.replaceChildren();
   document.body.replaceChildren();
+  for (const root of [document.documentElement, document.body]) {
+    root.removeAttribute("data-focus-restyle");
+    root.removeAttribute("data-focus-theme");
+  }
 });
 
 describe("existing-site prescription CSS", () => {
+  it("keeps its actual CSS inactive when trial markers are mistakenly applied to html and body", () => {
+    for (const root of [document.documentElement, document.body]) {
+      root.setAttribute("data-focus-restyle", "");
+      root.setAttribute("data-focus-theme", "semantic");
+    }
+    appendStyle(emittedCss(prescription("existing")));
+    for (const root of [document.documentElement, document.body]) {
+      expect(getComputedStyle(root).getPropertyValue("--focus-color-bg")).toBe("");
+    }
+  });
   it("does not overwrite customer root values when its actual CSS example is loaded", () => {
     appendStyle(":root { --color-bg: #112233; --radius: 3px; --font-body: system-ui; }");
     const css = emittedCss(prescription("existing"));

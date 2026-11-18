@@ -19,6 +19,7 @@ import { Journey } from "@/components/Journey";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { BadgePanel } from "@/components/BadgePanel";
 import { LiveVisionPanel } from "@/components/LiveVisionPanel";
+import { BrandLogo, CatMascot } from "@/components/BrandArt";
 import { WaitLine } from "@/components/WaitLine";
 import { ReviewAnswers } from "@/components/ReviewAnswers";
 import { designId } from "@/lib/launch";
@@ -1286,7 +1287,7 @@ function Rx({ s, update, ask }: P) {
         </button>
       )}
       <div hidden={showAuthored && !advanced} className="min-w-0 space-y-5">
-        <p className="eyebrow">Your Vision</p>
+        <BrandLogo variant="vision" />
         <h2 className="font-display text-5xl leading-none">
           A clear direction.
           <br />
@@ -1294,8 +1295,10 @@ function Rx({ s, update, ask }: P) {
         </h2>
         {integration === "existing" && (
           <p className="rounded-sm border border-border bg-card p-3 text-sm">
-            This is a style study for your existing project. Preview words and navigation are
-            examples; the restyle pack preserves your original content, routes, and working tasks.
+            This is a style study. Focus reads public pages and prepares files; it does not install
+            changes on your live site. Preview words and navigation are examples. Apply the pack to
+            a separate staging or local copy first, then verify the original content, routes, and
+            working tasks before an owner-reviewed release.
           </p>
         )}
         <ContentEditor content={s.content!} onChange={(content) => update({ content })} />
@@ -1434,6 +1437,16 @@ function Rx({ s, update, ask }: P) {
             </label>
           ))}
         </fieldset>
+        <div className="brand-handoff-note">
+          <CatMascot pose="handoff" />
+          <p>
+            <strong>A thoughtful handoff, one step at a time.</strong>
+            <br />
+            {integration === "existing"
+              ? "Start with START-HERE.md in a new, empty folder. Keep a backup, try one page in staging, test real tasks with sandbox data, and rehearse rollback before publishing."
+              : "Keep a copy of your work. Review the included setup steps, test your pages and key tasks in a preview, and check the details before publishing."}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button className="min-w-44" onClick={() => copy("rx", md)}>
             {copied === "rx" ? "Copied ✓" : "Copy Vision"}

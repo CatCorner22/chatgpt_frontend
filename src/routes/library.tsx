@@ -25,6 +25,7 @@ import {
 import { STUDIO_KEY } from "@/lib/projects";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 import { downloadBlob } from "@/lib/exportPack";
+import { CatMascot } from "@/components/BrandArt";
 import {
   createLibraryBackup,
   restoreLibraryBackup,
@@ -390,18 +391,21 @@ function Library() {
         {!ready ? (
           <p className="mt-8">Loading your designs…</p>
         ) : !list.length ? (
-          <div className="mt-12">
-            <h2 className="font-display text-3xl">
-              {libraryError || recoveries.length
-                ? "No readable designs to show yet."
-                : "Your next design belongs here."}
-            </h2>
-            <Button asChild className="mt-5">
-              <Link to="/">
-                Make a design
-                <ArrowRight />
-              </Link>
-            </Button>
+          <div className="brand-library-empty mt-12">
+            {!libraryError && !recoveries.length && <CatMascot pose="library" />}
+            <div>
+              <h2 className="font-display text-3xl">
+                {libraryError || recoveries.length
+                  ? "No readable designs to show yet."
+                  : "Your next design belongs here."}
+              </h2>
+              <Button asChild className="mt-5">
+                <Link to="/">
+                  Make a design
+                  <ArrowRight />
+                </Link>
+              </Button>
+            </div>
           </div>
         ) : !filtered.length ? (
           <p className="mt-8">No designs match these filters.</p>

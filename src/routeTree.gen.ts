@@ -26,6 +26,7 @@ import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as TasteRouteImport } from './routes/taste'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WatchtowerRouteImport } from './routes/watchtower'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedOwnerRouteImport } from './routes/_authenticated/owner'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
@@ -120,6 +121,11 @@ const WatchtowerRoute = WatchtowerRouteImport.update({
   path: '/watchtower',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/taste': typeof TasteRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
+  '/welcome': typeof WelcomeRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/owner': typeof AuthenticatedOwnerRoute
   '/projects': typeof AuthenticatedProjectsRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/taste': typeof TasteRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
+  '/welcome': typeof WelcomeRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/owner': typeof AuthenticatedOwnerRoute
   '/projects': typeof AuthenticatedProjectsRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/taste': typeof TasteRoute
   '/terms': typeof TermsRoute
   '/watchtower': typeof WatchtowerRoute
+  '/welcome': typeof WelcomeRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/owner': typeof AuthenticatedOwnerRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/taste'
     | '/terms'
     | '/watchtower'
+    | '/welcome'
     | '/.well-known/oauth-protected-resource'
     | '/owner'
     | '/projects'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/taste'
     | '/terms'
     | '/watchtower'
+    | '/welcome'
     | '/.well-known/oauth-protected-resource'
     | '/owner'
     | '/projects'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/taste'
     | '/terms'
     | '/watchtower'
+    | '/welcome'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/owner'
     | '/_authenticated/projects'
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   TasteRoute: typeof TasteRoute
   TermsRoute: typeof TermsRoute
   WatchtowerRoute: typeof WatchtowerRoute
+  WelcomeRoute: typeof WelcomeRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BadgeIdRoute: typeof BadgeIdRoute
   SIdRoute: typeof SIdRoute
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchtowerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -580,6 +600,7 @@ const rootRouteChildren: RootRouteChildren = {
   TasteRoute: TasteRoute,
   TermsRoute: TermsRoute,
   WatchtowerRoute: WatchtowerRoute,
+  WelcomeRoute: WelcomeRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BadgeIdRoute: BadgeIdRoute,

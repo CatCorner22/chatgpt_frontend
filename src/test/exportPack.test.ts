@@ -182,8 +182,55 @@ describe("existing-site customer boundaries", () => {
   it("does not expose imported Focus token values outside the opted-in wrapper", () => {
     const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
     const imported = rules(files["focus-tokens.css"]!);
-    expect(imported.every((rule) => rule.selectorText === "[data-focus-restyle]")).toBe(true);
+    const wrapper = document.createElement("main");
+    expect(imported.some((rule) => wrapper.matches(rule.selectorText))).toBe(false);
+    wrapper.setAttribute("data-focus-restyle", "");
+    expect(imported.every((rule) => wrapper.matches(rule.selectorText))).toBe(true);
   });
+
+  it.each(["focus-tokens.css", "focus-bridge.css", "focus-bridge-legacy.css"])(
+    "%s refuses html and body even if a recipient mistakenly adds the opt-in markers",
+    (name) => {
+      const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
+      const exportedRules = rules(files[name]!);
+      for (const tag of ["html", "body", "main"]) {
+        const element = document.createElement(tag);
+        element.setAttribute("data-focus-restyle", "");
+        element.setAttribute("data-focus-theme", "semantic");
+        expect(exportedRules.some((rule) => element.matches(rule.selectorText))).toBe(
+          tag === "main",
+        );
+      }
+    },
+  );
+
+  it.each([
+    ["focus-tokens.css", ":root { --focus-color-bg: red; }"],
+    ["focus-bridge.css", "* { display: none; }"],
+    ["focus-bridge-legacy.css", ".customer-form { visibility: hidden; }"],
+  ])("rejects a global rule added to %s even when its original scope remains", (name, rule) => {
+    const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
+    files[name] += `\n${rule}\n`;
+    expect(validatePack(files, light, "existing").length).toBeGreaterThan(0);
+  });
+
+  it.each(["focus-bridge.css", "focus-bridge-legacy.css"])(
+    "rejects %s if its separate semantic approval gate is removed",
+    (name) => {
+      const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
+      files[name] = files[name]!.replace('[data-focus-theme="semantic"]', "");
+      expect(validatePack(files, light, "existing").length).toBeGreaterThan(0);
+    },
+  );
+
+  it.each(["focus-tokens.css", "focus-bridge.css", "focus-bridge-legacy.css"])(
+    "rejects %s if it starts directly hiding controls within the trial page",
+    (name) => {
+      const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
+      files[name] = files[name]!.replace("{", "{ display: none;");
+      expect(validatePack(files, light, "existing").length).toBeGreaterThan(0);
+    },
+  );
 
   it.each(["focus-bridge.css", "focus-bridge-legacy.css"])(
     "%s changes semantic values without painting arbitrary fixed-color surfaces or headings",
@@ -226,6 +273,26 @@ describe("existing-site customer boundaries", () => {
       const files = packFiles("# Customer design", light, "Customer", undefined, "existing");
       const style = rules(files[name]!)[0]!.style;
       expect(style.getPropertyValue("--muted").trim()).toBe(background);
+      expect(style.getPropertyValue("--muted-foreground").trim()).toBe(foreground);
+    },
+  );
+
+  it.each([
+    ["focus-bridge.css", "var(--focus-color-ink)"],
+    ["focus-bridge-legacy.css", "0 0% 6.7%"],
+  ])(
+    "%s keeps quiet text readable when the chosen surface is darker than the page",
+    (name, foreground) => {
+      const darkerSurface = normalizeTokens({ ...light, surface: "#d8c4a8" });
+      const files = packFiles(
+        "# Customer design",
+        darkerSurface,
+        "Customer",
+        undefined,
+        "existing",
+      );
+      expect(validatePack(files, darkerSurface, "existing")).toEqual([]);
+      const style = rules(files[name]!)[0]!.style;
       expect(style.getPropertyValue("--muted-foreground").trim()).toBe(foreground);
     },
   );

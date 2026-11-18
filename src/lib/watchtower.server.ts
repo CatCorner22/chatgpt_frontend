@@ -1,11 +1,12 @@
 import { analyzePage, safeUrl } from "./critic";
-import { grabPublicPage } from "./public-page.server";
+import { grabPublicDocument, grabPublicPage } from "./public-page.server";
 
 // No AI calls in recurring checks: deterministic, bounded and no credit surprises.
 export async function grabSiteSources(input: string) {
   const u = safeUrl(input);
   if (!u) throw new Error("This address is not a public page.");
-  const html = await grabPublicPage(u.toString(), 400_000);
+  const document = await grabPublicDocument(u.toString(), 400_000);
+  const html = document?.text;
   if (!html)
     throw new Error(
       "Could not open this page. The site may block checks; its last score is unchanged.",
@@ -16,7 +17,8 @@ export async function grabSiteSources(input: string) {
       const href = m[0].match(/href=["']([^"']+)/i)?.[1];
       if (!href) return [];
       try {
-        const next = safeUrl(new URL(href, u).toString());
+        // Relative assets belong to the validated final page after redirects.
+        const next = safeUrl(new URL(href, document.url).toString());
         return next ? [next.toString()] : [];
       } catch {
         return [];

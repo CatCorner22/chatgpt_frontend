@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useUser } from "@/hooks/useSession";
 import { hasCloudBackend } from "@/lib/runtime-config";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { BrandLogo } from "@/components/BrandArt";
 
 export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?: () => void }) {
   const user = useUser();
@@ -28,13 +29,7 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
       </a>
       <div className="studio-header-main">
         <Link to="/" onClick={onLogo} className="studio-logo" aria-label="Focus home">
-          <span className="focus-symbol" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
-          focus<span className="text-accent">.</span>
+          <BrandLogo decorative />
         </Link>
         <nav className="studio-navigation" aria-label="Main">
           <Link to="/" activeOptions={{ exact: true }} activeProps={active}>
@@ -51,6 +46,7 @@ export function AppHeader({ children, onLogo }: { children?: ReactNode; onLogo?:
               Explore <ChevronDown size={13} />
             </summary>
             <div className="studio-more-menu">
+              <Link to="/welcome">Welcome to Focus</Link>
               <Link to="/review-room">Blind review room</Link>
               <Link to="/taste">Discover my taste</Link>
               <Link to="/critic">Check a live site</Link>

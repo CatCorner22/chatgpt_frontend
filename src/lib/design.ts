@@ -268,10 +268,13 @@ export function tokensCss(t: Tokens) {
 }`;
 }
 
+// :where excludes global roots without increasing the original attribute's specificity.
+export const RESTYLE_SCOPE = "[data-focus-restyle]:where(:not(html):not(body))";
+
 /** Additive token values apply only to the wrapper selected for a restyle trial. */
 export function scopedTokensCss(t: Tokens) {
   return tokensCss(t)
-    .replace(":root {", "[data-focus-restyle] {")
+    .replace(":root {", `${RESTYLE_SCOPE} {`)
     .replace(/--([a-z][a-z0-9-]*)/g, "--focus-$1");
 }
 
@@ -524,17 +527,17 @@ export function markdownText(value: unknown, max = 400): string {
 
 /** Safety rules for restyling an existing site: change looks only, never behaviour or content. */
 export const EXISTING_RULES = `## Safety rules for an existing project (follow before anything else)
-- Save a copy first: commit or create a branch (or duplicate the project) before changing anything.
+- Make an isolated trial first: use a separate branch or duplicate with a local or staging preview, never edit the live production app for a trial. Save a copy as a named backup and preserve uncommitted work. Use test accounts and sandbox integrations so trial actions cannot charge money, send real messages or modify production data.
 - Change how things LOOK only. Never remove or rename pages, routes, links, forms, fields, buttons, text, images, scripts, analytics or data logic.
 - Never delete or overwrite existing files such as styles, config or rule files. Add the Focus files next to them.
 - Extract to a fresh focus-restyle folder; if it already exists, stop rather than overwrite it. Check for existing data-focus-restyle or data-focus-theme markers before importing; if found, stop and resolve the scope collision. Load focus-tokens.css and ONE compatible bridge. Apply data-focus-restyle to one page wrapper only, not html/body, to expose the namespaced values.
 - Audit existing foreground/background pairs and component roles before enabling semantic theme mapping. Only after that review, add data-focus-theme="semantic" to the same trial wrapper. Keep original semantic status colors and components that the bridge does not map; test the actual rendered result.
 - Record original routes, forms, fields and working tasks. Test the same tasks after each change. Remove data-focus-theme="semantic" to disable semantic mappings, then data-focus-restyle and the added imports to undo wrapper-scoped CSS. Selectively restore component edits from the backup and remove optional marked rule reminders. Never hard-reset unrelated work.
-- Restyle one page first, show it, and wait for approval before restyling the rest.
+- Restyle one page first, rerun the original tasks in the isolated preview, demonstrate selective rollback, show the before/after evidence and wait for approval before restyling the rest. Deploy only after the owner accepts the tested changes and rollback plan; a passing Focus score is not release approval.
 - If a rule below would require changing behaviour or content, skip that rule and say so.`;
 
 const EXISTING_TOOL_LINE =
-  'Load focus-tokens.css (namespaced values) and ONE compatible bridge from a fresh folder after current styles (CSS @import must precede all declarations; prefer entry-file imports or HTML stylesheet links). Add data-focus-restyle to one page wrapper only to expose --focus-* values. Choose the legacy bridge only for hsl(var(--background)) themes; never load both bridges. Audit foreground/background pairs and existing component roles before enabling the bridge with data-focus-theme="semantic" on the same wrapper. Otherwise use explicit --focus-* references in additive wrapper-scoped styles. Never edit or replace the existing theme file.';
+  'Work in an isolated branch or duplicate with a local or staging preview, never directly in production. Use test accounts and sandbox integrations. Load focus-tokens.css (namespaced values) and ONE compatible bridge from a fresh folder after current styles (CSS @import must precede all declarations; prefer entry-file imports or HTML stylesheet links). Add data-focus-restyle to one page wrapper only to expose --focus-* values. Choose the legacy bridge only for hsl(var(--background)) themes; never load both bridges. Audit foreground/background pairs and existing component roles before enabling the bridge with data-focus-theme="semantic" on the same wrapper. Otherwise use explicit --focus-* references in additive wrapper-scoped styles. Never edit or replace the existing theme file.';
 
 /** What to send the AI tool: one opening message, then short follow-ups that keep it on the Vision. */
 export function toolMessages(
@@ -546,7 +549,7 @@ export function toolMessages(
   const human = tool === "Human developer";
   if (integration === "existing") {
     return {
-      first: `${human ? "Please restyle" : "Restyle"} the existing ${brand} project using the design Vision ${human ? "below" : "I'm pasting below"}. First save a copy (commit or branch). Change only how things look: keep every page, link, form, button and word exactly as it is, and don't delete or overwrite any existing file. Read PRESERVE.md and UNDO.md first. Extract to a fresh focus-restyle folder; stop on any collision. Load focus-tokens.css and one compatible scoped bridge; apply data-focus-restyle to one existing wrapper (not html/body) to expose namespaced values. Audit existing color pairs and component roles before adding data-focus-theme="semantic" to enable semantic mappings on that wrapper. Record and rerun original tasks, restyle only the agreed trial page, then stop and show me.`,
+      first: `${human ? "Please restyle" : "Restyle"} the existing ${brand} project using the design Vision ${human ? "below" : "I'm pasting below"}. First create an isolated branch or duplicate and a local or staging preview, never a trial directly on the live production app. Save a copy as a named backup including uncommitted work, and use test accounts and sandbox integrations for all trial tasks. Change only how things look: keep every page, link, form, button and word exactly as it is, and don't delete or overwrite any existing file. Read PRESERVE.md and UNDO.md first. Extract to a fresh focus-restyle folder; stop on any collision. Load focus-tokens.css and one compatible scoped bridge; apply data-focus-restyle to one existing wrapper (not html/body) to expose namespaced values. Audit existing color pairs and component roles before adding data-focus-theme="semantic" to enable semantic mappings on that wrapper. Record and rerun original tasks in the preview, restyle only the agreed trial page, demonstrate selective rollback, then stop and show me. Deploy only after I accept the tested changes and rollback plan.`,
       next: [
         "Compare the restyled page with the original: list any page, link, form, button or text that changed or disappeared, and put it back.",
         "Now restyle the next page the same way, using only the Focus values. Don't touch behaviour or content.",

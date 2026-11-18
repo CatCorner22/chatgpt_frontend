@@ -8,6 +8,8 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./styles/stratosphere.css";
+@import "./styles/field-guide.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -380,7 +382,7 @@ button:disabled {
 }
 .garden-map {
   position: relative;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 2.4;
   margin-top: 16px;
   isolation: isolate;
 }
@@ -395,7 +397,7 @@ button:disabled {
 }
 .garden-reverie {
   position: absolute;
-  width: 44%;
+  width: 39%;
   height: auto;
   pointer-events: none;
   transition:
@@ -754,7 +756,7 @@ button:disabled {
   }
   .garden-map ol {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
   }
   .garden-map li {
@@ -767,7 +769,7 @@ button:disabled {
     flex-direction: column;
     gap: 5px;
     padding: 9px 3px;
-    font-size: 12px;
+    font-size: 14px;
     text-align: center;
     border-radius: 12px;
     min-height: 60px;

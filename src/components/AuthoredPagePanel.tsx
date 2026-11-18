@@ -21,6 +21,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { PAGE_COMPOSITIONS as COMPOSITIONS } from "@/lib/page-compositions";
+import { getBrowserOwnerId } from "@/lib/browser-storage";
+
+const DECISION_RECORD_MAX_BYTES = 200_000;
+
+function checkedDecisionRecord(record: string | undefined): string | undefined {
+  if (record === undefined) return undefined;
+  if (new Blob([record]).size > DECISION_RECORD_MAX_BYTES)
+    throw new Error("The decision map exceeds 200 KB. Reduce it before preparing the page ZIP.");
+  try {
+    JSON.parse(record);
+  } catch {
+    throw new Error(
+      "The decision map is not valid JSON. Correct it before preparing the page ZIP.",
+    );
+  }
+  return record;
+}
+
+function checkOwner(owner: string | null) {
+  if (getBrowserOwnerId() !== owner)
+    throw new Error("Your account changed. Reload before exporting or adding an image.");
+}
 
 export function AuthoredPagePanel({
   tokens,
@@ -30,6 +52,8 @@ export function AuthoredPagePanel({
   onContent,
   onExport,
   projectState,
+  decisionRecord,
+  compact = false,
 }: {
   tokens: Tokens;
   content: Content;
@@ -38,6 +62,8 @@ export function AuthoredPagePanel({
   onContent: (content: Content) => void;
   onExport: () => void;
   projectState: Record<string, unknown>;
+  decisionRecord?: string;
+  compact?: boolean;
 }) {
   const [imageSnapshot, setImageSnapshot] = useState<{ id: string | null; src: string | null }>({
     id: null,
@@ -52,17 +78,37 @@ export function AuthoredPagePanel({
   const [packing, setPacking] = useState(false);
   const [editor, setEditor] = useState(false);
   const imageRequest = useRef(0);
-  useEffect(
-    () => () => {
-      imageRequest.current++;
-    },
-    [],
-  );
+  const mounted = useRef(false);
+  const packingNow = useRef(false);
+  const exportSnapshot = JSON.stringify([
+    tokens,
+    content,
+    settings,
+    projectState,
+    decisionRecord,
+    image,
+    imageLoading,
+  ]);
+  const latestExport = useRef(exportSnapshot);
+  latestExport.current = exportSnapshot;
+  const imageIdentity = JSON.stringify([projectState["libraryId"], projectState["projectId"]]);
+  const latestImageIdentity = useRef(imageIdentity);
+  latestImageIdentity.current = imageIdentity;
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const latestSettings = useRef(settings);
   latestSettings.current = settings;
   useEffect(() => {
     let current = true;
     const id = settings.imageId;
+    // A restored image or a different project supersedes any earlier upload,
+    // even if the owner later returns to the old selection before it finishes.
+    imageRequest.current++;
+    setImageUploading(false);
     setImageError("");
     if (!id) {
       setImageSnapshot({ id: null, src: null });
@@ -70,10 +116,13 @@ export function AuthoredPagePanel({
       return;
     }
     setImageHydrating(true);
-    void validatePageImageAsset(id, readPageImage(id))
-      .then((src) => {
-        if (current) setImageSnapshot({ id, src });
-      })
+    void (async () => {
+      const owner = getBrowserOwnerId();
+      const src = await validatePageImageAsset(id, readPageImage(id));
+      if (!current || !mounted.current) return;
+      checkOwner(owner);
+      setImageSnapshot({ id, src });
+    })()
       .catch((error: unknown) => {
         if (!current) return;
         setImageSnapshot({ id, src: null });
@@ -89,7 +138,7 @@ export function AuthoredPagePanel({
     return () => {
       current = false;
     };
-  }, [settings.imageId]);
+  }, [settings.imageId, imageIdentity]);
   const built = useMemo(
     () =>
       buildAuthoredPage(tokens, content, {
@@ -103,33 +152,60 @@ export function AuthoredPagePanel({
   async function chooseImage(file: File | undefined) {
     if (!file) return;
     const request = ++imageRequest.current;
+    const originalImageId = settings.imageId;
+    const currentRequest = () => mounted.current && request === imageRequest.current;
+    const sameSelection = () =>
+      currentRequest() &&
+      latestImageIdentity.current === imageIdentity &&
+      latestSettings.current.imageId === originalImageId;
     setImageUploading(true);
     setImageError("");
     try {
+      const owner = getBrowserOwnerId();
       const id = await savePageImage(file);
+      if (!sameSelection()) return;
+      checkOwner(owner);
       const src = await validatePageImageAsset(id, readPageImage(id));
-      if (request !== imageRequest.current) return;
+      if (!sameSelection()) return;
+      checkOwner(owner);
       setImageError("");
       setImageSnapshot({ id, src });
       onSettings({ ...latestSettings.current, imageId: id });
     } catch (error) {
-      if (request === imageRequest.current)
+      if (sameSelection())
         setImageError(error instanceof Error ? error.message : "This image could not be added.");
     } finally {
-      if (request === imageRequest.current) setImageUploading(false);
+      if (currentRequest()) setImageUploading(false);
     }
   }
   const downloadPage = () => {
     if (imageLoading || missingImage || needsImageDescription) return;
-    downloadBlob(new Blob([built.html], { type: "text/html" }), "index.html");
-    toast.success("Working page downloaded");
+    try {
+      getBrowserOwnerId();
+      downloadBlob(new Blob([built.html], { type: "text/html" }), "index.html");
+      toast.success("Working HTML download started. Check your downloads.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "The working HTML could not be downloaded.",
+      );
+    }
   };
   const downloadZip = async () => {
-    if (imageLoading || missingImage || needsImageDescription) return;
+    if (packingNow.current || imageLoading || missingImage || needsImageDescription) return;
+    packingNow.current = true;
     setPacking(true);
     try {
+      const owner = getBrowserOwnerId();
+      const record = checkedDecisionRecord(decisionRecord);
       const zip = new JSZip();
       for (const [name, text] of Object.entries(built.files)) zip.file(name, text);
+      if (record !== undefined) {
+        zip.file("focus-decision-map.json", record);
+        zip.file(
+          "README.txt",
+          `${built.files["README.txt"] ?? ""}\nDECISION RECORD\nfocus-decision-map.json records the selected design decisions and source values.\nIt may contain project inputs. Keep it private with focus-project.json rather\nthan uploading it to the public website. It is not proof of rendered-page tests\nor an importable library backup.\n`,
+        );
+      }
       zip.file(
         "focus-project.json",
         JSON.stringify(
@@ -145,20 +221,134 @@ export function AuthoredPagePanel({
           2,
         ),
       );
-      downloadBlob(await zip.generateAsync({ type: "blob" }), "focus-working-page.zip");
-      if (!missingImage) onExport();
-      toast.success("Page source downloaded");
-    } catch {
-      toast.error("The page ZIP could not be prepared. Your design is still here.");
+      const blob = await zip.generateAsync({ type: "blob" });
+      if (!mounted.current) return;
+      if (latestExport.current !== exportSnapshot)
+        throw new Error(
+          "Your design changed while the ZIP was being prepared. Download the current version again.",
+        );
+      checkOwner(owner);
+      downloadBlob(blob, "focus-working-page.zip");
+      if (!mounted.current || latestExport.current !== exportSnapshot) return;
+      checkOwner(owner);
+      onExport();
+      toast.success("Page ZIP download started. Check your downloads.");
+    } catch (error) {
+      if (mounted.current)
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "The page ZIP could not be prepared. Your design is still here.",
+        );
     } finally {
-      setPacking(false);
+      packingNow.current = false;
+      if (mounted.current) setPacking(false);
     }
   };
   const missingImage = settings.imageId && !image;
   const needsImageDescription = !!image && !settings.imageAlt.trim();
 
+  const supportingControls = (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="page-action-url">Where should the main action lead?</Label>
+        <Input
+          id="page-action-url"
+          value={settings.actionUrl}
+          maxLength={2000}
+          onChange={(e) => onSettings({ ...settings, actionUrl: e.target.value })}
+          placeholder="https://… or mailto:hello@…"
+          aria-describedby="page-action-help"
+        />
+        <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
+          Use your actual booking page, contact address, or destination. Without one, the page links
+          to its details.
+        </p>
+      </div>
+      <details className="border-y border-border py-2">
+        <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+          <ImagePlus size={16} />
+          Add your own image
+        </summary>
+        <div className="space-y-3 py-3">
+          <Label htmlFor="page-image">PNG, JPEG, or WebP · up to 750 KB</Label>
+          <input
+            id="page-image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(e) => {
+              void chooseImage(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+            className="block w-full min-w-0 text-xs file:mr-2 file:rounded file:border file:border-border file:bg-card file:px-3 file:py-2"
+          />
+          <Label htmlFor="page-image-alt">Describe the image</Label>
+          <Input
+            id="page-image-alt"
+            value={settings.imageAlt}
+            maxLength={500}
+            aria-required={!!settings.imageId}
+            aria-describedby="page-image-description-help"
+            onChange={(e) => onSettings({ ...settings, imageAlt: e.target.value })}
+            placeholder="What should someone know about it?"
+          />
+          <p
+            id="page-image-description-help"
+            className="text-xs leading-relaxed text-muted-foreground"
+          >
+            Required to include your image. Describe its subject or what it adds to the page.
+          </p>
+          {settings.imageId && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                imageRequest.current++;
+                setImageUploading(false);
+                setImageSnapshot({ id: null, src: null });
+                onSettings({ ...settings, imageId: null });
+              }}
+            >
+              Remove image
+            </Button>
+          )}
+          {imageLoading && (
+            <p role="status" className="text-xs">
+              Checking and saving the image…
+            </p>
+          )}
+          {(imageError || (missingImage && !imageLoading)) && (
+            <p role="alert" className="text-xs text-destructive">
+              {imageError ||
+                "This image is missing from this browser. Choose the file again, or remove it to export a text-only page."}
+            </p>
+          )}
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Saved in this browser and embedded in your download. Use an image you have permission to
+            publish.
+          </p>
+        </div>
+      </details>
+      <button
+        type="button"
+        className="inline-flex min-h-11 items-center justify-between gap-3 text-sm font-medium"
+        onClick={() => setEditor(!editor)}
+        aria-expanded={editor}
+      >
+        <span>Edit the page’s words</span>
+        <ArrowUpRight size={16} />
+      </button>
+      {compact && editor && (
+        <ContentEditor content={content} onChange={onContent} defaultOpen autoFocus />
+      )}
+    </>
+  );
+
   return (
-    <section aria-labelledby="authored-page-title" className="authored-workspace">
+    <section
+      aria-labelledby="authored-page-title"
+      className={compact ? "authored-workspace authored-workspace--compact" : "authored-workspace"}
+    >
       <div className="authored-heading">
         <div>
           <p className="eyebrow">From a direction to a real page</p>
@@ -190,117 +380,41 @@ export function AuthoredPagePanel({
       </div>
       <div className="authored-layout">
         <aside className="authored-controls">
-          <fieldset>
-            <legend className="mb-3 text-sm font-medium">Choose the composition</legend>
-            <div className="space-y-2">
-              {COMPOSITIONS.map((choice) => (
-                <label
-                  key={choice.id}
-                  className={`composition-choice ${settings.composition === choice.id ? "is-selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="page-composition"
-                    value={choice.id}
-                    checked={settings.composition === choice.id}
-                    onChange={() => onSettings({ ...settings, composition: choice.id })}
-                  />
-                  <span>
-                    <strong>{choice.title}</strong>
-                    <span>{choice.description}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <div className="space-y-2">
-            <Label htmlFor="page-action-url">Where should the main action lead?</Label>
-            <Input
-              id="page-action-url"
-              value={settings.actionUrl}
-              maxLength={2000}
-              onChange={(e) => onSettings({ ...settings, actionUrl: e.target.value })}
-              placeholder="https://… or mailto:hello@…"
-              aria-describedby="page-action-help"
-            />
-            <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
-              Use your actual booking page, contact address, or destination. Without one, the page
-              links to its details.
-            </p>
-          </div>
-          <details className="border-y border-border py-2">
-            <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
-              <ImagePlus size={16} />
-              Add your own image
-            </summary>
-            <div className="space-y-3 py-3">
-              <Label htmlFor="page-image">PNG, JPEG, or WebP · up to 750 KB</Label>
-              <input
-                id="page-image"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(e) => {
-                  void chooseImage(e.target.files?.[0]);
-                  e.target.value = "";
-                }}
-                className="block w-full min-w-0 text-xs file:mr-2 file:rounded file:border file:border-border file:bg-card file:px-3 file:py-2"
-              />
-              <Label htmlFor="page-image-alt">Describe the image</Label>
-              <Input
-                id="page-image-alt"
-                value={settings.imageAlt}
-                maxLength={500}
-                aria-required={!!settings.imageId}
-                aria-describedby="page-image-description-help"
-                onChange={(e) => onSettings({ ...settings, imageAlt: e.target.value })}
-                placeholder="What should someone know about it?"
-              />
-              <p
-                id="page-image-description-help"
-                className="text-xs leading-relaxed text-muted-foreground"
-              >
-                Required to include your image. Describe its subject or what it adds to the page.
-              </p>
-              {settings.imageId && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    imageRequest.current++;
-                    setImageUploading(false);
-                    setImageSnapshot({ id: null, src: null });
-                    onSettings({ ...settings, imageId: null });
-                  }}
-                >
-                  Remove image
-                </Button>
-              )}
-              {imageLoading && (
-                <p role="status" className="text-xs">
-                  Checking and saving the image…
-                </p>
-              )}
-              {(imageError || (missingImage && !imageLoading)) && (
-                <p role="alert" className="text-xs text-destructive">
-                  {imageError ||
-                    "This image is missing from this browser. Choose the file again, or remove it to export a text-only page."}
-                </p>
-              )}
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Saved in this browser and embedded in your download. Use an image you have
-                permission to publish.
-              </p>
-            </div>
-          </details>
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center justify-between gap-3 text-sm font-medium"
-            onClick={() => setEditor(!editor)}
-            aria-expanded={editor}
-          >
-            <span>Edit the page’s words</span>
-            <ArrowUpRight size={16} />
-          </button>
+          {!compact && (
+            <fieldset>
+              <legend className="mb-3 text-sm font-medium">Choose the composition</legend>
+              <div className="space-y-2">
+                {COMPOSITIONS.map((choice) => (
+                  <label
+                    key={choice.id}
+                    className={`composition-choice ${settings.composition === choice.id ? "is-selected" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="page-composition"
+                      value={choice.id}
+                      checked={settings.composition === choice.id}
+                      onChange={() => onSettings({ ...settings, composition: choice.id })}
+                    />
+                    <span>
+                      <strong>{choice.title}</strong>
+                      <span>{choice.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {compact ? (
+            <details className="authored-supporting-controls">
+              <summary className="min-h-11 cursor-pointer py-3 font-medium">
+                Content, image and action
+              </summary>
+              <div className="space-y-4 py-3">{supportingControls}</div>
+            </details>
+          ) : (
+            supportingControls
+          )}
           <div className="authored-readiness">
             <p className="mb-3 flex items-center gap-2 text-xs font-medium">
               <LayoutTemplate size={15} />
@@ -370,7 +484,7 @@ export function AuthoredPagePanel({
           </p>
         </div>
       </div>
-      {editor && (
+      {!compact && editor && (
         <div className="mt-6 border-t border-border pt-3">
           <ContentEditor content={content} onChange={onContent} defaultOpen autoFocus />
         </div>

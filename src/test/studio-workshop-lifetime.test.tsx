@@ -1,0 +1,340 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
+import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { EMPTY, type State } from "@/lib/studio-state";
+import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
+import { buildLocalOptions } from "@/lib/local-design";
+
+const operations = vi.hoisted(() => ({
+  search: { view: "studio", panel: "stratosphere" } as { view: "studio"; panel?: "stratosphere" },
+  step: vi.fn(),
+  directions: vi.fn(),
+}));
+vi.mock("@tanstack/react-router", async (original) => ({
+  ...(await original<typeof import("@tanstack/react-router")>()),
+  createFileRoute: () => (options: unknown) => ({ options, useSearch: () => operations.search }),
+  useBlocker: () => undefined,
+  Link: ({ to, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
+}));
+vi.mock("@tanstack/react-start", async (original) => ({
+  ...(await original<typeof import("@tanstack/react-start")>()),
+  useServerFn: (fn: unknown) => fn,
+}));
+vi.mock("@/lib/design.functions", () => ({
+  proposeStep: operations.step,
+  proposeDirections: operations.directions,
+}));
+vi.mock("@/lib/ai-policy", () => ({ AI_SPENDING_ENABLED: true }));
+vi.mock("@/lib/runtime-config", async (original) => ({
+  ...(await original<typeof import("@/lib/runtime-config")>()),
+  hasCloudBackend: () => true,
+}));
+vi.mock("@/hooks/useSession", () => ({ useUser: () => null }));
+vi.mock("@/lib/useDesignFonts", () => ({ useDesignFonts: () => {} }));
+vi.mock("@/components/AppHeader", () => ({
+  AppHeader: ({ children }: { children?: ReactNode }) => <header>{children}</header>,
+}));
+vi.mock("@/components/ConfirmDialog", () => ({ ConfirmDialog: () => null }));
+vi.mock("@/components/Help", () => ({
+  HelpTip: ({ children }: { children: ReactNode }) => <>{children}</>,
+  Term: ({ children }: { children: ReactNode }) => <>{children}</>,
+  WhyPopover: () => null,
+}));
+vi.mock("@/components/Journey", () => ({ Journey: () => null }));
+vi.mock("@/components/DesignPreview", () => ({
+  PreviewFrame: ({ t }: { t: Tokens }) => <output data-testid="preview-accent">{t.accent}</output>,
+  DesignPreview: () => null,
+}));
+vi.mock("@/components/StudioWelcome", () => ({
+  StudioWelcome: ({ onStart }: { onStart: () => void }) => (
+    <button onClick={onStart}>Start fixture directions</button>
+  ),
+  StarterCollection: () => null,
+}));
+vi.mock("@/components/StratospherePanel", () => ({
+  StratosphereStart: () => <p>Bring a design</p>,
+  StratospherePanel: ({
+    state,
+    onChange,
+  }: {
+    state: State;
+    onChange: (patch: Partial<State>) => void;
+  }) => (
+    <section>
+      <button
+        onClick={() =>
+          onChange({
+            tokens: { ...state.tokens!, accent: "#b51f41", accentInk: "#ffffff" },
+            page: state.page,
+          })
+        }
+      >
+        Choose workshop crimson
+      </button>
+      <button onClick={() => onChange({ page: { ...state.page, composition: "journal" } })}>
+        Choose workshop page
+      </button>
+      <output data-testid="workshop-accent">{state.tokens!.accent}</output>
+    </section>
+  ),
+}));
+
+import { Route } from "@/routes/index";
+const FocusHome = (Route as unknown as { options: { component: ComponentType } }).options.component;
+const key = "refraction:v1";
+function makeState(): State {
+  const tokens = normalizeTokens({
+    bg: "#ffffff",
+    surface: "#eef4fa",
+    ink: "#17202b",
+    muted: "#475569",
+    accent: "#1d4ed8",
+    accentInk: "#ffffff",
+  });
+  return {
+    ...EMPTY,
+    quick: false,
+    stage: "exam",
+    libraryId: "fixture-design",
+    brief: "Owner's project",
+    tokens,
+    content: {
+      brand: "Owner",
+      headline: "Keep this work",
+      sub: "Original words",
+      cta: "Contact",
+      features: [],
+      quote: "",
+    },
+    stepIndex: STEPS.findIndex((step) => step.id === "density"),
+    cache: { density: buildLocalOptions("density", tokens) },
+  };
+}
+function saved(): State {
+  return JSON.parse(localStorage.getItem(key)!);
+}
+function mount(state: State) {
+  localStorage.setItem(key, JSON.stringify(state));
+  const rendered = render(<FocusHome />);
+  return {
+    ...rendered,
+    studio: () => {
+      operations.search = { view: "studio" };
+      rendered.rerender(<FocusHome />);
+    },
+    workshop: () => {
+      operations.search = { view: "studio", panel: "stratosphere" };
+      rendered.rerender(<FocusHome />);
+    },
+  };
+}
+function pending<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((done, fail) => {
+    resolve = done;
+    reject = fail;
+  });
+  return { promise, resolve, reject };
+}
+beforeEach(() => {
+  vi.stubEnv("VITE_FOCUS_HOSTED", "false");
+  localStorage.clear();
+  sessionStorage.clear();
+  operations.search = { view: "studio", panel: "stratosphere" };
+  operations.step
+    .mockReset()
+    .mockImplementation(async ({ data }: { data: { stepId: string; tokens: Tokens } }) => ({
+      options: buildLocalOptions(data.stepId, data.tokens),
+    }));
+  operations.directions.mockReset();
+});
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
+
+describe("Studio workshop and question lifetime", () => {
+  it.each(["success", "rejection"] as const)(
+    "accepts the final StrictMode request and ignores the abandoned request's %s",
+    async (outcome) => {
+      const abandoned = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+      const current = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+      operations.step.mockReturnValueOnce(abandoned.promise).mockReturnValueOnce(current.promise);
+      const original = { ...makeState(), cache: {} };
+      operations.search = { view: "studio" };
+      localStorage.setItem(key, JSON.stringify(original));
+      render(
+        <StrictMode>
+          <FocusHome />
+        </StrictMode>,
+      );
+      await waitFor(() => expect(operations.step).toHaveBeenCalledTimes(2));
+      await act(async () =>
+        current.resolve({ options: buildLocalOptions("density", original.tokens!) }),
+      );
+      await screen.findByRole("button", { name: "Choose 1" });
+      await act(async () => {
+        if (outcome === "rejection") abandoned.reject(new Error("Abandoned server failure"));
+        else
+          abandoned.resolve({
+            options: buildLocalOptions("density", { ...original.tokens!, accent: "#b51f41" }),
+          });
+      });
+      expect(saved().cache["density"]![0]!.tokens.accent).toBe(original.tokens!.accent);
+      expect(saved().aiCalls).toBe(1);
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Show three different options" })).toBeEnabled();
+    },
+  );
+
+  it("abandons pending options when Undo changes the same question's tokens before a cache exists", async () => {
+    const old = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    operations.step.mockReturnValueOnce(old.promise);
+    const original = makeState();
+    const app = mount(original);
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop crimson" }));
+    app.studio();
+    await waitFor(() => expect(operations.step).toHaveBeenCalledOnce());
+    expect(saved().cache).toEqual({});
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(operations.step).toHaveBeenCalledTimes(2));
+    expect(operations.step.mock.calls[1]![0].data.tokens.accent).toBe(original.tokens!.accent);
+    await act(async () =>
+      old.resolve({
+        options: buildLocalOptions("density", { ...original.tokens!, accent: "#b51f41" }),
+      }),
+    );
+    expect(saved().tokens!.accent).toBe(original.tokens!.accent);
+    expect(saved().cache["density"]![0]!.tokens.accent).toBe(original.tokens!.accent);
+    expect(screen.getByRole("button", { name: "Show three different options" })).toBeEnabled();
+    expect(saved().aiCalls).toBe(1);
+  });
+
+  it("leaves a cached destination usable when regeneration of another question is abandoned", async () => {
+    const job = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    operations.step.mockReturnValueOnce(job.promise);
+    const original = makeState();
+    operations.search = { view: "studio" };
+    mount({
+      ...original,
+      cache: { ...original.cache, scale: buildLocalOptions("scale", original.tokens!) },
+    });
+    fireEvent.click(await screen.findByRole("button", { name: "Show three different options" }));
+    expect(screen.getByRole("button", { name: "Getting 3 new options…" })).toBeDisabled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Change answer to question 4, Headline size" }),
+    );
+    await waitFor(() => expect(saved().stepIndex).toBe(3));
+    expect(screen.getByRole("button", { name: "Show three different options" })).toBeEnabled();
+    await act(async () => job.resolve({ options: buildLocalOptions("density", original.tokens!) }));
+    expect(saved().aiCalls).toBe(0);
+    expect(screen.getByRole("button", { name: "Show three different options" })).toBeEnabled();
+  });
+
+  it.each(["Undo", "Redo"] as const)(
+    "rebuilds the same question after %s of a workshop edit",
+    async (action) => {
+      const original = makeState();
+      const app = mount(original);
+      fireEvent.click(await screen.findByRole("button", { name: "Choose workshop crimson" }));
+      app.studio();
+      await screen.findByRole("button", { name: "Choose 1" });
+      expect(screen.getByTestId("preview-accent")).toHaveTextContent("#b51f41");
+      fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+      await waitFor(() => expect(saved().tokens!.accent).toBe(original.tokens!.accent));
+      expect(saved().stepIndex).toBe(original.stepIndex);
+      await waitFor(() =>
+        expect(screen.getByTestId("preview-accent")).toHaveTextContent(original.tokens!.accent),
+      );
+      const expectedAccent = action === "Redo" ? "#b51f41" : original.tokens!.accent;
+      if (action === "Redo") {
+        fireEvent.click(screen.getByRole("button", { name: "Redo" }));
+        await waitFor(() =>
+          expect(screen.getByTestId("preview-accent")).toHaveTextContent(expectedAccent),
+        );
+      }
+      fireEvent.click(screen.getByRole("button", { name: "Choose 1" }));
+      await waitFor(() => expect(saved().stepIndex).toBe(original.stepIndex + 1));
+      expect(saved().tokens!.accent).toBe(expectedAccent);
+    },
+  );
+
+  it("keeps a workshop palette when the owner returns and chooses a previously cached spacing answer", async () => {
+    const app = mount(makeState());
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop crimson" }));
+    expect(saved().tokens!.accent).toBe("#b51f41");
+    app.studio();
+    fireEvent.click(await screen.findByRole("button", { name: "Choose 1" }));
+    await waitFor(() => expect(saved().stepIndex).toBe(5));
+    expect(saved().tokens!.accent).toBe("#b51f41");
+    expect(operations.step.mock.calls[0]![0].data.tokens.accent).toBe("#b51f41");
+  });
+
+  it("invalidates cached questions for a workshop page change without resetting stage or answers", async () => {
+    const original = makeState();
+    mount(original);
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop page" }));
+    expect(saved().cache).toEqual({});
+    expect(saved().stage).toBe(original.stage);
+    expect(saved().stepIndex).toBe(original.stepIndex);
+    expect(saved().tokens).toEqual(original.tokens);
+    expect(saved().past.at(-1)?.page).toEqual(original.page);
+  });
+
+  it("ignores an abandoned question request after entering the workshop and changing the design", async () => {
+    const job = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    operations.step.mockReturnValueOnce(job.promise);
+    const original = makeState();
+    operations.search = { view: "studio" };
+    const app = mount({ ...original, cache: {} });
+    await waitFor(() => expect(operations.step).toHaveBeenCalledOnce());
+    app.workshop();
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop crimson" }));
+    await act(async () => job.resolve({ options: buildLocalOptions("density", original.tokens!) }));
+    expect(saved().cache).toEqual({});
+    expect(saved().tokens!.accent).toBe("#b51f41");
+    expect(saved().aiCalls).toBe(0);
+  });
+
+  it("does not let abandoned direction generation replace the saved brief after opening the workshop", async () => {
+    const job = pending<unknown>();
+    operations.directions.mockReturnValue(job.promise);
+    operations.search = { view: "studio" };
+    const original = makeState();
+    const app = mount({ ...EMPTY, brief: "Keep my original brief" });
+    fireEvent.click(await screen.findByRole("button", { name: "Start fixture directions" }));
+    app.workshop();
+    await screen.findByText("Bring a design");
+    await act(async () =>
+      job.resolve({
+        content: original.content,
+        directions: [{ name: "Late", mood: "Late", why: "Late", tokens: original.tokens }],
+      }),
+    );
+    expect(saved().stage).toBe("brief");
+    expect(saved().content).toBeNull();
+    expect(saved().aiCalls).toBe(0);
+  });
+
+  it("explains intentional answer rewind and lets Undo restore the workshop design", async () => {
+    const original = makeState();
+    const app = mount({ ...original, history: [original.tokens!] });
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop crimson" }));
+    app.studio();
+    expect(
+      await screen.findByText(/restores the design from before the previous answer/i),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Revisit previous answer" }));
+    await waitFor(() => expect(saved().stepIndex).toBe(original.stepIndex - 1));
+    expect(saved().tokens!.accent).toBe(original.tokens!.accent);
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(saved().tokens!.accent).toBe("#b51f41"));
+    expect(saved().stepIndex).toBe(original.stepIndex);
+  });
+});

@@ -16,7 +16,17 @@ export const GARDEN_DEFAULTS: GardenPreferences = {
 };
 
 const MAX_PREFERENCES_LENGTH = 2048;
-const STEPS: readonly GardenStepId[] = ["goal", "direction", "plan", "handoff", "check"];
+const STEPS: readonly GardenStepId[] = [
+  "goal",
+  "content",
+  "plan",
+  "direction",
+  "craft",
+  "behavior",
+  "responsive",
+  "handoff",
+  "check",
+];
 const FIELDS = ["version", "step", "goal", "brief"];
 const INVALID_SAVE = "These Garden preferences could not be saved because they are invalid.";
 

@@ -36,7 +36,7 @@ Audi.com and Firehouse.com are user-supplied quality references. Use them to cho
 The user requested the Focus / Vision / Horizon naming family and Telescope advanced tools during this review. The implementation scope is deliberately tied to useful behavior:
 
 - **Focus:** the app and guided design studio.
-- **Vision:** a project's design plan and handoff.
+- **Vision:** the design studio, including a project’s visual plan and handoff.
 - **Horizon:** existing project progress and next steps, retaining `/progress` and historical data.
 - **Telescope:** advanced local artifact inspection, exact-file receipt comparison, interaction-test planning and access to the existing quality/reviewer tools.
 - **Target:** guided, project-specific preparation using a saved design, preservation tasks, an isolated trial and a rollback plan. Its validated design pack and prompts are preparation, not an automatic change to a customer app or proof of a successful upgrade.
@@ -44,6 +44,12 @@ The user requested the Focus / Vision / Horizon naming family and Telescope adva
 Telescope's initial static inspection is not a rendered browser test, penetration test or production certification. Matching a report's file hash establishes which bytes it describes; it does not independently prove who performed the test or that its assertions are true. A manual test plan starts unrun.
 
 The review also found an actionable launch-record flaw: the old gate accepted any review plus four confirmations, regardless of URL mismatch or unresolved failures. A pending review could also restore a stale URL after the address changed. Those defects belong in the current reliability work, not merely in a future roadmap. Preserve historical records and make all new readiness decisions explain their evidence and limits.
+
+## Progress in the Garden / Stratosphere update
+
+The Garden now separates nine decisions instead of squeezing the work into five stops. Stratosphere edits six real design groups inside the existing state/Undo system. A deterministic map shows what the implemented selections change, which constraints are enforced, and which relationships still need judgment. The optional interaction lab exercises local controls; it does not supply customer components or substitute for real task tests. Reverie’s Field Guide adds source-backed vocabulary and practice choices with explicit downstream consequences.
+
+These additions reduce missing decisions and improve understanding. They do not eliminate the remaining gaps in content modeling, typography/asset delivery, full workflow implementation, real-project compatibility or independent human comparison. Known combinations can be constrained deterministically; unknown customer behavior and subjective fitness need measured trials rather than invented certainty.
 
 ## Recommended next build after this update
 

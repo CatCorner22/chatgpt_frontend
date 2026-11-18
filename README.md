@@ -126,8 +126,15 @@ The latest Lovable kit and Devin's judge report were compared against this code 
 
 ## Garden Path and Cat Samurai
 
-Focus opens on a five-stop Garden Path with Reverie and her kite. The existing editor remains at `/?view=studio`; saved designs, undo history and pending imports retain their existing contracts. Tools stay accessible under Tools, and Help contains the walkthrough and About Reverie.
+Focus opens on a nine-stop Garden Path with Reverie and her kite. The existing editor remains at `/?view=studio`; saved designs, undo history and pending imports retain their existing contracts. Tools stay accessible under Tools, and Help contains Reverie’s introductory field guide, the walkthrough and About Reverie. The field guide has source-linked vocabulary and three local practice decisions; its examples never change a project.
 
 Ten optional lessons explain the choices and tradeoffs. “Keep it brief” hides the lessons and remembers the preference in owner-scoped browser storage; failure to persist is shown honestly. Map visits do not certify completed work. Customer implementation and browser acceptance remain separate from design-file preparation.
 
 [Cat Samurai](docs/CAT-SAMURAI.md) is Blake’s design and engineering principle, including no beige app surfaces. See [Garden Path release evidence](docs/GARDEN-PATH-RELEASE.md) for scope and limits.
+
+
+## Stratosphere and the decision map
+
+`/stratosphere` opens a workshop inside the existing Studio state. Six decision groups change composition, paired colors, fonts, hierarchy, spacing and control form through the same Undo and recovery system. A deterministic registry supplies controls, constraints and the live dependency map; it distinguishes measured constraints from recommendations and unknowns. New-website output shares the authored HTML preview/export renderer. Existing-site and app modes remain style specifications pending scoped implementation in the actual project.
+
+An optional local interaction lab exercises buttons, form validation, a tooltip and feedback states. It does not install those components or certify a customer's app. An authored ZIP can include the current decision map; private source records are not public deploy files. Asynchronous exports reject a changed design or locked owner before delivery. See [Stratosphere release evidence](docs/STRATOSPHERE-RELEASE.md) and [field-guide sources](docs/FIELD-GUIDE-SOURCES.md).

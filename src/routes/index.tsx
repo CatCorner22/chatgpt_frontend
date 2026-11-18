@@ -6,6 +6,7 @@ import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
 import { ContentEditor } from "@/components/ContentEditor";
 import { StudioWelcome, StarterCollection } from "@/components/StudioWelcome";
 import { GardenHome } from "@/components/GardenHome";
+import { StratospherePanel, StratosphereStart } from "@/components/StratospherePanel";
 import { readGardenPreferences } from "@/lib/garden-preferences";
 import { useStudioNavigationGuard } from "@/hooks/useStudioNavigationGuard";
 import { IntegrationChoice } from "@/components/IntegrationChoice";
@@ -98,8 +99,13 @@ import { cardFor } from "@/lib/knowledge";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { view?: "studio" } =>
-    search["view"] === "studio" ? { view: "studio" } : {},
+  validateSearch: (search: Record<string, unknown>): { view?: "studio"; panel?: "stratosphere" } =>
+    search["view"] === "studio"
+      ? {
+          view: "studio",
+          ...(search["panel"] === "stratosphere" ? { panel: "stratosphere" as const } : {}),
+        }
+      : {},
   head: () => ({
     meta: [
       { title: "Focus — your point of view, by design" },
@@ -121,8 +127,8 @@ export const Route = createFileRoute("/")({
 });
 
 function FocusHome() {
-  const { view } = Route.useSearch();
-  return view === "studio" ? <Studio /> : <GardenHome />;
+  const { view, panel } = Route.useSearch();
+  return view === "studio" ? <Studio workshop={panel === "stratosphere"} /> : <GardenHome />;
 }
 
 // Library backups and reopening a design retain its bounded Undo/Redo timeline.
@@ -146,7 +152,7 @@ const EXAMPLES = [
   "A climate-tech startup that turns restaurant food waste into compost for city farms.",
 ];
 
-function Studio() {
+function Studio({ workshop = false }: { workshop?: boolean }) {
   const [s, setS] = useState<State>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<{
@@ -274,7 +280,8 @@ function Studio() {
       const r = (dir === "undo" ? undoStep : redoStep)({ past: o.past, future: o.future }, snap(o));
       if (!r) return o;
       toast(dir === "undo" ? "Undid the last step" : "Redid the step", { duration: 2500 });
-      return { ...o, ...r.state, cache: o.cache, ...r.t };
+      // Options contain complete token snapshots; a restored design needs fresh options.
+      return { ...o, ...r.state, cache: {}, ...r.t };
     });
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -365,10 +372,14 @@ function Studio() {
   return (
     <div className="min-h-screen">
       <AppHeader>
-        {s.stage !== "brief" && (
+        {(s.stage !== "brief" || (workshop && s.tokens)) && (
           <>
             <div className="flex items-center gap-4">
-              <Progress stage={s.stage} step={s.stepIndex} total={questionCount(s.quick)} />
+              {workshop ? (
+                <span className="eyebrow">Stratosphere</span>
+              ) : (
+                <Progress stage={s.stage} step={s.stepIndex} total={questionCount(s.quick)} />
+              )}
               {s.aiCalls > 0 && (
                 <HelpTip tip="Each AI step uses a small amount of credit.">
                   <span tabIndex={0} className="eyebrow">
@@ -481,12 +492,28 @@ function Studio() {
         }}
         extra={user ? { label: "Save first", onClick: () => void save() } : undefined}
       />
-      {s.stage !== "brief" && <Journey current={s.stage === "rx" ? 2 : 1} />}
-      {s.stage === "brief" && <Brief s={s} update={update} />}
-      {s.stage === "directions" && <Directions s={s} update={update} />}
-      {s.stage === "exam" && s.tokens && s.content && <Exam s={s} update={update} />}
-      {s.stage === "review" && s.tokens && s.content && <Review s={s} update={update} />}
-      {s.stage === "rx" && s.tokens && s.content && <Rx s={s} update={update} ask={requestReset} />}
+      {workshop ? (
+        s.tokens && s.content ? (
+          <StratospherePanel
+            state={s}
+            onChange={(patch) => update({ ...patch, cache: {} })}
+            onExport={() => update({ savedHash: workHash(s) })}
+          />
+        ) : (
+          <StratosphereStart />
+        )
+      ) : (
+        <>
+          {s.stage !== "brief" && <Journey current={s.stage === "rx" ? 2 : 1} />}
+          {s.stage === "brief" && <Brief s={s} update={update} />}
+          {s.stage === "directions" && <Directions s={s} update={update} />}
+          {s.stage === "exam" && s.tokens && s.content && <Exam s={s} update={update} />}
+          {s.stage === "review" && s.tokens && s.content && <Review s={s} update={update} />}
+          {s.stage === "rx" && s.tokens && s.content && (
+            <Rx s={s} update={update} ask={requestReset} />
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -526,6 +553,12 @@ function Brief({ s, update }: P) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const req = useRef(0);
+  useEffect(() => {
+    const requests = req;
+    return () => {
+      requests.current++;
+    };
+  }, []);
   const wait = useWait(busy, "Designing three directions");
   useLeaveGuard(busy);
   const go = async () => {
@@ -767,6 +800,17 @@ function Exam({ s, update }: P) {
   const history =
     s.picks.map((p) => `${p.step}: ${p.label}${p.reason ? ` (${p.reason})` : ""}`).join("; ") +
     (taste ? `${s.picks.length ? "; " : ""}Taste from the owner's earlier designs: ${taste}` : "");
+  // An Undo can change the request's design while its question and empty cache stay
+  // the same. Track source values, not object identities or the generated response.
+  // Taste hydrates once on mount; that optional context must not restart a paid call.
+  const optionContext = JSON.stringify([
+    s.libraryId,
+    s.stepIndex,
+    s.tokens,
+    s.purpose,
+    s.brief,
+    s.picks,
+  ]);
 
   const load = async () => {
     const id = ++req.current;
@@ -799,9 +843,15 @@ function Exam({ s, update }: P) {
   useEffect(() => {
     setSel(0);
     setReason("");
+    setErr("");
     if (!cached) void load();
+    else setBusy(false);
+    const requests = req;
+    return () => {
+      requests.current++;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.stepIndex]);
+  }, [optionContext, cached]);
 
   const ranked = cached
     ? rankOptions(
@@ -851,6 +901,7 @@ function Exam({ s, update }: P) {
       history: s.history.slice(0, -1),
       picks: s.picks.filter((p) => p.step !== STEPS[s.stepIndex - 1]?.title),
       stepIndex: s.stepIndex - 1,
+      cache: {},
     });
   };
   const sel0 = opts?.[sel];
@@ -983,7 +1034,7 @@ function Exam({ s, update }: P) {
             />
             <div className="flex gap-2">
               <Button variant="outline" onClick={back}>
-                Back
+                {s.stepIndex > 0 ? "Revisit previous answer" : "Back to directions"}
               </Button>
               <Button variant="ghost" onClick={() => commit(null)}>
                 Skip
@@ -1007,6 +1058,12 @@ function Exam({ s, update }: P) {
                 Choose {sel + 1}
               </Button>
             </div>
+            {s.stepIndex > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Revisiting restores the design from before the previous answer. Undo can bring your
+                current design back.
+              </p>
+            )}
             {AI_SPENDING_ENABLED && hasCloudBackend() && (
               <Button
                 variant="link"
@@ -1019,7 +1076,7 @@ function Exam({ s, update }: P) {
               </Button>
             )}
             <p className="hidden text-xs text-muted-foreground md:block">
-              Tip: press 1, 2 or 3 to compare · ← to go back
+              Tip: press 1, 2 or 3 to compare · ← to revisit the previous answer
             </p>
           </>
         )}

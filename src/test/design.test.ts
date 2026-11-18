@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { contrast, contrastNotes, formatContrast, normalizeTokens, type Tokens } from "@/lib/design";
+import {
+  contrast,
+  contrastNotes,
+  formatContrast,
+  normalizeTokens,
+  type Tokens,
+} from "@/lib/design";
 
 describe("design rules", () => {
   it("normalizes missing and malformed token objects without crashing", () => {
     for (const raw of [null, undefined, [], "bad", { headingFont: "injected", bg: "url(evil)" }]) {
       const t = normalizeTokens(raw);
-      expect(t.bg).toBe("#f6f1e7");
+      expect(t.bg).toBe("#f8fcfb");
       expect(t.headingFont).toBe("Fraunces");
       expect(Number.isFinite(t.scale)).toBe(true);
     }
@@ -24,6 +30,6 @@ describe("design rules", () => {
     const t = normalizeTokens({ bg: "red", scale: 9, radius: 99 } as unknown as Tokens);
     expect(t.scale).toBe(1.6);
     expect(t.radius).toBe(28);
-    expect(t.bg).toBe("#f6f1e7");
+    expect(t.bg).toBe("#f8fcfb");
   });
 });

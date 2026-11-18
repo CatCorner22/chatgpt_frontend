@@ -11,13 +11,19 @@ import {
   type GardenPreferences,
 } from "@/lib/garden-preferences";
 
-const stops = [
-  { left: "56%", top: "17%", catLeft: "1%", catTop: "0%" },
-  { left: "65%", top: "35%", catLeft: "15%", catTop: "18%" },
-  { left: "29%", top: "53%", catLeft: "48%", catTop: "37%" },
-  { left: "65%", top: "72%", catLeft: "8%", catTop: "55%" },
-  { left: "29%", top: "90%", catLeft: "48%", catTop: "72%" },
-];
+const stops = [58, 32, 64, 30, 64, 30, 64, 30, 58].map((left, index) => ({
+  left: `${left}%`,
+  top: `${9 + index * 10.5}%`,
+  catLeft: left > 50 ? "1%" : "48%",
+  catTop: `${index * 10.5}%`,
+}));
+
+const destinations = {
+  target: "/target",
+  telescope: "/telescope",
+  stratosphere: "/stratosphere",
+  quality: "/quality",
+} as const;
 
 export function GardenHome() {
   const [preferences, setPreferences] = useState<GardenPreferences>({ ...GARDEN_DEFAULTS });
@@ -141,6 +147,12 @@ export function GardenHome() {
           <p className="garden-intro">
             {isGoal ? "I’m Reverie. We’ll take this one thoughtful step at a time." : step.intro}
           </p>
+          {isGoal && (
+            <Link to="/field-guide" className="garden-text-action garden-field-guide-link">
+              <BookOpen size={18} aria-hidden="true" />
+              New to this? Learn the words and try a practice trail.
+            </Link>
+          )}
 
           {isGoal ? (
             <fieldset className="garden-goals" disabled={!ready}>
@@ -206,7 +218,7 @@ export function GardenHome() {
                 className="garden-primary"
                 type="button"
                 disabled={!ready}
-                onClick={() => visit("direction")}
+                onClick={() => visit("content")}
               >
                 Continue <ArrowRight size={18} aria-hidden="true" />
               </button>
@@ -216,7 +228,7 @@ export function GardenHome() {
               </Link>
             ) : (
               <Link
-                to={step.action === "target" ? "/target" : "/telescope"}
+                to={destinations[step.action as keyof typeof destinations]}
                 className="garden-primary"
               >
                 {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />

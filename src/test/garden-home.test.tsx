@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GARDEN_STEPS, getGardenStep } from "@/lib/garden-content";
+import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
 import { LIBRARY_KEY } from "@/lib/library";
 import { PROGRESS_KEY } from "@/lib/launch";
@@ -37,6 +37,13 @@ function seedProtectedRecords() {
 function lessons() {
   const summary = screen.getByText(/^Learn:/).closest("summary")!;
   return { summary, details: summary.parentElement as HTMLDetailsElement };
+}
+
+function visitStep(id: GardenStepId) {
+  const index = GARDEN_STEPS.findIndex((step) => step.id === id);
+  const step = GARDEN_STEPS[index]!;
+  fireEvent.click(screen.getByRole("button", { name: `${index + 1}. ${step.title}` }));
+  return step;
 }
 
 beforeEach(() => {
@@ -77,10 +84,25 @@ describe("Garden home", () => {
     fireEvent.click(await screen.findByRole("radio", { name: /^A new page/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: "Pick a direction" })).toHaveFocus(),
+      expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus(),
     );
+    visitStep("direction");
     expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
     const navigation = screen.getByRole("navigation", { name: "Garden Path steps" });
+    expect(within(navigation).getAllByRole("button")).toHaveLength(9);
+    expect(GARDEN_STEPS.map((step) => step.id)).toEqual(
+      expect.arrayContaining([
+        "goal",
+        "content",
+        "plan",
+        "direction",
+        "craft",
+        "behavior",
+        "responsive",
+        "handoff",
+        "check",
+      ]),
+    );
     for (const [index, step] of GARDEN_STEPS.entries()) {
       const button = within(navigation).getByRole("button", {
         name: `${index + 1}. ${step.title}`,
@@ -89,7 +111,9 @@ describe("Garden home", () => {
       expect(button).toHaveAttribute("aria-current", "step");
       expect(navigation.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
     }
-    expect(screen.getByRole("heading", { level: 1, name: "Check the result" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { level: 1, name: getGardenStep("check").title }),
+    ).toHaveFocus();
     expect(screen.getByText(/Visiting a stop does not mark its work as done/)).toBeVisible();
     expect(screen.queryByText(/all tests passed|ready to launch|redesign complete/i)).toBeNull();
     expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({
@@ -99,10 +123,30 @@ describe("Garden home", () => {
       brief: true,
     });
     fireEvent.click(screen.getByRole("button", { name: "Previous stop" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Prepare the handoff" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { level: 1, name: GARDEN_STEPS.at(-2)!.title }),
+    ).toHaveFocus();
     expect(writes.mock.calls.every(([key]) => key === GARDEN_KEY)).toBe(true);
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
+
+  it.each(["goal", "direction", "plan", "handoff", "check"] as const)(
+    "reopens the original saved %s step by stable ID without rewriting it",
+    async (stepId) => {
+      const raw = JSON.stringify({ version: 1, step: stepId, goal: "new", brief: false });
+      localStorage.setItem(GARDEN_KEY, raw);
+      const writes = vi.spyOn(Storage.prototype, "setItem");
+      render(<GardenHome />);
+      const step = getGardenStep(stepId);
+      expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(
+        stepId === "goal" ? "What are we working on?" : step.title,
+      );
+      expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
+      expect(lessons().details).toHaveAttribute("open");
+      expect(writes).not.toHaveBeenCalled();
+      expect(localStorage.getItem(GARDEN_KEY)).toBe(raw);
+    },
+  );
 
   it("restores and remembers the lesson preference across hiding, opening, steps and remounts", async () => {
     localStorage.setItem(
@@ -130,16 +174,16 @@ describe("Garden home", () => {
     expect(lessons().summary).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "Visit next stop" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Plan the page" })).toHaveFocus();
-    const plan = getGardenStep("plan");
-    expect(screen.getByText(plan.lessons[0]!.paragraphs[0]!)).toBeVisible();
+    const nextStep = GARDEN_STEPS[GARDEN_STEPS.findIndex((step) => step.id === "direction") + 1]!;
+    expect(screen.getByRole("heading", { level: 1, name: nextStep.title })).toHaveFocus();
+    expect(screen.getByText(nextStep.lessons[0]!.paragraphs[0]!)).toBeVisible();
     view.unmount();
     render(<GardenHome />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Plan the page");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(nextStep.title);
     expect(lessons().details).toHaveAttribute("open");
     fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
-    expect(screen.getByText(plan.lessons[0]!.paragraphs[0]!)).not.toBeVisible();
-    expect(screen.getByText(plan.essentials[0]!)).toBeVisible();
+    expect(screen.getByText(nextStep.lessons[0]!.paragraphs[0]!)).not.toBeVisible();
+    expect(screen.getByText(nextStep.essentials[0]!)).toBeVisible();
     expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!).brief).toBe(true);
   });
 
@@ -166,7 +210,8 @@ describe("Garden home", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(/could not be read/);
     fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Pick a direction" })).toHaveFocus();
+    expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus();
+    visitStep("direction");
     expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
     fireEvent.click(lessons().summary);
@@ -195,14 +240,15 @@ describe("Garden home", () => {
       fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
       expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
+      visitStep("direction");
       expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
-      fireEvent.click(screen.getByRole("button", { name: "Previous stop" }));
+      visitStep("goal");
       expect(screen.getByRole("radio", { name: /^A new page/ })).toBeChecked();
       if (failure !== "denied readback") expect(readOriginal(GARDEN_KEY)).toBe(before);
     },
   );
 
-  it("offers real destination links for the studio, handoff and static inspection tools", async () => {
+  it("links the expanded steps to the studio, Stratosphere, quality, handoff and inspection tools", async () => {
     render(<GardenHome />);
     await screen.findByRole("button", { name: "Continue" });
     expect(screen.getByRole("link", { name: "Meet Reverie" })).toHaveAttribute("href", "/reverie");
@@ -210,15 +256,33 @@ describe("Garden home", () => {
       "href",
       "/welcome",
     );
-    for (const [stepName, linkName, href] of [
-      ["2. Pick a direction", "Explore design directions", "/?view=studio"],
-      ["3. Plan the page", "Refine the design", "/?view=studio"],
-      ["4. Prepare the handoff", "Prepare with Target", "/target"],
-      ["5. Check the result", "Inspect with Telescope", "/telescope"],
-    ] as const) {
-      fireEvent.click(screen.getByRole("button", { name: stepName }));
-      expect(screen.getByRole("link", { name: linkName })).toHaveAttribute("href", href);
+    const destinations: Record<Exclude<GardenStepId, "goal">, string> = {
+      content: "/?view=studio",
+      plan: "/?view=studio",
+      direction: "/?view=studio",
+      craft: "/stratosphere",
+      behavior: "/stratosphere",
+      responsive: "/quality",
+      handoff: "/target",
+      check: "/telescope",
+    };
+    const offered = new Set<string>();
+    for (const step of GARDEN_STEPS) {
+      if (step.id === "goal") continue;
+      visitStep(step.id);
+      const href = destinations[step.id];
+      expect(screen.getByRole("link", { name: step.actionLabel })).toHaveAttribute("href", href);
+      offered.add(href);
     }
+    expect([...offered]).toEqual(
+      expect.arrayContaining([
+        "/?view=studio",
+        "/stratosphere",
+        "/quality",
+        "/target",
+        "/telescope",
+      ]),
+    );
   });
 
   it("uses labelled native controls and a focusable heading for keyboard access", async () => {

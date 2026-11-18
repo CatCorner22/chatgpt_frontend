@@ -66,6 +66,7 @@ export function AppHeader({ children }: { children?: ReactNode }) {
               <Link to="/" search={{ view: "studio" }}>
                 Design studio · Vision
               </Link>
+              <Link to="/stratosphere">Fine-tune your design · Stratosphere</Link>
               <Link to="/target">Prepare the build · Target</Link>
               <Link to="/telescope">Inspect a build · Telescope</Link>
               <Link to="/progress">Project progress · Horizon</Link>
@@ -83,6 +84,7 @@ export function AppHeader({ children }: { children?: ReactNode }) {
               Help <ChevronDown size={13} />
             </summary>
             <div className="studio-more-menu">
+              <Link to="/field-guide">Start here · Reverie’s field guide</Link>
               <Link to="/welcome">Detailed walkthrough</Link>
               <Link to="/reverie">About Reverie</Link>
               <Link to="/privacy">Privacy and your data</Link>

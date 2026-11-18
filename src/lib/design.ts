@@ -196,7 +196,7 @@ export function normalizeTokens(input: unknown): Tokens {
     input && typeof input === "object" && !Array.isArray(input) ? input : {}
   ) as Partial<Tokens>;
   return {
-    bg: hex(t.bg ?? "", "#f6f1e7"),
+    bg: hex(t.bg ?? "", "#f8fcfb"),
     surface: hex(t.surface ?? "", "#ffffff"),
     ink: hex(t.ink ?? "", "#1b1a17"),
     muted: hex(t.muted ?? "", "#5e5a52"),

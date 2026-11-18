@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as CriticRouteImport } from './routes/critic'
+import { Route as FieldGuideRouteImport } from './routes/field-guide'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -24,6 +25,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReverieRouteImport } from './routes/reverie'
 import { Route as ReviewRoomRouteImport } from './routes/review-room'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as StratosphereRouteImport } from './routes/stratosphere'
 import { Route as TargetRouteImport } from './routes/target'
 import { Route as TasteRouteImport } from './routes/taste'
 import { Route as TelescopeRouteImport } from './routes/telescope'
@@ -62,6 +64,11 @@ const BrandsRoute = BrandsRouteImport.update({
 const CriticRoute = CriticRouteImport.update({
   id: '/critic',
   path: '/critic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FieldGuideRoute = FieldGuideRouteImport.update({
+  id: '/field-guide',
+  path: '/field-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -112,6 +119,11 @@ const ReviewRoomRoute = ReviewRoomRouteImport.update({
 const ShowcaseRoute = ShowcaseRouteImport.update({
   id: '/showcase',
   path: '/showcase',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StratosphereRoute = StratosphereRouteImport.update({
+  id: '/stratosphere',
+  path: '/stratosphere',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TargetRoute = TargetRouteImport.update({
@@ -196,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
+  '/field-guide': typeof FieldGuideRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -206,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/stratosphere': typeof StratosphereRoute
   '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
   '/telescope': typeof TelescopeRoute
@@ -227,6 +241,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
+  '/field-guide': typeof FieldGuideRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -237,6 +252,7 @@ export interface FileRoutesByTo {
   '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/stratosphere': typeof StratosphereRoute
   '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
   '/telescope': typeof TelescopeRoute
@@ -260,6 +276,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
+  '/field-guide': typeof FieldGuideRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -270,6 +287,7 @@ export interface FileRoutesById {
   '/reverie': typeof ReverieRoute
   '/review-room': typeof ReviewRoomRoute
   '/showcase': typeof ShowcaseRoute
+  '/stratosphere': typeof StratosphereRoute
   '/target': typeof TargetRoute
   '/taste': typeof TasteRoute
   '/telescope': typeof TelescopeRoute
@@ -293,6 +311,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brands'
     | '/critic'
+    | '/field-guide'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -303,6 +322,7 @@ export interface FileRouteTypes {
     | '/reverie'
     | '/review-room'
     | '/showcase'
+    | '/stratosphere'
     | '/target'
     | '/taste'
     | '/telescope'
@@ -324,6 +344,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brands'
     | '/critic'
+    | '/field-guide'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -334,6 +355,7 @@ export interface FileRouteTypes {
     | '/reverie'
     | '/review-room'
     | '/showcase'
+    | '/stratosphere'
     | '/target'
     | '/taste'
     | '/telescope'
@@ -356,6 +378,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brands'
     | '/critic'
+    | '/field-guide'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -366,6 +389,7 @@ export interface FileRouteTypes {
     | '/reverie'
     | '/review-room'
     | '/showcase'
+    | '/stratosphere'
     | '/target'
     | '/taste'
     | '/telescope'
@@ -389,6 +413,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BrandsRoute: typeof BrandsRoute
   CriticRoute: typeof CriticRoute
+  FieldGuideRoute: typeof FieldGuideRoute
   LibraryRoute: typeof LibraryRoute
   McpRoute: typeof McpRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -399,6 +424,7 @@ export interface RootRouteChildren {
   ReverieRoute: typeof ReverieRoute
   ReviewRoomRoute: typeof ReviewRoomRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  StratosphereRoute: typeof StratosphereRoute
   TargetRoute: typeof TargetRoute
   TasteRoute: typeof TasteRoute
   TelescopeRoute: typeof TelescopeRoute
@@ -449,6 +475,13 @@ declare module '@tanstack/react-router' {
       path: '/critic'
       fullPath: '/critic'
       preLoaderRoute: typeof CriticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/field-guide': {
+      id: '/field-guide'
+      path: '/field-guide'
+      fullPath: '/field-guide'
+      preLoaderRoute: typeof FieldGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -519,6 +552,13 @@ declare module '@tanstack/react-router' {
       path: '/showcase'
       fullPath: '/showcase'
       preLoaderRoute: typeof ShowcaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stratosphere': {
+      id: '/stratosphere'
+      path: '/stratosphere'
+      fullPath: '/stratosphere'
+      preLoaderRoute: typeof StratosphereRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/target': {
@@ -648,6 +688,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BrandsRoute: BrandsRoute,
   CriticRoute: CriticRoute,
+  FieldGuideRoute: FieldGuideRoute,
   LibraryRoute: LibraryRoute,
   McpRoute: McpRoute,
   PrivacyRoute: PrivacyRoute,
@@ -658,6 +699,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReverieRoute: ReverieRoute,
   ReviewRoomRoute: ReviewRoomRoute,
   ShowcaseRoute: ShowcaseRoute,
+  StratosphereRoute: StratosphereRoute,
   TargetRoute: TargetRoute,
   TasteRoute: TasteRoute,
   TelescopeRoute: TelescopeRoute,

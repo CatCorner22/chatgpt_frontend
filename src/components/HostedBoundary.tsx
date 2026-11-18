@@ -141,12 +141,17 @@ function VerifiedHostedBoundary({
 
     async function verify(explicitRetry = false, protect = false) {
       if (terminal || (paused && !explicitRetry)) return;
+      if (protect || explicitRetry) {
+        // Hidden children remain mounted to preserve drafts. Lock their storage
+        // and export callbacks before a protective request can yield control.
+        lockBrowserOwner();
+        setState((previous) => ({ ...previous, kind: "checking" }));
+      }
       const attempt = ++generation;
       request?.abort();
       window.clearTimeout(deadline);
       const controller = new AbortController();
       request = controller;
-      if (protect || explicitRetry) setState((previous) => ({ ...previous, kind: "checking" }));
       const timeout = window.setTimeout(() => {
         if (!active || attempt !== generation) return;
         generation++;
@@ -174,8 +179,15 @@ function VerifiedHostedBoundary({
           block("Your account changed. Reload to open the correct account's designs.");
           return;
         }
-        if (owner === null) initializeBrowserOwner(nextOwner);
-        else resumeBrowserOwner(nextOwner);
+        if (owner === null) {
+          try {
+            initializeBrowserOwner(nextOwner);
+          } catch {
+            // A remounted boundary can meet an already initialized, now locked
+            // document. Resume still requires that exact verified owner.
+            resumeBrowserOwner(nextOwner);
+          }
+        } else resumeBrowserOwner(nextOwner);
         owner = nextOwner;
         paused = false;
         lastSession = session;

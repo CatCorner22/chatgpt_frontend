@@ -21,15 +21,38 @@ describe("Garden preferences", () => {
     expect(storage.setItem).not.toHaveBeenCalled();
   });
 
-  it("restores all saved choices without treating a later step as completion evidence", () => {
+  it("restores the original five version-one step IDs unchanged without writing a migration", () => {
     for (const step of ["goal", "direction", "plan", "handoff", "check"] as const) {
       const value = { ...chosen, step };
-      expect(readGardenPreferences({ getItem: () => JSON.stringify(value) })).toEqual({
+      const raw = JSON.stringify(value);
+      const storage = { getItem: vi.fn(() => raw), setItem: vi.fn() };
+      expect(readGardenPreferences(storage)).toEqual({
         value,
         issue: "",
       });
+      expect(storage.setItem).not.toHaveBeenCalled();
+      expect(storage.getItem()).toBe(raw);
     }
   });
+
+  it.each(["content", "craft", "behavior", "responsive"] as const)(
+    "saves and restores the new %s step within the same version-one schema",
+    (step) => {
+      let raw: string | null = null;
+      const storage = {
+        getItem: vi.fn(() => raw),
+        setItem: vi.fn((_key: string, value: string) => {
+          raw = value;
+        }),
+      };
+      const value = { ...chosen, step };
+      expect(writeGardenPreferences(storage, value)).toBe("");
+      expect(JSON.parse(raw!)).toEqual(value);
+      storage.setItem.mockClear();
+      expect(readGardenPreferences(storage)).toEqual({ value, issue: "" });
+      expect(storage.setItem).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     "{",

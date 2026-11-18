@@ -1,4 +1,4 @@
-# Garden Path design QA
+# Garden Path, Stratosphere and Field Guide design QA
 
 final result: blocked
 
@@ -11,7 +11,7 @@ final result: blocked
 
 ## Implemented surfaces
 
-Garden home, simplified shared navigation, calmer studio entry, optional lessons and remembered preferences. Existing studio, Target, Telescope, Horizon and customer-export contracts remain available. See `docs/GARDEN-PATH-RELEASE.md` for behavioral coverage and limitations.
+Nine-stop Garden home, simplified shared navigation, calmer studio entry, optional lessons and remembered preferences; Stratosphere with six real design groups, live decision table and local interaction lab; a source-linked introductory Field Guide with practice decisions. Existing studio, Target, Telescope, Horizon and customer-export contracts remain available. See `docs/GARDEN-PATH-RELEASE.md` for behavioral coverage and limitations.
 
 ## Browser verification blocker
 
@@ -24,5 +24,7 @@ No implementation screenshot or rendered comparison is available. Automated test
 - Compare the actual page at 1440×1024, 800×1000, 390×844 and 320×740, including 200% zoom and reduced motion.
 - Inspect map placement, long-label wrapping, contrast, responsive navigation, image transparency and absence of beige surfaces.
 - Use keyboard-only navigation through map, radio choices, lesson controls, Tools/Help/account menus and real editor tasks. Confirm focus stays visible and lesson hiding returns focus.
-- Exercise saved editor/import recovery, failed storage, Back/Forward, all five stops and actual export/handoff. Inspect console/network failures.
+- Exercise saved editor/import recovery, failed storage, Back/Forward, all nine stops and actual export/handoff. Inspect console/network failures.
+- Exercise all three introductory practice stations, revise a choice, reset practice, search terms, toggle longer explanations, and follow source links. Practice must leave projects unchanged.
+- Exercise Stratosphere changes, Undo, scope constraints, live map downloads, interaction examples and stale ZIP rejection.
 - Perform the real customer trial and rollback demonstration separately; this redesign does not prove that result.

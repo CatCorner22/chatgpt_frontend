@@ -5,7 +5,7 @@ import { FieldGuide } from "@/components/FieldGuide";
 export const Route = createFileRoute("/field-guide")({
   head: () => ({
     meta: [
-      { title: "Your design field guide — Focus" },
+      { title: "Welcome to Focus — Reverie’s field guide" },
       {
         name: "description",
         content:

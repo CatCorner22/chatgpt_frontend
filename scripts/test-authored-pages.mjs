@@ -2,11 +2,21 @@ import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import JSZip from "jszip";
-const url = process.env.FOCUS_TEST_URL || "http://localhost:3000";
+const studioUrl = new URL(process.env.FOCUS_TEST_URL || "http://localhost:3000");
+studioUrl.searchParams.set("view", "studio");
+studioUrl.searchParams.delete("panel");
+studioUrl.hash = "";
+const url = studioUrl.href;
 const dir = "artifacts/authored-pages";
 await mkdir(dir, { recursive: true });
 const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
 const design = directions.find((d) => d.id === "garden-ledger");
+assert.ok(design, "The authored-page test direction must exist.");
+const testTokens = {
+  ...design.direction.tokens,
+  headingFont: "Instrument Serif",
+  bodyFont: "Instrument Sans",
+};
 const exampleContent = {
   brand: "Fieldwork / Example studio",
   headline: "Everyday objects. A little more considered.",
@@ -57,7 +67,7 @@ try {
           stepIndex: 3,
         }),
       ),
-    { tokens: design.direction.tokens, content: exampleContent },
+    { tokens: testTokens, content: exampleContent },
   );
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "See it. Use it. Take it with you." }).waitFor();
@@ -78,9 +88,30 @@ try {
     const file = `${dir}/${composition.toLowerCase()}.html`;
     await writeFile(file, html);
     const output = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    output.on("pageerror", (error) => pageErrors.push(error.message));
     const requests = [];
-    output.on("request", (r) => requests.push(r.url()));
+    output.on("request", (r) => {
+      if (!r.url().startsWith("data:")) requests.push(r.url());
+    });
     await output.setContent(html, { waitUntil: "load" });
+    const loadedFonts = await output.evaluate(async () => {
+      await document.fonts.ready;
+      return [...document.fonts].map((face) => ({
+        family: face.family.replace(/^['"]|['"]$/g, ""),
+        status: face.status,
+        weight: face.weight,
+      }));
+    });
+    for (const family of ["Focus Instrument Serif v1", "Focus Instrument Sans v1"]) {
+      assert.ok(
+        loadedFonts.some((face) => face.family === family && face.status === "loaded"),
+        `${family} must load from the delivered document, not an installed fallback.`,
+      );
+    }
+    assert.equal(
+      loadedFonts.find((face) => face.family === "Focus Instrument Serif v1").weight,
+      "400",
+    );
     assert.deepEqual(requests, [], "The authored page must load without remote assets.");
     await output.screenshot({
       path: `${dir}/${composition.toLowerCase()}-desktop.png`,
@@ -117,10 +148,12 @@ try {
       path: `${dir}/${composition.toLowerCase()}-mobile-spacing.png`,
       fullPage: true,
     });
+    assert.deepEqual(requests, [], "Responsive and keyboard checks must not load remote assets.");
     await output.close();
     results.push({
       composition,
       exactPreviewDownloadMatch: true,
+      loadedFonts,
       networkRequests: 0,
       mobileOverflow: false,
       textSpacingOverflow: false,
@@ -132,6 +165,12 @@ try {
   const zip = await JSZip.loadAsync(await readFile(await (await readyZip).path()));
   assert.ok(zip.file("index.html"));
   assert.ok(zip.file("styles.css"));
+  assert.ok(zip.file("fonts/instrument-serif-OFL.txt"));
+  assert.ok(zip.file("fonts/instrument-sans-OFL.txt"));
+  assert.ok(zip.file("fonts/PROVENANCE.txt"));
+  const zipCss = await zip.file("styles.css").async("string");
+  const finalHtml = await readFile(`${dir}/journal.html`, "utf8");
+  assert.ok(finalHtml.includes(`<style>${zipCss}</style>`), "ZIP and HTML must use the same CSS.");
   const project = JSON.parse(await zip.file("focus-project.json").async("string"));
   assert.equal(project.studio.page.actionUrl, "https://example.com/studio");
   assert.equal(project.studio.page.composition, "journal");
@@ -156,6 +195,7 @@ try {
     checks: [
       "legacy save migration",
       "exact preview/download parity",
+      "embedded font faces loaded and licenses retained",
       "valid source ZIP",
       "native disclosure and section-link keyboard operation",
       "320px page and workspace reflow",

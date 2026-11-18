@@ -127,7 +127,7 @@ describe("Stratosphere transitions", () => {
   it("changes generated CSS for font, hierarchy, spacing and form choices", () => {
     const before = input();
     for (const [group, option, css] of [
-      ["fonts", "editorial", '--heading: "Instrument Serif"'],
+      ["fonts", "editorial", '--heading: "Focus Instrument Serif v1"'],
       ["hierarchy", "expressive", "--type-heading: 2.1025rem"],
       ["spacing", "airy", "--space: 1.25"],
       ["form", "rounded", "border-radius: 999px"],
@@ -243,6 +243,27 @@ describe("Stratosphere transitions", () => {
 });
 
 describe("Stratosphere graph and output boundaries", () => {
+  it("distinguishes embedded authored fonts from local fallbacks and customer-app references", () => {
+    const current = input();
+    const pair = evaluateStratosphereCandidate(current, "fonts", "editorial");
+    const authored = { ...current, tokens: pair.tokens };
+    const note = deriveStratosphereGraph(authored).issues.find(
+      (issue) => issue.id === "font-availability",
+    )!;
+    expect(note.message).toContain("Embedded font files: Instrument Serif, Instrument Sans");
+    expect(note.message).not.toContain("Local font installation or fallback:");
+    expect(note.message).toContain("browser check");
+    const fallback = deriveStratosphereGraph(current).issues.find(
+      (issue) => issue.id === "font-availability",
+    )!;
+    expect(fallback.message).toContain("Local font installation or fallback: Fraunces, Karla");
+    const customer = deriveStratosphereGraph({ ...authored, integration: "existing" }).issues.find(
+      (issue) => issue.id === "font-availability",
+    )!;
+    expect(customer.message).not.toContain("Embedded font files");
+    expect(customer.message).toContain("customer policy");
+  });
+
   it("connects actual content to review advice without imposing a headline-length compatibility limit", () => {
     const before = { ...input(), content: { ...content, headline: "🐈".repeat(130), cta: "" } };
     const selected = evaluateStratosphereCandidate(before, "hierarchy", "expressive");

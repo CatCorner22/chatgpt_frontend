@@ -11,7 +11,7 @@ final result: blocked
 
 ## Implemented surfaces
 
-Nine-stop Garden home, simplified shared navigation, calmer studio entry, optional lessons and remembered preferences; Stratosphere with six real design groups, live decision table and local interaction lab; a source-linked introductory Field Guide with practice decisions. Existing studio, Target, Telescope, Horizon and customer-export contracts remain available. See `docs/GARDEN-PATH-RELEASE.md` for behavioral coverage and limitations.
+Nine-stop Garden home, simplified shared navigation, calmer studio entry, optional lessons and remembered preferences; Stratosphere with six real design groups, live decision table and local interaction lab; a source-linked introductory Field Guide with five practice decisions and a revisable, hideable choices summary. Authored pages embed the selected licensed Latin fonts for all three Stratosphere pairs. Existing studio, Target, Telescope, Horizon and customer-export contracts remain available. See `docs/GARDEN-PATH-RELEASE.md` and `docs/PORTABLE-TYPOGRAPHY-RELEASE.md` for behavioral coverage and limitations.
 
 ## Browser verification blocker
 
@@ -25,6 +25,7 @@ No implementation screenshot or rendered comparison is available. Automated test
 - Inspect map placement, long-label wrapping, contrast, responsive navigation, image transparency and absence of beige surfaces.
 - Use keyboard-only navigation through map, radio choices, lesson controls, Tools/Help/account menus and real editor tasks. Confirm focus stays visible and lesson hiding returns focus.
 - Exercise saved editor/import recovery, failed storage, Back/Forward, all nine stops and actual export/handoff. Inspect console/network failures.
-- Exercise all three introductory practice stations, revise a choice, reset practice, search terms, toggle longer explanations, and follow source links. Practice must leave projects unchanged.
+- Exercise all five introductory practice stations, revise a choice, reset practice, search terms, hide/reopen the choices summary, toggle longer explanations, and follow source links. Practice must leave projects unchanged. Check all station names remain visible on narrow screens and match their accessible labels.
+- In a clean browser without the selected fonts installed, check actual font loading in the sandboxed preview and downloaded pages. Inspect all three pairs, real weights, long labels, line wrapping, non-Latin fallbacks, loading and failure. Export parity tests do not prove rendered typography.
 - Exercise Stratosphere changes, Undo, scope constraints, live map downloads, interaction examples and stale ZIP rejection.
 - Perform the real customer trial and rollback demonstration separately; this redesign does not prove that result.

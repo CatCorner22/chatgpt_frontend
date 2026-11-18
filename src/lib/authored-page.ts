@@ -1,6 +1,6 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
-import { fontStack } from "./fonts";
+import { AUTHORED_FONT_COVERAGE, buildEmbeddedFonts } from "./authored-fonts";
 import { isPageComposition, type PageComposition } from "./page-compositions";
 
 export type PageOptions = {
@@ -211,23 +211,28 @@ export function buildAuthoredPage(
       message:
         "A supplied quotation appears on the page. Check its accuracy and permission before publishing.",
     });
-  readiness.push({
-    id: "fonts",
-    message: `No remote fonts are requested. ${t.headingFont} and ${t.bodyFont} appear when installed; otherwise the page uses the documented local fallback fonts.`,
-  });
+  const fonts = buildEmbeddedFonts(t.headingFont, t.bodyFont);
+  const fontNotes = [
+    fonts.includedFamilies.length
+      ? `Embedded fonts include ${fonts.includedFamilies.join(", ")}. ${AUTHORED_FONT_COVERAGE}`
+      : "",
+    fonts.missingFamilies.length
+      ? `${fonts.missingFamilies.join(", ")} will use the installed typeface where available, with system fallback fonts.`
+      : "",
+  ];
+  readiness.push({ id: "fonts", message: fontNotes.filter(Boolean).join(" ") });
 
   const space = { airy: 1.25, balanced: 1, compact: 0.85 }[t.density];
   const link = readableOn(t.accent, t.bg);
   const css = `/* Focus authored page. The standalone HTML embeds this exact stylesheet.
-   The editable source index.html loads styles.css instead.
-   Selected fonts are used only if installed. No font or image request is made.
-   Body fallback: ${fontStack(t.bodyFont)}. Heading fallback: ${fontStack(t.headingFont)}. */
-:root {
+   The editable source index.html loads styles.css. */
+${fonts.css}:root {
   color-scheme: ${contrast(t.ink, "#000000") > contrast(t.ink, "#ffffff") ? "dark" : "light"};
   --bg: ${t.bg}; --surface: ${t.surface}; --ink: ${t.ink}; --muted: ${t.muted};
   --accent: ${t.accent}; --on-accent: ${t.accentInk}; --link: ${link};
   --surface-ink: ${surfaceInk}; --surface-muted: ${surfaceMuted};
-  --heading: ${fontStack(t.headingFont)}; --body: ${fontStack(t.bodyFont)};
+  --heading: ${fonts.headingStack}; --body: ${fonts.bodyStack};
+  --heading-weight: ${fonts.headingWeight};
   --radius: ${t.radius}px; --space: ${space};
   --type-small: 1rem; --type-body: 1.0625rem; --type-heading: ${Math.pow(t.scale, 2).toFixed(4)}rem;
   --type-display: ${Math.max(3.2, Math.pow(t.scale, 5.2)).toFixed(4)}rem;
@@ -245,7 +250,7 @@ a:active { text-decoration-thickness: 2px; }
 button, a, summary { touch-action: manipulation; }
 img, svg { display: block; max-inline-size: 100%; block-size: auto; }
 h1, h2, h3, p, blockquote { margin: 0; }
-h1, h2, h3 { font-family: var(--heading); text-wrap: balance; font-weight: 600; }
+h1, h2, h3 { font-family: var(--heading); text-wrap: balance; font-weight: var(--heading-weight); }
 h1, h2 { text-transform: ${t.headingCase === "uppercase" ? "uppercase" : "none"}; }
 h1 { font-size: clamp(2.5rem, 5.7vw, var(--type-display)); line-height: 1.08; letter-spacing: ${t.headingCase === "uppercase" ? ".02em" : "-.035em"}; max-inline-size: 17ch; }
 h2 { font-size: clamp(1.75rem, 3.2vw, ${Math.max(2.2, Math.pow(t.scale, 3.2)).toFixed(4)}rem); line-height: 1.2; letter-spacing: -.025em; }
@@ -254,7 +259,7 @@ p, li, blockquote { text-wrap: pretty; }
 p { max-inline-size: 65ch; }
 .site-shell { max-inline-size: 1440px; padding-inline: clamp(1.25rem, 5vw, 5rem); margin-inline: auto; }
 .site-header { display: flex; flex-wrap: wrap; gap: .75rem 2rem; align-items: center; justify-content: space-between; padding-block: 1.5rem; border-block-end: 1px solid var(--muted); }
-.brand { display: inline-flex; gap: .7rem; align-items: center; min-block-size: 44px; min-inline-size: 44px; font-family: var(--heading); font-size: 1.375rem; font-weight: 600; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; max-inline-size: 100%; }
+.brand { display: inline-flex; gap: .7rem; align-items: center; min-block-size: 44px; min-inline-size: 44px; font-family: var(--heading); font-size: 1.375rem; font-weight: var(--heading-weight); color: var(--ink); text-decoration: none; overflow-wrap: anywhere; max-inline-size: 100%; }
 .brand-mark { inline-size: 18px; block-size: 18px; border: 5px solid var(--accent); border-radius: 50%; flex-shrink: 0; }
 .site-nav { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: center; }
 .site-nav a, .footer-link { display: inline-flex; min-block-size: 44px; min-inline-size: 44px; align-items: center; color: var(--ink); font-size: 1rem; }
@@ -497,7 +502,7 @@ edit styles.css to change the page. Keep these two files together when hosting.
 
 FILES AND CUSTOMER HANDOFF
 - index.html: the editable page, including the supplied copy and embedded image.
-- styles.css: the page's appearance; keep it beside index.html.
+- styles.css: the page's appearance; keep it beside index.html.${fonts.includedFamilies.length ? "\n- fonts/: source details and license notices for the fonts embedded in styles.css." : ""}
 - focus-project.json: an archival studio snapshot for a developer. It is not an
   importable library backup. It may include earlier studio inputs and history;
   keep it private rather than uploading it to the public website.
@@ -528,8 +533,7 @@ Both forms are generated by the same page renderer, with the same content and CS
 This is a static authored page with native links and disclosures, where present.
 No scripts, font services, image services, accounts, or submission backend are
 included. An action goes to the supplied destination; without a valid destination,
-it explores this page’s details. Selected fonts require local installation or
-your own licensed font setup; documented local fallback fonts are used otherwise.
+it explores this page’s details.
 
 Composition: ${composition}
 Earlier hero arrangement: ${t.heroLayout}
@@ -543,7 +547,12 @@ phone and desktop. Automated checks do not establish overall usability or craft.
   return {
     html,
     css,
-    files: { "index.html": sourceHtml, "styles.css": css, "README.txt": sourceReadme },
+    files: {
+      "index.html": sourceHtml,
+      "styles.css": css,
+      "README.txt": sourceReadme,
+      ...fonts.supportingFiles,
+    },
     readiness,
   };
 }

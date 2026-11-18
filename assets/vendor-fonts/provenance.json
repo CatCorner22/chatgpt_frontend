@@ -1,0 +1,921 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-18T20:44:18.874817+00:00",
+  "repository": {
+    "url": "https://github.com/google/fonts",
+    "commit": "5bd87dfc525c8a0d1d8529d3684716e00c3fc59a",
+    "commitUrl": "https://github.com/google/fonts/commit/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a",
+    "scope": "Pinned source of license and metadata evidence. CDN WOFF2 bytes are independently identified by versioned source URL and SHA-256; this is not a reproducible-build claim from this repository commit."
+  },
+  "acquisition": {
+    "fontSource": "Official Google Fonts CSS API and fonts.gstatic.com CDN",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "binaryModifications": "None. Exact WOFF2 bytes served as official Latin subsets; no local subsetting, conversion, embedded-name changes, or recompression.",
+    "verification": "WOFF2 magic and declared size; HTTP length when supplied; fontTools 4.61.1 metadata/cmap parsing with Node built-in zlib Brotli decompression (no dependency installed); SHA-256 for every font/license."
+  },
+  "coveragePolicy": {
+    "scope": "Google Fonts Latin subset only, not full Unicode or full family language coverage.",
+    "declaredVsActual": "unicodeRange is official CSS eligibility, which can include unmapped characters. actualCmapRanges is exact mapped coverage in this font file.",
+    "fallback": "Characters outside a face cmap must fall through to a platform font. Use Georgia, serif for serif families and system-ui, sans-serif for sans-serif families. Fallback glyph appearance is platform-dependent and is not a bundled-font fidelity guarantee.",
+    "weights": "Instrument Serif has real normal 400 only. Other included normal faces are declared for 400 through 600 and have variable axes listed in metadata. No real Instrument Serif 600 or italic coverage is bundled.",
+    "runtime": "Embed or self-host these files with copyright and OFL license; acquisition URLs are provenance, not runtime dependencies."
+  },
+  "sizes": {
+    "fontBytes": 336796,
+    "licenseBytes": 26542,
+    "fontBase64Bytes": 449072,
+    "fontBase64PlusLicenseBytes": 475614,
+    "budgetBytes": 1048576
+  },
+  "families": [
+    {
+      "id": "instrument-serif",
+      "name": "Instrument Serif",
+      "genericFamily": "serif",
+      "suggestedCssFamily": "FocusPortable-instrument-serif-5eb09b5ac0e2",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/instrument-serif-OFL.txt",
+        "bytes": 4405,
+        "sha256": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentserif/OFL.txt",
+        "copyright": "Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentserif/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4405
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentserif/METADATA.pb",
+        "sha256": "9a650bee57af3478f9294c8765292dcea36322082b987b857e29a2ea64861f6a",
+        "text": "name: \"Instrument Serif\"\ndesigner: \"Rodrigo Fuenzalida, Jordan Egstad\"\nlicense: \"OFL\"\ncategory: \"SERIF\"\ndate_added: \"2023-03-22\"\nfonts {\n  name: \"Instrument Serif\"\n  style: \"normal\"\n  weight: 400\n  filename: \"InstrumentSerif-Regular.ttf\"\n  post_script_name: \"InstrumentSerif-Regular\"\n  full_name: \"Instrument Serif Regular\"\n  copyright: \"Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)\"\n}\nfonts {\n  name: \"Instrument Serif\"\n  style: \"italic\"\n  weight: 400\n  filename: \"InstrumentSerif-Italic.ttf\"\n  post_script_name: \"InstrumentSerif-Italic\"\n  full_name: \"Instrument Serif Italic\"\n  copyright: \"Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)\"\n}\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\nsource {\n  repository_url: \"https://github.com/Instrument/instrument-serif\"\n  commit: \"65c0ef225f386a3c7e87570a4aa9cc0262c2fd81\"\n  files {\n    source_file: \"OFL.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"fonts/ttf/InstrumentSerif-Regular.ttf\"\n    dest_file: \"InstrumentSerif-Regular.ttf\"\n  }\n  files {\n    source_file: \"fonts/ttf/InstrumentSerif-Italic.ttf\"\n    dest_file: \"InstrumentSerif-Italic.ttf\"\n  }\n  branch: \"main\"\n  config_yaml: \"sources/config.yaml\"\n}\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/Instrument/instrument-serif",
+          "commit": "65c0ef225f386a3c7e87570a4aa9cc0262c2fd81",
+          "branch": "main",
+          "config_yaml": "sources/config.yaml",
+          "files": [
+            {
+              "source_file": "OFL.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "fonts/ttf/InstrumentSerif-Regular.ttf",
+              "dest_file": "InstrumentSerif-Regular.ttf"
+            },
+            {
+              "source_file": "fonts/ttf/InstrumentSerif-Italic.ttf",
+              "dest_file": "InstrumentSerif-Italic.ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "instrument-serif-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400",
+          "weights": [
+            400
+          ],
+          "stretch": "normal",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 21032,
+          "sha256": "5eb09b5ac0e28b67c2f041c8ba6d244604ca0c0980d65912ab2d47fed84ddc31",
+          "source": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 21032
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400&display=swap",
+            "sha256": "27dd57f762cdb4b4ad4c69e7d8f8f6a78aeed178b9627ea1dade2422cab4c81a",
+            "rule": "@font-face {\n  font-family: 'Instrument Serif';\n  font-style: normal;\n  font-weight: 400;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* latin-ext */\n@font-face {\n  font-family: 'Instrument Serif';\n  font-style: normal;\n  font-weight: 400;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zsTjmbI.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'Instrument Serif';\n  font-style: normal;\n  font-weight: 400;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+0020-007E, U+00A0-00A3, U+00A5, U+00A7-00AB, U+00AE-00B0, U+00B4, U+00B6-00B8, U+00BA-00BB, U+00BF-00FF, U+0102, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2039-203A, U+20AC, U+2122, U+2212",
+          "actualCmapCount": 206,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)",
+              "1": "Instrument Serif",
+              "2": "Regular",
+              "3": "1.000;NONE;InstrumentSerif-Regular",
+              "4": "Instrument Serif Regular",
+              "5": "Version 1.000; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.27]",
+              "6": "InstrumentSerif-Regular",
+              "14": "https://scripts.sil.org/OFL"
+            },
+            "axes": [],
+            "os2WeightClass": 400,
+            "fontRevision": 1.0,
+            "numGlyphs": 220,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentserif/InstrumentSerif-Regular.ttf",
+        "sha256": "498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88",
+        "bytes": 70012,
+        "name": "Instrument Serif",
+        "version": "Version 1.000; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.27]",
+        "copyright": "Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)",
+        "metadataFilename": "InstrumentSerif-Regular.ttf"
+      }
+    },
+    {
+      "id": "instrument-sans",
+      "name": "Instrument Sans",
+      "genericFamily": "sans-serif",
+      "suggestedCssFamily": "FocusPortable-instrument-sans-2ee17598a98d",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/instrument-sans-OFL.txt",
+        "bytes": 4403,
+        "sha256": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentsans/OFL.txt",
+        "copyright": "Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentsans/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4403
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentsans/METADATA.pb",
+        "sha256": "111191daf841919d5d09b88ca7a17fb691c4b835c61ca81c958f334c40c11535",
+        "text": "name: \"Instrument Sans\"\ndesigner: \"Rodrigo Fuenzalida, Jordan Egstad\"\nlicense: \"OFL\"\ncategory: \"SANS_SERIF\"\ndate_added: \"2023-04-13\"\nfonts {\n  name: \"Instrument Sans\"\n  style: \"normal\"\n  weight: 400\n  filename: \"InstrumentSans[wdth,wght].ttf\"\n  post_script_name: \"InstrumentSans-Regular\"\n  full_name: \"Instrument Sans Regular\"\n  copyright: \"Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)\"\n}\nfonts {\n  name: \"Instrument Sans\"\n  style: \"italic\"\n  weight: 400\n  filename: \"InstrumentSans-Italic[wdth,wght].ttf\"\n  post_script_name: \"InstrumentSans-Italic\"\n  full_name: \"Instrument Sans Italic\"\n  copyright: \"Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)\"\n}\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\naxes {\n  tag: \"wdth\"\n  min_value: 75.0\n  max_value: 100.0\n}\naxes {\n  tag: \"wght\"\n  min_value: 400.0\n  max_value: 700.0\n}\nsource {\n  repository_url: \"https://github.com/Instrument/instrument-sans\"\n  commit: \"7fa22308a3d0c94ee2b3cd537a1196b65db34a3e\"\n  files {\n    source_file: \"OFL.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"fonts/variable/InstrumentSans[wdth,wght].ttf\"\n    dest_file: \"InstrumentSans[wdth,wght].ttf\"\n  }\n  files {\n    source_file: \"fonts/variable/InstrumentSans-Italic[wdth,wght].ttf\"\n    dest_file: \"InstrumentSans-Italic[wdth,wght].ttf\"\n  }\n  branch: \"master\"\n  config_yaml: \"sources/config.yaml\"\n}\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/Instrument/instrument-sans",
+          "commit": "7fa22308a3d0c94ee2b3cd537a1196b65db34a3e",
+          "branch": "master",
+          "config_yaml": "sources/config.yaml",
+          "files": [
+            {
+              "source_file": "OFL.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "fonts/variable/InstrumentSans[wdth,wght].ttf",
+              "dest_file": "InstrumentSans[wdth,wght].ttf"
+            },
+            {
+              "source_file": "fonts/variable/InstrumentSans-Italic[wdth,wght].ttf",
+              "dest_file": "InstrumentSans-Italic[wdth,wght].ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "instrument-sans-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400 600",
+          "weights": [
+            400,
+            600
+          ],
+          "stretch": "100%",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 30092,
+          "sha256": "2ee17598a98d8a59e4df8152d015bec9ab8e4d5672cc0ab42bef806b568e3971",
+          "source": "https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0SZe1Q.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0SZe1Q.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 30092
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..600&display=swap",
+            "sha256": "51ab7442e6610eaafdfd174f1248cd5c8f9619a7746887aebc4e51a8b25c6852",
+            "rule": "@font-face {\n  font-family: 'Instrument Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0SZe1Q.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* latin-ext */\n@font-face {\n  font-family: 'Instrument Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0She1YmV.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'Instrument Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0SZe1Q.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..600&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+0020-007E, U+00A0-00A3, U+00A5, U+00A7-00AB, U+00AE-00B0, U+00B4, U+00B6-00B8, U+00BA-00BB, U+00BF-00FF, U+0102, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2039-203A, U+20AC, U+2122, U+2191, U+2193, U+2212",
+          "actualCmapCount": 208,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)",
+              "1": "Instrument Sans",
+              "2": "Regular",
+              "3": "1.000;NONE;InstrumentSans-Regular",
+              "4": "Instrument Sans Regular",
+              "5": "Version 1.000;gftools[0.9.28]",
+              "6": "InstrumentSans-Regular",
+              "14": "https://scripts.sil.org/OFL"
+            },
+            "axes": [
+              {
+                "tag": "wght",
+                "min": 400.0,
+                "default": 400.0,
+                "max": 700.0
+              }
+            ],
+            "os2WeightClass": 400,
+            "fontRevision": 1.0,
+            "numGlyphs": 244,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/instrumentsans/InstrumentSans%5Bwdth%2Cwght%5D.ttf",
+        "sha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
+        "bytes": 194336,
+        "name": "Instrument Sans",
+        "version": "Version 1.000;gftools[0.9.28]",
+        "copyright": "Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)",
+        "metadataFilename": "InstrumentSans[wdth,wght].ttf"
+      }
+    },
+    {
+      "id": "space-grotesk",
+      "name": "Space Grotesk",
+      "genericFamily": "sans-serif",
+      "suggestedCssFamily": "FocusPortable-space-grotesk-0640890476fc",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/space-grotesk-OFL.txt",
+        "bytes": 4495,
+        "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/spacegrotesk/OFL.txt",
+        "copyright": "Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/spacegrotesk/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4495
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/spacegrotesk/METADATA.pb",
+        "sha256": "3713adf5c1a21affdbede103b6bb23f551d4195771fa8bc1b91ce813bd1623ee",
+        "text": "name: \"Space Grotesk\"\ndesigner: \"Florian Karsten\"\nlicense: \"OFL\"\ncategory: \"SANS_SERIF\"\ndate_added: \"2020-10-07\"\nfonts {\n  name: \"Space Grotesk\"\n  style: \"normal\"\n  weight: 400\n  filename: \"SpaceGrotesk[wght].ttf\"\n  post_script_name: \"SpaceGrotesk-Light\"\n  full_name: \"Space Grotesk Light\"\n  copyright: \"Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)\"\n}\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\nsubsets: \"vietnamese\"\naxes {\n  tag: \"wght\"\n  min_value: 300.0\n  max_value: 700.0\n}\nsource {\n  repository_url: \"https://github.com/floriankarsten/space-grotesk\"\n  files {\n    source_file: \"OFL.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"DESCRIPTION.en_us.html\"\n    dest_file: \"DESCRIPTION.en_us.html\"\n  }\n  files {\n    source_file: \"fonts/ttf/SpaceGrotesk[wght].ttf\"\n    dest_file: \"SpaceGrotesk[wght].ttf\"\n  }\n  files {\n    source_file: \"fonts/ttf/static/SpaceGrotesk-Bold.ttf\"\n    dest_file: \"static/SpaceGrotesk-Bold.ttf\"\n  }\n  files {\n    source_file: \"fonts/ttf/static/SpaceGrotesk-Light.ttf\"\n    dest_file: \"static/SpaceGrotesk-Light.ttf\"\n  }\n  files {\n    source_file: \"fonts/ttf/static/SpaceGrotesk-Medium.ttf\"\n    dest_file: \"static/SpaceGrotesk-Medium.ttf\"\n  }\n  files {\n    source_file: \"fonts/ttf/static/SpaceGrotesk-Regular.ttf\"\n    dest_file: \"static/SpaceGrotesk-Regular.ttf\"\n  }\n  branch: \"master\"\n  commit: \"03507d024a01282884232081fc6011c09ff4e849\"\n}\nminisite_url: \"https://floriankarsten.github.io/space-grotesk\"\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/floriankarsten/space-grotesk",
+          "branch": "master",
+          "commit": "03507d024a01282884232081fc6011c09ff4e849",
+          "files": [
+            {
+              "source_file": "OFL.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "DESCRIPTION.en_us.html",
+              "dest_file": "DESCRIPTION.en_us.html"
+            },
+            {
+              "source_file": "fonts/ttf/SpaceGrotesk[wght].ttf",
+              "dest_file": "SpaceGrotesk[wght].ttf"
+            },
+            {
+              "source_file": "fonts/ttf/static/SpaceGrotesk-Bold.ttf",
+              "dest_file": "static/SpaceGrotesk-Bold.ttf"
+            },
+            {
+              "source_file": "fonts/ttf/static/SpaceGrotesk-Light.ttf",
+              "dest_file": "static/SpaceGrotesk-Light.ttf"
+            },
+            {
+              "source_file": "fonts/ttf/static/SpaceGrotesk-Medium.ttf",
+              "dest_file": "static/SpaceGrotesk-Medium.ttf"
+            },
+            {
+              "source_file": "fonts/ttf/static/SpaceGrotesk-Regular.ttf",
+              "dest_file": "static/SpaceGrotesk-Regular.ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "space-grotesk-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400 600",
+          "weights": [
+            400,
+            600
+          ],
+          "stretch": "normal",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 22288,
+          "sha256": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d",
+          "source": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 22288
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..600&display=swap",
+            "sha256": "4628fe0d06f65a1fcdecf25cc3449743248b18406db1598d5c54438f4825b299",
+            "rule": "@font-face {\n  font-family: 'Space Grotesk';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* vietnamese */\n@font-face {\n  font-family: 'Space Grotesk';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb54C-s0.woff2) format('woff2');\n  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n}\n/* latin-ext */\n@font-face {\n  font-family: 'Space Grotesk';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb94C-s0.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'Space Grotesk';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..600&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+000D, U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2009, U+200B, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215",
+          "actualCmapCount": 230,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)",
+              "1": "Space Grotesk Light",
+              "2": "Regular",
+              "3": "2.000;FK;SpaceGrotesk-Light",
+              "4": "Space Grotesk Light",
+              "5": "Version 2.000",
+              "6": "SpaceGrotesk-Light",
+              "14": "https://scripts.sil.org/OFL"
+            },
+            "axes": [
+              {
+                "tag": "wght",
+                "min": 300.0,
+                "default": 300.0,
+                "max": 700.0
+              }
+            ],
+            "os2WeightClass": 300,
+            "fontRevision": 2.0,
+            "numGlyphs": 291,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf",
+        "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+        "bytes": 136676,
+        "name": "Space Grotesk Light",
+        "version": "Version 2.000",
+        "copyright": "Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)",
+        "metadataFilename": "SpaceGrotesk[wght].ttf"
+      }
+    },
+    {
+      "id": "ibm-plex-sans",
+      "name": "IBM Plex Sans",
+      "genericFamily": "sans-serif",
+      "suggestedCssFamily": "FocusPortable-ibm-plex-sans-e2291e842cf5",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/ibm-plex-sans-OFL.txt",
+        "bytes": 4456,
+        "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/ibmplexsans/OFL.txt",
+        "copyright": "Copyright © 2017 IBM Corp. with Reserved Font Name \"Plex\"",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/ibmplexsans/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4456
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/ibmplexsans/METADATA.pb",
+        "sha256": "85f7e73668461cfacc4d9ecf94a7b67dd14dc24a71c0ae2cecd36215f0ca856c",
+        "text": "name: \"IBM Plex Sans\"\ndesigner: \"Mike Abbink, Bold Monday\"\nlicense: \"OFL\"\ncategory: \"SANS_SERIF\"\ndate_added: \"2018-03-12\"\nfonts {\n  name: \"IBM Plex Sans\"\n  style: \"normal\"\n  weight: 400\n  filename: \"IBMPlexSans[wdth,wght].ttf\"\n  post_script_name: \"IBMPlexSans-Regular\"\n  full_name: \"IBM Plex Sans Regular\"\n  copyright: \"Copyright 2019 IBM Corp. All rights reserved.\"\n}\nfonts {\n  name: \"IBM Plex Sans\"\n  style: \"italic\"\n  weight: 400\n  filename: \"IBMPlexSans-Italic[wdth,wght].ttf\"\n  post_script_name: \"IBMPlexSans-Italic\"\n  full_name: \"IBM Plex Sans Italic\"\n  copyright: \"Copyright 2019 IBM Corp. All rights reserved.\"\n}\nsubsets: \"cyrillic\"\nsubsets: \"cyrillic-ext\"\nsubsets: \"greek\"\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\nsubsets: \"vietnamese\"\naxes {\n  tag: \"wdth\"\n  min_value: 75.0\n  max_value: 100.0\n}\naxes {\n  tag: \"wght\"\n  min_value: 100.0\n  max_value: 700.0\n}\nsource {\n  repository_url: \"https://github.com/googlefonts/plex\"\n  commit: \"3e312890b3b9e47378b30dedfe4196a42151243c\"\n  files {\n    source_file: \"LICENSE.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"Google-Fonts-Fixes/descriptions/DESCRIPTION.en_us.html\"\n    dest_file: \"DESCRIPTION.en_us.html\"\n  }\n  files {\n    source_file: \"Google-Fonts-Fixes/fonts/IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans[wdth,wght].ttf\"\n    dest_file: \"IBMPlexSans[wdth,wght].ttf\"\n  }\n  files {\n    source_file: \"Google-Fonts-Fixes/fonts/IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans-Italic[wdth,wght].ttf\"\n    dest_file: \"IBMPlexSans-Italic[wdth,wght].ttf\"\n  }\n  branch: \"master\"\n}\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/googlefonts/plex",
+          "commit": "3e312890b3b9e47378b30dedfe4196a42151243c",
+          "branch": "master",
+          "files": [
+            {
+              "source_file": "LICENSE.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "Google-Fonts-Fixes/descriptions/DESCRIPTION.en_us.html",
+              "dest_file": "DESCRIPTION.en_us.html"
+            },
+            {
+              "source_file": "Google-Fonts-Fixes/fonts/IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans[wdth,wght].ttf",
+              "dest_file": "IBMPlexSans[wdth,wght].ttf"
+            },
+            {
+              "source_file": "Google-Fonts-Fixes/fonts/IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans-Italic[wdth,wght].ttf",
+              "dest_file": "IBMPlexSans-Italic[wdth,wght].ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "ibm-plex-sans-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400 600",
+          "weights": [
+            400,
+            600
+          ],
+          "stretch": "100%",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 45712,
+          "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+          "source": "https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 45712
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400..600&display=swap",
+            "sha256": "1914d5a533f151cd84bbb1ed93c2eec6f2566cff37fd52a7350546a3d1e3eaa7",
+            "rule": "@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* cyrillic-ext */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxTKYbABA.woff2) format('woff2');\n  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;\n}\n/* cyrillic */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA.woff2) format('woff2');\n  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\n}\n/* greek */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxdKYbABA.woff2) format('woff2');\n  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;\n}\n/* vietnamese */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxRKYbABA.woff2) format('woff2');\n  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n}\n/* latin-ext */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxQKYbABA.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'IBM Plex Sans';\n  font-style: normal;\n  font-weight: 400 600;\n  font-stretch: 100%;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400..600&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2002, U+2009, U+200B, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "actualCmapCount": 232,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2019 IBM Corp. All rights reserved.",
+              "1": "IBM Plex Sans",
+              "2": "Regular",
+              "3": "3.201;IBM;IBMPlexSans-Regular",
+              "4": "IBM Plex Sans Regular",
+              "5": "Version 3.201",
+              "6": "IBMPlexSans-Regular",
+              "14": "http://scripts.sil.org/OFL"
+            },
+            "axes": [
+              {
+                "tag": "wght",
+                "min": 100.0,
+                "default": 400.0,
+                "max": 700.0
+              }
+            ],
+            "os2WeightClass": 400,
+            "fontRevision": 3.2010040283203125,
+            "numGlyphs": 270,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/ibmplexsans/IBMPlexSans%5Bwdth%2Cwght%5D.ttf",
+        "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3",
+        "bytes": 537244,
+        "name": "IBM Plex Sans",
+        "version": "Version 3.201",
+        "copyright": "Copyright 2019 IBM Corp. All rights reserved.",
+        "metadataFilename": "IBMPlexSans[wdth,wght].ttf"
+      }
+    },
+    {
+      "id": "newsreader",
+      "name": "Newsreader",
+      "genericFamily": "serif",
+      "suggestedCssFamily": "FocusPortable-newsreader-6e4f2958c3a7",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/newsreader-OFL.txt",
+        "bytes": 4394,
+        "sha256": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/newsreader/OFL.txt",
+        "copyright": "Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/newsreader/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4394
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/newsreader/METADATA.pb",
+        "sha256": "dc0bcb264c09d663c9a4f559e4f5392fd7d9f62139ad9cbba39253ec43aa315b",
+        "text": "name: \"Newsreader\"\ndesigner: \"Production Type\"\nlicense: \"OFL\"\ncategory: \"SERIF\"\ndate_added: \"2020-07-01\"\nfonts {\n  name: \"Newsreader\"\n  style: \"normal\"\n  weight: 400\n  filename: \"Newsreader[opsz,wght].ttf\"\n  post_script_name: \"Newsreader16pt-Regular\"\n  full_name: \"Newsreader 16pt Regular\"\n  copyright: \"Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)\"\n}\nfonts {\n  name: \"Newsreader\"\n  style: \"italic\"\n  weight: 400\n  filename: \"Newsreader-Italic[opsz,wght].ttf\"\n  post_script_name: \"Newsreader16pt-Italic\"\n  full_name: \"Newsreader 16pt Italic\"\n  copyright: \"Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)\"\n}\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\nsubsets: \"vietnamese\"\naxes {\n  tag: \"opsz\"\n  min_value: 6.0\n  max_value: 72.0\n}\naxes {\n  tag: \"wght\"\n  min_value: 200.0\n  max_value: 800.0\n}\nregistry_default_overrides {\n  key: \"opsz\"\n  value: 16.0\n}\nsource {\n  repository_url: \"https://github.com/productiontype/NewsReader\"\n  commit: \"1ece6a8bfe5db1a2b90c76cc1fe5d3b2eed5dcf3\"\n  files {\n    source_file: \"OFL.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"DESCRIPTION.en_us.html\"\n    dest_file: \"DESCRIPTION.en_us.html\"\n  }\n  files {\n    source_file: \"fonts/variable/ttf/Newsreader-Italic[opsz,wght].ttf\"\n    dest_file: \"Newsreader-Italic[opsz,wght].ttf\"\n  }\n  files {\n    source_file: \"fonts/variable/ttf/Newsreader[opsz,wght].ttf\"\n    dest_file: \"Newsreader[opsz,wght].ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-ExtraBoldItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-ExtraBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-Bold.ttf\"\n    dest_file: \"static/Newsreader16pt-Bold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-ExtraLightItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-ExtraLightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-ExtraBoldItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-ExtraBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-Bold.ttf\"\n    dest_file: \"static/Newsreader6pt-Bold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-ExtraBoldItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-ExtraBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-MediumItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-MediumItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-LightItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-LightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-SemiBold.ttf\"\n    dest_file: \"static/Newsreader16pt-SemiBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-Italic.ttf\"\n    dest_file: \"static/Newsreader72pt-Italic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-SemiBold.ttf\"\n    dest_file: \"static/Newsreader72pt-SemiBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-SemiBoldItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-SemiBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-Italic.ttf\"\n    dest_file: \"static/Newsreader6pt-Italic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-Regular.ttf\"\n    dest_file: \"static/Newsreader72pt-Regular.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-ExtraLightItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-ExtraLightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-Italic.ttf\"\n    dest_file: \"static/Newsreader16pt-Italic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-SemiBoldItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-SemiBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-Regular.ttf\"\n    dest_file: \"static/Newsreader16pt-Regular.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-MediumItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-MediumItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-LightItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-LightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-Light.ttf\"\n    dest_file: \"static/Newsreader16pt-Light.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-BoldItalic.ttf\"\n    dest_file: \"static/Newsreader16pt-BoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-Light.ttf\"\n    dest_file: \"static/Newsreader6pt-Light.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-Medium.ttf\"\n    dest_file: \"static/Newsreader16pt-Medium.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-ExtraLight.ttf\"\n    dest_file: \"static/Newsreader16pt-ExtraLight.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-Medium.ttf\"\n    dest_file: \"static/Newsreader72pt-Medium.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-Medium.ttf\"\n    dest_file: \"static/Newsreader6pt-Medium.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-MediumItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-MediumItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-ExtraBold.ttf\"\n    dest_file: \"static/Newsreader6pt-ExtraBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-LightItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-LightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader16pt-ExtraBold.ttf\"\n    dest_file: \"static/Newsreader16pt-ExtraBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-BoldItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-BoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-Bold.ttf\"\n    dest_file: \"static/Newsreader72pt-Bold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-ExtraLightItalic.ttf\"\n    dest_file: \"static/Newsreader72pt-ExtraLightItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-ExtraLight.ttf\"\n    dest_file: \"static/Newsreader72pt-ExtraLight.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-SemiBoldItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-SemiBoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-Light.ttf\"\n    dest_file: \"static/Newsreader72pt-Light.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-BoldItalic.ttf\"\n    dest_file: \"static/Newsreader6pt-BoldItalic.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-SemiBold.ttf\"\n    dest_file: \"static/Newsreader6pt-SemiBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-Regular.ttf\"\n    dest_file: \"static/Newsreader6pt-Regular.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader72pt-ExtraBold.ttf\"\n    dest_file: \"static/Newsreader72pt-ExtraBold.ttf\"\n  }\n  files {\n    source_file: \"fonts/static/ttf/Newsreader6pt-ExtraLight.ttf\"\n    dest_file: \"static/Newsreader6pt-ExtraLight.ttf\"\n  }\n  branch: \"master\"\n}\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/productiontype/NewsReader",
+          "commit": "1ece6a8bfe5db1a2b90c76cc1fe5d3b2eed5dcf3",
+          "branch": "master",
+          "files": [
+            {
+              "source_file": "OFL.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "DESCRIPTION.en_us.html",
+              "dest_file": "DESCRIPTION.en_us.html"
+            },
+            {
+              "source_file": "fonts/variable/ttf/Newsreader-Italic[opsz,wght].ttf",
+              "dest_file": "Newsreader-Italic[opsz,wght].ttf"
+            },
+            {
+              "source_file": "fonts/variable/ttf/Newsreader[opsz,wght].ttf",
+              "dest_file": "Newsreader[opsz,wght].ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-ExtraBoldItalic.ttf",
+              "dest_file": "static/Newsreader6pt-ExtraBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-Bold.ttf",
+              "dest_file": "static/Newsreader16pt-Bold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-ExtraLightItalic.ttf",
+              "dest_file": "static/Newsreader16pt-ExtraLightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-ExtraBoldItalic.ttf",
+              "dest_file": "static/Newsreader72pt-ExtraBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-Bold.ttf",
+              "dest_file": "static/Newsreader6pt-Bold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-ExtraBoldItalic.ttf",
+              "dest_file": "static/Newsreader16pt-ExtraBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-MediumItalic.ttf",
+              "dest_file": "static/Newsreader16pt-MediumItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-LightItalic.ttf",
+              "dest_file": "static/Newsreader16pt-LightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-SemiBold.ttf",
+              "dest_file": "static/Newsreader16pt-SemiBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-Italic.ttf",
+              "dest_file": "static/Newsreader72pt-Italic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-SemiBold.ttf",
+              "dest_file": "static/Newsreader72pt-SemiBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-SemiBoldItalic.ttf",
+              "dest_file": "static/Newsreader16pt-SemiBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-Italic.ttf",
+              "dest_file": "static/Newsreader6pt-Italic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-Regular.ttf",
+              "dest_file": "static/Newsreader72pt-Regular.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-ExtraLightItalic.ttf",
+              "dest_file": "static/Newsreader6pt-ExtraLightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-Italic.ttf",
+              "dest_file": "static/Newsreader16pt-Italic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-SemiBoldItalic.ttf",
+              "dest_file": "static/Newsreader72pt-SemiBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-Regular.ttf",
+              "dest_file": "static/Newsreader16pt-Regular.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-MediumItalic.ttf",
+              "dest_file": "static/Newsreader6pt-MediumItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-LightItalic.ttf",
+              "dest_file": "static/Newsreader72pt-LightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-Light.ttf",
+              "dest_file": "static/Newsreader16pt-Light.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-BoldItalic.ttf",
+              "dest_file": "static/Newsreader16pt-BoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-Light.ttf",
+              "dest_file": "static/Newsreader6pt-Light.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-Medium.ttf",
+              "dest_file": "static/Newsreader16pt-Medium.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-ExtraLight.ttf",
+              "dest_file": "static/Newsreader16pt-ExtraLight.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-Medium.ttf",
+              "dest_file": "static/Newsreader72pt-Medium.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-Medium.ttf",
+              "dest_file": "static/Newsreader6pt-Medium.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-MediumItalic.ttf",
+              "dest_file": "static/Newsreader72pt-MediumItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-ExtraBold.ttf",
+              "dest_file": "static/Newsreader6pt-ExtraBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-LightItalic.ttf",
+              "dest_file": "static/Newsreader6pt-LightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader16pt-ExtraBold.ttf",
+              "dest_file": "static/Newsreader16pt-ExtraBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-BoldItalic.ttf",
+              "dest_file": "static/Newsreader72pt-BoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-Bold.ttf",
+              "dest_file": "static/Newsreader72pt-Bold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-ExtraLightItalic.ttf",
+              "dest_file": "static/Newsreader72pt-ExtraLightItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-ExtraLight.ttf",
+              "dest_file": "static/Newsreader72pt-ExtraLight.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-SemiBoldItalic.ttf",
+              "dest_file": "static/Newsreader6pt-SemiBoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-Light.ttf",
+              "dest_file": "static/Newsreader72pt-Light.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-BoldItalic.ttf",
+              "dest_file": "static/Newsreader6pt-BoldItalic.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-SemiBold.ttf",
+              "dest_file": "static/Newsreader6pt-SemiBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-Regular.ttf",
+              "dest_file": "static/Newsreader6pt-Regular.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader72pt-ExtraBold.ttf",
+              "dest_file": "static/Newsreader72pt-ExtraBold.ttf"
+            },
+            {
+              "source_file": "fonts/static/ttf/Newsreader6pt-ExtraLight.ttf",
+              "dest_file": "static/Newsreader6pt-ExtraLight.ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "newsreader-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400 600",
+          "weights": [
+            400,
+            600
+          ],
+          "stretch": "normal",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 132000,
+          "sha256": "6e4f2958c3a7c4a80acde4e5a679abe7e01bc1e30b92be3c7a8b696ef401d101",
+          "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK4397yjA.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK4397yjA.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 132000
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..600&display=swap",
+            "sha256": "95082107993bb91f78334a948e8b8f1123cc41f1d24424f55175df71e59f2e8b",
+            "rule": "@font-face {\n  font-family: 'Newsreader';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK4397yjA.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* vietnamese */\n@font-face {\n  font-family: 'Newsreader';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK439HyjJBG.woff2) format('woff2');\n  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n}\n/* latin-ext */\n@font-face {\n  font-family: 'Newsreader';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK439DyjJBG.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'Newsreader';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK4397yjA.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..600&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02BC, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2212, U+2215",
+          "actualCmapCount": 224,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)",
+              "1": "Newsreader 16pt",
+              "2": "Regular",
+              "3": "1.003;PROD;Newsreader16pt-Regular",
+              "4": "Newsreader 16pt Regular",
+              "5": "Version 1.003",
+              "6": "Newsreader16pt-Regular",
+              "14": "http://scripts.sil.org/OFL"
+            },
+            "axes": [
+              {
+                "tag": "wght",
+                "min": 200.0,
+                "default": 400.0,
+                "max": 800.0
+              },
+              {
+                "tag": "opsz",
+                "min": 6.0,
+                "default": 18.0,
+                "max": 72.0
+              }
+            ],
+            "os2WeightClass": 400,
+            "fontRevision": 1.0030059814453125,
+            "numGlyphs": 262,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/newsreader/Newsreader%5Bopsz%2Cwght%5D.ttf",
+        "sha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+        "bytes": 451664,
+        "name": "Newsreader 16pt",
+        "version": "Version 1.003",
+        "copyright": "Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)",
+        "metadataFilename": "Newsreader[opsz,wght].ttf"
+      }
+    },
+    {
+      "id": "literata",
+      "name": "Literata",
+      "genericFamily": "serif",
+      "suggestedCssFamily": "FocusPortable-literata-7478e1920209",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/literata-OFL.txt",
+        "bytes": 4389,
+        "sha256": "8742963604cd89dc81437811a850018fc03b2bfad686d7422c8235967c87614e",
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/literata/OFL.txt",
+        "copyright": "Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)",
+        "http": {
+          "finalUrl": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/literata/OFL.txt",
+          "contentType": "text/plain; charset=utf-8",
+          "contentLength": 4389
+        },
+        "evidenceNote": "Official Google Fonts METADATA declares OFL for this family; unchanged OFL notice is retained. Binary name-table copyright is retained separately in face metadata."
+      },
+      "repositoryMetadata": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/literata/METADATA.pb",
+        "sha256": "8dbc5c48f254be32c879f006391cb5f6781941beb1a643c13acf66fa989b6a83",
+        "text": "name: \"Literata\"\ndesigner: \"TypeTogether\"\nlicense: \"OFL\"\ncategory: \"SERIF\"\ndate_added: \"2018-12-06\"\nfonts {\n  name: \"Literata\"\n  style: \"normal\"\n  weight: 400\n  filename: \"Literata[opsz,wght].ttf\"\n  post_script_name: \"Literata-Regular\"\n  full_name: \"Literata Regular\"\n  copyright: \"Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)\"\n}\nfonts {\n  name: \"Literata\"\n  style: \"italic\"\n  weight: 400\n  filename: \"Literata-Italic[opsz,wght].ttf\"\n  post_script_name: \"Literata-Italic\"\n  full_name: \"Literata Italic\"\n  copyright: \"Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)\"\n}\nsubsets: \"cyrillic\"\nsubsets: \"cyrillic-ext\"\nsubsets: \"greek\"\nsubsets: \"greek-ext\"\nsubsets: \"latin\"\nsubsets: \"latin-ext\"\nsubsets: \"menu\"\nsubsets: \"vietnamese\"\naxes {\n  tag: \"opsz\"\n  min_value: 7.0\n  max_value: 72.0\n}\naxes {\n  tag: \"wght\"\n  min_value: 200.0\n  max_value: 900.0\n}\nsource {\n  repository_url: \"https://github.com/googlefonts/literata\"\n  commit: \"0c2761b727a1b3a7cffd313c37f0f5163dfc7a63\"\n  files {\n    source_file: \"OFL.txt\"\n    dest_file: \"OFL.txt\"\n  }\n  files {\n    source_file: \"fonts/variable/Literata[opsz,wght].ttf\"\n    dest_file: \"Literata[opsz,wght].ttf\"\n  }\n  files {\n    source_file: \"fonts/variable/Literata-Italic[opsz,wght].ttf\"\n    dest_file: \"Literata-Italic[opsz,wght].ttf\"\n  }\n  branch: \"main\"\n  config_yaml: \"sources/config.yaml\"\n}\n",
+        "upstreamSource": {
+          "repository_url": "https://github.com/googlefonts/literata",
+          "commit": "0c2761b727a1b3a7cffd313c37f0f5163dfc7a63",
+          "branch": "main",
+          "config_yaml": "sources/config.yaml",
+          "files": [
+            {
+              "source_file": "OFL.txt",
+              "dest_file": "OFL.txt"
+            },
+            {
+              "source_file": "fonts/variable/Literata[opsz,wght].ttf",
+              "dest_file": "Literata[opsz,wght].ttf"
+            },
+            {
+              "source_file": "fonts/variable/Literata-Italic[opsz,wght].ttf",
+              "dest_file": "Literata-Italic[opsz,wght].ttf"
+            }
+          ]
+        }
+      },
+      "faces": [
+        {
+          "file": "literata-latin-normal.woff2",
+          "format": "woff2",
+          "style": "normal",
+          "weight": "400 600",
+          "weights": [
+            400,
+            600
+          ],
+          "stretch": "normal",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+          "subset": "latin",
+          "bytes": 85672,
+          "sha256": "7478e1920209e51dcc235d151d2056a0a6e3c54b4436f7030d256f231fe09b58",
+          "source": "https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_HWTA.woff2",
+          "http": {
+            "finalUrl": "https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_HWTA.woff2",
+            "contentType": "font/woff2",
+            "contentLength": 85672
+          },
+          "cssSource": {
+            "url": "https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..600&display=swap",
+            "sha256": "b7f9d7b308c991c5045fec1d8a26aae39dd547556c838bde60ae2c620fbfdf97",
+            "rule": "@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_HWTA.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}",
+            "responseText": "/* cyrillic-ext */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_zWTFCW.woff2) format('woff2');\n  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;\n}\n/* cyrillic */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_XWTFCW.woff2) format('woff2');\n  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\n}\n/* greek-ext */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_3WTFCW.woff2) format('woff2');\n  unicode-range: U+1F00-1FFF;\n}\n/* greek */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_LWTFCW.woff2) format('woff2');\n  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;\n}\n/* vietnamese */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_7WTFCW.woff2) format('woff2');\n  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n}\n/* latin-ext */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J__WTFCW.woff2) format('woff2');\n  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;\n}\n/* latin */\n@font-face {\n  font-family: 'Literata';\n  font-style: normal;\n  font-weight: 400 600;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/literata/v40/or3PQ6P12-iJxAIgLa78DkTtAoDhk0oVpaK3YLanFLHpPf2TbLi4J_HWTA.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n",
+            "http": {
+              "finalUrl": "https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..600&display=swap",
+              "contentType": "text/css; charset=utf-8",
+              "contentLength": null
+            }
+          },
+          "actualCmapRanges": "U+0020-007E, U+00A0-00FF, U+0102, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2009, U+200B, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215",
+          "actualCmapCount": 230,
+          "commonLatinSampleMissing": "",
+          "metadata": {
+            "names": {
+              "0": "Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)",
+              "1": "Literata",
+              "2": "Regular",
+              "3": "3.103;TT;Literata-Regular",
+              "4": "Literata Regular",
+              "5": "Version 3.103;gftools[0.9.29]",
+              "6": "Literata-Regular",
+              "14": "https://scripts.sil.org/OFL"
+            },
+            "axes": [
+              {
+                "tag": "opsz",
+                "min": 7.0,
+                "default": 12.0,
+                "max": 72.0
+              },
+              {
+                "tag": "wght",
+                "min": 400.0,
+                "default": 400.0,
+                "max": 900.0
+              }
+            ],
+            "os2WeightClass": 400,
+            "fontRevision": 3.102996826171875,
+            "numGlyphs": 300,
+            "sfntVersion": "00010000",
+            "fsType": 0
+          }
+        }
+      ],
+      "repositoryFontEvidence": {
+        "source": "https://raw.githubusercontent.com/google/fonts/5bd87dfc525c8a0d1d8529d3684716e00c3fc59a/ofl/literata/Literata%5Bopsz%2Cwght%5D.ttf",
+        "sha256": "b41138c9373112f32abb589cc22e8674b06ed4048b0c513be922bdd26f274440",
+        "bytes": 955132,
+        "name": "Literata",
+        "version": "Version 3.103;gftools[0.9.29]",
+        "copyright": "Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)",
+        "metadataFilename": "Literata[opsz,wght].ttf"
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 Research and source inspection date: **18 November 2026 (UTC)**.
 
-The definitions in `src/lib/field-guide.ts` are original plain-language summaries. The pottery-studio examples and three practice scenarios are editorial illustrations, not findings about actual user behavior or a promise of an outcome. Practice choices do not apply Studio settings or modify a customer project.
+The definitions in `src/lib/field-guide.ts` are original plain-language summaries. The pottery-studio examples and practice scenarios are editorial illustrations, not findings about actual user behavior or a promise of an outcome. Practice choices do not apply Studio settings or modify a customer project.
 
 The optional `FIELD_GUIDE_AREAS` legend explains Focus’s own product names: Focus, Vision, Horizon, Target, Telescope, Stratosphere, and Reverie. These are product definitions based on the application and its documentation, not terms attributed to the external sources below.
 
@@ -34,6 +34,47 @@ Sources were discovered with the web search tool and opened to read the relevant
 - **Focus-specific statements come from the current code, not the external sources:** `src/lib/target.ts`, `src/routes/target.tsx`, `src/lib/design.ts`, `src/lib/authored-page.ts`, and `AGENTS.md`. Target prepares validated design/styling handoffs and prompts. Existing-app instructions preserve behavior and limit the trial’s scope. A new-project handoff is not a finished application. The guide does not imply repository writes, completed backend work, automatic testing, or deployment.
 - **Evidence remains specific.** Opening a route, choosing a practice option, preparing a ZIP, or checking a color pair is not evidence that a customer’s whole site is accessible, functional, or ready to launch.
 - **Routes offer places to explore.** The optional `route` on each practice choice points to an existing Focus destination. It does not encode or apply that choice to the customer’s Studio state.
+
+## Additional research for assets and handoff practice
+
+**Inspected 18 November 2026 (UTC).** The following primary sources were opened and their relevant passages read for two additional practice stops. These reference keys are available for source-backed copy; they are not a claim that every topic needs its own glossary entry.
+
+| Reference key            | Source and publisher                                                                                                             | What the inspected page supports                                                                                                                                                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-repository`      | [About repositories](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories), GitHub Docs | A repository contains project files and their revision history; its terminology table distinguishes branches, clones, forks, and merges.                                                                                                                                      |
+| `github-branches`        | [Branches](https://docs.github.com/en/pull-requests/reference/branches), GitHub Docs                                             | Branches support a separate line of development within a repository. “About branches” explains developing from an existing branch.                                                                                                                                            |
+| `github-pull-requests`   | [Pull requests](https://docs.github.com/en/pull-requests/reference/pull-requests), GitHub Docs                                   | Pull requests propose changes for review and possible merging; the review includes the description, changed files, discussion, and checks.                                                                                                                                    |
+| `vercel-environments`    | [Environments](https://vercel.com/docs/deployments/environments), Vercel                                                         | Local, preview, and production environments have different roles. The preview and production sections explain that deployments can target either and that hosting automation can connect deployment to branch/PR events. This is a provider example, not a Focus integration. |
+| `mdn-font-family`        | [font-family](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family), MDN Web Docs                   | A prioritized font list includes fallbacks. Selection can proceed to another font for a missing character. Generic system families depend on the platform.                                                                                                                    |
+| `mdn-glyph`              | [Glyph](https://developer.mozilla.org/en-US/docs/Glossary/Glyph), MDN Web Docs                                                   | A glyph is a visual representation of one or more characters; fonts contain different glyph sets. It is not necessarily one character per shape.                                                                                                                              |
+| `sil-ofl`                | [SIL Open Font License Official Text](https://openfontlicense.org/open-font-license-official-text/), SIL                         | The permission conditions allow qualifying font bundling and redistribution with required notices and license information. This does not establish that an arbitrary font uses the OFL or permits a particular use.                                                           |
+| `wai-alt-tree`           | [An alt Decision Tree](https://www.w3.org/WAI/tutorials/images/decision-tree/), W3C WAI                                          | Text alternatives depend on an image’s role: informative, functional, redundant, or decorative. Purely decorative images can use an empty alternative.                                                                                                                        |
+| `wai-informative-images` | [Informative Images](https://www.w3.org/WAI/tutorials/images/informative/), W3C WAI                                              | The alternative should communicate the image’s useful meaning in context; it need not be an exhaustive literal description.                                                                                                                                                   |
+
+### Small learning addition recommended
+
+Keep the existing scope, emphasis, and behavior practice. Add **one assets choice** and **one handoff choice**, with optional vocabulary beside them. The short trail and cumulative choices summary are editorial teaching devices; they have not been evaluated in a customer study. Progress along the trail means choices explored, not work completed on a customer site.
+
+For the **assets choice**, compare device-provided fonts and a restrained image treatment with a supplied, licensed font setup and deliberate imagery. Device fonts avoid a separate download for those faces but may look different across systems. Supplied fonts give more control over the chosen typeface, while adding asset delivery, license, weight, character-coverage, and fallback checks. These are contextual tradeoffs, not a ranking of basic versus professional work. Image rights, useful alternatives, responsive crops, and readable real content matter on either route. Font and image decisions can also be mixed; the two practice examples are not technical compatibility rules.
+
+Suggested optional wording: “A fallback is the next font the browser can try when a face or character is missing. Check your actual names, punctuation, and languages—not only the sample heading.” This recommendation follows from MDN’s documented selection behavior; no particular font coverage is claimed without inspecting that font.
+
+For the **handoff choice**, compare a one-page trial with a phased multi-page plan. A one-page trial has a smaller change set to inspect and undo. A phased plan can coordinate shared components, while requiring a reviewable scope and preservation checks at each stage. Both keep a recoverable starting point, a preview, and review of actual outcomes. The existing backup/rollback definitions remain relevant; they do not need duplicate glossary entries.
+
+Suggested compact handoff vocabulary:
+
+- **Repository:** the project’s files and recorded history in one place.
+- **Branch:** a separate line of work where changes can be prepared before combining them with another version.
+- **Pull request:** a proposal to combine changes, with space to inspect and discuss them first.
+- **Preview and deployment:** a preview is a version used to inspect a build before the main audience relies on it; deployment makes a build available in an environment, which can be preview or production.
+
+These summaries are derived from the sources above. The proposed workflow is an editorial recommendation. A branch does not itself isolate application data, and a preview’s name does not establish its permissions or connected services. A pull request and a deployment are distinct events, although hosting automation may connect them. Neither event establishes task success or accessibility.
+
+### Product claims remain separate
+
+Target prepares scoped files and instructions; it does not create a customer branch, open a pull request, or deploy the customer’s site. Choosing either practice path must not imply those actions occurred. A multi-page plan is a sequence of bounded work, not a promise that Focus applies a complete redesign.
+
+Font-delivery wording must follow the actual artifact manifest and selected output. Do not generalize “bundled” to every family listed in the studio, and do not imply that a fallback has the same appearance or character coverage as the first-choice face. The source material explains browser and licensing concepts; it does not verify the current exported font files, their licenses, or browser rendering.
 
 ## Maintenance
 

@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { buildAuthoredPage, DEFAULT_PAGE_OPTIONS, type PageOptions } from "../lib/authored-page";
 import { normalizeTokens, type Content } from "../lib/design";
@@ -19,12 +20,17 @@ const options: PageOptions = {
   actionUrl: "https://example.com/contact?from=studio&kind=home",
 };
 const parse = (html: string) => new DOMParser().parseFromString(html, "text/html");
+const fontDataUrl = /url\("data:font\/woff2;base64,[A-Za-z0-9+/]+={0,2}"\)/g;
 
 describe("authored page export", () => {
   it.each(["studio", "editorial", "product", "showcase", "journal"] as const)(
     "uses the same renderer and CSS for the %s preview, standalone page, and editable source",
     (composition) => {
-      const result = buildAuthoredPage(tokens, content, { ...options, composition });
+      const portable = normalizeTokens({
+        headingFont: "Instrument Serif",
+        bodyFont: "Instrument Sans",
+      });
+      const result = buildAuthoredPage(portable, content, { ...options, composition });
       const page = parse(result.html);
       const sourcePage = parse(result.files["index.html"]!);
       expect(result.files["styles.css"]).toBe(result.css);
@@ -42,8 +48,9 @@ describe("authored page export", () => {
       expect(page.querySelectorAll("h1")).toHaveLength(1);
       expect(page.querySelector("h1")?.textContent).toBe(content.headline);
       expect(page.querySelectorAll("script,iframe,link[rel=stylesheet]")).toHaveLength(0);
-      expect(result.css).not.toMatch(/@import|url\(/);
-      expect(buildAuthoredPage(tokens, content, { ...options, composition })).toEqual(result);
+      expect(result.css.match(fontDataUrl) ?? []).toHaveLength(2);
+      expect(result.css.replace(fontDataUrl, "")).not.toMatch(/@import|url\s*\(|local\s*\(/i);
+      expect(buildAuthoredPage(portable, content, { ...options, composition })).toEqual(result);
     },
   );
 
@@ -365,17 +372,90 @@ describe("authored page export", () => {
     expect(result.readiness.map((item) => item.id)).not.toContain("composition-layout");
   });
 
-  it("documents local font fallbacks and includes native accommodation styles", () => {
+  it("prioritizes bundled type before its local fallbacks and includes accommodation styles", () => {
     const result = buildAuthoredPage(
       normalizeTokens({ headingFont: "Space Grotesk", bodyFont: "Literata" }),
       content,
       options,
     );
-    expect(result.css).toContain('"Space Grotesk", system-ui, sans-serif');
-    expect(result.css).toContain('"Literata", Georgia, serif');
+    expect(result.css).toContain(
+      '--heading: "Focus Space Grotesk v1", "Space Grotesk", system-ui, sans-serif',
+    );
+    expect(result.css).toContain('--body: "Focus Literata v1", "Literata", Georgia, serif');
     expect(result.css).toContain("prefers-reduced-motion: reduce");
     expect(result.css).toContain("forced-colors: active");
     expect(result.css).toContain("text-wrap: pretty");
     expect(result.css).toContain("font-variant-numeric: tabular-nums");
+  });
+
+  it("retains selected licenses and provenance alongside portable regular-weight headings", () => {
+    const result = buildAuthoredPage(
+      normalizeTokens({ headingFont: "Instrument Serif", bodyFont: "Instrument Sans" }),
+      content,
+      options,
+    );
+    expect(result.css).toContain("--heading-weight: 400");
+    expect(result.css).toMatch(/h1, h2, h3 \{[^}]+font-weight: var\(--heading-weight\)/);
+    expect(result.files["fonts/PROVENANCE.txt"]).toContain("Instrument Serif");
+    expect(result.files["fonts/PROVENANCE.txt"]).not.toContain("Space Grotesk");
+    for (const id of ["instrument-serif", "instrument-sans"]) {
+      const license = result.files[`fonts/${id}-OFL.txt`];
+      expect(license).toContain("SIL OPEN FONT LICENSE");
+      expect(result.html).toContain(license);
+      expect(result.files["styles.css"]).toContain(license);
+    }
+  });
+
+  it.each([
+    ["Instrument Serif", "Instrument Sans", "instrument-serif", "instrument-sans"],
+    ["Space Grotesk", "IBM Plex Sans", "space-grotesk", "ibm-plex-sans"],
+    ["Newsreader", "Literata", "newsreader", "literata"],
+  ] as const)(
+    "pairs the exact stylesheet and OFL notices in a %s and %s ZIP",
+    async (headingFont, bodyFont, headingId, bodyId) => {
+      const result = buildAuthoredPage(
+        normalizeTokens({ headingFont, bodyFont }),
+        content,
+        options,
+      );
+      const zip = new JSZip();
+      for (const [name, text] of Object.entries(result.files)) zip.file(name, text);
+      const extracted = await JSZip.loadAsync(await zip.generateAsync({ type: "uint8array" }));
+      const stylesheet = await extracted.file("styles.css")?.async("string");
+      expect(stylesheet).toBe(result.css);
+      expect(result.html).toContain(`<style>${stylesheet}</style>`);
+      expect(parse(result.html).querySelector("style")?.textContent).toBe(
+        stylesheet?.replaceAll("\r\n", "\n"),
+      );
+      expect(stylesheet?.match(fontDataUrl)).toHaveLength(2);
+      const licensePaths = [`fonts/${headingId}-OFL.txt`, `fonts/${bodyId}-OFL.txt`];
+      for (const path of [...licensePaths, "fonts/PROVENANCE.txt"]) {
+        expect(await extracted.file(path)?.async("string")).toBe(result.files[path]);
+      }
+      expect(Object.keys(extracted.files).filter((path) => path.endsWith("-OFL.txt"))).toEqual(
+        licensePaths,
+      );
+    },
+  );
+
+  it("identifies each mixed font outcome and keeps owner input out of font CSS", () => {
+    const result = buildAuthoredPage(
+      normalizeTokens({ headingFont: "Fraunces", bodyFont: "Instrument Sans" }),
+      content,
+      options,
+    );
+    const fonts = result.readiness.find((note) => note.id === "fonts")?.message;
+    expect(fonts).toMatch(/Instrument Sans.*embedded|embedded.*Instrument Sans/i);
+    expect(fonts).toMatch(/Fraunces.*fallback/i);
+    expect(result.css).toContain('--heading: "Fraunces", Georgia, serif');
+    expect(result.css).not.toContain("Focus Fraunces");
+    const hostile = '";}body{background:url(https://example.com/font)}</style><script>';
+    const malformed = buildAuthoredPage(
+      { ...tokens, headingFont: hostile as typeof tokens.headingFont },
+      content,
+      options,
+    );
+    expect(malformed.html).not.toContain(hostile);
+    expect(malformed.css.replace(fontDataUrl, "")).not.toMatch(/@import|url\s*\(|local\s*\(/i);
   });
 });

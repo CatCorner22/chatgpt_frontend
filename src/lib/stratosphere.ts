@@ -1,3 +1,4 @@
+import { getAuthoredFontAvailability, AUTHORED_FONT_COVERAGE } from "./authored-font-availability";
 import {
   BODY_FONTS,
   BUTTON_STYLES,
@@ -202,10 +203,11 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
     label: "Font pairing",
     description: "Choose the requested voice of headings and body text.",
     lesson:
-      "Family names are not font files. Standalone pages use installed fonts or local fallbacks; inspect typography on the destination device.",
+      "These three pairs include licensed font files in authored pages. Other choices may use local fallbacks; inspect real words and unsupported characters on the destination device.",
     authoredOnly: false,
     output: {
-      authored: "Sets local font-family stacks; exact fonts appear only when installed.",
+      authored:
+        "Embeds supported font files with the authored page and declares fallbacks for other families or characters.",
       specification:
         "Writes font choices and references. Loading, licensing and customer font policy remain implementation work.",
     },
@@ -517,11 +519,27 @@ function outputLimitations(input: StratosphereInput): StratosphereIssue[] {
     message,
     fields,
   });
+  const fontAvailability = getAuthoredFontAvailability(
+    input.tokens.headingFont,
+    input.tokens.bodyFont,
+  );
+  const fontNotes = [
+    fontAvailability.includedFamilies.length
+      ? `Embedded font files: ${fontAvailability.includedFamilies.join(", ")}.`
+      : "No bundled font family is selected.",
+    fontAvailability.missingFamilies.length
+      ? `Local font installation or fallback: ${fontAvailability.missingFamilies.join(", ")}.`
+      : "",
+    AUTHORED_FONT_COVERAGE,
+    "No remote font request is made. Rendered typography still needs a browser check.",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const result = [
     note(
       "font-availability",
       authored
-        ? "The standalone page requests no remote fonts. Selected families appear when installed; otherwise local fallbacks render. Exact typography across devices is unverified."
+        ? fontNotes
         : "The specification names font families and the design pack supplies references. Loading, licensing, customer policy and fallbacks still need verification.",
       ["tokens.headingFont", "tokens.bodyFont"],
     ),

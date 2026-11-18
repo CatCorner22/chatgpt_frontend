@@ -1,6 +1,6 @@
 import { focusLocalStorage, focusSessionStorage } from "@/lib/browser-storage";
 import { DesignShareAction } from "@/components/DesignShareAction";
-import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
+import { LazyAuthoredPagePanel } from "@/components/LazyAuthoredPagePanel";
 import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
 import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
 import { ContentEditor } from "@/components/ContentEditor";
@@ -1334,7 +1334,7 @@ function Rx({ s, update, ask }: P) {
       </div>
       {showAuthored && (
         <div className="lg:col-span-2">
-          <AuthoredPagePanel
+          <LazyAuthoredPagePanel
             key={s.libraryId ?? "draft"}
             tokens={s.tokens!}
             content={s.content!}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, Download, Network } from "lucide-react";
-import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
+import { LazyAuthoredPagePanel } from "@/components/LazyAuthoredPagePanel";
 import { DesignPreview } from "@/components/DesignPreview";
 import { ContentEditor } from "@/components/ContentEditor";
 import { InteractionLab } from "@/components/InteractionLab";
@@ -303,7 +303,7 @@ export function StratospherePanel({
           aria-label={authored ? "Live authored page" : "Style study"}
         >
           {authored ? (
-            <AuthoredPagePanel
+            <LazyAuthoredPagePanel
               key={state.libraryId ?? "draft"}
               tokens={state.tokens!}
               content={state.content!}

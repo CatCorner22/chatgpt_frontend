@@ -20,13 +20,18 @@ export function FieldGuide() {
   const [query, setQuery] = useState("");
   const [stationIndex, setStationIndex] = useState(0);
   const [selections, setSelections] = useState<Record<string, string>>({});
+  const [summaryOpen, setSummaryOpen] = useState(true);
   const [notice, setNotice] = useState("");
   const stationHeading = useRef<HTMLHeadingElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const focusStation = useRef(false);
   const station = FIELD_GUIDE_CHOICES[stationIndex]!;
   const selected = station.options.find((option) => option.id === selections[station.id]);
-  const explored = FIELD_GUIDE_CHOICES.filter((choice) => selections[choice.id]).length;
+  const trailChoices = FIELD_GUIDE_CHOICES.flatMap((choice, index) => {
+    const option = choice.options.find((candidate) => candidate.id === selections[choice.id]);
+    return option ? [{ choice, option, index }] : [];
+  });
+  const explored = trailChoices.length;
   const search = query.trim().toLocaleLowerCase();
   const terms = FIELD_GUIDE_TERMS.filter((term) =>
     [term.term, term.plain, term.example, term.whyItMatters].some((text) =>
@@ -59,13 +64,20 @@ export function FieldGuide() {
     <main id="main-content" className="field-guide">
       <header className="field-guide-hero">
         <div className="field-guide-intro">
-          <p className="field-guide-eyebrow">Learn with Reverie</p>
+          <p className="field-guide-eyebrow">Welcome to Focus · learn with Reverie</p>
           <h1>Your design field guide</h1>
           <p className="field-guide-lead">
             A few useful words. A little room to play. You don’t need to know the jargon to make
             thoughtful choices for your project.
           </p>
-          <p>Start with the practice trail, or look up a word whenever you need it.</p>
+          <p>
+            I’m Reverie. Let’s explore how your choices shape what comes next: the way a page looks,
+            the work it needs, and how you introduce it to real visitors.
+          </p>
+          <p>
+            This is your orientation. Wander the practice trail, or look up a word whenever you need
+            it.
+          </p>
           <div className="field-guide-actions">
             <a href="#practice-trail" className="field-guide-primary">
               Try the practice trail
@@ -111,7 +123,7 @@ export function FieldGuide() {
         <div className="field-guide-section-heading">
           <div>
             <p className="field-guide-eyebrow">Practice only</p>
-            <h2 id={`${id}-trail-title`}>Three small choices. See what follows.</h2>
+            <h2 id={`${id}-trail-title`}>Five small choices. See what follows.</h2>
             <p>
               Try either route at each station. There are no right answers or scores, and these
               choices do not change your project.
@@ -123,9 +135,13 @@ export function FieldGuide() {
         </div>
 
         <div className="field-guide-trail-progress">
-          <p>
-            {explored} of {FIELD_GUIDE_CHOICES.length} choices explored
-          </p>
+          <div className="field-guide-trail-companion">
+            <img src="/brand/reverie-kite.png" width="1254" height="1254" alt="" decoding="async" />
+            <p>
+              {explored} of {FIELD_GUIDE_CHOICES.length} choices explored
+              <small>Reverie’s practice trail · visit in any order</small>
+            </p>
+          </div>
           <span>Your practice resets when you leave this guide.</span>
         </div>
         <nav aria-label="Practice stations" className="field-guide-stations">
@@ -135,14 +151,14 @@ export function FieldGuide() {
                 <button
                   type="button"
                   aria-current={index === stationIndex ? "step" : undefined}
-                  aria-label={`${index + 1}. ${choice.title}`}
+                  aria-label={`${index + 1}. ${choice.trailLabel}: ${choice.title}`}
                   onClick={() => visitStation(index)}
                 >
                   <span className="field-guide-station-number" aria-hidden="true">
                     {index + 1}
                   </span>
                   <span>
-                    {choice.title}
+                    {choice.trailLabel}
                     <small>{selections[choice.id] ? "Choice explored" : "Open to explore"}</small>
                   </span>
                 </button>
@@ -158,8 +174,9 @@ export function FieldGuide() {
           <h3 ref={stationHeading} tabIndex={-1}>
             {station.title}
           </h3>
-          <fieldset>
+          <fieldset aria-describedby={station.note ? `${id}-station-note` : undefined}>
             <legend>{station.question}</legend>
+            {station.note && <p id={`${id}-station-note`}>{station.note}</p>}
             <div className="field-guide-options">
               {station.options.map((option) => (
                 <label
@@ -247,10 +264,68 @@ export function FieldGuide() {
         </p>
         {explored === FIELD_GUIDE_CHOICES.length && (
           <p className="field-guide-explored">
-            You’ve explored all three choices. Revisit any station, or bring your questions to the
+            You’ve explored all five choices. Revisit any station, or bring your questions to the
             Garden Path.
           </p>
         )}
+
+        <section className="field-guide-choice-summary" aria-labelledby={`${id}-summary-title`}>
+          <div className="field-guide-section-heading">
+            <div>
+              <h3 id={`${id}-summary-title`}>Your choices so far</h3>
+              <p>
+                A few signposts to carry between stations. Revisit a choice to see another route.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="field-guide-text-button"
+              aria-expanded={summaryOpen}
+              aria-controls={`${id}-summary-content`}
+              onClick={() => setSummaryOpen((open) => !open)}
+            >
+              {summaryOpen ? "Hide choices summary" : "Show choices summary"}
+            </button>
+          </div>
+          <div id={`${id}-summary-content`} hidden={!summaryOpen}>
+            {trailChoices.length ? (
+              <ol>
+                {trailChoices.map(({ choice, option, index }) => (
+                  <li key={choice.id}>
+                    <p className="field-guide-summary-stop">
+                      {index + 1}. {choice.trailLabel}
+                    </p>
+                    <h4>{option.label}</h4>
+                    <p>{option.downstream[0]}</p>
+                    <details
+                      key={`${choice.id}-${option.id}-${brief ? "brief" : "deeper"}`}
+                      open={!brief}
+                    >
+                      <summary>
+                        More outcomes<span className="sr-only">: {choice.title}</span>
+                      </summary>
+                      <ul>
+                        {option.downstream.slice(1).map((effect) => (
+                          <li key={effect}>{effect}</li>
+                        ))}
+                      </ul>
+                    </details>
+                    <button
+                      type="button"
+                      className="field-guide-text-button"
+                      onClick={() => visitStation(index)}
+                      aria-label={`Revisit ${choice.trailLabel}: ${choice.title}`}
+                    >
+                      Revisit {choice.trailLabel}
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>Your trail is open. Try a choice and its next steps will appear here.</p>
+            )}
+          </div>
+        </section>
       </section>
 
       <section id="guide-words" className="field-guide-words" aria-labelledby={`${id}-words-title`}>
@@ -271,8 +346,8 @@ export function FieldGuide() {
           </label>
         </div>
         <p id={`${id}-depth-help`} className="field-guide-depth-help">
-          Turn off “Keep it brief” to open the examples and why each term matters. Practice outcomes
-          always stay visible.
+          Turn off “Keep it brief” to open the examples, why each term matters, and more outcomes in
+          your choices summary. The current station’s outcomes always stay visible.
         </p>
         <div className="field-guide-search">
           <label htmlFor={`${id}-search`}>Find a term</label>

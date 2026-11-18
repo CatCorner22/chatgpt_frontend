@@ -480,7 +480,8 @@ export function AuthoredPagePanel({
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             Section links work here. Test contact and booking destinations in the downloaded page.
-            Fonts use local fallbacks; no font service or script is required.
+            Supported fonts travel with the page; other families or characters use local fallbacks.
+            No font service or script is required.
           </p>
         </div>
       </div>

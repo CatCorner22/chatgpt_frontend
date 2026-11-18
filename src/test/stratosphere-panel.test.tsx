@@ -218,7 +218,7 @@ describe("Stratosphere workshop", () => {
 
   it.each(["palette", "spacing", "composition"] as const)(
     "applies an accepted %s choice once and keeps the preview, project and decision map in sync",
-    (id) => {
+    async (id) => {
       const setup = mount();
       expect(screen.getByRole("region", { name: "Live authored page" })).toBeInTheDocument();
       const original = JSON.stringify(setup.initial);
@@ -236,6 +236,7 @@ describe("Stratosphere workshop", () => {
       });
       expect(JSON.stringify(setup.initial)).toBe(original);
       expect(optionRadio(option.label)).toBeChecked();
+      await screen.findByTestId("authored-preview");
       const authored = authoredProps();
       expect(authored.compact).toBe(true);
       expect(authored.tokens).toBe(setup.onPatch.mock.calls[0]![0].tokens);
@@ -383,6 +384,7 @@ describe("Stratosphere workshop", () => {
     const { option } = changedOption(setup.initial, "palette");
     visitGroup("palette");
     fireEvent.click(optionRadio(option.label));
+    await screen.findByTestId("authored-preview");
     const before = currentState(),
       record = authoredProps().decisionRecord!;
     const patchCount = setup.onPatch.mock.calls.length;

@@ -25,14 +25,16 @@ export type FieldGuideOption = {
   label: string;
   benefit: string;
   tradeoff: string;
-  downstream: readonly string[];
+  downstream: readonly [string, ...string[]];
   route?: string;
 };
 
 export type FieldGuideChoice = {
   id: string;
   title: string;
+  trailLabel: string;
   question: string;
+  note?: string;
   termIds: readonly string[];
   options: readonly [FieldGuideOption, FieldGuideOption];
 };
@@ -169,6 +171,54 @@ export const FIELD_GUIDE_SOURCES: readonly FieldGuideSource[] = [
     title: "Reverting a commit in GitHub Desktop",
     url: "https://docs.github.com/en/desktop/managing-commits/reverting-a-commit-in-github-desktop",
     publisher: "GitHub Docs",
+  },
+  {
+    id: "github-repository",
+    title: "About repositories",
+    url: "https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories",
+    publisher: "GitHub Docs",
+  },
+  {
+    id: "github-branches",
+    title: "About branches",
+    url: "https://docs.github.com/en/pull-requests/reference/branches",
+    publisher: "GitHub Docs",
+  },
+  {
+    id: "github-pull-requests",
+    title: "About pull requests",
+    url: "https://docs.github.com/en/pull-requests/reference/pull-requests",
+    publisher: "GitHub Docs",
+  },
+  {
+    id: "vercel-environments",
+    title: "Environments",
+    url: "https://vercel.com/docs/deployments/environments",
+    publisher: "Vercel Docs",
+  },
+  {
+    id: "mdn-font-family",
+    title: "font-family",
+    url: "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family",
+    publisher: "MDN Web Docs",
+  },
+  {
+    id: "sil-ofl",
+    title: "SIL Open Font License — official text",
+    url: "https://openfontlicense.org/open-font-license-official-text/",
+    publisher: "SIL Open Font License",
+  },
+  {
+    id: "wai-alt-tree",
+    title: "An alt Decision Tree",
+    url: "https://www.w3.org/WAI/tutorials/images/decision-tree/",
+    publisher: "W3C Web Accessibility Initiative",
+  },
+  {
+    id: "wai-informative-images",
+    title: "Informative Images",
+    url: "https://www.w3.org/WAI/tutorials/images/informative/",
+    publisher: "W3C Web Accessibility Initiative",
   },
 ];
 
@@ -325,12 +375,68 @@ export const FIELD_GUIDE_TERMS: readonly FieldGuideTerm[] = [
       "Choose the behavior the task needs. A polished form does not by itself save or send anything.",
     sourceIds: ["mdn-server", "react-state"],
   },
+  {
+    id: "font-fallback",
+    term: "Font & fallback",
+    plain:
+      "A font gives your words their letter shapes. A system font uses a face available on the device; a supplied web font brings a chosen face with the page. A fallback is the next font the browser can try.",
+    example:
+      "Reverie’s class title can use a familiar device font, or a supplied display font with a readable fallback when it cannot load.",
+    whyItMatters:
+      "Device fonts can differ across devices. Supplied fonts need suitable files, loading checks and permission to use them. An open font license also has conditions; check the actual license rather than assuming every font is free to bundle.",
+    sourceIds: ["mdn-font-family", "sil-ofl"],
+  },
+  {
+    id: "image-alt",
+    term: "Image & alt text",
+    plain:
+      "Alt text gives an image’s useful meaning when it cannot be seen. Its wording depends on the image’s job on the page; a purely decorative image can use an empty text alternative.",
+    example:
+      "A photograph showing a class technique needs its useful meaning explained. A decorative sparkle beside an already clear heading does not need its own description.",
+    whyItMatters:
+      "Choose imagery that helps the task, keep the right to use it, and check the crop and text alternative where it appears.",
+    sourceIds: ["wai-alt-tree", "wai-informative-images"],
+  },
+  {
+    id: "repository-branch",
+    term: "Repository & branch",
+    plain:
+      "A repository keeps a project’s files and recorded history. A branch is a separate line of work where changes can be prepared before combining them with another version.",
+    example:
+      "A developer prepares Reverie’s page refresh on a trial branch while the main version remains available for comparison.",
+    whyItMatters:
+      "A branch separates code changes. It does not automatically isolate customer data, payments or messages; the preview’s services still need checking.",
+    sourceIds: ["github-repository", "github-branches"],
+  },
+  {
+    id: "pull-request",
+    term: "Pull request",
+    plain:
+      "A proposal to bring changes into another branch, with a place to review the file differences, discuss them and see checks.",
+    example:
+      "The developer opens a pull request showing the page refresh, its preview and the tasks they actually tested.",
+    whyItMatters:
+      "A proposal is not proof of a successful customer release. Hosting automation may create a preview or deploy after a merge, so check the project’s actual workflow.",
+    sourceIds: ["github-pull-requests", "vercel-environments"],
+  },
+  {
+    id: "preview-deployment",
+    term: "Preview & deployment",
+    plain:
+      "A preview lets you try a build before it serves the main audience. Deployment makes a build available in an environment, which can be a preview or production.",
+    example:
+      "Reverie’s refreshed page is deployed to a separate preview for review before anyone decides to publish it for real visitors.",
+    whyItMatters:
+      "A preview address is not a guarantee of isolated data. Confirm the services it uses and test the real tasks before approving a production release.",
+    sourceIds: ["vercel-environments", "govuk-prototypes"],
+  },
 ];
 
 export const FIELD_GUIDE_CHOICES: readonly FieldGuideChoice[] = [
   {
     id: "scope",
     title: "Choose a starting path",
+    trailLabel: "Starting point",
     question: "Reverie has a little studio to share with the world. Where are we beginning?",
     termIds: ["frontend-backend", "component", "backup-rollback", "prototype-production"],
     options: [
@@ -365,6 +471,7 @@ export const FIELD_GUIDE_CHOICES: readonly FieldGuideChoice[] = [
   {
     id: "emphasis",
     title: "Place the first signpost",
+    trailLabel: "First impression",
     question: "What should visitors to Reverie’s pottery class notice first?",
     termIds: ["ui-ux", "hierarchy", "primary-action", "design-tokens", "contrast"],
     options: [
@@ -399,6 +506,7 @@ export const FIELD_GUIDE_CHOICES: readonly FieldGuideChoice[] = [
   {
     id: "behavior",
     title: "Decide what happens next",
+    trailLabel: "What happens next",
     question: "A visitor is interested. How will the page help them take the next step?",
     termIds: ["static-interactive", "state", "responsive", "breakpoint", "accessibility"],
     options: [
@@ -428,6 +536,79 @@ export const FIELD_GUIDE_CHOICES: readonly FieldGuideChoice[] = [
           "Test the real flow with a keyboard, narrow screens, and unsuccessful requests. Focus guidance does not implement it for you.",
         ],
         route: "/quality",
+      },
+    ],
+  },
+  {
+    id: "visual-details",
+    title: "Pack the visual details",
+    trailLabel: "Fonts & images",
+    question: "How will Reverie’s lettering and class pictures travel with the page?",
+    note: "These are example plans. In a real project, you can mix device fonts, distinctive fonts, one image or several images to suit the task.",
+    termIds: ["font-fallback", "image-alt", "responsive", "contrast"],
+    options: [
+      {
+        id: "lightweight",
+        label: "Start with device fonts and one useful image",
+        benefit: "Keep the first page light and concentrate on readable words and a clear task.",
+        tradeoff:
+          "The font can look different across devices, and one image has to earn its place.",
+        downstream: [
+          "Check the actual heading and button wrapping with the available fonts on different screens.",
+          "Use an image you have permission to share, with an appropriate crop and text alternative.",
+          "Keep readable contrast and a useful layout even when the image cannot load.",
+        ],
+        route: "/?view=studio",
+      },
+      {
+        id: "distinctive",
+        label: "Plan distinctive fonts and a coordinated image set",
+        benefit:
+          "Build a more recognizable visual personality with deliberate lettering and imagery.",
+        tradeoff:
+          "The builder needs the correct licensed files, responsive crops and dependable fallbacks.",
+        downstream: [
+          "List the actual font files, weights and image assets the builder needs; a style name does not supply them.",
+          "Check permissions, font loading, missing characters and readable fallbacks before release.",
+          "Test image sizes, crops and meaningful alternatives on the delivered page. This practice choice does not supply the files or implement the asset plan.",
+        ],
+        route: "/target",
+      },
+    ],
+  },
+  {
+    id: "handoff",
+    title: "Cross the preview bridge",
+    trailLabel: "Careful handoff",
+    question: "The direction feels right. How should the builder introduce it to the working site?",
+    termIds: ["repository-branch", "pull-request", "preview-deployment", "backup-rollback"],
+    options: [
+      {
+        id: "one-page",
+        label: "Try one useful page first",
+        benefit: "Keep the first change small enough to compare, test and undo clearly.",
+        tradeoff:
+          "The rest of the site keeps its earlier appearance until later changes are reviewed.",
+        downstream: [
+          "Name the page, the tasks to preserve and a recoverable starting version before editing.",
+          "Review the exact changes in an isolated preview with test data, including unsuccessful tasks.",
+          "Demonstrate selective rollback and review the result before approving a release through the project’s own workflow.",
+        ],
+        route: "/target",
+      },
+      {
+        id: "phased",
+        label: "Plan a coordinated refresh in small stages",
+        benefit:
+          "Give several related pages a consistent direction while introducing the change gradually.",
+        tradeoff:
+          "Shared components and cross-page journeys need coordination and checks at every stage.",
+        downstream: [
+          "Map the pages and shared components, then agree the first bounded trial with the builder.",
+          "Give each stage its own preview, preservation checks and selective rollback plan.",
+          "Review the connected journey after each stage. Target prepares a one-page trial; it does not automatically coordinate or deploy the full refresh.",
+        ],
+        route: "/target",
       },
     ],
   },

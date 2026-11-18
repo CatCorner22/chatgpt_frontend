@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -27,9 +28,11 @@ use the editor.
   `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
+
 <!-- LOVABLE:END -->
 
 ## Focus architecture (formerly Refraction)
+
 - **Cat Samurai** is Blake’s design and engineering principle: calm, playful, distinctive, and intuitive on the surface; disciplined, reliable, powerful, clear, and logical underneath. Calm never means boring. **No beige app surfaces or default beige aesthetic.** Preserve Reverie and the Garden Path, use meaningful color and optional depth, and verify behavior without claiming zero defects. See `docs/CAT-SAMURAI.md`.
 - The Field Guide (`/field-guide`) is a practice-only introduction: its choices never mutate Studio, customer projects or launch evidence. Keep technical definitions source-linked and separate from Focus’s own product names; research notes are in `docs/FIELD-GUIDE-SOURCES.md`.
 - **Reverie** is Focus's cream-and-ginger cat guide (she/her). Her name means "a pleasant daydream." Use her name in app copy and current character documentation; preserve the approved artwork. Her profile is `/reverie` under Help → About Reverie.
@@ -39,6 +42,8 @@ use the editor.
 - AI calls live in `src/lib/design.functions.ts` via `src/lib/ai.server.ts` (Responses API, structured output); the browser never sees prompts or keys.
 - Studio state is saved in the browser with a `version` and passed through `migrate()` on load, so older saves keep working.
 - Preview fonts load on demand (`useDesignFonts`, URLs from `fonts.ts`, shared with packs).
+- Authored pages separately embed selected licensed Latin font subsets from `authored-fonts.ts`; all three Stratosphere pairs share the same CSS in iframe, HTML and editable ZIP. Preserve exact OFL notices/provenance, real weights (Instrument Serif is 400 only), unknown-family escaping and explicit fallback coverage. Regenerate `authored-fonts.data.json` with `scripts/generate-authored-fonts.mjs`; verify with `--check`, never hand-edit it. This does not change remote specimen fonts or existing-app packs.
+- Keep `LazyAuthoredPagePanel` as the authored renderer's production loading boundary; lightweight availability explanations use `authored-font-availability.ts`. Do not eagerly import the font catalog into the Garden. Loading/retry stays within the panel and must not reset the parent Studio or expose premature export controls.
 - Saved projects live in `public.projects` (owner-only RLS) and profiles in `public.profiles` (auto-created on signup from name/business_name metadata); the studio keeps working signed out via browser storage.
 - The Design Critic measures pages with pure functions in `src/lib/critic.ts` (tested) and fetches only public addresses via `safeUrl`; the AI review is optional so measured findings still return when AI fails.
 - Critic downloads use `public-page.server.ts` with manually validated redirect hops, a shared timeout, and byte-bounded streaming so remote pages cannot silently redirect into private addresses or consume unbounded memory.

@@ -30,7 +30,9 @@ import { FieldGuide } from "@/components/FieldGuide";
 
 function visit(station: FieldGuideChoice) {
   const index = FIELD_GUIDE_CHOICES.findIndex((choice) => choice.id === station.id);
-  fireEvent.click(screen.getByRole("button", { name: `${index + 1}. ${station.title}` }));
+  fireEvent.click(
+    screen.getByRole("button", { name: `${index + 1}. ${station.trailLabel}: ${station.title}` }),
+  );
 }
 function choose(station: FieldGuideChoice, optionIndex: 0 | 1) {
   fireEvent.click(screen.getByRole("radio", { name: station.options[optionIndex].label }));
@@ -52,6 +54,104 @@ afterEach(() => {
 });
 
 describe("Field Guide practice", () => {
+  it("welcomes beginners to five optional stations, including visual details and careful handoff", () => {
+    render(<FieldGuide />);
+    expect(screen.getByText(/Welcome to Focus/)).toBeVisible();
+    const stations = screen.getByRole("navigation", { name: "Practice stations" });
+    expect(within(stations).getAllByRole("button")).toHaveLength(5);
+    for (const [index, station] of FIELD_GUIDE_CHOICES.entries()) {
+      const stop = within(stations).getByRole("button", {
+        name: `${index + 1}. ${station.trailLabel}: ${station.title}`,
+      });
+      expect(within(stop).getByText(station.trailLabel)).toBeVisible();
+    }
+    expect(FIELD_GUIDE_CHOICES.map((choice) => choice.id)).toEqual([
+      "scope",
+      "emphasis",
+      "behavior",
+      "visual-details",
+      "handoff",
+    ]);
+    expect(screen.getByText(/choices shape what comes next/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Next station" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Next station" }));
+    expect(explored(0)).toBeVisible();
+    expect(screen.getByRole("heading", { name: FIELD_GUIDE_CHOICES[1]!.title })).toHaveFocus();
+    const visual = FIELD_GUIDE_CHOICES.find((choice) => choice.id === "visual-details")!;
+    visit(visual);
+    expect(screen.getByText(visual.note!)).toBeVisible();
+    expect(screen.getByRole("group", { name: visual.question })).toHaveAccessibleDescription(
+      /example plans.*you can mix/,
+    );
+  });
+
+  it("keeps a revisable trail summary without keeping superseded choices or false progress", () => {
+    render(<FieldGuide />);
+    const first = FIELD_GUIDE_CHOICES[0]!;
+    const second = FIELD_GUIDE_CHOICES[1]!;
+    const summary = screen.getByRole("region", { name: "Your choices so far" });
+    expect(within(summary).getByText(/Your trail is open/)).toBeVisible();
+    choose(first, 0);
+    visit(second);
+    choose(second, 1);
+    expect(within(summary).getByText(first.options[0].label)).toBeVisible();
+    expect(within(summary).getByText(second.options[1].label)).toBeVisible();
+    expect(
+      within(summary).getByRole("button", { name: `Revisit ${first.trailLabel}: ${first.title}` }),
+    ).toHaveTextContent(`Revisit ${first.trailLabel}`);
+    expect(within(summary).getByText(first.options[0].downstream[0]!)).toBeVisible();
+    fireEvent.click(
+      within(summary).getByRole("button", { name: `Revisit ${first.trailLabel}: ${first.title}` }),
+    );
+    expect(screen.getByRole("heading", { name: first.title })).toHaveFocus();
+    choose(first, 1);
+    expect(within(summary).queryByText(first.options[0].label)).toBeNull();
+    expect(within(summary).queryByText(first.options[0].downstream[0]!)).toBeNull();
+    expect(within(summary).getByText(first.options[1].label)).toBeVisible();
+    expect(explored(2)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Reset practice" }));
+    expect(within(summary).queryByRole("list")).toBeNull();
+    expect(within(summary).getByText(/Your trail is open/)).toBeVisible();
+    expect(explored(0)).toBeVisible();
+  });
+
+  it("hides and restores the summary while keeping choices and focus intact", () => {
+    render(<FieldGuide />);
+    choose(FIELD_GUIDE_CHOICES[0]!, 0);
+    const summary = screen.getByRole("region", { name: "Your choices so far" });
+    const hide = within(summary).getByRole("button", { name: "Hide choices summary" });
+    hide.focus();
+    fireEvent.click(hide);
+    expect(hide).toHaveFocus();
+    expect(hide).toHaveAttribute("aria-expanded", "false");
+    expect(within(summary).getByText(FIELD_GUIDE_CHOICES[0]!.options[0].label)).not.toBeVisible();
+    visit(FIELD_GUIDE_CHOICES[1]!);
+    choose(FIELD_GUIDE_CHOICES[1]!, 1);
+    fireEvent.click(within(summary).getByRole("button", { name: "Show choices summary" }));
+    expect(within(summary).getByText(FIELD_GUIDE_CHOICES[0]!.options[0].label)).toBeVisible();
+    expect(within(summary).getByText(FIELD_GUIDE_CHOICES[1]!.options[1].label)).toBeVisible();
+    expect(explored(2)).toBeVisible();
+  });
+
+  it("folds extra summary outcomes and clears a hidden summary without retaining an earlier choice", () => {
+    render(<FieldGuide />);
+    const first = FIELD_GUIDE_CHOICES[0]!;
+    choose(first, 0);
+    const summary = screen.getByRole("region", { name: "Your choices so far" });
+    expect(within(summary).getByText(first.options[0].downstream[0])).toBeVisible();
+    expect(within(summary).getByText(first.options[0].downstream[1]!)).not.toBeVisible();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    expect(within(summary).getByText(first.options[0].downstream[1]!)).toBeVisible();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    expect(within(summary).getByText(first.options[0].downstream[1]!)).not.toBeVisible();
+    expect(within(summary).getByText(first.options[0].downstream[0])).toBeVisible();
+    fireEvent.click(within(summary).getByRole("button", { name: "Hide choices summary" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset practice" }));
+    fireEvent.click(within(summary).getByRole("button", { name: "Show choices summary" }));
+    expect(within(summary).getByText(/Your trail is open/)).toBeVisible();
+    expect(within(summary).queryByText(first.options[0].label)).toBeNull();
+  });
+
   it("keeps all practice, revision, search and depth changes local to the guide", () => {
     const records = [
       [STUDIO_KEY, "unfinished owner design"],
@@ -74,6 +174,8 @@ describe("Field Guide practice", () => {
       choose(station, 1);
     }
     expect(explored(FIELD_GUIDE_CHOICES.length)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Hide choices summary" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show choices summary" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
     fireEvent.change(screen.getByRole("searchbox", { name: "Find a term" }), {
       target: { value: "contrast" },

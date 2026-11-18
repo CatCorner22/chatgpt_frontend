@@ -241,9 +241,30 @@
 .field-guide-trail-progress span {
   color: var(--guide-muted);
 }
+.field-guide-trail-progress {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 2px dashed var(--guide-border);
+}
+.field-guide-trail-companion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.field-guide-trail-companion img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.field-guide-trail-companion small {
+  display: block;
+  color: var(--guide-muted);
+  font-weight: 400;
+}
 .field-guide-stations ol {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   list-style: none;
   gap: 10px;
   padding: 0;
@@ -251,13 +272,14 @@
 }
 .field-guide-stations button {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   width: 100%;
   min-height: 78px;
   height: 100%;
   padding: 12px;
-  text-align: left;
+  text-align: center;
   color: var(--guide-ink);
   border: 1px solid var(--guide-border);
   border-radius: 14px;
@@ -410,6 +432,56 @@
   padding-top: 18px;
   border-top: 1px solid var(--guide-border);
   font-weight: 600;
+}
+
+.field-guide-choice-summary {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 2px dashed var(--guide-border);
+}
+.field-guide-choice-summary h3 {
+  margin-bottom: 10px;
+}
+.field-guide-choice-summary > div > ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.field-guide-choice-summary > div > ol > li {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--guide-border);
+  border-radius: 16px;
+  background: #f5fbff;
+  overflow-wrap: anywhere;
+}
+.field-guide .field-guide-summary-stop {
+  color: var(--guide-green);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.field-guide-choice-summary details summary {
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
+  color: var(--guide-green);
+  font-weight: 600;
+}
+.field-guide-choice-summary details ul {
+  padding-left: 20px;
+  margin: 0 0 8px;
+}
+.field-guide-choice-summary details li + li {
+  margin-top: 8px;
+}
+.field-guide-choice-summary li > .field-guide-text-button {
+  padding-left: 0;
+  justify-content: start;
+  text-align: left;
 }
 
 .field-guide-words {
@@ -577,23 +649,26 @@
     gap: 12px;
   }
   .field-guide-stations ol {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .field-guide-stations button {
     min-height: 60px;
   }
   .field-guide-stations small {
-    display: inline;
-    margin-left: 8px;
+    display: block;
   }
   .field-guide-area-legend dl,
   .field-guide-term-grid,
+  .field-guide-choice-summary > div > ol,
   .field-guide-consequences dl {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 540px) {
+  .field-guide-stations ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .field-guide-hero {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -635,5 +710,21 @@
   }
   .field-guide-search input {
     flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .field-guide-stations ol {
+    grid-template-columns: 1fr;
+  }
+  .field-guide-stations button {
+    flex-direction: row;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-guide {
+    scroll-behavior: auto;
   }
 }

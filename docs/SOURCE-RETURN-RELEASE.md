@@ -25,6 +25,8 @@ An independent LLM recipient used only the actual generated package and an owned
 
 The rehearsal exposed a guide ambiguity between an unavailable browser preview and missing isolation. Instructions now separate authorized isolated checks from browser-dependent checks that must remain unrun. The original rehearsal bundle is preserved; the clarified bundle retains byte-identical patches and contract. No change to a touched source file or overwrite of later work was needed to complete this rehearsal.
 
+The recipient's final guide review also clarified that reversal must preserve unrelated **later edits**, not restore unrelated work to its initial baseline. That wording has a failing-before/passing-after regression. All 24 extracted-package/verifier tests and changed-file lint passed again after this last text correction (`.agent/source-return-package-final.log`); the comparison logic and UI were unchanged.
+
 ## Evidence limits and next work
 
 The managed preview again timed out waiting for its relay, and the supported browser again failed with `the gaas-browser node_repl sandbox cannot be disabled`. No alternate browser was used. Real browser keyboard/focus, mobile, zoom and visual acceptance remain pending. No customer repository has been supplied for an actual trial. The changes do not establish a complete redesign, zero bugs or North Star equivalence.

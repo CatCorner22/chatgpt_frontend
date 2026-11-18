@@ -335,6 +335,8 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
         /rendered preview is unavailable.*browser and visitor checks as not-run/s,
       );
       expect(guide).toMatch(/not a completed trial/);
+      if (name === "START-HERE.md")
+        expect(guide).toContain("unrelated work, including later edits, is unchanged by reversal");
     }
     expect(SOURCE_TRIAL_KICKOFF).toMatch(/exact final TSX and CSS/);
     expect(SOURCE_TRIAL_KICKOFF).toMatch(/separate evidence report/);

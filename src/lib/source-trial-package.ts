@@ -73,7 +73,7 @@ git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-sourc
 node verify.mjs before "/absolute/path/to/isolated-project"
 \`\`\`
 
-Confirm unrelated work still matches the baseline. Confirm the original visitor tasks when a rendered preview is available; otherwise report those checks as not-run. This guide provides a procedure; it does not claim the customer has demonstrated rollback or completed a launch.
+Confirm unrelated work, including later edits, is unchanged by reversal. Confirm the original visitor tasks when a rendered preview is available; otherwise report those checks as not-run. This guide provides a procedure; it does not claim the customer has demonstrated rollback or completed a launch.
 `;
 
 const agentHandoff = `# Coding-assistant handoff — one bounded styling trial

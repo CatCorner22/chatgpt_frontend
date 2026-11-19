@@ -1,3 +1,4 @@
+import { isolatedChildEnv } from "./isolated-child-env";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -103,7 +104,7 @@ function verify(bundle: string, project: string, direction = "before") {
   return spawnSync(process.execPath, [join(bundle, "verify.mjs"), direction, project], {
     encoding: "utf8",
     timeout: 10_000,
-    env: { ...process.env, NODE_OPTIONS: "" },
+    env: isolatedChildEnv(),
   });
 }
 
@@ -114,6 +115,7 @@ function applyOwnedFixturePatch(bundle: string, project: string, patch: string, 
     {
       encoding: "utf8",
       timeout: 10_000,
+      env: isolatedChildEnv(),
     },
   );
 }

@@ -1,3 +1,4 @@
+import { isolatedChildEnv } from "./isolated-child-env";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { ComponentType } from "react";
@@ -79,6 +80,7 @@ async function buildFixture(kind: "before" | "after", files: SourceTrialFile[]) 
   await symlink(resolve(workspace, "node_modules"), join(directory, "node_modules"), "dir");
   await exec(process.execPath, ["--input-type=module", "-e", buildOwnedFixture, directory], {
     cwd: workspace,
+    env: isolatedChildEnv(),
     maxBuffer: 1024 * 1024,
   });
   const output = await readdir(join(directory, "dist"));
@@ -280,7 +282,7 @@ describe("owned React/Vite source-trial proof", () => {
     const directory = await temporary("git");
     await writeSources(directory, original);
     await writeFile(join(directory, "support-notes.txt"), "Original support notes.\n");
-    await exec("git", ["init", "--quiet"], { cwd: directory });
+    await exec("git", ["init", "--quiet"], { cwd: directory, env: isolatedChildEnv() });
     const forward = join(directory, "forward.patch"),
       inverse = join(directory, "inverse.patch");
     await writeFile(forward, prepared.patch);
@@ -288,8 +290,8 @@ describe("owned React/Vite source-trial proof", () => {
     await expect(
       verifySourceTrialSnapshot(prepared, await readSources(directory), "before"),
     ).resolves.toBeUndefined();
-    await exec("git", ["apply", "--check", forward], { cwd: directory });
-    await exec("git", ["apply", forward], { cwd: directory });
+    await exec("git", ["apply", "--check", forward], { cwd: directory, env: isolatedChildEnv() });
+    await exec("git", ["apply", forward], { cwd: directory, env: isolatedChildEnv() });
     await expect(
       verifySourceTrialSnapshot(prepared, await readSources(directory), "after"),
     ).resolves.toBeUndefined();
@@ -301,9 +303,11 @@ describe("owned React/Vite source-trial proof", () => {
     await expect(
       verifySourceTrialSnapshot(prepared, await readSources(directory), "before"),
     ).rejects.toThrow();
-    await expect(exec("git", ["apply", "--check", forward], { cwd: directory })).rejects.toThrow();
-    await exec("git", ["apply", "--check", inverse], { cwd: directory });
-    await exec("git", ["apply", inverse], { cwd: directory });
+    await expect(
+      exec("git", ["apply", "--check", forward], { cwd: directory, env: isolatedChildEnv() }),
+    ).rejects.toThrow();
+    await exec("git", ["apply", "--check", inverse], { cwd: directory, env: isolatedChildEnv() });
+    await exec("git", ["apply", inverse], { cwd: directory, env: isolatedChildEnv() });
     expect(await readSources(directory)).toEqual(original);
     await expect(
       verifySourceTrialSnapshot(prepared, await readSources(directory), "before"),

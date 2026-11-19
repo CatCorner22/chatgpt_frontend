@@ -1,3 +1,4 @@
+import { isolatedChildEnv } from "./isolated-child-env";
 import { execFileSync } from "node:child_process";
 import { webcrypto } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -259,8 +260,16 @@ describe("Target source trial", () => {
         [trial.patch, "after"],
         [trial.inversePatch, "before"],
       ] as const) {
-        execFileSync("git", ["apply", "--check", "--whitespace=nowarn"], { cwd, input: patch });
-        execFileSync("git", ["apply", "--whitespace=nowarn"], { cwd, input: patch });
+        execFileSync("git", ["apply", "--check", "--whitespace=nowarn"], {
+          cwd,
+          input: patch,
+          env: isolatedChildEnv(),
+        });
+        execFileSync("git", ["apply", "--whitespace=nowarn"], {
+          cwd,
+          input: patch,
+          env: isolatedChildEnv(),
+        });
         const actual = source.map(({ path }) => ({
           path,
           content: readFileSync(join(cwd, path), "utf8"),

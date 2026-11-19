@@ -190,6 +190,26 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     expect(verify(f.bundle, f.project).status).not.toBe(0);
   });
 
+  it.each(["src/Booking.tsx", "src/Booking.module.css"])(
+    "refuses rollback verification after a later edit to %s in the actual exported package",
+    async (path) => {
+      const f = await fixture();
+      const applied = applyOwnedFixturePatch(f.bundle, f.project, "forward.patch");
+      expect(applied.status, applied.stderr).toBe(0);
+      expect(verify(f.bundle, f.project, "after").status).toBe(0);
+      const target = join(f.project, path);
+      const laterContent = `${await readFile(target, "utf8")}\n/* private-later-edit-sentinel */\n`;
+      await writeFile(target, laterContent);
+      const beforeCheck = await snapshot(f.base);
+      const result = verify(f.bundle, f.project, "after");
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).not.toContain("private-later-edit-sentinel");
+      expect(result.stdout).not.toContain("private-later-edit-sentinel");
+      expect(await snapshot(f.base)).toEqual(beforeCheck);
+      expect(await readFile(target, "utf8")).toBe(laterContent);
+    },
+  );
+
   it("accepts deeply nested supported paths and normalized uppercase palette values", async () => {
     const nested = files.map((file) => ({
       ...file,

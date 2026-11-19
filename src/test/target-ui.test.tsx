@@ -491,6 +491,47 @@ describe("Target guided preparation", () => {
     expect(guard.shouldBlockFn()).toBe(true);
   });
 
+  it.each(["resolve", "reject"] as const)(
+    "prevents overlapping prompt writes and allows retry after %s",
+    async (outcome) => {
+      seed();
+      let resolve!: () => void;
+      let reject!: (error: Error) => void;
+      const writeText = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((yes, no) => {
+              resolve = yes;
+              reject = no;
+            }),
+        )
+        .mockResolvedValue(undefined);
+      const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+      try {
+        await openReview();
+        const buttons = screen.getAllByRole("button", { name: "Copy prompt" });
+        fireEvent.click(buttons[0]!);
+        fireEvent.click(buttons[1]!);
+        expect(writeText).toHaveBeenCalledTimes(1);
+        expect(buttons.every((button) => button.hasAttribute("disabled"))).toBe(true);
+        await act(async () => {
+          if (outcome === "resolve") resolve();
+          else reject(new Error("Clipboard blocked"));
+        });
+        expect(buttons[1]).toBeEnabled();
+        fireEvent.click(buttons[1]!);
+        await waitFor(() => expect(writeText).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(buttons[1]).toHaveTextContent("Copied"));
+        expect(operations.prepare).not.toHaveBeenCalled();
+      } finally {
+        if (previous) Object.defineProperty(navigator, "clipboard", previous);
+        else Reflect.deleteProperty(navigator, "clipboard");
+      }
+    },
+  );
+
   it("offers manual copy when the clipboard is unavailable without claiming preparation", async () => {
     seed();
     const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");

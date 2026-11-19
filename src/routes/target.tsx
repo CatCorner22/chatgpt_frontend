@@ -68,6 +68,8 @@ export function Target() {
   const [status, setStatus] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
   const [copied, setCopied] = useState("");
+  const [copying, setCopying] = useState("");
+  const copyPending = useRef(false);
   const [pendingRestore, setPendingRestore] = useState<ReturnType<typeof readTargetDraft> | null>(
     null,
   );
@@ -289,7 +291,12 @@ export function Target() {
     else restoreDraft(snapshot);
   };
   const copyPrompt = async (id: string, text: string) => {
+    if (!mounted.current || copyPending.current) return;
+    copyPending.current = true;
     const current = revision.current;
+    setCopied("");
+    setCopying(id);
+    setCopyStatus("Copying prompt… You can also select the prompt text and copy it manually.");
     try {
       await navigator.clipboard.writeText(text);
       if (mounted.current && revision.current === current) {
@@ -303,6 +310,9 @@ export function Target() {
           "Could not copy automatically. Select the prompt text below and copy it yourself.",
         );
       }
+    } finally {
+      copyPending.current = false;
+      if (mounted.current) setCopying("");
     }
   };
   const prepare = async () => {
@@ -851,10 +861,15 @@ export function Target() {
                               <Button
                                 variant="outline"
                                 className="mt-3"
+                                disabled={!!copying}
                                 onClick={() => void copyPrompt(prompt.id, prompt.text)}
                               >
                                 {copied === prompt.id ? <Check /> : <Copy />}
-                                {copied === prompt.id ? "Copied" : "Copy prompt"}
+                                {copying === prompt.id
+                                  ? "Copying prompt…"
+                                  : copied === prompt.id
+                                    ? "Copied"
+                                    : "Copy prompt"}
                               </Button>
                             </details>
                           </li>

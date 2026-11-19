@@ -34,24 +34,48 @@ export function useWait(busy: boolean, label: string) {
 export function useCopied() {
   const [key, setKey] = useState<string | null>(null);
   const t = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (t.current) clearTimeout(t.current);
-    },
-    [],
-  );
+  const lifetime = useRef({ mounted: false, epoch: 0 });
+  const pending = useRef<symbol | null>(null);
+  useEffect(() => {
+    const current = lifetime.current;
+    current.mounted = true;
+    return () => {
+      current.mounted = false;
+      current.epoch++;
+      if (t.current !== null) clearTimeout(t.current);
+    };
+  }, []);
   const copy = async (k: string, text: string) => {
+    if (!lifetime.current.mounted) return false;
+    // Clipboard writes cannot be cancelled. Do not let two writes race in this hook.
+    if (pending.current !== null) {
+      toast.error("A copy is still in progress. Wait for it to finish, then copy again.");
+      return false;
+    }
+    const request = Symbol();
+    pending.current = request;
+    const epoch = lifetime.current.epoch;
+    const current = () => lifetime.current.mounted && lifetime.current.epoch === epoch;
+    if (t.current !== null) clearTimeout(t.current);
+    t.current = null;
+    setKey(null);
     try {
       await navigator.clipboard.writeText(text);
+      if (!current()) return false;
+      setKey(k);
+      t.current = setTimeout(() => {
+        if (current()) setKey(null);
+        t.current = null;
+      }, 2000);
+      return true;
     } catch {
+      if (!current()) return false;
       setKey(null);
       toast.error("Could not copy. Select the text and copy it manually, or download it.");
       return false;
+    } finally {
+      if (pending.current === request) pending.current = null;
     }
-    setKey(k);
-    if (t.current) clearTimeout(t.current);
-    t.current = setTimeout(() => setKey(null), 2000);
-    return true;
   };
   return { copied: key, copy };
 }

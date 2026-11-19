@@ -28,8 +28,6 @@ export function AppPreview({
 }) {
   const [query, setQuery] = useState("");
   const [ascending, setAscending] = useState(true);
-  const [saved, setSaved] = useState(false);
-  const [name, setName] = useState(c.brand);
   const [retried, setRetried] = useState(false);
   const [created, setCreated] = useState(false);
   const gap = { airy: 28, balanced: 20, compact: 14 }[t.density];
@@ -42,19 +40,25 @@ export function AppPreview({
   const panel: CSSProperties = {
     background: t.surface,
     border: `1px solid ${t.muted}50`,
-    borderRadius: Math.min(t.radius, 8),
+    borderRadius: t.radius,
     padding: gap,
   };
+  const filled = t.buttonStyle === "solid" || t.buttonStyle === "pill";
   const primary: CSSProperties = {
-    background: t.accent,
-    color: t.accentInk,
-    borderRadius: Math.min(t.radius, 8),
+    background: filled ? t.accent : "transparent",
+    color: filled ? t.accentInk : signalText(t),
+    borderRadius: t.buttonStyle === "pill" ? 999 : t.buttonStyle === "underline" ? 0 : t.radius,
+    border: t.buttonStyle === "outline" ? `2px solid ${t.accent}` : "0 solid transparent",
+    borderBottom: t.buttonStyle === "underline" ? `2px solid ${t.accent}` : undefined,
+    boxShadow: "none",
+    minHeight: 44,
+    minWidth: 44,
   };
   const field: CSSProperties = {
     background: t.bg,
     color: t.ink,
     border: `1px solid ${t.muted}`,
-    borderRadius: Math.min(t.radius, 8),
+    borderRadius: t.radius,
     padding: 12,
     width: "100%",
     minWidth: 0,
@@ -216,63 +220,9 @@ export function AppPreview({
             </>
           )}
           {screen === "settings" && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSaved(true);
-              }}
-              className="space-y-4"
-            >
-              <label className="block">
-                Workspace name
-                <input
-                  style={field}
-                  value={name}
-                  required
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSaved(false);
-                  }}
-                />
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
-                Email updates
-              </label>
-              <Button type="submit" style={primary}>
-                Save changes
-              </Button>
-              {saved && (
-                <p role="status" className="flex items-center gap-2">
-                  <Check size={18} />
-                  Saved in this preview
-                </p>
-              )}
-            </form>
+            <SampleSettings initialName={c.brand} field={field} primary={primary} />
           )}
-          {screen === "sign-in" && (
-            <form
-              className="mx-auto max-w-sm space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSaved(true);
-              }}
-            >
-              <label className="block">
-                Email
-                <input type="email" required style={field} autoComplete="off" />
-              </label>
-              <label className="block">
-                Password
-                <input type="password" required minLength={8} style={field} autoComplete="off" />
-              </label>
-              <Button type="submit" style={primary}>
-                Sign in
-                <ArrowRight size={16} />
-              </Button>
-              {saved && <p role="status">Sample sign-in complete; no account was accessed.</p>}
-            </form>
-          )}
+          {screen === "sign-in" && <SampleSignIn field={field} primary={primary} />}
           {screen === "empty" && (
             <div className="py-10 text-center">
               <Inbox className="mx-auto mb-4" size={32} />
@@ -335,5 +285,75 @@ export function AppPreview({
         </nav>
       )}
     </div>
+  );
+}
+
+type SampleFormStyles = { field: CSSProperties; primary: CSSProperties };
+
+// Each form owns its practice feedback. Leaving a screen removes both its fields
+// and its result, while changing design tokens keeps the current exercise intact.
+function SampleSettings({
+  initialName,
+  field,
+  primary,
+}: SampleFormStyles & { initialName: string }) {
+  const [name, setName] = useState(initialName);
+  const [saved, setSaved] = useState(false);
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setSaved(true);
+      }}
+      onChange={() => setSaved(false)}
+      className="space-y-4"
+    >
+      <label className="block">
+        Workspace name
+        <input style={field} value={name} required onChange={(e) => setName(e.target.value)} />
+      </label>
+      <label className="flex items-center gap-2">
+        <input type="checkbox" defaultChecked />
+        Email updates
+      </label>
+      <Button type="submit" style={primary}>
+        Save changes
+      </Button>
+      {saved && (
+        <p role="status" className="flex items-center gap-2">
+          <Check size={18} />
+          Saved in this preview
+        </p>
+      )}
+    </form>
+  );
+}
+
+function SampleSignIn({ field, primary }: SampleFormStyles) {
+  const [complete, setComplete] = useState(false);
+  return (
+    <form
+      className="mx-auto max-w-sm space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setComplete(true);
+      }}
+      onChange={() => setComplete(false)}
+    >
+      <p>Use made-up details here. This practice form does not access an account.</p>
+      <label className="block">
+        Email
+        <input type="email" required style={field} autoComplete="off" />
+      </label>
+      <label className="block">
+        Password
+        <input type="password" required minLength={8} style={field} autoComplete="off" />
+      </label>
+      <Button type="submit" style={primary}>
+        Sign in
+        <ArrowRight size={16} />
+      </Button>
+      {complete && <p role="status">Sample sign-in complete; no account was accessed.</p>}
+    </form>
   );
 }

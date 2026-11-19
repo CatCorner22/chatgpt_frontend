@@ -259,7 +259,8 @@ const HANDOFF_BOUNDARY =
 export function targetPrompts(draft: TargetDraft, entry: LibraryEntry): TargetPrompt[] {
   if (targetStepIssues(draft, 3, [entry]).length) return [];
   const existing = draft.integration === "existing";
-  const scope = `Selected saved design: ${literal(entry.title, 120)}. Page or screen: ${literal(draft.page, TARGET_LIMITS.page)}. Desired visible improvement: ${literal(draft.improvement, TARGET_LIMITS.improvement)}.`;
+  const selectedDesign = existing ? literal(entry.title, 120) : "the saved Vision in DESIGN.md";
+  const scope = `Selected saved design: ${selectedDesign}. Page or screen: ${literal(draft.page, TARGET_LIMITS.page)}. Desired visible improvement: ${literal(draft.improvement, TARGET_LIMITS.improvement)}.`;
   const preserve = existing
     ? "Keep every existing word, image, route, link destination, control, validation rule, permission, data call and working behavior. Do not replace customer copy with the design preview's sample content. Do not overwrite existing rules, configuration or styles; do not upgrade dependencies. If the requested visual improvement conflicts with preservation, leave that part unchanged and report it."
     : "Use a new, empty separate project or folder. This pack is a frontend design specification, not a finished app. Do not extract it over an existing project. Before building, confirm the owner's content, actual actions and required data behavior; sample content is for review, never a claim that integrations work.";
@@ -291,7 +292,7 @@ export function targetPrompts(draft: TargetDraft, entry: LibraryEntry): TargetPr
     {
       id: "release",
       title: "Ask the owner to review the release",
-      text: `Prepare the review package for ${literal(entry.title, 120)}: the exact revision and file diff, isolated preview, before/after views, visitor-task results, unresolved issues, untested areas and demonstrated rollback instructions. Preview supplied by the owner: ${literal(draft.preview, TARGET_LIMITS.preview)}.\n\nStop for the owner's explicit approval of the tested changes and rollback plan. Only after approval, use the team's own pull request and release workflow${draft.platform === "react" ? " in GitHub" : ""}. Target does not open a pull request, merge, deploy or apply changes. After an approved release, the owner or developer must check the published page and important journeys using safe test accounts. Record remaining limits honestly; this prepared pack is not launch certification.`,
+      text: `Prepare the review package for ${selectedDesign}: the exact revision and file diff, isolated preview, before/after views, visitor-task results, unresolved issues, untested areas and demonstrated rollback instructions. Preview supplied by the owner: ${literal(draft.preview, TARGET_LIMITS.preview)}.\n\nStop for the owner's explicit approval of the tested changes and rollback plan. Only after approval, use the team's own pull request and release workflow${draft.platform === "react" ? " in GitHub" : ""}. Target does not open a pull request, merge, deploy or apply changes. After an approved release, the owner or developer must check the published page and important journeys using safe test accounts. Record remaining limits honestly; this prepared pack is not launch certification.`,
     },
   ];
 }
@@ -338,7 +339,11 @@ export async function prepareTargetPack(draft: TargetDraft, entry: LibraryEntry)
     brief: `One-page trial for ${draft.page}. Desired visible improvement: ${draft.improvement}`,
     content: entry.state.content,
     direction:
-      typeof entry.state["direction"] === "string" ? entry.state["direction"] : entry.title,
+      typeof entry.state["direction"] === "string"
+        ? entry.state["direction"]
+        : draft.integration === "existing"
+          ? entry.title
+          : "Selected saved Vision",
     tokens,
     picks,
     tool: draft.platform === "lovable" ? "Lovable" : "Human developer",

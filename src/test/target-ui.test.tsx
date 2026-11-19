@@ -186,7 +186,12 @@ describe("Target guided preparation", () => {
       fireEvent.click(screen.getByRole("button", { name: "Check whether this page is supported" }));
       fireEvent.click(screen.getByRole("checkbox", { name: /These are the page parts/ }));
       fireEvent.click(screen.getByRole("button", { name: "Prepare proposed edits" }));
-      await screen.findByRole("button", { name: "Download proposed code change" });
+      // Source parsing and integrity work are asynchronous; wait for the real control.
+      await screen.findByRole(
+        "button",
+        { name: "Download proposed code change" },
+        { timeout: 5000 },
+      );
       let finish!: (blob: Blob) => void;
       operations.sourcePackage.mockImplementationOnce(
         () =>

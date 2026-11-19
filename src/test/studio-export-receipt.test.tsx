@@ -445,7 +445,12 @@ describe("authored receipts through Studio and Stratosphere", () => {
         purpose: { ...initial.purpose, experience: "website" },
         page: { ...initial.page, actionUrl: "https://example.com/book" },
       });
-      const zip = await screen.findByRole("button", { name: "Download page ZIP" });
+      // Await real lazy-panel readiness, including a cold module transform.
+      const zip = await screen.findByRole(
+        "button",
+        { name: "Download page ZIP" },
+        { timeout: 5000 },
+      );
       fireEvent.click(screen.getByRole("button", { name: "Download working HTML" }));
       expect(calls.download).toHaveBeenCalledWith(expect.any(Blob), "index.html");
       noCredit();

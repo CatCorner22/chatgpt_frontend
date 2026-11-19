@@ -2,8 +2,8 @@ import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { buildPrescription, normalizeTokens, toolMessages, type Content } from "@/lib/design";
 import { buildPack } from "@/lib/exportPack";
-import { EMPTY_TARGET_DRAFT, prepareTargetPack } from "@/lib/target";
-import type { LibraryEntry } from "@/lib/library";
+import { EMPTY_TARGET_DRAFT, prepareTargetPack, targetPrompts } from "@/lib/target";
+import { archiveDesign } from "@/lib/library";
 
 const tokens = normalizeTokens({});
 const brands = [
@@ -45,19 +45,18 @@ function decoded(markdown: string) {
 }
 
 describe("new-build brand projections", () => {
-  it.each(brands)(
-    "transfers %s through actual-brand standard and Target ZIP paths",
-    async (brand) => {
+  it.each(
+    brands.flatMap((brand) => [undefined, "Clear"].map((direction) => ({ brand, direction }))),
+  )(
+    "transfers $brand through actual saved titles, with direction $direction",
+    async ({ brand, direction }) => {
       const content = contentFor(brand);
-      const entry: LibraryEntry = {
-        id: "literal-brand",
-        title: "Owned test design",
-        collection: "",
-        favorite: false,
-        created: "2026-11-18T00:00:00Z",
-        updated: "2026-11-18T00:00:00Z",
-        state: { libraryId: "literal-brand", tokens, content },
-      };
+      const entry = archiveDesign(
+        [],
+        { libraryId: "literal-brand", tokens, content, ...(direction ? { direction } : {}) },
+        "2026-11-18T00:00:00Z",
+      )[0]!;
+      expect(entry.title).toBe(brand);
       const draft = {
         ...EMPTY_TARGET_DRAFT,
         integration: "new" as const,
@@ -75,7 +74,12 @@ describe("new-build brand projections", () => {
       ]) {
         const zip = await JSZip.loadAsync(blob);
         const full = await zip.file("DESIGN.md")!.async("string");
-        expect(decoded(full).data).toEqual({ format: "focus-content-v1", content });
+        const recipient = decoded(toolMessages("Cursor", brand, "new").first + "\n\n" + full);
+        expect(recipient.data).toEqual({ format: "focus-content-v1", content });
+        expect(recipient.prose).not.toContain(brand);
+      }
+      for (const prompt of targetPrompts(draft, entry)) {
+        expect(prompt.text).not.toContain(brand);
       }
     },
   );

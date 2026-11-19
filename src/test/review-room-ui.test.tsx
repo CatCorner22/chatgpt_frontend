@@ -86,7 +86,8 @@ describe("review room workflow", () => {
       "Interaction clarity",
       "Content and credibility",
     ])
-      fireEvent.click(screen.getByRole("radio", { name: `4 of 7 for ${title}` }));
+      // Select the exact accessible label without rescanning every radio's style tree.
+      fireEvent.click(screen.getByLabelText(`4 of 7 for ${title}`));
     fireEvent.click(screen.getByRole("radio", { name: "Unsure" }));
     fireEvent.click(screen.getByRole("button", { name: "Save & next" }));
     expect(await screen.findByRole("heading", { name: "Sample 2 of 2" })).toBeInTheDocument();

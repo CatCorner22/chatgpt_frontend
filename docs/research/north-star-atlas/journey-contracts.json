@@ -24,7 +24,8 @@
     "hasExport": "The workflow produces a downloadable or transferred package.",
     "hasIterationHistory": "The product retains design attempt history.",
     "claimsNorthStarEquivalence": "The owner intends to make a comparative human-quality claim.",
-    "hasControls": "The page contains ordinary links, native controls or task actions."
+    "hasControls": "The page contains ordinary links, native controls or task actions.",
+    "hasOperation": "The workflow has local, device or remote work whose completion must be reported accurately."
   },
   "applicabilityByFlag": {
     "hasImages": ["C07", "C08", "F19"],
@@ -32,7 +33,7 @@
     "hasCollection": ["P06", "B08", "B17", "B18"],
     "hasInteractiveTask": ["B02", "B15"],
     "hasForm": ["B06", "B07", "R07"],
-    "hasRemoteRequest": ["B03", "B04", "B05", "B09", "R11"],
+    "hasRemoteRequest": ["B03", "B05", "B09", "R11"],
     "hasDataMutation": ["B10"],
     "hasDraft": ["B11", "B12", "B13"],
     "hasConcurrentEditing": ["B14"],
@@ -49,7 +50,8 @@
     "hasExport": ["H10", "H11", "H12"],
     "hasIterationHistory": ["H16", "V08"],
     "claimsNorthStarEquivalence": ["V09"],
-    "hasControls": ["B01"]
+    "hasControls": ["B01"],
+    "hasOperation": ["B04"]
   },
   "selectionModes": {
     "combine": [
@@ -229,7 +231,7 @@
         }
       ],
       "checks": [
-        "For ordinary vertically scrolling content, inspect320CSSpixels and400%zoom from1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
+        "For ordinary vertically scrolling content, inspect 320 CSS pixels and 400% zoom from 1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
       ]
     },
     "R02.b": {
@@ -248,7 +250,7 @@
     },
     "H11.a": {
       "checks": [
-        "For current Focus guides, test60000/60001UTF-16code units and Target59000/59001preflight values, plus a multibyte fixture proving these are not UTF-8byte limits. Verify complete recovery without clipping."
+        "For current Focus guides, test 60000/60001 UTF-16 code units and Target 59000/59001 preflight values, plus a multibyte fixture proving these are not UTF-8 byte limits. Verify complete recovery without clipping."
       ]
     },
     "H11.b": {
@@ -297,6 +299,41 @@
       "requires": [],
       "checks": [
         "Label the package as a review draft, disclose open checks and unresolved destinations, and describe how the recipient can inspect it without deployment. No release approval is inferred."
+      ]
+    }
+  },
+  "contextImplications": {
+    "hasRemoteRequest": ["hasOperation"],
+    "hasDataMutation": ["hasOperation"],
+    "hasDraft": ["hasOperation"],
+    "hasExport": ["hasOperation"]
+  },
+  "optionConstraints": {
+    "G01.a": {
+      "context": [
+        {
+          "flag": "hasExistingProject",
+          "equals": false
+        }
+      ],
+      "selections": []
+    },
+    "G01.b": {
+      "context": [
+        {
+          "flag": "hasExistingProject",
+          "equals": true
+        }
+      ],
+      "selections": []
+    },
+    "V12.a": {
+      "context": [],
+      "selections": [
+        {
+          "decision": "H15",
+          "option": "H15.a"
+        }
       ]
     }
   }

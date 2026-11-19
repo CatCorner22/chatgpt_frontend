@@ -47,4 +47,17 @@ describe("Garden decision field notes", () => {
     }
     expect(within(sources).getByText(/not a certification/)).toBeVisible();
   });
+
+  it("preserves technical terms and includes device operations in completion guidance", async () => {
+    const view = render(<GardenDecisionGuide stepId="responsive" />);
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: "R10" } });
+    expect(screen.getAllByText(/75th percentile/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/75 th/)).not.toBeInTheDocument();
+    view.rerender(<GardenDecisionGuide stepId="handoff" />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "H07" } });
+    expect(screen.getAllByText(/IPv4\/IPv6/).length).toBeGreaterThan(0);
+    view.rerender(<GardenDecisionGuide stepId="behavior" />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "B04" } });
+    expect(screen.getByText(/local, device or remote work/)).toBeVisible();
+  });
 });

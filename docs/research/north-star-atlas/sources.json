@@ -130,7 +130,7 @@
     "title": "web.dev: Web Vitals",
     "locator": "https://web.dev/articles/vitals",
     "kind": "measurement-guidance",
-    "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+    "limit": "Good LCP at most 2.5 s, INP at most 200 ms and CLS at most 0.1 use the 75th percentile; lab and field evidence differ."
   },
   "AUTH": {
     "title": "OWASP: Authorization Cheat Sheet",

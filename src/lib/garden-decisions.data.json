@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "catalogueSha256": "a9317cb19bf785d130cb8565b7041c3020af57dd207e4548b9351f8042422312",
+  "catalogueSha256": "1239215732d300361f87ad931363ad13cfcfad0fde3ab63a4ebfcb436c735df1",
   "status": "Planning guidance; selections do not implement or verify a customer project.",
   "decisions": [
     {
@@ -1838,7 +1838,7 @@
         {
           "title": "web.dev: Web Vitals",
           "url": "https://web.dev/articles/vitals",
-          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+          "limit": "Good LCP at most 2.5 s, INP at most 200 ms and CLS at most 0.1 use the 75th percentile; lab and field evidence differ."
         }
       ]
     },
@@ -2003,7 +2003,7 @@
       "question": "What proves the operation finished?",
       "mode": "combine",
       "actor": "developer",
-      "applies": "An action depends on a remote operation.",
+      "applies": "The workflow has local, device or remote work whose completion must be reported accurately.",
       "approaches": [
         {
           "id": "B04.a",
@@ -2639,7 +2639,7 @@
           "id": "R02.a",
           "consequence": "Single-column flow where applicable: supports reading; may lengthen the journey.",
           "checks": [
-            "For ordinary vertically scrolling content, inspect 320 CSSpixels and 400%zoom from 1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
+            "For ordinary vertically scrolling content, inspect 320 CSS pixels and 400% zoom from 1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
           ]
         },
         {
@@ -2845,7 +2845,7 @@
         {
           "title": "web.dev: Web Vitals",
           "url": "https://web.dev/articles/vitals",
-          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+          "limit": "Good LCP at most 2.5 s, INP at most 200 ms and CLS at most 0.1 use the 75th percentile; lab and field evidence differ."
         }
       ]
     },
@@ -2876,7 +2876,7 @@
         {
           "title": "web.dev: Web Vitals",
           "url": "https://web.dev/articles/vitals",
-          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+          "limit": "Good LCP at most 2.5 s, INP at most 200 ms and CLS at most 0.1 use the 75th percentile; lab and field evidence differ."
         }
       ]
     },
@@ -2892,14 +2892,14 @@
           "id": "R10.a",
           "consequence": "Lab measurement: reproducible diagnosis; cannot be relabelled as real-user experience.",
           "checks": [
-            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75 th percentile when using field data."
+            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75th percentile when using field data."
           ]
         },
         {
           "id": "R10.b",
           "consequence": "Field measurement: reflects actual users; needs traffic, privacy and environment interpretation.",
           "checks": [
-            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75 th percentile when using field data."
+            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75th percentile when using field data."
           ]
         }
       ],
@@ -2907,7 +2907,7 @@
         {
           "title": "web.dev: Web Vitals",
           "url": "https://web.dev/articles/vitals",
-          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+          "limit": "Good LCP at most 2.5 s, INP at most 200 ms and CLS at most 0.1 use the 75th percentile; lab and field evidence differ."
         }
       ]
     },
@@ -3274,14 +3274,14 @@
           "id": "H07.a",
           "consequence": "Explicitly supported public destinations: bounded scope; requires resolution and connection safeguards.",
           "checks": [
-            "Exercise IPv 4/IPv 6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
+            "Exercise IPv4/IPv6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
           ]
         },
         {
           "id": "H07.b",
           "consequence": "No remote fetch: avoids that network surface; owner supplies permitted local artifacts instead.",
           "checks": [
-            "Exercise IPv 4/IPv 6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
+            "Exercise IPv4/IPv6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
           ]
         }
       ],

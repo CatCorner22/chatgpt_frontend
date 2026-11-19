@@ -2818,7 +2818,7 @@
       "selectionMode": "combine",
       "responsibleActor": "developer",
       "applicability": {
-        "flag": "hasRemoteRequest",
+        "flag": "hasOperation",
         "onUnknown": "request-context",
         "onFalse": "not-applicable-with-reason-not-pass"
       },
@@ -2840,8 +2840,10 @@
           "checks": [
             "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
           ],
-          "requires": ["B03", "B04"],
-          "conditionalRequires": []
+          "requires": ["B03"],
+          "conditionalRequires": [
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
+          ]
         },
         {
           "id": "B05.b",
@@ -2849,8 +2851,10 @@
           "checks": [
             "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
           ],
-          "requires": ["B03", "B04"],
-          "conditionalRequires": []
+          "requires": ["B03"],
+          "conditionalRequires": [
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
+          ]
         }
       ],
       "requires": ["B03", "B04"],
@@ -3020,8 +3024,10 @@
           "checks": [
             "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
           ],
-          "requires": ["B03", "B04"],
-          "conditionalRequires": []
+          "requires": ["B03"],
+          "conditionalRequires": [
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
+          ]
         },
         {
           "id": "B09.b",
@@ -3029,8 +3035,10 @@
           "checks": [
             "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
           ],
-          "requires": ["B03", "B04"],
-          "conditionalRequires": []
+          "requires": ["B03"],
+          "conditionalRequires": [
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
+          ]
         }
       ],
       "requires": ["B03", "B04"],
@@ -3065,7 +3073,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } },
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } },
             { "decision": "B05", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         },
@@ -3077,7 +3085,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } },
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } },
             { "decision": "B05", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         }
@@ -3161,7 +3169,7 @@
           ],
           "requires": ["B11"],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
           ]
         },
         {
@@ -3172,7 +3180,7 @@
           ],
           "requires": ["B11"],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
           ]
         }
       ],
@@ -3715,7 +3723,7 @@
           "id": "R02.a",
           "consequence": "Single-column flow where applicable: supports reading; may lengthen the journey.",
           "checks": [
-            "For ordinary vertically scrolling content, inspect320CSSpixels and400%zoom from1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
+            "For ordinary vertically scrolling content, inspect 320 CSS pixels and 400% zoom from 1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
           ],
           "requires": ["R01"],
           "conditionalRequires": [
@@ -4785,7 +4793,7 @@
           "id": "H11.a",
           "consequence": "Refuse with full-specification recovery: preserves content; adds a manual transfer path.",
           "checks": [
-            "For current Focus guides, test60000/60001UTF-16code units and Target59000/59001preflight values, plus a multibyte fixture proving these are not UTF-8byte limits. Verify complete recovery without clipping."
+            "For current Focus guides, test 60000/60001 UTF-16 code units and Target 59000/59001 preflight values, plus a multibyte fixture proving these are not UTF-8 byte limits. Verify complete recovery without clipping."
           ],
           "requires": ["H10"],
           "conditionalRequires": []
@@ -4832,7 +4840,7 @@
           ],
           "requires": ["H10"],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
           ]
         },
         {
@@ -4843,7 +4851,7 @@
           ],
           "requires": ["H10"],
           "conditionalRequires": [
-            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
+            { "decision": "B04", "when": { "flag": "hasOperation", "equals": true } }
           ]
         }
       ],

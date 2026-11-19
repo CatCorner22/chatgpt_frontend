@@ -29,7 +29,7 @@ def canonical_json(value):
 
 def validate(catalogue, sources, contracts):
     if not isinstance(catalogue, list) or not catalogue or len(catalogue) > 1000:
-        raise ValueError("Catalogue must contain1to1000records")
+        raise ValueError("Catalogue must contain 1 to 1000 records")
     if not isinstance(sources, dict) or not sources:
         raise ValueError("Sources must be a nonempty object")
     expected = {"id", "region", "question", "options", "requires", "check", "sources", "evidenceKind", "status", "selectionMode", "responsibleActor", "applicability", "navigation", "actionable"}
@@ -98,7 +98,32 @@ def validate(catalogue, sources, contracts):
                 raise ValueError("Duplicate references: " + key)
         if not record["sources"] or any(s not in sources for s in record["sources"]):
             raise ValueError("Unknown or absent source: " + key)
-    graph = {r["id"]: list(dict.fromkeys(r["requires"] + [d for o in r["options"] for d in o["requires"]] + [c["decision"] for o in r["options"] for c in o["conditionalRequires"]])) for r in catalogue}
+    option_owners = {o['id']: r['id'] for r in catalogue for o in r['options']}
+    constraints = contracts.get('optionConstraints')
+    implications = contracts.get('contextImplications')
+    if not isinstance(constraints, dict) or not isinstance(implications, dict):
+        raise ValueError('Missing declared planning constraints')
+    for flag, implied in implications.items():
+        if flag not in contracts['contextFlags'] or not isinstance(implied, list) or not implied:
+            raise ValueError('Invalid context implication')
+        if any(not isinstance(item, str) or item not in contracts['contextFlags'] or item == flag for item in implied):
+            raise ValueError('Unknown or self context implication')
+    constraint_edges = {key: [] for key in ids}
+    for option_id, constraint in constraints.items():
+        if option_id not in option_owners or not isinstance(constraint, dict) or set(constraint) != {'context', 'selections'}:
+            raise ValueError('Unknown or malformed option constraint')
+        if not isinstance(constraint['context'], list) or not isinstance(constraint['selections'], list):
+            raise ValueError('Invalid constraint lists')
+        for condition in constraint['context']:
+            if not isinstance(condition, dict) or set(condition) != {'flag', 'equals'} or condition['flag'] not in contracts['contextFlags'] or type(condition['equals']) is not bool:
+                raise ValueError('Invalid option context condition')
+        for selection in constraint['selections']:
+            if not isinstance(selection, dict) or set(selection) != {'decision', 'option'}:
+                raise ValueError('Invalid selection constraint')
+            if selection['decision'] not in ids or option_owners.get(selection['option']) != selection['decision']:
+                raise ValueError('Unknown or mismatched constraint option')
+            constraint_edges[option_owners[option_id]].append(selection['decision'])
+    graph = {r["id"]: list(dict.fromkeys(r["requires"] + [d for o in r["options"] for d in o["requires"]] + [c["decision"] for o in r["options"] for c in o["conditionalRequires"]] + constraint_edges[r['id']])) for r in catalogue}
     for key, dependencies in graph.items():
         if any(d not in ids or d == key for d in dependencies):
             raise ValueError("Unknown or self prerequisite: " + key)

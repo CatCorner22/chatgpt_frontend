@@ -204,3 +204,14 @@ The structural lens E-155 found that a draft could still reach release authoriza
 ## Reproducible formatting
 
 Run catalogue generation and byte checks from a complete Focus checkout with its installed Node development dependencies. The Python builder uses `scripts/format-research-json.mjs` and the existing project Prettier configuration before writing or comparing generated JSON. This keeps generation and formatting consistent; no dependency is downloaded by these commands. Research unittest cases still exercise the Python planning contracts separately.
+
+## Declared planning constraints
+
+`journey_probe.py` is a research inspector. It follows option-specific prerequisites and evaluates only the explicitly declared constraints in `journey-contracts.json`. A successful result is named `declared-constraints-satisfied`, not a proof of complete semantic consistency, working implementation or release readiness.
+
+- G01.a requires `hasExistingProject=false`; G01.b requires `hasExistingProject=true`. Missing context stays unresolved.
+- V12.a requires the release policy H15.a. H15.b remains a review draft and conflicts with that release path.
+- `hasOperation` covers completion of local, device and remote work. Declared drafts, exports, state changes and remote requests require this flag to be known and true; the inspector reports missing or contradictory context instead of silently inferring success.
+- B04 applies to those operations. B03/B05/B09/R11 retain their remote-request scope. Local save and export fixtures therefore keep completion evidence without requiring unrelated remote-network work.
+
+Conflicts produce `conflicting-planning-choices`; missing selections/context or inapplicable required decisions produce `incomplete-planning-context`. These records remain research proposals and cannot authorize a customer mutation. The negative fixtures include contradictions in both project modes, draft-only release, absent operation context, and malformed constraint references. Semantic relationships not declared here remain unverified.

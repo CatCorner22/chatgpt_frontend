@@ -21,3 +21,11 @@ The owner supplies an article, image rights, useful alt text and a real subscrip
 ## Concurrent work and a changed decision
 
 The owner accepts a font change at artifact revision A. Record the selected option ID and actual values, plus the catalogue revision. Before the developer returns work, the owner changes the main action at revision B. Results produced for A cannot prove B. Compare the affected paths, resolve any conflict and repeat destination, label, wrapping and interaction checks. Preserve both attempts in history. A revert applies only when its recorded preconditions still hold; it must not erase the owner's unrelated B change.
+
+## Local save and export
+
+For a local editable draft, set `hasDraft=true`, `hasOperation=true`, `hasRemoteRequest=false` and select B12. Its selected path retains B04's completion obligation: a local write can fail, be canceled or finish after the user has moved on. H12 with `hasExport=true` also retains B04; an owner acknowledgment still differs from machine-verified completion or a colleague's receipt. Setting `hasOperation=false` in either context creates a planning conflict. Omitting the flag leaves context unresolved.
+
+## Deliberately incompatible choices
+
+G01.a with `hasExistingProject=true`, and G01.b with `hasExistingProject=false`, return `conflicting-planning-choices`. V12.a with H15.b does too: a release path cannot simultaneously use draft-only authorization. A compatible declared path returns `declared-constraints-satisfied`; it does not prove working UI, safe deployment or undeclared semantic relationships.

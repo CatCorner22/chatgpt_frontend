@@ -8,8 +8,6 @@ const bytes = read("decisions.json");
 const catalogue = JSON.parse(bytes);
 const sources = JSON.parse(read("sources.json"));
 const contracts = JSON.parse(read("journey-contracts.json"));
-const readable = (text) =>
-  text.replace(/([a-z])(\d)/g, "$1 $2").replace(/(\d)([A-Za-z])/g, "$1 $2");
 const data = {
   version: 1,
   catalogueSha256: createHash("sha256").update(bytes).digest("hex"),
@@ -25,8 +23,8 @@ const data = {
       : "Review this question for each project.",
     approaches: record.options.map((option) => ({
       id: option.id,
-      consequence: readable(option.consequence),
-      checks: option.checks.map(readable),
+      consequence: option.consequence,
+      checks: option.checks,
     })),
     sources: record.sources.map((id) => {
       const source = sources[id];

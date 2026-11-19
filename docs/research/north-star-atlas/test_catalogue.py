@@ -68,9 +68,63 @@ class CatalogueContracts(unittest.TestCase):
     def journey(self, roots, flags=None, options=None):
         context = {flag: False for flag in self.contracts['contextFlags']}
         context.update(flags or {})
+        context['hasOperation'] = any(context.get(flag, False) for flag in
+                                      ['hasOperation', 'hasRemoteRequest', 'hasDataMutation', 'hasDraft', 'hasExport'])
         selections = {r['id']: [r['options'][0]['id']] for r in self.records}
+        selections['G01'] = ['G01.b' if context['hasExistingProject'] else 'G01.a']
         selections.update(options or {})
         return inspect_journey(self.records, self.contracts, roots, selections, context)
+
+    def test_project_choice_must_match_known_context_in_both_directions(self):
+        for existing, option in [(True, 'G01.a'), (False, 'G01.b')]:
+            result = self.journey(['G01'], {'hasExistingProject': existing}, {'G01': [option]})
+            self.assertEqual(result['status'], 'conflicting-planning-choices')
+            self.assertTrue(result['conflicts'])
+        for existing in [False, True]:
+            self.assertEqual(self.journey(['G01'], {'hasExistingProject': existing})['status'],
+                             'declared-constraints-satisfied')
+
+    def test_unknown_project_context_cannot_satisfy_a_chosen_policy(self):
+        result = inspect_journey(self.records, self.contracts, ['G01'], {'G01': ['G01.a']}, {})
+        self.assertEqual(result['status'], 'incomplete-planning-context')
+        self.assertIn('context:hasExistingProject', result['unresolved'])
+
+    def test_release_and_draft_only_authorization_conflict(self):
+        result = self.journey(['V12'], options={'H15': ['H15.b']})
+        self.assertEqual(result['status'], 'conflicting-planning-choices')
+        self.assertIn('V12.a requires H15.a; selected H15.b', result['conflicts'])
+        self.assertEqual(self.journey(['V12'])['status'], 'declared-constraints-satisfied')
+
+    def test_local_save_and_export_keep_completion_without_remote_requirements(self):
+        for root, flags in [('B12', {'hasDraft': True}), ('H12', {'hasExport': True})]:
+            result = self.journey([root], flags)
+            self.assertIn('B04', result['required'])
+            self.assertNotIn('B03', result['required'])
+            self.assertNotIn('R11', result['required'])
+            self.assertEqual(result['status'], 'declared-constraints-satisfied')
+
+    def test_operation_context_cannot_silently_disable_completion(self):
+        for flag in ['hasRemoteRequest', 'hasDataMutation', 'hasDraft', 'hasExport']:
+            result = inspect_journey(self.records, self.contracts, ['G01'], {'G01': ['G01.a']},
+                                     {flag: True, 'hasOperation': False, 'hasExistingProject': False})
+            self.assertEqual(result['status'], 'conflicting-planning-choices')
+            result = inspect_journey(self.records, self.contracts, ['G01'], {'G01': ['G01.a']},
+                                     {flag: True, 'hasExistingProject': False})
+            self.assertIn('context:hasOperation', result['unresolved'])
+
+    def test_unknown_constraints_and_option_references_are_rejected(self):
+        mutations = [
+            lambda c: c['optionConstraints'].update({'G01.z': {'context': [], 'selections': []}}),
+            lambda c: c['optionConstraints']['G01.a']['context'][0].update(flag='invented'),
+            lambda c: c['optionConstraints']['G01.a']['context'][0].update(equals=1),
+            lambda c: c['optionConstraints']['V12.a']['selections'][0].update(option='H15.z'),
+            lambda c: c['contextImplications'].update({'invented': ['hasOperation']}),
+        ]
+        for mutate in mutations:
+            contracts = copy.deepcopy(self.contracts)
+            mutate(contracts)
+            with self.assertRaises(ValueError):
+                validate(self.records, self.sources, contracts)
 
     def test_complete_draft_path_never_requires_release_authorization(self):
         for existing in [False, True]:

@@ -42,7 +42,7 @@ For Focus, propose deliberate spacing to communicate groups; stable locations fo
 
 ## Catalogue contract
 
-`decisions.json` is generated from the adjacent `decisions.tsv`. Every record has a stable ID, region, question, two candidate approaches with consequences, prerequisites, option-specific checks, evidence category, sources and explicit proposal status. Schema version2 adds applicability, a responsible actor, selection mode and a navigation contract. A `combine` decision contains complementary practices; a `contextual` decision can use different approaches in different parts of a page. Only `single` decisions describe one selected policy. None is an implemented control. The alternatives are candidate policies, not automatically available controls. Some require server or customer-project implementation.
+`decisions.json` is generated from the adjacent `decisions.tsv`. Every record has a stable ID, region, question, two candidate approaches with consequences, prerequisites, option-specific checks, evidence category, sources and explicit proposal status. Schema version 2 adds applicability, a responsible actor, selection mode and a navigation contract. A `combine` decision contains complementary practices; a `contextual` decision can use different approaches in different parts of a page. Only `single` decisions describe one selected policy. None is an implemented control. The alternatives are candidate policies, not automatically available controls. Some require server or customer-project implementation.
 
 The small records are the leaves of the planning tree. Split a record when two parts can change independently and need different acceptance evidence. A color-role choice and its rendered contrast check are related, but they are different activities. Selecting “usable with keyboard” is not a feature toggle; the corresponding control must be implemented and exercised.
 
@@ -189,17 +189,17 @@ A terminal decision is `context + actor + choice + consequence + affected checks
 
 ## Revisions actually made
 
-- Version0.1:128 decisions/256 approaches mapped to nine Garden regions. Initial relationships were common prerequisites.
-- Version0.2: independent planning reviews E-129/E-130 exposed false either/or framing, missing applicability and actor boundaries, conditional table/modal checks, incorrect size units, and receipt overstatement. The catalogue now distinguishes combined/contextual choices and option-specific checks. C10 language review applies even to a single-language page; H04 authorization applies even without collaboration; B01 semantics applies to ordinary links as well as task actions.
+- Version 0.1: 128 decisions/256 approaches mapped to nine Garden regions. Initial relationships were common prerequisites.
+- Version 0.2: independent planning reviews E-129/E-130 exposed false either/or framing, missing applicability and actor boundaries, conditional table/modal checks, incorrect size units, and receipt overstatement. The catalogue now distinguishes combined/contextual choices and option-specific checks. C10 language review applies even to a single-language page; H04 authorization applies even without collaboration; B01 semantics applies to ordinary links as well as task actions.
 - The adjacent `journey-examples.md` walks through hypothetical projects. Those examples are design exercises, not customer outcomes or executed runtime tests.
 
 Read-only structural check: `python build_catalogue.py`. Regenerate only after editing the reviewed source tables: `python build_catalogue.py --write`. `python -m unittest discover -s . -p 'test_catalogue.py'` exercises malformed records and the decision boundaries in this revision. These commands validate research data, not the Focus interface.
 
-## Selected-path correction in version0.3
+## Selected-path correction in version 0.3
 
 The structural lens E-155 found that a draft could still reach release authorization transitively and a new project could inherit existing-project/import requirements. V10 now depends on evidence identity without release authorization. H15.b has a draft-specific check and no release prerequisites. Option `requires` plus `conditionalRequires` is the authoritative selected-path contract; record `requires` is the authoring default and is not unioned back into an override. Prerequisites scoped to another context become explicit conditional edges. Unknown flags request context; a false conditional edge is inapplicable with a reason, never a passed test.
 
-`journey_probe.py` inspects selected planning paths only. Nine tests now cover draft transitive closure, a new owner-typed editorial page, an existing inline form trial, unknown context, invalid option IDs and malformed/cyclic catalogue data. These checks still do not implement a runtime policy, produce task evidence or certify a customer project. All128records remain non-actionable proposals.
+`journey_probe.py` inspects selected planning paths only. At planning-repair revision `6909eef`, 15 tests cover draft transitive closure, a new owner-typed editorial page, an existing inline form trial, unknown context, invalid option IDs, conflicting selections, local operation completion and malformed/cyclic catalogue data. Run `python -B -m unittest discover -s docs/research/north-star-atlas -p test_catalogue.py` from the repository root. These checks still do not implement a runtime policy, produce task evidence or certify a customer project. All 128 records remain non-actionable proposals.
 
 ## Reproducible formatting
 

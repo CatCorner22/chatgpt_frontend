@@ -100,7 +100,7 @@ The user's “never make things worse” objective becomes a release contract fo
 
 ## 8. Current evidence and next experiments
 
-The research catalogue now contains 128 questions across nine Garden regions and 256 candidate approaches. Nine research tests cover structure, option-specific checks, conditional applicability and complete draft/new/existing paths. Their scope is the catalogue; they do not test an exported customer's app.
+The research catalogue contains 128 questions across nine Garden regions and 256 candidate approaches. At planning-repair revision `6909eef`, 15 research tests cover structure, option-specific checks, conditional applicability, conflicting selections, operation completion and complete draft/new/existing paths. Reproduce the count from the repository root with `python -B -m unittest discover -s docs/research/north-star-atlas -p test_catalogue.py`. Their scope is the catalogue; they do not test an exported customer's app.
 
 The latest review exposed a transitive draft-to-release dependency and new-page requirements pointing at existing-project work. Those relationships were corrected and now have regression fixtures. This demonstrates why path-level checks belong alongside atom-level checks.
 

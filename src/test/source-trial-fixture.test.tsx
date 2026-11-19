@@ -311,15 +311,24 @@ describe("owned React/Vite source-trial proof", () => {
     expect(await readFile(join(directory, "support-notes.txt"), "utf8")).toBe(unrelatedLaterWork);
   });
 
-  it.each(["src/Booking.tsx", "src/Booking.module.css"])(
-    "refuses a changed touched file (%s) before an apply",
-    async (path) => {
-      const changed = original.map((file) =>
+  it.each([
+    ["before", "src/Booking.tsx"],
+    ["before", "src/Booking.module.css"],
+    ["after", "src/Booking.tsx"],
+    ["after", "src/Booking.module.css"],
+  ] as const)(
+    "refuses a later edit in the %s snapshot (%s) before apply or rollback",
+    async (phase, path) => {
+      const baseline =
+        phase === "before"
+          ? original
+          : prepared.files.map((file) => ({ path: file.path, content: file.after }));
+      const changed = baseline.map((file) =>
         file.path === path
           ? { ...file, content: file.content + "\n/* Owner's later edit. */\n" }
           : file,
       );
-      await expect(verifySourceTrialSnapshot(prepared, changed, "before")).rejects.toThrow();
+      await expect(verifySourceTrialSnapshot(prepared, changed, phase)).rejects.toThrow();
       expect(changed.find((file) => file.path === path)!.content).toContain("Owner's later edit.");
     },
   );

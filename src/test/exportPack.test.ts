@@ -305,7 +305,12 @@ describe("existing-site customer boundaries", () => {
       for (const name of ["START-HERE.md", "PROMPT-SHORT.md"]) {
         const parsed = new DOMParser().parseFromString(files[name]!, "text/html");
         expect(parsed.querySelectorAll("style,img,script,iframe")).toHaveLength(0);
-        expect(parsed.body.textContent).toContain("<style>body{display:none}</style>");
+        if (mode === "existing") {
+          expect(parsed.body.textContent).toContain("<style>body{display:none}</style>");
+        } else {
+          expect(files[name]).not.toContain(brand);
+          expect(files[name]).toContain("focus-content-v1");
+        }
       }
       expect(validatePack(files, light, mode)).toEqual([]);
     },

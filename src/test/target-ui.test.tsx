@@ -123,7 +123,12 @@ describe("Target guided preparation", () => {
     await openReview();
     expect(screen.queryByLabelText("What runs this page?")).toBeNull();
     fireEvent.click(screen.getByText("Include a proposed code change · optional"));
-    expect(await screen.findByLabelText("What runs this page?")).toBeInTheDocument();
+    expect(screen.getByText("Loading optional source-change tools…")).toBeInTheDocument();
+    // The first dynamic import includes Vite's cold module transform. Keep the
+    // wait bounded without treating its one-second default as a product deadline.
+    expect(
+      await screen.findByLabelText("What runs this page?", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("What runs this page?"), { target: { value: "vite" } });
     fireEvent.change(screen.getByLabelText("Page file path in the project"), {
       target: { value: "src/Booking.tsx" },

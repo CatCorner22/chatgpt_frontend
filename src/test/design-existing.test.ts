@@ -132,7 +132,15 @@ describe("design handoff text boundaries", () => {
       });
       const displayed = new DOMParser().parseFromString(markdown, "text/html");
       expect(displayed.querySelectorAll("style,img,iframe,script")).toHaveLength(0);
-      expect(displayed.body.textContent).toContain('<img src="https://example.invalid/brand">');
+      if (integration === "new") {
+        const block = /^```json\n([\s\S]*?)^```$/m.exec(markdown);
+        expect(block).not.toBeNull();
+        expect(JSON.parse(block![1]!).content.brand).toBe(
+          'Alder <img src="https://example.invalid/brand">',
+        );
+      } else {
+        expect(displayed.body.textContent).toContain('<img src="https://example.invalid/brand">');
+      }
       expect(displayed.body.textContent).toContain("<style>body{display:none}</style>");
     },
   );

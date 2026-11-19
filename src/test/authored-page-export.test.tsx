@@ -79,6 +79,7 @@ function startImage() {
 beforeEach(() => {
   vi.clearAllMocks();
   calls.files.length = 0;
+  calls.download.mockReset();
   calls.owner.mockReturnValue("owner-one");
   calls.generate.mockResolvedValue(new Blob(["zip"]));
   calls.saveImage.mockResolvedValue("a".repeat(64));
@@ -87,6 +88,98 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("authored page delivery lifetime", () => {
+  it("requires acknowledgment even when the actual anchor click is canceled normally", async () => {
+    const actual = await vi.importActual<typeof import("@/lib/exportPack")>("@/lib/exportPack");
+    const create = vi.fn(() => "blob:receipt-test");
+    Object.defineProperty(URL, "createObjectURL", { value: create, configurable: true });
+    Object.defineProperty(URL, "revokeObjectURL", { value: vi.fn(), configurable: true });
+    calls.download.mockImplementation(actual.downloadBlob);
+    const canceled = vi.fn((event: MouseEvent) => {
+      if (event.target instanceof HTMLAnchorElement && event.target.download)
+        event.preventDefault();
+    });
+    document.addEventListener("click", canceled, true);
+    try {
+      const current = props();
+      render(<AuthoredPagePanel {...current} />);
+      startZip();
+      await screen.findByRole("button", { name: "I’ve saved the file" });
+      const clicks = canceled.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event.target instanceof HTMLAnchorElement);
+      expect(clicks).toHaveLength(1);
+      expect(clicks[0]!.defaultPrevented).toBe(true);
+      expect(current.onExport).not.toHaveBeenCalled();
+      expect(screen.getByText(/Focus cannot confirm/)).toBeVisible();
+      fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
+      expect(current.onExport).toHaveBeenCalledOnce();
+    } finally {
+      document.removeEventListener("click", canceled, true);
+    }
+  });
+
+  it("never grants project credit for a working HTML download", () => {
+    const current = props();
+    render(<AuthoredPagePanel {...current} />);
+    fireEvent.click(screen.getByRole("button", { name: "Download working HTML" }));
+    expect(calls.download).toHaveBeenCalledOnce();
+    const acknowledgment = screen.queryByRole("button", { name: "I’ve saved the file" });
+    if (acknowledgment) fireEvent.click(acknowledgment);
+    expect(current.onExport).not.toHaveBeenCalled();
+  });
+
+  it.each(["pending", "ready"])(
+    "abandons a %s ZIP after a design edit is undone",
+    async (stage) => {
+      const job = pending<Blob>();
+      if (stage === "pending") calls.generate.mockReturnValueOnce(job.promise);
+      const current = props();
+      const mounted = render(<AuthoredPagePanel {...current} />);
+      startZip();
+      if (stage === "ready") await screen.findByRole("button", { name: "I’ve saved the file" });
+      mounted.rerender(
+        <AuthoredPagePanel {...current} content={{ ...content, headline: "Changed" }} />,
+      );
+      mounted.rerender(<AuthoredPagePanel {...current} />);
+      if (stage === "pending") await act(async () => job.resolve(new Blob(["old zip"])));
+      expect(calls.download).toHaveBeenCalledTimes(stage === "ready" ? 1 : 0);
+      expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
+      expect(current.onExport).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["locked", "changed"])("rejects acknowledgment after the owner is %s", async (state) => {
+    const current = props();
+    render(<AuthoredPagePanel {...current} />);
+    startZip();
+    await screen.findByRole("button", { name: "I’ve saved the file" });
+    if (state === "locked")
+      calls.owner.mockImplementation(() => {
+        throw new Error("Session needs verification");
+      });
+    else calls.owner.mockReturnValue("owner-two");
+    fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
+    expect(current.onExport).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
+  });
+
+  it("replaces an earlier receipt when a newer ZIP starts and does not revive it after failure", async () => {
+    const current = props();
+    render(<AuthoredPagePanel {...current} />);
+    startZip();
+    await screen.findByRole("button", { name: "I’ve saved the file" });
+    const job = pending<Blob>();
+    calls.generate.mockReturnValueOnce(job.promise);
+    startZip();
+    expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
+    calls.download.mockImplementationOnce(() => {
+      throw new Error("Browser refused");
+    });
+    await act(async () => job.resolve(new Blob(["next zip"])));
+    expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
+    expect(current.onExport).not.toHaveBeenCalled();
+  });
+
   it("exports the current source and valid decision record under a fixed filename", async () => {
     const current = props();
     const record = JSON.stringify({ version: 1, nodes: [{ id: "palette", value: "sea" }] });
@@ -96,8 +189,10 @@ describe("authored page delivery lifetime", () => {
     expect(calls.files[0]?.["focus-decision-map.json"]).toBe(record);
     expect(calls.files[0]?.["README.txt"]).toMatch(/Keep it private with focus-project.json/);
     expect(JSON.parse(calls.files[0]!["focus-project.json"]!).studio).toEqual(current.projectState);
+    expect(current.onExport).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
     expect(current.onExport).toHaveBeenCalledOnce();
-    expect(calls.success).toHaveBeenCalledWith(expect.stringMatching(/download started/i));
+    expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
   });
 
   it("keeps the existing ZIP contract when no decision record is supplied", async () => {
@@ -106,6 +201,8 @@ describe("authored page delivery lifetime", () => {
     startZip();
     await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
     expect(Object.keys(calls.files[0]!)).not.toContain("focus-decision-map.json");
+    expect(current.onExport).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
     expect(current.onExport).toHaveBeenCalledOnce();
   });
 
@@ -176,6 +273,8 @@ describe("authored page delivery lifetime", () => {
       expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled();
       startZip();
       await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
+      expect(current.onExport).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
       expect(current.onExport).toHaveBeenCalledOnce();
     },
   );
@@ -452,6 +551,8 @@ describe("framing export consistency", () => {
     startZip();
     await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
     expect(calls.files[1]!["styles.css"]).toContain("object-fit: contain");
+    expect(current.onExport).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "I’ve saved the file" }));
     expect(current.onExport).toHaveBeenCalledOnce();
   });
 });

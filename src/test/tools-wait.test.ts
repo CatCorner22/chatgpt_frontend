@@ -15,7 +15,11 @@ describe("every tool gets its own instructions and messages", () => {
     });
     expect(md).toContain(`## Tool instruction (${tool})`);
     const m = toolMessages(tool, "Kiln");
-    expect(m.first).toContain("Kiln");
+    expect(m.first).not.toContain("Kiln");
+    expect(m.first).toContain("focus-content-v1");
+    const block = /^```json\n([\s\S]*?)^```$/m.exec(md);
+    expect(block).not.toBeNull();
+    expect(JSON.parse(block![1]!).content.brand).toBe("Kiln");
     expect(m.next).toHaveLength(4);
   });
   it("tool instructions differ between tools", () => {

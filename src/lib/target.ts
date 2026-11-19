@@ -349,7 +349,7 @@ export async function prepareTargetPack(draft: TargetDraft, entry: LibraryEntry)
   const prompts = targetPrompts(draft, entry);
   const contextual = `\n\n## Target — prepared trial plan\n\nPrepared for a trial. ${HANDOFF_BOUNDARY}\n\nPlatform guidance: ${PLATFORM_LABELS[draft.platform]}. ${draft.integration === "new" ? "Use a new, empty separate project. This is a specification, not a finished app." : "Restyle one existing page while preserving its original content and behavior."}\n\n${prompts.map((prompt, index) => `### ${index + 1}. ${prompt.title}\n\n${prompt.text}`).join("\n\n")}\n`;
   const markdown = prescription + contextual;
-  // buildPack sanitizes guide text with a 60k limit; fail rather than silently truncate this plan.
+  // Leave room below buildPack's hard 60k budget; never clip the prepared plan.
   if (markdown.length > MAX_HANDOFF_LENGTH)
     throw new TargetPreparationError([
       "The prepared plan is too long to transfer without losing instructions. Shorten the answers or design notes and try again.",

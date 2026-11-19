@@ -24,6 +24,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { PAGE_COMPOSITIONS as COMPOSITIONS } from "@/lib/page-compositions";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { useUser } from "@/hooks/useSession";
+import { useExportReceipt } from "@/hooks/useExportReceipt";
+import { ExportReceipt } from "@/components/ExportReceipt";
 
 const DECISION_RECORD_MAX_BYTES = 200_000;
 
@@ -91,8 +94,8 @@ export function AuthoredPagePanel({
     image,
     imageLoading,
   ]);
-  const latestExport = useRef(exportSnapshot);
-  latestExport.current = exportSnapshot;
+  const user = useUser();
+  const receipt = useExportReceipt(exportSnapshot, user?.id ?? null);
   const imageIdentity = JSON.stringify([projectState["libraryId"], projectState["projectId"]]);
   const latestImageIdentity = useRef(imageIdentity);
   latestImageIdentity.current = imageIdentity;
@@ -194,7 +197,7 @@ export function AuthoredPagePanel({
   const downloadPage = () => {
     if (imageLoading || missingImage || needsImageDescription) return;
     try {
-      getBrowserOwnerId();
+      receipt.begin();
       downloadBlob(new Blob([built.html], { type: "text/html" }), "index.html");
       toast.success("Working HTML download started. Check your downloads.");
     } catch (error) {
@@ -208,6 +211,7 @@ export function AuthoredPagePanel({
     packingNow.current = true;
     setPacking(true);
     try {
+      const request = receipt.begin();
       const owner = getBrowserOwnerId();
       const record = checkedDecisionRecord(decisionRecord);
       const zip = new JSZip();
@@ -236,16 +240,13 @@ export function AuthoredPagePanel({
       );
       const blob = await zip.generateAsync({ type: "blob" });
       if (!mounted.current) return;
-      if (latestExport.current !== exportSnapshot)
+      if (!receipt.isCurrent(request))
         throw new Error(
           "Your design changed while the ZIP was being prepared. Download the current version again.",
         );
       checkOwner(owner);
       downloadBlob(blob, "focus-working-page.zip");
-      if (!mounted.current || latestExport.current !== exportSnapshot) return;
-      checkOwner(owner);
-      onExport();
-      toast.success("Page ZIP download started. Check your downloads.");
+      receipt.offer(request, "focus-working-page.zip", onExport);
     } catch (error) {
       if (mounted.current)
         toast.error(
@@ -406,6 +407,7 @@ export function AuthoredPagePanel({
           </Button>
         </div>
       </div>
+      <ExportReceipt receipt={receipt.pending} />
       <div className="authored-layout">
         <aside className="authored-controls">
           {!compact && (

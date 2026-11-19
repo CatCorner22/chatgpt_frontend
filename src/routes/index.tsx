@@ -9,6 +9,8 @@ import { GardenHome } from "@/components/GardenHome";
 import { StratospherePanel, StratosphereStart } from "@/components/StratospherePanel";
 import { readGardenPreferences } from "@/lib/garden-preferences";
 import { useStudioNavigationGuard } from "@/hooks/useStudioNavigationGuard";
+import { useExportReceipt } from "@/hooks/useExportReceipt";
+import { ExportReceipt } from "@/components/ExportReceipt";
 import { IntegrationChoice } from "@/components/IntegrationChoice";
 import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
@@ -1254,6 +1256,8 @@ function Rx({ s, update, ask }: P) {
       /* taste memory is optional */
     }
   }, [s.picks, s.content?.brand]);
+  const user = useUser();
+  const receipt = useExportReceipt(JSON.stringify([s, tool]), user?.id ?? null);
   const { copied, copy: copyText } = useCopied();
   const exported = (scope: "spec" | "project" = "spec") => {
     const pageIsDefault = JSON.stringify(s.page) === JSON.stringify(DEFAULT_PAGE_SETTINGS);
@@ -1266,37 +1270,53 @@ function Rx({ s, update, ask }: P) {
       update({ savedHash: workHash(s) });
   };
   const copy = async (k: string, text: string) => {
-    if (await copyText(k, text)) {
-      if (k === "rx" || k === "msg0") exported();
+    try {
+      const request = receipt.begin();
+      if ((await copyText(k, text)) && receipt.isCurrent(request)) {
+        if (k === "rx" || k === "msg0") exported();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not copy this design.");
     }
   };
   const download = () => {
-    downloadBlob(new Blob([md], { type: "text/markdown" }), "DESIGN.md");
-    exported();
+    try {
+      const request = receipt.begin();
+      downloadBlob(new Blob([md], { type: "text/markdown" }), "DESIGN.md");
+      receipt.offer(request, "DESIGN.md", exported);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not download DESIGN.md. Please try again.",
+      );
+    }
   };
-  const user = useUser();
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<"page" | "parts">("page");
   const [advanced, setAdvanced] = useState(false);
   const showAuthored = s.purpose.experience !== "app" && integration === "new";
   const [packing, setPacking] = useState(false);
+  const packingNow = useRef(false);
   const [sharing, setSharing] = useState(false);
   const pack = async () => {
-    if (busy || !s.tokens) return;
+    if (busy || packingNow.current || !s.tokens) return;
+    packingNow.current = true;
     setBusy(true);
     setPacking(true);
     try {
+      const request = receipt.begin();
       // Signature is optional: an unsigned pack still works if signing is unavailable.
       const sig = hasCloudBackend()
         ? await signDesignId({ data: { id: designId(s.tokens) } })
             .then((r) => r.sig)
             .catch(() => undefined)
         : undefined;
-      downloadBlob(
-        await buildPack(md, s.tokens, s.content?.brand, sig, integration),
-        integration === "existing" ? "focus-existing-site-pack.zip" : "focus-design-pack.zip",
-      );
-      exported();
+      if (!receipt.isCurrent(request)) return;
+      const blob = await buildPack(md, s.tokens, s.content?.brand, sig, integration);
+      if (!receipt.isCurrent(request)) return;
+      const filename =
+        integration === "existing" ? "focus-existing-site-pack.zip" : "focus-design-pack.zip";
+      downloadBlob(blob, filename);
+      receipt.offer(request, filename, exported);
     } catch (e) {
       toast.error(
         e instanceof PackError
@@ -1304,6 +1324,7 @@ function Rx({ s, update, ask }: P) {
           : "Could not download the design pack. Please try again.",
       );
     } finally {
+      packingNow.current = false;
       setBusy(false);
       setPacking(false);
     }
@@ -1555,6 +1576,7 @@ function Rx({ s, update, ask }: P) {
             Answer the questions again
           </Button>
         </div>
+        <ExportReceipt receipt={receipt.pending} />
         <p role="status" className="sr-only">
           {sharing ? "Creating your share link…" : packing ? "Preparing your design pack…" : ""}
         </p>

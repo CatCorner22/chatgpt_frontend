@@ -532,6 +532,83 @@ describe("Target guided preparation", () => {
     },
   );
 
+  it.each(["account", "locked session", "design"] as const)(
+    "warns when the %s changes during a prompt copy",
+    async (change) => {
+      seed();
+      let finish!: () => void;
+      const writeText = vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            finish = resolve;
+          }),
+      );
+      const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+      try {
+        await openReview();
+        fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+        if (change === "account") operations.owner.mockReturnValue("another-owner");
+        else if (change === "locked session")
+          operations.owner.mockImplementation(() => {
+            throw new Error("Session locked");
+          });
+        else localStorage.setItem(LIBRARY_KEY, JSON.stringify({ version: 1, entries: [] }));
+        await act(async () => {
+          finish();
+        });
+        expect(screen.queryByText("Copied")).not.toBeInTheDocument();
+        expect(screen.getByText(/Do not use the copied prompt/)).toBeInTheDocument();
+        expect(
+          screen
+            .getAllByRole("button", { name: "Copy prompt" })
+            .every((button) => !button.hasAttribute("disabled")),
+        ).toBe(true);
+        expect(operations.prepare).not.toHaveBeenCalled();
+      } finally {
+        if (previous) Object.defineProperty(navigator, "clipboard", previous);
+        else Reflect.deleteProperty(navigator, "clipboard");
+      }
+    },
+  );
+
+  it.each(["removed design", "locked session"] as const)(
+    "refuses to copy with %s before the click",
+    async (reason) => {
+      seed();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+      try {
+        await openReview();
+        if (reason === "removed design")
+          localStorage.setItem(LIBRARY_KEY, JSON.stringify({ version: 1, entries: [] }));
+        else
+          operations.owner.mockImplementation(() => {
+            throw new Error("Session locked");
+          });
+        fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+        expect(writeText).not.toHaveBeenCalled();
+        expect(
+          screen.getByText(
+            reason === "removed design"
+              ? /Reload designs and review the plan before copying/
+              : /Your session needs verification/,
+          ),
+        ).toBeInTheDocument();
+        expect(screen.queryByText("Copied")).not.toBeInTheDocument();
+        expect(
+          screen
+            .getAllByRole("button", { name: "Copy prompt" })
+            .every((button) => !button.hasAttribute("disabled")),
+        ).toBe(true);
+      } finally {
+        if (previous) Object.defineProperty(navigator, "clipboard", previous);
+        else Reflect.deleteProperty(navigator, "clipboard");
+      }
+    },
+  );
+
   it("offers manual copy when the clipboard is unavailable without claiming preparation", async () => {
     seed();
     const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");

@@ -21,3 +21,9 @@ Builder-run regression logs are saved under `/workspace/research/transfer-rehear
 The full suite passed 1,448 tests across 117 files. Lint passed with zero errors and 11 existing warnings; the production build passed. The repository Git configuration hash was unchanged. The tests exercise delayed API promises and DOM state; they do not claim operating-system clipboard verification.
 
 Browser initialization remains blocked by the supported tool. Real clipboard permissions, browser announcements and rendered keyboard behavior remain unverified. This is not independent audit or release approval; the existing 68-run independent-review allowance is exhausted. No deployment occurred.
+
+## Account and saved-design changes during copying
+
+A further delayed-promise reproduction showed that Target could report `Copied` after the account changed or the selected saved design disappeared. Target now checks the current selected entry before writing and rechecks the account, selected entry and displayed preparation after successful completion. If that context changes or cannot be read, it warns the user not to use the copied prompt. A locked session refuses a new copy without leaving the request lock engaged. These checks do not cancel an already-started clipboard write or detect an intervening change that returns to the exact original snapshot.
+
+Regression coverage includes removed designs before and during copying, account changes during copying, and locked sessions before and during copying. Evidence is retained in `copy-context-before.log`, `copy-context-after.log` and `context-validation/` within the same resumed-work directory. No customer files, deployment or launch credit are changed.

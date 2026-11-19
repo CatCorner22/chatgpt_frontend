@@ -292,14 +292,51 @@ export function Target() {
   };
   const copyPrompt = async (id: string, text: string) => {
     if (!mounted.current || copyPending.current) return;
+    let owner: string | null;
+    try {
+      owner = getBrowserOwnerId();
+    } catch {
+      setCopied("");
+      setCopyStatus("Your session needs verification. Reload before copying a prompt.");
+      return;
+    }
     copyPending.current = true;
     const current = revision.current;
+    const expectedPreparation = preparationKey;
+    const expectedEntry = JSON.stringify(selected);
+    const contextMatches = () => {
+      try {
+        const library = readTargetLibrary();
+        return (
+          getBrowserOwnerId() === owner &&
+          latestPreparation.current === expectedPreparation &&
+          library.issue !== "unavailable" &&
+          !!selected &&
+          JSON.stringify(library.entries.find((entry) => entry.id === selected.id)) ===
+            expectedEntry
+        );
+      } catch {
+        return false;
+      }
+    };
     setCopied("");
     setCopying(id);
     setCopyStatus("Copying prompt… You can also select the prompt text and copy it manually.");
     try {
+      if (!contextMatches()) {
+        setCopyStatus(
+          "The selected design changed or could not be checked. Reload designs and review the plan before copying.",
+        );
+        return;
+      }
       await navigator.clipboard.writeText(text);
       if (mounted.current && revision.current === current) {
+        if (!contextMatches()) {
+          setCopyStatus(
+            "Your account or selected design changed or could not be checked. Do not use the copied prompt. Reload designs and review the plan before copying again.",
+          );
+          return;
+        }
         setCopied(id);
         setCopyStatus("Prompt copied. Paste it into your own developer tool when you are ready.");
       }

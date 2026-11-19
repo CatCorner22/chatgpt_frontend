@@ -35,6 +35,7 @@ export function GardenHome() {
   const heading = useRef<HTMLHeadingElement>(null);
   const lessonSummary = useRef<HTMLElement>(null);
   const focusOnStep = useRef(false);
+  const pendingPreferences = useRef<Partial<Omit<GardenPreferences, "version">>>({});
   useEffect(() => {
     const restored = readGardenPreferences(focusLocalStorage);
     setPreferences(restored.value);
@@ -50,9 +51,15 @@ export function GardenHome() {
 
   const change = (patch: Partial<Omit<GardenPreferences, "version">>) => {
     if (!ready) return;
-    const next = { ...preferences, ...patch };
-    setPreferences(next);
-    setIssue(writeGardenPreferences(focusLocalStorage, next));
+    const pending = { ...pendingPreferences.current, ...patch };
+    const latest = readGardenPreferences(focusLocalStorage);
+    const next = { ...(latest.issue ? preferences : latest.value), ...pending };
+    // Preserve other tabs' saved fields without moving this tab merely because
+    // the user toggled a lesson. An explicit path selection owns its new stop.
+    setPreferences({ ...next, step: patch.step ?? preferences.step });
+    const saveIssue = writeGardenPreferences(focusLocalStorage, next);
+    pendingPreferences.current = saveIssue ? pending : {};
+    setIssue(saveIssue);
   };
   const visit = (step: GardenStepId) => {
     focusOnStep.current = step !== preferences.step;

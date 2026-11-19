@@ -58,6 +58,52 @@ afterEach(() => {
 });
 
 describe("Garden home", () => {
+  it("preserves newer lesson and goal choices when an older tab moves to another stop", async () => {
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    const newer = { ...GARDEN_DEFAULTS, goal: "new", brief: false };
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(newer));
+    visitStep("craft");
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({ ...newer, step: "craft" });
+    expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
+  });
+
+  it("updates lesson depth without overwriting another tab's saved stop or moving the visible stop", async () => {
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    localStorage.setItem(GARDEN_KEY, JSON.stringify({ ...GARDEN_DEFAULTS, step: "handoff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({
+      ...GARDEN_DEFAULTS,
+      step: "handoff",
+      brief: false,
+    });
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("What are we working on?");
+  });
+
+  it("keeps unsaved lesson choices on retry while preserving a newer goal from another tab", async () => {
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Full storage");
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
+    write.mockRestore();
+    localStorage.setItem(GARDEN_KEY, JSON.stringify({ ...GARDEN_DEFAULTS, goal: "new" }));
+    visitStep("craft");
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({
+      ...GARDEN_DEFAULTS,
+      step: "craft",
+      goal: "new",
+      brief: false,
+    });
+    expect(screen.queryByText(/could not be confirmed as saved/)).not.toBeInTheDocument();
+  });
+
   it("opens without saving defaults, inspecting project data or changing existing work", async () => {
     seedProtectedRecords();
     const reads = vi.spyOn(Storage.prototype, "getItem");

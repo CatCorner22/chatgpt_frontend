@@ -383,12 +383,12 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     Gemini:
       "Paste this whole Vision first; ask it to restate the tokens back before writing code, then build section by section.",
     "GitHub Copilot":
-      "Save this as .github/copilot-instructions.md so every suggestion follows it; keep tokens.css in the project and reference only its variables.",
+      "Save this as .github/copilot-instructions.md as design guidance; review each resulting change against this Vision. Keep tokens.css in the project and reference only its variables.",
     Bolt: "Paste this as the first message of the project; put the tokens in the global stylesheet and ask Bolt to reuse them in every component.",
     Replit:
-      "Paste this into the Agent's first message and save it as DESIGN.md in the project so later edits keep following it.",
+      "Paste this into the Agent's first message and save it as DESIGN.md as guidance for later edits; review each resulting change against this Vision.",
     Windsurf:
-      "Save this as .windsurfrules (or DESIGN.md) so Cascade reads it on every edit; build tokens.css first.",
+      "Save this as .windsurfrules (or DESIGN.md) as design guidance; check that your tool loads it and review each resulting change against this Vision. Build tokens.css first.",
     "Own or local model":
       "Smaller models forget long instructions: give it the short version first, then this full Vision one section at a time, and check each result against the tokens.",
     "Human developer":
@@ -398,7 +398,7 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
 
 You are building the frontend for: ${c(o.brief, 1200)}
 
-Follow this Vision exactly. Each decision below was made deliberately by the owner; do not substitute defaults.
+Implement the selected design values below; do not substitute defaults. Preserve authoritative owner copy exactly. If generic wording advice conflicts with supplied copy, preserve the copy and report the conflict for owner review; do not silently rewrite it.
 ## Tool instruction (${tool})
 ${toolLine}
 
@@ -436,7 +436,7 @@ ${techniquesMarkdown(t)}
 - Use the real copy below; never lorem ipsum.
 
 ## Easy to use (evidence-based)
-- One main task per screen; the page title names the result and uses the same verb as the main button ("Book a table" / "Book table").
+- Keep one main task per screen. When proposing new copy, aligning the title and main action verbs can clarify that task. Preserve supplied title and button wording; report a mismatch for owner review.
 - Every icon has a visible word beside it unless it is a universal symbol (play, close). No icon-only toolbars; no hamburger as the only menu on wide screens.
 - Button labels name the result ("Pay now", "Cancel subscription") and stay the same everywhere that action appears.
 - Main and secondary actions look clearly different; a destructive action never looks like the default.
@@ -473,7 +473,7 @@ ${o.checks ? `## Measured checks\n${o.checks.map((check) => `- ${c(check.name, 2
 ${contentHandoffMarkdown(o.content)}
 
 ## Before you report done
-Render the page, look at it at 390px and 1280px wide, and check every rule above. Fix anything that does not hold.
+Render the page, look at it at 390px and 1280px wide, and check the applicable rules above. Preserve authoritative supplied wording when it conflicts with generic wording advice; report that exception and obtain owner approval before any rewrite. Fix implementation failures and report any checks you could not run.
 `;
 }
 

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { buildPrescription, normalizeTokens, type Content } from "@/lib/design";
+import { buildPrescription, normalizeTokens, TOOLS, type Content } from "@/lib/design";
 import { buildPack, packFiles, PackError } from "@/lib/exportPack";
 import type { LibraryEntry } from "@/lib/library";
 import {
@@ -83,6 +83,37 @@ async function readPackDesign(markdown: string, brand: string, mode: "new" | "ex
 }
 
 describe("new-build Content handoff", () => {
+  it.each(TOOLS)(
+    "gives authoritative owner copy precedence over wording advice for %s",
+    async (tool) => {
+      const content = {
+        ...editorLimitCopy,
+        headline: "Make a bowl that feels like yours.",
+        cta: "Reserve a workshop place for next Saturday",
+      };
+      const markdown = await readPackDesign(prescription(content, tool), content.brand);
+      const { data, guidance } = readContent(markdown);
+      expect(data).toEqual({ format: "focus-content-v1", content });
+      expect(guidance).toContain("Preserve authoritative owner copy exactly.");
+      expect(guidance).toContain("report the conflict for owner review");
+      expect(guidance).toContain("Preserve supplied title and button wording");
+      expect(guidance).not.toContain("uses the same verb as the main button");
+      expect(guidance).not.toContain("Fix anything that does not hold.");
+    },
+  );
+
+  it("describes coding-tool rule files as guidance requiring review in the actual ZIP", async () => {
+    const markdown = prescription(editorLimitCopy, "GitHub Copilot");
+    const zip = await JSZip.loadAsync(await buildPack(markdown, tokens, editorLimitCopy.brand));
+    const start = await zip.file("START-HERE.md")!.async("string");
+    const design = await zip.file("DESIGN.md")!.async("string");
+    expect(start).toContain("review each resulting change against DESIGN.md");
+    expect(start).toContain("these files do not enforce compliance");
+    expect(start).not.toContain("keep coding tools on the design for every later edit");
+    expect(design).toContain("review each resulting change against this Vision");
+    expect(design).not.toContain("so every suggestion follows it");
+  });
+
   it.each(["Cursor", "Lovable", "Human developer"] as const)(
     "preserves every editor-limit field in the %s Prescription and ZIP",
     async (tool) => {

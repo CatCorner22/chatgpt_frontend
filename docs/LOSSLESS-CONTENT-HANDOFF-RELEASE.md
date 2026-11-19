@@ -24,6 +24,8 @@ The complete `DESIGN.md` is required even when a coding recipient starts with `P
 
 This contract guides a human or LLM coding recipient. It cannot enforce an outside agent's behavior. Recipient testing must examine an actual resulting page and unrelated-file preservation, not just successful JSON parsing.
 
+New-build instructions explicitly give authoritative owner copy precedence over generic wording advice. A supplied headline and action can use different verbs: the recipient preserves them and reports the mismatch for owner review instead of silently rewriting either. Tool-rule files are described as guidance; recipients check that their tool loads them and review the resulting changes. These wording repairs change new-build package bytes, so earlier package identity and recipient observations are historical evidence until their applicability is checked again.
+
 ## Review record and limits
 
 Maintained regressions cover full editor-limit content, actual-brand standard and Target ZIPs, reserved-looking strings, literal markup and controls, feature order, empty content, exact budget boundaries and pinned existing output. Download tests cover canceled initiation, thrown errors, owner acknowledgment and stale work.

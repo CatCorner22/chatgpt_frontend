@@ -30,7 +30,7 @@ function kit(t: Tokens, phone: boolean) {
     textAlign: "center",
     padding: t.buttonStyle === "underline" ? "0.3em 0" : "0.85em 1.4em",
     fontWeight: 600,
-    borderRadius: t.buttonStyle === "pill" ? 999 : t.radius,
+    borderRadius: t.buttonStyle === "pill" ? 999 : t.buttonStyle === "underline" ? 0 : t.radius,
     background: filled ? t.accent : "transparent",
     color: filled ? t.accentInk : signalText(t),
     border: t.buttonStyle === "outline" ? `2px solid ${t.accent}` : "none",

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { signalText } from "@/lib/appDesign";
 import { contrast, formatContrast, type Content, type Tokens } from "@/lib/design";
 
 // Static appearance examples, not functional interaction or customer-app checks.
@@ -6,6 +7,9 @@ import { contrast, formatContrast, type Content, type Tokens } from "@/lib/desig
 export function ComponentSheet({ t, c }: { t: Tokens; c: Content }) {
   const gap = { airy: 1.4, balanced: 1, compact: 0.7 }[t.density];
   const r = t.radius;
+  const filled = t.buttonStyle === "solid" || t.buttonStyle === "pill";
+  const underlined = t.buttonStyle === "underline";
+  const actionInk = filled ? t.accentInk : signalText(t);
   const h: CSSProperties = {
     fontFamily: `"${t.headingFont}", serif`,
     textTransform: t.headingCase === "uppercase" ? "uppercase" : "none",
@@ -16,15 +20,16 @@ export function ComponentSheet({ t, c }: { t: Tokens; c: Content }) {
   const base: CSSProperties = {
     padding: `${0.75 * gap}em ${1.3 * gap}em`,
     fontWeight: 600,
-    borderRadius: t.buttonStyle === "pill" ? 999 : r,
+    borderRadius: t.buttonStyle === "pill" ? 999 : underlined ? 0 : r,
     font: "inherit",
     cursor: "default",
   };
   const primary: CSSProperties = {
     ...base,
-    background: t.accent,
-    color: t.accentInk,
-    border: `2px solid ${t.accent}`,
+    background: filled ? t.accent : "transparent",
+    color: actionInk,
+    border: underlined ? "none" : `2px solid ${filled ? t.accent : actionInk}`,
+    borderBottom: underlined ? `2px solid ${actionInk}` : undefined,
   };
   const secondary: CSSProperties = {
     ...base,
@@ -71,7 +76,7 @@ export function ComponentSheet({ t, c }: { t: Tokens; c: Content }) {
       {children}
     </section>
   );
-  const ratio = formatContrast(contrast(t.accent, t.accentInk));
+  const ratio = formatContrast(contrast(filled ? t.accent : t.bg, actionInk));
   return (
     <div
       style={{

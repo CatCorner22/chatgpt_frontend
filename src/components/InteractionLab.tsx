@@ -38,7 +38,7 @@ export function InteractionLab({ tokens }: { tokens: Tokens }) {
     minHeight: 44,
     minWidth: 44,
     padding: "10px 16px",
-    borderRadius: t.buttonStyle === "pill" ? 999 : t.radius,
+    borderRadius: t.buttonStyle === "pill" ? 999 : t.buttonStyle === "underline" ? 0 : t.radius,
     fontFamily: "inherit",
     fontSize: "inherit",
     fontWeight: 600,

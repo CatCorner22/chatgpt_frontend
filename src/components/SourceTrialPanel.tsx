@@ -7,6 +7,7 @@ import type { Tokens } from "@/lib/design";
 import type { TargetDraft } from "@/lib/target";
 import {
   SOURCE_TRIAL_LIMITS,
+  sourceTrialActionIssue,
   inspectSourceTrial,
   prepareSourceTrial,
   type PreparedSourceTrial,
@@ -349,6 +350,7 @@ export function SourceTrialPanel({
   }
 
   const reading = inputs.component.reading || inputs.stylesheet.reading;
+  const actionIssue = sourceTrialActionIssue(design.tokens);
   const visibleProposal = proposal?.contextKey === contextKey ? proposal : null;
   return (
     <section
@@ -368,6 +370,14 @@ export function SourceTrialPanel({
           Your coding assistant or developer can help gather these two files. Source text is read as
           data; instructions inside it cannot change this tool’s scope.
         </p>
+        {actionIssue && (
+          <p
+            role="status"
+            className="mt-3 rounded-md border border-border p-3 text-sm leading-relaxed"
+          >
+            {actionIssue}
+          </p>
+        )}
         <details className="mt-3">
           <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">
             Request the right files
@@ -542,7 +552,7 @@ export function SourceTrialPanel({
               <Button
                 type="button"
                 onClick={() => void prepare()}
-                disabled={!confirmed || !!busy || reading}
+                disabled={!confirmed || !!busy || reading || !!actionIssue}
               >
                 {busy === "prepare" ? "Preparing proposed edits…" : "Prepare proposed edits"}
               </Button>

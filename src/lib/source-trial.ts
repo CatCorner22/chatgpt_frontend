@@ -263,6 +263,13 @@ export function inspectSourceTrial(files: readonly SourceTrialFile[]): SourceTri
   return analyzeSourceTrial(files).inspection;
 }
 
+/** This adapter writes a filled action surface; never substitute it for another treatment. */
+export function sourceTrialActionIssue(tokens: Pick<Tokens, "buttonStyle">): string | null {
+  return tokens.buttonStyle === "solid" || tokens.buttonStyle === "pill"
+    ? null
+    : "This source-change trial supports filled and pill actions only. Your selected action treatment has not been changed. Keep it and use the design pack for developer-guided integration, or deliberately choose a filled or pill action in Buttons and corners before preparing a source trial.";
+}
+
 export async function prepareSourceTrial(
   files: readonly SourceTrialFile[],
   design: { id: string; tokens: Tokens },
@@ -270,6 +277,8 @@ export async function prepareSourceTrial(
   const id = design.id;
   requireDesignId(id);
   const tokens = normalizeTokens(design.tokens);
+  const actionIssue = sourceTrialActionIssue(tokens);
+  requireTrial(!actionIssue, actionIssue ?? "Unsupported action treatment.");
   const source = readSourcePair(files).map(({ path, content }) => ({ path, content }));
   const analysis = analyzeSourceTrial(source);
   const [fingerprint, sourceFingerprint] = await Promise.all([

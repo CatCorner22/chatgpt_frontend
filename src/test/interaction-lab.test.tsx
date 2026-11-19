@@ -137,7 +137,7 @@ describe("InteractionLab", () => {
       const primary = screen.getByRole("button", { name: "Try primary button" });
       expect(primary).toHaveStyle({
         minHeight: "44px",
-        borderRadius: buttonStyle === "pill" ? "999px" : "17px",
+        borderRadius: buttonStyle === "pill" ? "999px" : buttonStyle === "underline" ? "0" : "17px",
         color: "#000000",
       });
       if (buttonStyle === "solid" || buttonStyle === "pill") {

@@ -56,7 +56,7 @@ export function DesignPreview({
     display: "inline-block",
     padding: t.buttonStyle === "underline" ? "0.3em 0" : "0.85em 1.4em",
     fontWeight: 600,
-    borderRadius: t.buttonStyle === "pill" ? 999 : t.radius,
+    borderRadius: t.buttonStyle === "pill" ? 999 : t.buttonStyle === "underline" ? 0 : t.radius,
     background: t.buttonStyle === "solid" || t.buttonStyle === "pill" ? t.accent : "transparent",
     color: t.buttonStyle === "solid" || t.buttonStyle === "pill" ? t.accentInk : signalText(t),
     border: t.buttonStyle === "outline" ? `2px solid ${t.accent}` : "none",

@@ -118,6 +118,27 @@ afterEach(() => {
 });
 
 describe("Optional source trial", () => {
+  it.each(["outline", "underline"] as const)(
+    "explains the unsupported %s treatment before files and prevents preparation",
+    async (buttonStyle) => {
+      const initial = props();
+      initial.design.tokens.buttonStyle = buttonStyle;
+      render(<SourceTrialPanel {...initial} />);
+      expect(screen.getByText(/supports filled and pill actions only/)).toBeInTheDocument();
+      await chooseFiles();
+      inspectAndConfirm();
+      const prepare = screen.getByRole("button", { name: "Prepare proposed edits" });
+      expect(prepare).toBeDisabled();
+      fireEvent.click(prepare);
+      expect(
+        screen.queryByRole("button", { name: "Download proposed code change" }),
+      ).not.toBeInTheDocument();
+      expect(initial.design.tokens.buttonStyle).toBe(buttonStyle);
+      expect(operations.download).not.toHaveBeenCalled();
+      expect(operations.package).not.toHaveBeenCalled();
+    },
+  );
+
   it("keeps Next.js and unknown setups on the ordinary handoff path", () => {
     render(<SourceTrialPanel {...props()} />);
     for (const runtime of ["next", "unsure"]) {

@@ -312,7 +312,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
       authored:
         "Sets actions and applicable corners; authored actions retain a 48px minimum height.",
       specification:
-        "Writes action and corner preferences. Actual target sizes and host components require implementation checks.",
+        "Writes action and corner preferences. The optional source-change trial supports filled and pill actions only; outlined and underlined choices need developer-guided integration. Actual target sizes and host components require implementation checks.",
     },
     options: [
       choice("precise", "Precise and filled", "Square corners and a filled primary action.", [

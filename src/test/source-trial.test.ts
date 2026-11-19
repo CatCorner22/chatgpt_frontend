@@ -60,6 +60,18 @@ beforeEach(() => vi.stubGlobal("crypto", webcrypto));
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Target source trial", () => {
+  it.each(["outline", "underline"] as const)(
+    "refuses to silently replace a selected %s action with a filled action",
+    async (buttonStyle) => {
+      const source = original();
+      const snapshot = JSON.stringify(source);
+      await expect(
+        prepareSourceTrial(source, { ...design, tokens: { ...design.tokens, buttonStyle } }),
+      ).rejects.toThrow(/filled and pill/);
+      expect(JSON.stringify(source)).toBe(snapshot);
+    },
+  );
+
   it("identifies the actual owned heading, copy, action and preserved page ground", () => {
     expect(inspectSourceTrial(original())).toEqual({
       componentName: "Booking",

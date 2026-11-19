@@ -288,6 +288,48 @@ describe("Target prepares a truthful trial handoff", () => {
     expect(targetPrompts(complete({ backup: "" }), entry)).toEqual([]);
   });
 
+  it.each(["new", "existing"] as const)(
+    "recovers an oversized %s handoff without dropping copy or changing the selected mode",
+    async (integration) => {
+      const draft = complete({
+        integration,
+        ...(integration === "existing"
+          ? Object.fromEntries(
+              ["page", "improvement", "tasks", "backup", "preview", "rollback"].map((key) => [
+                key,
+                "&".repeat(TARGET_LIMITS[key as keyof typeof TARGET_LIMITS]),
+              ]),
+            )
+          : {}),
+      });
+      const selected = {
+        ...entry,
+        state: {
+          ...entry.state,
+          integration: integration === "new" ? "existing" : "new",
+          content: {
+            ...content,
+            features: Array.from({ length: 8 }, (_, i) => ({
+              title: `Detail ${i + 1}`,
+              body: "<>&".repeat(420) + ` Final qualification ${i + 1}.`,
+            })),
+          },
+        },
+      };
+      const before = JSON.stringify({ draft, selected });
+      const zip = vi.spyOn(JSZip.prototype, "generateAsync");
+      await expect(prepareTargetPack(draft, selected)).rejects.toThrow(
+        integration === "new" ? /A new site or app/ : /Restyle my existing site or app/,
+      );
+      await expect(prepareTargetPack(draft, selected)).rejects.toThrow(
+        /Download DESIGN\.md.*Your next conversations/s,
+      );
+      expect(zip).not.toHaveBeenCalled();
+      expect(JSON.stringify({ draft, selected })).toBe(before);
+      expect(targetPrompts(draft, selected)).toHaveLength(5);
+    },
+  );
+
   it("refuses a handoff that would be silently truncated by the exporter", async () => {
     const expanded = complete({
       page: "&".repeat(TARGET_LIMITS.page),

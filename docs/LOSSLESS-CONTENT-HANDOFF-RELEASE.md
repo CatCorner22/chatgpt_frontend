@@ -10,7 +10,7 @@ New-build specifications previously shortened page copy independently of the edi
 
 New-build labels and copied opening instructions use fixed wording; the complete brand lives in the content envelope. This allows valid names such as `Once = Always` without weakening shared pack checks. Existing-project specifications continue to omit replacement page copy and retain their existing output contract.
 
-The shared pack refuses guides longer than 60,000 UTF-16 code units before sanitization and ZIP creation. Target retains its separate 59,000-code-unit preflight to leave room for its additional instructions. The direct specification stays complete. An oversized ZIP must not silently discard requirements.
+The shared pack refuses guides longer than 60,000 UTF-16 code units before sanitization and ZIP creation. Target retains its separate 59,000-code-unit preflight to leave room for its additional instructions. The direct specification stays complete. An oversized ZIP must not silently discard requirements. Target now retains the answers and exposes their download in Review. Its refusal directs the owner to reopen the same Vision in Studio, choose the trial’s integration mode, download the complete DESIGN.md, and transfer the Target conversations separately.
 
 ## Receipt and saved-work protection
 
@@ -28,4 +28,4 @@ This contract guides a human or LLM coding recipient. It cannot enforce an outsi
 
 Maintained regressions cover full editor-limit content, actual-brand standard and Target ZIPs, reserved-looking strings, literal markup and controls, feature order, empty content, exact budget boundaries and pinned existing output. Download tests cover canceled initiation, thrown errors, owner acknowledgment and stale work.
 
-The current review record is `.agent/hinshitsu-content-handoff/`. Its proposed criteria, independent reports and append-only audit log distinguish source tests from compiled checks, recipient rehearsal and browser acceptance. Final release evidence is pending. No zero-defect, universal LLM compliance or human-quality equivalence claim is made.
+The current review record is `.agent/hinshitsu-content-handoff/`. Its owner-approved criteria, independent reports and append-only audit log distinguish source tests from compiled checks, recipient rehearsal and browser acceptance. Final release evidence is pending. No zero-defect, universal LLM compliance or human-quality equivalence claim is made.

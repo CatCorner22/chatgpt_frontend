@@ -217,6 +217,48 @@ describe("Target guided preparation", () => {
     },
   );
 
+  it("keeps answers and conversations available after a real oversized-plan refusal", async () => {
+    const draft = { ...complete, integration: "new" as const };
+    const selected = {
+      ...entry,
+      state: {
+        ...entry.state,
+        integration: "existing",
+        content: {
+          ...entry.state.content,
+          features: Array.from({ length: 8 }, (_, i) => ({
+            title: `Detail ${i + 1}`,
+            body: "<>&".repeat(420) + ` Keep the last qualification ${i + 1}.`,
+          })),
+        },
+      },
+    };
+    seed(draft);
+    const library = JSON.stringify({ version: 1, entries: [selected] });
+    localStorage.setItem(LIBRARY_KEY, library);
+    const actual = await vi.importActual<typeof import("@/lib/target")>("@/lib/target");
+    operations.prepare.mockImplementation(actual.prepareTargetPack);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Download DESIGN\.md/);
+    expect(screen.getByRole("alert")).toHaveTextContent(/A new site or app/);
+    expect(operations.download).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Your next conversations" })).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem(TARGET_DRAFT_KEY)!)).toEqual(draft);
+    expect(localStorage.getItem(LIBRARY_KEY)).toBe(library);
+    fireEvent.click(screen.getByRole("button", { name: "Download these answers" }));
+    expect(operations.download).toHaveBeenCalledOnce();
+    const [blob, filename] = operations.download.mock.calls[0]!;
+    expect(filename).toBe("target-answers.json");
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsText(blob);
+    });
+    expect(JSON.parse(text)).toEqual(draft);
+    expect(screen.queryByText("Prepared for a trial")).toBeNull();
+  });
+
   it("uses the saved design, keeps answers when moving backward, and blocks missing task details", async () => {
     seed({ ...EMPTY_TARGET_DRAFT, designId: entry.id });
     render(<Target />);

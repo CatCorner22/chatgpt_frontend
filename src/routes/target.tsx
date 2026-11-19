@@ -775,6 +775,11 @@ export function Target() {
                         <Download />
                         {busy ? "Preparing your handoff…" : "Prepare and download trial ZIP"}
                       </Button>
+                      {!draftIssue && !saveError && (
+                        <Button variant="outline" onClick={() => downloadAnswers()}>
+                          Download these answers
+                        </Button>
+                      )}
                       {busy && (
                         <Button
                           variant="outline"

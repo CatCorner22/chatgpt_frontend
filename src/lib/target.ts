@@ -352,7 +352,7 @@ export async function prepareTargetPack(draft: TargetDraft, entry: LibraryEntry)
   // Leave room below buildPack's hard 60k budget; never clip the prepared plan.
   if (markdown.length > MAX_HANDOFF_LENGTH)
     throw new TargetPreparationError([
-      "The prepared plan is too long to transfer without losing instructions. Shorten the answers or design notes and try again.",
+      `The prepared plan is too long for one ZIP. Nothing was cut; your answers remain here. Use “Download these answers” to keep a copy. In a separate tab, open this saved Vision from My designs in Studio. Choose “${draft.integration === "new" ? "A new site or app" : "Restyle my existing site or app"}” to match this trial. Expand “Design specification & handoff tools” if shown, then use “Download DESIGN.md” for the complete specification. Give that file and each prompt under “Your next conversations” below to your developer separately; the specification alone does not include this Target trial plan.`,
     ]);
   return buildPack(markdown, tokens, entry.state.content.brand, undefined, draft.integration);
 }

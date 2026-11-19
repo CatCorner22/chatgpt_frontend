@@ -24,7 +24,11 @@ const fixtureRoot = resolve(workspace, "src/test/fixtures/source-trial");
 const directories: string[] = [];
 let original: SourceTrialFile[];
 let prepared: Awaited<ReturnType<typeof prepareSourceTrial>>;
-let builds: { kind: "before" | "after"; Component: ComponentType<BookingProps>; css: string }[];
+let builds: {
+  kind: "before" | "after" | "restored";
+  Component: ComponentType<BookingProps>;
+  css: string;
+}[];
 
 // Only this repository's owned fixture and the adapter's CSS/class additions are compiled.
 // The child process isolates Vite from jsdom's browser globals. No uploaded project,
@@ -74,7 +78,7 @@ async function readSources(directory: string): Promise<SourceTrialFile[]> {
   );
 }
 
-async function buildFixture(kind: "before" | "after", files: SourceTrialFile[]) {
+async function buildFixture(kind: "before" | "after" | "restored", files: SourceTrialFile[]) {
   const directory = await temporary(kind);
   await writeSources(directory, files);
   await symlink(resolve(workspace, "node_modules"), join(directory, "node_modules"), "dir");
@@ -143,13 +147,28 @@ beforeAll(async () => {
       buttonStyle: "pill",
     }),
   });
-  builds = [
-    await buildFixture("before", original),
-    await buildFixture(
-      "after",
-      prepared.files.map((file) => ({ path: file.path, content: file.after })),
-    ),
-  ];
+  // Compile the actual disk states produced by Git, including selective recovery.
+  const project = await temporary("lifecycle");
+  await writeSources(project, original);
+  await exec("git", ["init", "--quiet"], { cwd: project, env: isolatedChildEnv() });
+  await writeFile(join(project, "forward.patch"), prepared.patch);
+  await writeFile(join(project, "inverse.patch"), prepared.inversePatch);
+  builds = [await buildFixture("before", await readSources(project))];
+  for (const [patch, phase] of [
+    ["forward.patch", "after"],
+    ["inverse.patch", "restored"],
+  ] as const) {
+    await verifySourceTrialSnapshot(
+      prepared,
+      await readSources(project),
+      phase === "after" ? "before" : "after",
+    );
+    await exec("git", ["apply", "--check", patch], { cwd: project, env: isolatedChildEnv() });
+    await exec("git", ["apply", patch], { cwd: project, env: isolatedChildEnv() });
+    const files = await readSources(project);
+    await verifySourceTrialSnapshot(prepared, files, phase === "after" ? "after" : "before");
+    builds.push(await buildFixture(phase, files));
+  }
 }, 30_000);
 
 afterEach(() => {
@@ -174,7 +193,7 @@ describe("owned React/Vite source-trial proof", () => {
     expect(inspection.roles.action).toMatchObject({ label: "Book lesson", element: "button" });
   });
 
-  it.each(["before", "after"] as const)(
+  it.each(["before", "after", "restored"] as const)(
     "preserves invalid input, async failure, retry, and confirmed success in the real %s Vite-built component",
     async (kind) => {
       const { Component } = builds.find((build) => build.kind === kind)!;
@@ -252,7 +271,8 @@ describe("owned React/Vite source-trial proof", () => {
         .forEach((style) => style.remove());
       return snapshot;
     });
-    const [before, after] = snapshots;
+    const [before, after, restored] = snapshots;
+    expect(restored).toEqual(before);
     const consumed = after!.rootClasses.filter(
       (className) => !before!.rootClasses.includes(className),
     );

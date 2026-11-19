@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { GardenDecisionGuide } from "@/components/GardenDecisionGuide";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
+import { GARDEN_FORMULA } from "@/lib/garden-formula";
+import { stratosphereSearch } from "@/lib/garden-navigation";
 import {
   GARDEN_DEFAULTS,
   readGardenPreferences,
@@ -11,11 +14,11 @@ import {
   type GardenPreferences,
 } from "@/lib/garden-preferences";
 
-const stops = [58, 32, 64, 30, 64, 30, 64, 30, 58].map((left, index) => ({
+const stops = [60, 34, 64, 34, 64, 34, 64, 34, 60].map((left, index) => ({
   left: `${left}%`,
   top: `${9 + index * 10.5}%`,
-  catLeft: left > 50 ? "1%" : "48%",
-  catTop: `${index * 10.5}%`,
+  catLeft: left > 50 ? "0%" : "63%",
+  catTop: `${Math.max(0, index * 10.5 - 8)}%`,
 }));
 
 const destinations = {
@@ -57,6 +60,7 @@ export function GardenHome() {
   };
   const index = GARDEN_STEPS.findIndex((step) => step.id === preferences.step);
   const step = getGardenStep(preferences.step);
+  const formula = GARDEN_FORMULA[step.id];
   const position = stops[index]!;
   const isGoal = step.id === "goal";
   const studio = step.action === "studio" || step.action === "gallery";
@@ -147,6 +151,33 @@ export function GardenHome() {
           <p className="garden-intro">
             {isGoal ? "I’m Reverie. We’ll take this one thoughtful step at a time." : step.intro}
           </p>
+          <div className="garden-formula-row">
+            <dl className="garden-formula" aria-label="Your next small step">
+              <div>
+                <dt>Do</dt>
+                <dd>{formula.do}</dd>
+              </div>
+              <div>
+                <dt>Changes</dt>
+                <dd>{formula.changes}</dd>
+              </div>
+              <div>
+                <dt>Check</dt>
+                <dd>{formula.check}</dd>
+              </div>
+            </dl>
+            <figure className="garden-map-guide">
+              <img
+                src="/brand/reverie-map-guide.png"
+                width="1280"
+                height="1280"
+                loading="lazy"
+                alt="Reverie reading a map"
+                decoding="async"
+              />
+              <figcaption>One small step, then a real check.</figcaption>
+            </figure>
+          </div>
           {isGoal && (
             <Link to="/field-guide" className="garden-text-action garden-field-guide-link">
               <BookOpen size={18} aria-hidden="true" />
@@ -212,6 +243,7 @@ export function GardenHome() {
           <p className="garden-evidence">
             {isGoal ? "Your live site stays unchanged while you plan." : step.evidenceNote}
           </p>
+          {formula.scopeNote && <p className="garden-scope-note">{formula.scopeNote}</p>}
           <div className="garden-actions">
             {isGoal ? (
               <button
@@ -222,6 +254,14 @@ export function GardenHome() {
               >
                 Continue <ArrowRight size={18} aria-hidden="true" />
               </button>
+            ) : formula.primaryGroup ? (
+              <Link
+                to="/"
+                search={stratosphereSearch(formula.primaryGroup)}
+                className="garden-primary"
+              >
+                {formula.primaryLabel} <ArrowRight size={18} aria-hidden="true" />
+              </Link>
             ) : studio ? (
               <Link to="/" search={{ view: "studio" }} className="garden-primary">
                 {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
@@ -244,6 +284,21 @@ export function GardenHome() {
               </button>
             )}
           </div>
+          {formula.details && (
+            <nav className="garden-detail-links" aria-label="Other craft details">
+              <span>Then explore</span>
+              {formula.details.map((detail) => (
+                <Link
+                  key={detail.group}
+                  to="/"
+                  search={stratosphereSearch(detail.group)}
+                  className="garden-text-action"
+                >
+                  {detail.label}
+                </Link>
+              ))}
+            </nav>
+          )}
           {!isGoal && (
             <p className="garden-return-note">
               Use “Your journey” in the menu to return here. Visiting a stop does not mark its work
@@ -265,6 +320,7 @@ export function GardenHome() {
               <ChevronDown className="garden-lesson-chevron" size={18} aria-hidden="true" />
             </summary>
             <div className="garden-lessons">
+              {!preferences.brief && <GardenDecisionGuide key={step.id} stepId={step.id} />}
               {step.lessons.map((lesson) => (
                 <article key={lesson.id}>
                   <h2>{lesson.title}</h2>

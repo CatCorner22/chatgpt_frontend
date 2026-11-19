@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { focusLocalStorage, getBrowserOwnerId } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/exportPack";
 import { readGardenPreferences, writeGardenPreferences } from "@/lib/garden-preferences";
+import { isStratosphereGroupId } from "@/lib/garden-navigation";
 import type { State } from "@/lib/studio-state";
 import {
   STRATOSPHERE_GROUPS,
   deriveStratosphereGraph,
   evaluateStratosphereCandidate,
   selectedStratosphereOption,
+  type StratosphereGroupId,
 } from "@/lib/stratosphere";
 
 function StratosphereIntroduction() {
@@ -56,6 +58,9 @@ export function StratosphereStart() {
           <Link to="/library" className="garden-text-action">
             Open a saved design
           </Link>
+          <Link to="/" search={{}} className="garden-text-action">
+            Your journey
+          </Link>
         </div>
         <p className="garden-return-note">
           Your existing designs stay intact. Open one, then choose Stratosphere from Tools.
@@ -69,14 +74,20 @@ export function StratospherePanel({
   state,
   onChange,
   onExport,
+  requestedGroup,
 }: {
   state: State;
   onChange: (patch: Partial<State>) => void;
   onExport: () => void;
+  requestedGroup?: StratosphereGroupId | undefined;
 }) {
   const authored = state.integration === "new" && state.purpose.experience !== "app";
-  const [groupId, setGroupId] = useState(() =>
-    authored ? STRATOSPHERE_GROUPS[0]!.id : ("palette" as const),
+  const [groupId, setGroupId] = useState<StratosphereGroupId>(() =>
+    isStratosphereGroupId(requestedGroup)
+      ? requestedGroup
+      : authored
+        ? STRATOSPHERE_GROUPS[0]!.id
+        : "palette",
   );
   const [brief, setBrief] = useState(true);
   const [preferenceIssue, setPreferenceIssue] = useState("");
@@ -84,6 +95,21 @@ export function StratospherePanel({
   const [downloadError, setDownloadError] = useState("");
   const groupHeading = useRef<HTMLHeadingElement>(null);
   const moveFocus = useRef(false);
+  const previousRequest = useRef(requestedGroup);
+  useEffect(() => {
+    // A changed URL (including Back) selects its group; removing it restores the
+    // profile default. Manual choices survive all unrelated state rerenders.
+    if (previousRequest.current === requestedGroup) return;
+    previousRequest.current = requestedGroup;
+    const next = isStratosphereGroupId(requestedGroup)
+      ? requestedGroup
+      : authored
+        ? STRATOSPHERE_GROUPS[0]!.id
+        : "palette";
+    moveFocus.current = next !== groupId;
+    setGroupId(next);
+    setAnnouncement("");
+  }, [requestedGroup, authored, groupId]);
   useEffect(() => {
     const saved = readGardenPreferences(focusLocalStorage);
     setBrief(saved.value.brief);
@@ -179,6 +205,9 @@ export function StratospherePanel({
       <div className="stratosphere-topline">
         <Link to="/" search={{ view: "studio" }} className="garden-text-action">
           <ArrowLeft size={16} aria-hidden="true" /> Return to your design
+        </Link>
+        <Link to="/" search={{}} className="garden-text-action">
+          Your journey
         </Link>
         <label className="garden-brief-toggle">
           <input

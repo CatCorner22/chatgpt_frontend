@@ -14,13 +14,16 @@ import {
   useStudioNavigationGuard,
   type StudioNavigationRisk,
 } from "@/hooks/useStudioNavigationGuard";
+import { parseGardenSearch } from "@/lib/garden-navigation";
 
 const SAVED: StudioNavigationRisk = { persistenceFailed: false, busy: false };
 const histories: ReturnType<typeof createMemoryHistory>[] = [];
 
 async function mountStudio(initial: Partial<StudioNavigationRisk> = {}, browser = false) {
   let updateRisk!: (risk: StudioNavigationRisk) => void;
+  let mounts = 0;
   function Studio() {
+    useState(() => ++mounts);
     const [risk, setRisk] = useState({ ...SAVED, ...initial });
     updateRisk = setRisk;
     useStudioNavigationGuard(risk);
@@ -30,8 +33,7 @@ async function mountStudio(initial: Partial<StudioNavigationRisk> = {}, browser 
   const home = createRoute({
     getParentRoute: () => root,
     path: "/",
-    validateSearch: (search: Record<string, unknown>): { view?: "studio" } =>
-      search["view"] === "studio" ? { view: "studio" } : {},
+    validateSearch: parseGardenSearch,
     component: function Home() {
       return home.useSearch().view === "studio" ? <Studio /> : <p>Garden home</p>;
     },
@@ -57,6 +59,7 @@ async function mountStudio(initial: Partial<StudioNavigationRisk> = {}, browser 
     router,
     history,
     unmount: rendered.unmount,
+    mounts: () => mounts,
     update: async (risk: Partial<StudioNavigationRisk>) => {
       await act(async () => updateRisk({ ...SAVED, ...risk }));
     },
@@ -131,6 +134,27 @@ describe("Studio SPA navigation guard with the real router", () => {
     await waitFor(() => expect(app.history.location.hash).toBe("#preview"));
     expect(screen.getByText("Studio work remains mounted")).toBeInTheDocument();
     expect(window.confirm).not.toHaveBeenCalled();
+  });
+
+  it("keeps Studio mounted through workshop group links and Back while guarding Your journey", async () => {
+    const app = await mountStudio({ persistenceFailed: true, busy: true });
+    for (const group of ["palette", "fonts", "spacing"]) {
+      await act(async () => {
+        app.history.push(`/?view=studio&panel=stratosphere&group=${group}`);
+      });
+      await waitFor(() => expect(app.router.state.location.search).toMatchObject({ group }));
+      expect(app.mounts()).toBe(1);
+    }
+    await act(async () => {
+      app.history.back();
+    });
+    await waitFor(() => expect(app.router.state.location.search).toMatchObject({ group: "fonts" }));
+    expect(app.mounts()).toBe(1);
+    expect(window.confirm).not.toHaveBeenCalled();
+    await app.home();
+    expect(window.confirm).toHaveBeenCalledOnce();
+    expect(screen.getByText("Studio work remains mounted")).toBeInTheDocument();
+    expect(app.mounts()).toBe(1);
   });
 
   it("does not treat a studio query on another route as staying in the editor", async () => {

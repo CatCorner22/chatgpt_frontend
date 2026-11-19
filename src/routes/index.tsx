@@ -6,6 +6,8 @@ import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
 import { ContentEditor } from "@/components/ContentEditor";
 import { StudioWelcome, StarterCollection } from "@/components/StudioWelcome";
 import { GardenHome } from "@/components/GardenHome";
+import { parseGardenSearch } from "@/lib/garden-navigation";
+import type { StratosphereGroupId } from "@/lib/stratosphere";
 import { StratospherePanel, StratosphereStart } from "@/components/StratospherePanel";
 import { readGardenPreferences } from "@/lib/garden-preferences";
 import { useStudioNavigationGuard } from "@/hooks/useStudioNavigationGuard";
@@ -102,13 +104,7 @@ import { cardFor } from "@/lib/knowledge";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { view?: "studio"; panel?: "stratosphere" } =>
-    search["view"] === "studio"
-      ? {
-          view: "studio",
-          ...(search["panel"] === "stratosphere" ? { panel: "stratosphere" as const } : {}),
-        }
-      : {},
+  validateSearch: parseGardenSearch,
   head: () => ({
     meta: [
       { title: "Focus — your point of view, by design" },
@@ -130,8 +126,12 @@ export const Route = createFileRoute("/")({
 });
 
 function FocusHome() {
-  const { view, panel } = Route.useSearch();
-  return view === "studio" ? <Studio workshop={panel === "stratosphere"} /> : <GardenHome />;
+  const { view, panel, group } = Route.useSearch();
+  return view === "studio" ? (
+    <Studio workshop={panel === "stratosphere"} requestedGroup={group} />
+  ) : (
+    <GardenHome />
+  );
 }
 
 // Library backups and reopening a design retain its bounded Undo/Redo timeline.
@@ -155,7 +155,13 @@ const EXAMPLES = [
   "A climate-tech startup that turns restaurant food waste into compost for city farms.",
 ];
 
-function Studio({ workshop = false }: { workshop?: boolean }) {
+function Studio({
+  workshop = false,
+  requestedGroup,
+}: {
+  workshop?: boolean;
+  requestedGroup?: StratosphereGroupId | undefined;
+}) {
   const [s, setS] = useState<State>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<{
@@ -499,6 +505,7 @@ function Studio({ workshop = false }: { workshop?: boolean }) {
         s.tokens && s.content ? (
           <StratospherePanel
             state={s}
+            requestedGroup={requestedGroup}
             onChange={(patch) => update({ ...patch, cache: {} })}
             onExport={() => update({ savedHash: workHash(s) })}
           />

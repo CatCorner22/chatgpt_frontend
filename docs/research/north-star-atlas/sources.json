@@ -1,0 +1,171 @@
+{
+  "FOCUS": {
+    "title": "Focus source contract and Blake's project requirements",
+    "locator": "AGENTS.md; docs/CAT-SAMURAI.md; src/lib/stratosphere.ts; src/lib/garden-content.ts; user messages",
+    "revision": "385adc5fadd3d468bca14e72587e2c667b974182",
+    "kind": "project-contract",
+    "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+  },
+  "NEEDS": {
+    "title": "ONS: User needs",
+    "locator": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+    "kind": "practice-guidance",
+    "limit": "Use to structure need-led content; Focus's option sets are proposals."
+  },
+  "DISCLOSURE": {
+    "title": "GOV.UK: Accordion",
+    "locator": "https://design-system.service.gov.uk/components/accordion/",
+    "kind": "practice-guidance",
+    "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+  },
+  "WAI": {
+    "title": "W3C WAI: Page Structure Tutorial",
+    "locator": "https://www.w3.org/WAI/tutorials/page-structure/",
+    "kind": "implementation-guidance",
+    "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+  },
+  "SEQUENCE": {
+    "title": "Understanding WCAG 2.2: Meaningful Sequence",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/meaningful-sequence.html",
+    "kind": "standards-explanation",
+    "limit": "Applies where sequence affects meaning; not every visual order must be identical."
+  },
+  "REFLOW": {
+    "title": "Understanding WCAG 2.2: Reflow",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html",
+    "kind": "standards-explanation",
+    "limit": "Retain the stated two-dimensional-content exceptions; not a whole accessibility assessment."
+  },
+  "TARGET": {
+    "title": "Understanding WCAG 2.2: Target Size Minimum",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+    "kind": "standards-explanation",
+    "limit": "24 by 24 CSS pixels or applicable exceptions; distinguish the separate larger product target."
+  },
+  "FOCUSVISIBLE": {
+    "title": "Understanding WCAG 2.2: Focus Not Obscured Minimum",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html",
+    "kind": "standards-explanation",
+    "limit": "AA requires the focused component not be entirely hidden; full visibility is the stronger product goal."
+  },
+  "MUJI": {
+    "title": "Ryohin Keikaku: Three Principles in Manufacturing",
+    "locator": "https://www.ryohin-keikaku.jp/en/about-muji/principles",
+    "kind": "primary-design-account",
+    "limit": "Manufacturing philosophy; translating it to UI is our design interpretation, not measured UI evidence."
+  },
+  "DADS": {
+    "title": "Japan Digital Agency: About the Design System",
+    "locator": "https://design.digital.go.jp/dads/guidance/design-system/",
+    "kind": "primary-design-guidance",
+    "limit": "Japanese public-service context; our English synthesis is a paraphrase and not a cultural definition."
+  },
+  "TYPE": {
+    "title": "web.dev: Typography",
+    "locator": "https://web.dev/learn/design/typography",
+    "kind": "implementation-guidance",
+    "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+  },
+  "LENGTH": {
+    "title": "MDN: CSS length type",
+    "locator": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/length",
+    "kind": "implementation-reference",
+    "limit": "ch is the advance measure of the zero glyph, not an exact count of arbitrary characters."
+  },
+  "DTCG": {
+    "title": "Design Tokens Format Module 2025.10",
+    "locator": "https://www.designtokens.org/tr/2025.10/format/",
+    "kind": "community-specification",
+    "limit": "Versioned community specification; explicitly not a W3C Standard. No DTCG compatibility is claimed for Focus."
+  },
+  "APG": {
+    "title": "W3C WAI ARIA Authoring Practices: Patterns",
+    "locator": "https://www.w3.org/WAI/ARIA/apg/patterns/",
+    "kind": "implementation-guidance",
+    "limit": "Pattern guidance requires actual keyboard and assistive-technology verification."
+  },
+  "DIALOG": {
+    "title": "W3C WAI APG: Modal Dialog Pattern",
+    "locator": "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/",
+    "kind": "implementation-guidance",
+    "limit": "Choose initial focus according to content and task; applying attributes alone is not a pass."
+  },
+  "TOOLTIP": {
+    "title": "W3C WAI APG: Tooltip Pattern",
+    "locator": "https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/",
+    "kind": "work-in-progress-guidance",
+    "limit": "The page explicitly says it lacks task-force consensus; do not cite it as a finished normative pattern."
+  },
+  "HOVER": {
+    "title": "Understanding WCAG 2.2: Content on Hover or Focus",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html",
+    "kind": "standards-explanation",
+    "limit": "Dismissible, hoverable and persistent under the defined conditions and exceptions."
+  },
+  "STATUS": {
+    "title": "Understanding WCAG 2.2: Status Messages",
+    "locator": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+    "kind": "standards-explanation",
+    "limit": "Applies to defined status messages without context changes; not every DOM update needs a live announcement."
+  },
+  "VALIDATION": {
+    "title": "GOV.UK: Validation",
+    "locator": "https://design-system.service.gov.uk/patterns/validation/",
+    "kind": "practice-guidance",
+    "limit": "Error correction and retained input are useful; its policy on native validation is specific to that system."
+  },
+  "REACT": {
+    "title": "React: Choosing the State Structure",
+    "locator": "https://react.dev/learn/choosing-the-state-structure",
+    "kind": "framework-guidance",
+    "limit": "Avoid duplicate and contradictory state; no particular state library is required by this research."
+  },
+  "RESPONSIVE": {
+    "title": "web.dev: Responsive web design basics",
+    "locator": "https://web.dev/articles/responsive-web-design-basics",
+    "kind": "implementation-guidance",
+    "limit": "Content and input capabilities inform layouts; fixed device screenshots alone do not cover responsiveness."
+  },
+  "VITALS": {
+    "title": "web.dev: Web Vitals",
+    "locator": "https://web.dev/articles/vitals",
+    "kind": "measurement-guidance",
+    "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+  },
+  "AUTH": {
+    "title": "OWASP: Authorization Cheat Sheet",
+    "locator": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+    "kind": "security-guidance",
+    "limit": "Model least privilege and validate requests; a UI-only restriction is not authorization."
+  },
+  "XSS": {
+    "title": "OWASP: Cross Site Scripting Prevention Cheat Sheet",
+    "locator": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+    "kind": "security-guidance",
+    "limit": "Use safe sinks and destination-specific protection; one filter or CSP cannot replace all required controls."
+  },
+  "PROMPT": {
+    "title": "OWASP: LLM Prompt Injection Prevention Cheat Sheet",
+    "locator": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html",
+    "kind": "security-guidance",
+    "limit": "Prompt labels are not enforcement; validate permissions and parameters at the actual tool boundary."
+  },
+  "SSRF": {
+    "title": "OWASP: Server Side Request Forgery Prevention Cheat Sheet",
+    "locator": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+    "kind": "security-guidance",
+    "limit": "Review eventual connections as well as DNS checks and redirects; this source does not establish a Focus vulnerability."
+  },
+  "USABILITY": {
+    "title": "GOV.UK: Using moderated usability testing",
+    "locator": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
+    "kind": "research-method",
+    "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+  },
+  "BENCH": {
+    "title": "DesignBench: Failure Annotation Guideline",
+    "locator": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+    "kind": "author-research-artifact",
+    "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+  }
+}

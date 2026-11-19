@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { useState, type AnchorHTMLAttributes, type ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeTokens } from "@/lib/design";
-import { EMPTY, type State } from "@/lib/studio-state";
+import { EMPTY, snap, type State } from "@/lib/studio-state";
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
 import {
   STRATOSPHERE_GROUPS,
@@ -115,16 +115,19 @@ function Harness({
   initial,
   onPatch,
   onExport,
+  requestedGroup,
 }: {
   initial: State;
   onPatch: (patch: Partial<State>) => void;
   onExport: () => void;
+  requestedGroup?: StratosphereGroupId | undefined;
 }) {
   const [state, setState] = useState(initial);
   return (
     <>
       <StratospherePanel
         state={state}
+        requestedGroup={requestedGroup}
         onChange={(patch) => {
           onPatch(patch);
           setState((current) => ({ ...current, ...patch }));
@@ -136,14 +139,26 @@ function Harness({
   );
 }
 
-function mount(initial = makeState()) {
+function mount(initial = makeState(), requestedGroup?: StratosphereGroupId) {
   const onPatch = vi.fn(),
     onExport = vi.fn();
+  const view = render(
+    <Harness
+      initial={initial}
+      onPatch={onPatch}
+      onExport={onExport}
+      requestedGroup={requestedGroup}
+    />,
+  );
   return {
     initial,
     onPatch,
     onExport,
-    ...render(<Harness initial={initial} onPatch={onPatch} onExport={onExport} />),
+    ...view,
+    request: (group?: StratosphereGroupId) =>
+      view.rerender(
+        <Harness initial={initial} onPatch={onPatch} onExport={onExport} requestedGroup={group} />,
+      ),
   };
 }
 function currentState(): State {
@@ -212,8 +227,62 @@ describe("Stratosphere workshop", () => {
       "/library",
     );
     expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+    expect(screen.getByRole("link", { name: "Your journey" })).toHaveAttribute("href", "/");
     expect(writes).not.toHaveBeenCalled();
     expect(localStorage.getItem("refraction:v1")).toBe("unfinished owner work");
+  });
+
+  it.each(STRATOSPHERE_GROUPS.map((group) => group.id))(
+    "opens the requested %s group without editing drafts, history, receipt credit or storage",
+    (groupId) => {
+      const initial = makeState({
+        savedHash: "existing acknowledged receipt",
+        past: [snap(makeState({ brief: "Earlier draft" }))],
+        future: [snap(makeState({ brief: "Later draft" }))],
+      });
+      localStorage.setItem("refraction:v1", JSON.stringify(initial));
+      const writes = vi.spyOn(Storage.prototype, "setItem");
+      const setup = mount(initial, groupId);
+      const group = STRATOSPHERE_GROUPS.find((candidate) => candidate.id === groupId)!;
+      expect(screen.getByRole("heading", { name: group.label })).toBeVisible();
+      expect(screen.getByRole("link", { name: "Your journey" })).toHaveAttribute("href", "/");
+      expect(currentState()).toEqual(initial);
+      expect(localStorage.getItem("refraction:v1")).toBe(JSON.stringify(initial));
+      expect(writes).not.toHaveBeenCalled();
+      expect(setup.onPatch).not.toHaveBeenCalled();
+      expect(setup.onExport).not.toHaveBeenCalled();
+    },
+  );
+
+  it("follows changed and removed requests while preserving manual choices on unrelated rerenders", () => {
+    const setup = mount(makeState(), "palette");
+    visitGroup("fonts");
+    setup.request("palette");
+    expect(screen.getByRole("heading", { name: "Font pairing" })).toBeVisible();
+    setup.request("spacing");
+    expect(screen.getByRole("heading", { name: "Spacing rhythm" })).toHaveFocus();
+    setup.request("palette");
+    expect(screen.getByRole("heading", { name: "Paired palette" })).toHaveFocus();
+    setup.request(undefined);
+    expect(screen.getByRole("heading", { name: "Page composition" })).toHaveFocus();
+    visitGroup("form");
+    setup.request(undefined);
+    expect(screen.getByRole("heading", { name: "Action and corner form" })).toBeVisible();
+    expect(currentState()).toEqual(setup.initial);
+    expect(setup.onPatch).not.toHaveBeenCalled();
+    expect(setup.onExport).not.toHaveBeenCalled();
+  });
+
+  it("keeps composition scope blockers visible for a direct request on an existing app", () => {
+    const setup = mount(makeState({ integration: "existing" }), "composition");
+    expect(screen.getByRole("heading", { name: "Page composition" })).toBeVisible();
+    expect(screen.getByText(/Your existing structure stays in place/)).toBeVisible();
+    const compositions = screen.getByRole("group", { name: "Choose page composition" });
+    for (const radio of within(compositions).getAllByRole("radio")) expect(radio).toBeDisabled();
+    setup.request(undefined);
+    expect(screen.getByRole("heading", { name: "Paired palette" })).toBeVisible();
+    expect(currentState()).toEqual(setup.initial);
+    expect(setup.onPatch).not.toHaveBeenCalled();
   });
 
   it.each(["palette", "spacing", "composition"] as const)(

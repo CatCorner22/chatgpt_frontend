@@ -1,0 +1,384 @@
+{
+  "contextFlags": {
+    "hasImages": "The proposed page uses images.",
+    "hasClaims": "The page includes quotations, endorsements or factual promotional claims.",
+    "hasCollection": "The page has a collection that can be searched, filtered or browsed.",
+    "hasInteractiveTask": "The interface includes an action beyond reading and ordinary links.",
+    "hasForm": "The interface accepts user input in a form.",
+    "hasRemoteRequest": "An action depends on a remote operation.",
+    "hasDataMutation": "An action changes stored or external state.",
+    "hasDraft": "The task includes editable work that may outlive one screen.",
+    "hasConcurrentEditing": "More than one context can edit the same work.",
+    "hasSupplementalHelp": "A control has supplemental help beyond its visible label.",
+    "hasTables": "The page contains a tabular comparison.",
+    "hasReordering": "The task includes changing item order.",
+    "hasAuthentication": "The task uses an authenticated account.",
+    "hasMotion": "The design uses optional animation or transitions.",
+    "hasMultipleLocales": "More than one locale is promised.",
+    "hasRtlLocale": "A promised locale uses right-to-left layout.",
+    "hasPrintOutput": "Printed or static shared output is in scope.",
+    "hasExistingProject": "The deliverable changes an existing customer project.",
+    "hasCollaboration": "Other people are granted project access.",
+    "hasRemoteFetch": "A service fetches a user-selected remote URL.",
+    "hasImportedContent": "The workflow reads uploaded or remote material.",
+    "hasExport": "The workflow produces a downloadable or transferred package.",
+    "hasIterationHistory": "The product retains design attempt history.",
+    "claimsNorthStarEquivalence": "The owner intends to make a comparative human-quality claim.",
+    "hasControls": "The page contains ordinary links, native controls or task actions."
+  },
+  "applicabilityByFlag": {
+    "hasImages": [
+      "C07",
+      "C08",
+      "F19"
+    ],
+    "hasClaims": [
+      "C09"
+    ],
+    "hasCollection": [
+      "P06",
+      "B08",
+      "B17",
+      "B18"
+    ],
+    "hasInteractiveTask": [
+      "B02",
+      "B15"
+    ],
+    "hasForm": [
+      "B06",
+      "B07",
+      "R07"
+    ],
+    "hasRemoteRequest": [
+      "B03",
+      "B04",
+      "B05",
+      "B09",
+      "R11"
+    ],
+    "hasDataMutation": [
+      "B10"
+    ],
+    "hasDraft": [
+      "B11",
+      "B12",
+      "B13"
+    ],
+    "hasConcurrentEditing": [
+      "B14"
+    ],
+    "hasSupplementalHelp": [
+      "B16"
+    ],
+    "hasTables": [
+      "B19"
+    ],
+    "hasReordering": [
+      "B20"
+    ],
+    "hasAuthentication": [
+      "B21"
+    ],
+    "hasMotion": [
+      "B22",
+      "R05"
+    ],
+    "hasRtlLocale": [
+      "R06"
+    ],
+    "hasPrintOutput": [
+      "R15"
+    ],
+    "hasExistingProject": [
+      "G04",
+      "H01",
+      "H02",
+      "H03",
+      "H13",
+      "H14"
+    ],
+    "hasRemoteFetch": [
+      "H07"
+    ],
+    "hasImportedContent": [
+      "H06",
+      "H08"
+    ],
+    "hasExport": [
+      "H10",
+      "H11",
+      "H12"
+    ],
+    "hasIterationHistory": [
+      "H16",
+      "V08"
+    ],
+    "claimsNorthStarEquivalence": [
+      "V09"
+    ],
+    "hasControls": [
+      "B01"
+    ]
+  },
+  "selectionModes": {
+    "combine": [
+      "C01",
+      "C06",
+      "C07",
+      "C09",
+      "C12",
+      "P03",
+      "P04",
+      "P06",
+      "P08",
+      "P10",
+      "D01",
+      "D02",
+      "D04",
+      "D07",
+      "D08",
+      "D09",
+      "D10",
+      "F01",
+      "F02",
+      "F03",
+      "F05",
+      "F06",
+      "F09",
+      "F10",
+      "F11",
+      "F14",
+      "F17",
+      "F19",
+      "F20",
+      "F21",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B10",
+      "B13",
+      "B17",
+      "B18",
+      "B20",
+      "R01",
+      "R04",
+      "R06",
+      "R08",
+      "R09",
+      "R10",
+      "R12",
+      "R13",
+      "R14",
+      "H03",
+      "H06",
+      "H09",
+      "H10",
+      "H13",
+      "H16",
+      "H17",
+      "H18",
+      "V02",
+      "V03",
+      "V05",
+      "V06",
+      "V07",
+      "V11"
+    ],
+    "contextual": [
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C08",
+      "C11",
+      "P02",
+      "P05",
+      "P07",
+      "P09",
+      "D03",
+      "D05",
+      "D06",
+      "F04",
+      "F07",
+      "F08",
+      "F12",
+      "F13",
+      "F15",
+      "F16",
+      "F18",
+      "B01",
+      "B02",
+      "B08",
+      "B09",
+      "B11",
+      "B12",
+      "B14",
+      "B15",
+      "B16",
+      "B19",
+      "B21",
+      "B22",
+      "R02",
+      "R03",
+      "R05",
+      "R07",
+      "R11",
+      "R15",
+      "H02",
+      "H04",
+      "H05",
+      "H07",
+      "H08",
+      "H11",
+      "H12",
+      "H14",
+      "V04",
+      "V08",
+      "V10"
+    ]
+  },
+  "actorByRegion": {
+    "goal": "owner",
+    "content": "owner",
+    "plan": "owner",
+    "direction": "owner",
+    "craft": "owner-and-developer",
+    "behavior": "developer",
+    "responsive": "reviewer",
+    "handoff": "owner-and-developer",
+    "check": "reviewer"
+  },
+  "existingEntryPoints": {
+    "F01": {
+      "route": "/stratosphere",
+      "control": "Font pairing",
+      "source": "src/lib/stratosphere.ts",
+      "limit": "Existing general workshop entry; no direct focused deep link and no new atomic font control are claimed."
+    },
+    "D05": {
+      "route": "/stratosphere",
+      "control": "Paired palette",
+      "source": "src/lib/stratosphere.ts",
+      "limit": "Existing bounded palette group; does not implement every proposed semantic-color decision."
+    },
+    "G01": {
+      "route": "/",
+      "control": "Choose your goal",
+      "source": "src/lib/garden-content.ts",
+      "limit": "Garden preference does not by itself change the Studio integration mode."
+    },
+    "G08": {
+      "route": "/",
+      "control": "Garden lesson preference",
+      "source": "src/components/GardenHome.tsx",
+      "limit": "Existing Garden lesson preference; does not hide critical warnings."
+    }
+  },
+  "optionOverrides": {
+    "B15.a": {
+      "checks": [
+        "Complete the inline task using ordinary document navigation; Tab can leave the form without modal containment, and no modal semantics are applied."
+      ]
+    },
+    "B15.b": {
+      "checks": [
+        "Open the modal by keyboard; focus enters logically and remains inside while open, Escape or the close action dismisses it, and focus returns to a valid initiating context."
+      ]
+    },
+    "R02.a": {
+      "conditionalRequires": [
+        {
+          "decision": "B19",
+          "when": {
+            "flag": "hasTables",
+            "equals": true
+          }
+        }
+      ],
+      "checks": [
+        "For ordinary vertically scrolling content, inspect320CSSpixels and400%zoom from1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
+      ]
+    },
+    "R02.b": {
+      "conditionalRequires": [
+        {
+          "decision": "B19",
+          "when": {
+            "flag": "hasTables",
+            "equals": true
+          }
+        }
+      ],
+      "checks": [
+        "Identify the specific content requiring two-dimensional layout and justify the applicable exception; keep the surrounding page reflowing and exercise the region with keyboard and zoom."
+      ]
+    },
+    "H11.a": {
+      "checks": [
+        "For current Focus guides, test60000/60001UTF-16code units and Target59000/59001preflight values, plus a multibyte fixture proving these are not UTF-8byte limits. Verify complete recovery without clipping."
+      ]
+    },
+    "H11.b": {
+      "checks": [
+        "A future split protocol must declare its size unit, part order and integrity contract. No current support is claimed. Test missing, reordered, duplicate and altered parts before enabling it."
+      ]
+    },
+    "H12.a": {
+      "checks": [
+        "Current Focus records only the current owner's acknowledgment for unchanged work/account/request lifetime. Cancel, supersede and repeat it; stale callbacks receive no saved-work credit. It does not establish a colleague's receipt."
+      ]
+    },
+    "H12.b": {
+      "checks": [
+        "A future colleague delivery channel must bind recipient identity, artifact revision and receipt event. Test wrong recipient, changed artifact, delivery failure and acknowledgment replay; delivery remains distinct from successful use."
+      ]
+    },
+    "V12.a": {
+      "requires": [
+        "V04",
+        "V05",
+        "V10",
+        "H15"
+      ],
+      "conditionalRequires": [
+        {
+          "decision": "V09",
+          "when": {
+            "flag": "claimsNorthStarEquivalence",
+            "equals": true
+          }
+        }
+      ],
+      "checks": [
+        "Trace every promised release requirement to current scoped evidence. A comparative human-quality claim additionally requires its declared study evidence; an ordinary scoped release does not require that claim or study."
+      ]
+    },
+    "V12.b": {
+      "requires": [
+        "V01",
+        "V10"
+      ],
+      "checks": [
+        "Label the artifact as a draft and list open checks, unsupported operations and safe next actions. Do not require release approval or human-comparison evidence merely to deliver a reviewable draft."
+      ]
+    },
+    "H15.a": {
+      "requires": [
+        "H13",
+        "H14"
+      ],
+      "checks": [
+        "Before an authorized release, match the exact reviewed artifact, audience and deployment target. Existing-project releases additionally need the applicable original-task and rollback evidence."
+      ]
+    },
+    "H15.b": {
+      "requires": [],
+      "checks": [
+        "Label the package as a review draft, disclose open checks and unresolved destinations, and describe how the recipient can inspect it without deployment. No release approval is inferred."
+      ]
+    }
+  }
+}

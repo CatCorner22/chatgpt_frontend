@@ -3,6 +3,7 @@ import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
+import { GARDEN_FORMULA } from "@/lib/garden-formula";
 import { LIBRARY_KEY } from "@/lib/library";
 import { PROGRESS_KEY } from "@/lib/launch";
 import { ONBOARDING_KEY } from "@/lib/onboarding";
@@ -258,10 +259,10 @@ describe("Garden home", () => {
     );
     const destinations: Record<Exclude<GardenStepId, "goal">, string> = {
       content: "/?view=studio",
-      plan: "/?view=studio",
+      plan: "/?view=studio&panel=stratosphere&group=composition",
       direction: "/?view=studio",
-      craft: "/stratosphere",
-      behavior: "/stratosphere",
+      craft: "/?view=studio&panel=stratosphere&group=palette",
+      behavior: "/?view=studio&panel=stratosphere&group=form",
       responsive: "/quality",
       handoff: "/target",
       check: "/telescope",
@@ -271,18 +272,91 @@ describe("Garden home", () => {
       if (step.id === "goal") continue;
       visitStep(step.id);
       const href = destinations[step.id];
-      expect(screen.getByRole("link", { name: step.actionLabel })).toHaveAttribute("href", href);
+      expect(
+        screen.getByRole("link", {
+          name: GARDEN_FORMULA[step.id].primaryLabel ?? step.actionLabel,
+        }),
+      ).toHaveAttribute("href", href);
       offered.add(href);
     }
     expect([...offered]).toEqual(
       expect.arrayContaining([
         "/?view=studio",
-        "/stratosphere",
+        "/?view=studio&panel=stratosphere&group=palette",
         "/quality",
         "/target",
         "/telescope",
       ]),
     );
+  });
+
+  it("keeps a complete Do / Changes / Check formula and all scope warnings visible at every stop", async () => {
+    seedProtectedRecords();
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    for (const step of GARDEN_STEPS) {
+      visitStep(step.id);
+      const formula = GARDEN_FORMULA[step.id];
+      for (const label of ["Do", "Changes", "Check"]) {
+        expect(screen.getByText(label, { selector: "dt" })).toBeVisible();
+      }
+      for (const value of [formula.do, formula.changes, formula.check]) {
+        expect(screen.getByText(value)).toBeVisible();
+      }
+      if (formula.scopeNote) expect(screen.getByText(formula.scopeNote)).toBeVisible();
+      if (step.id !== "goal") expect(screen.getByText(step.evidenceNote)).toBeVisible();
+      expect(screen.getByRole("checkbox", { name: "Keep it brief" })).toBeChecked();
+      expect(screen.queryByRole("region", { name: "Design decision field notes" })).toBeNull();
+      expect(document.querySelectorAll(".garden-primary")).toHaveLength(1);
+    }
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
+  });
+
+  it("offers real font, hierarchy and spacing links beside the primary palette task", async () => {
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    visitStep("craft");
+    const navigation = screen.getByRole("navigation", { name: "Other craft details" });
+    for (const detail of GARDEN_FORMULA.craft.details!) {
+      expect(within(navigation).getByRole("link", { name: detail.label })).toHaveAttribute(
+        "href",
+        `/?view=studio&panel=stratosphere&group=${detail.group}`,
+      );
+    }
+    expect(screen.getByRole("img", { name: "Reverie reading a map" })).toHaveAttribute(
+      "src",
+      "/brand/reverie-map-guide.png",
+    );
+    expect(screen.getByRole("img", { name: "Reverie walking with her kite" })).toHaveAttribute(
+      "src",
+      "/brand/reverie-kite.png",
+    );
+    expect(document.querySelector(".garden-river")).toHaveAttribute(
+      "src",
+      "/brand/garden-river.png",
+    );
+  });
+
+  it("mounts the read-only decision guide only while lessons are open and reopens it for the current stop", async () => {
+    seedProtectedRecords();
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    expect(screen.queryByRole("region", { name: "Design decision field notes" })).toBeNull();
+    fireEvent.click(lessons().summary);
+    const guide = await screen.findByRole("region", { name: "Design decision field notes" });
+    expect(guide).toBeVisible();
+    await within(guide).findByRole("combobox");
+    fireEvent.click(screen.getByRole("button", { name: "Hide the longer lessons" }));
+    expect(screen.queryByRole("region", { name: "Design decision field notes" })).toBeNull();
+    visitStep("craft");
+    expect(screen.getByText(GARDEN_FORMULA.craft.scopeNote!)).toBeVisible();
+    fireEvent.click(lessons().summary);
+    expect(
+      await screen.findByRole("region", { name: "Design decision field notes" }),
+    ).toBeVisible();
+    await screen.findByRole("combobox");
+    expect(screen.getByText(GARDEN_FORMULA.craft.scopeNote!)).toBeVisible();
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
 
   it("uses labelled native controls and a focusable heading for keyboard access", async () => {

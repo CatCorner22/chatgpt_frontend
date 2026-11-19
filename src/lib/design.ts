@@ -379,7 +379,7 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     "Claude Code":
       "Write tokens.css first, then build; after building, render the page, screenshot it, and compare it against every rule below before reporting.",
     ChatGPT:
-      "Paste this whole Vision before asking for any code. Ask for one file at a time and repeat 'follow the Vision' with each request so later answers don't drift back to defaults.",
+      "Paste this whole Vision before asking for any code. Ask for one file at a time, include the relevant Vision requirements with each request, and review each result against them.",
     Gemini:
       "Paste this whole Vision first; ask it to restate the tokens back before writing code, then build section by section.",
     "GitHub Copilot":
@@ -390,7 +390,7 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     Windsurf:
       "Save this as .windsurfrules (or DESIGN.md) as design guidance; check that your tool loads it and review each resulting change against this Vision. Build tokens.css first.",
     "Own or local model":
-      "Smaller models forget long instructions: give it the short version first, then this full Vision one section at a time, and check each result against the tokens.",
+      "If your model cannot accept the complete Vision in one request, provide the short summary followed by the relevant sections; review every result against the complete specification.",
     "Human developer":
       "These are the design decisions for the build. Implement tokens.css as the single source of truth for color, type, spacing and radius; nothing else should be hardcoded.",
   }[tool];

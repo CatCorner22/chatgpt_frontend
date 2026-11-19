@@ -1,0 +1,4020 @@
+{
+  "version": 1,
+  "catalogueSha256": "8ccb3539592cd5d69e985794f6e62fb12f2440ae0fe73e8853fb89b835653bb2",
+  "status": "Planning guidance; selections do not implement or verify a customer project.",
+  "decisions": [
+    {
+      "id": "G01",
+      "region": "goal",
+      "question": "Are we starting fresh or improving something that works?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G01.a",
+          "consequence": "New build: permits a new structure; requires a complete content and behavior brief.",
+          "checks": [
+            "Record mode explicitly; an existing-project fixture cannot enter the replacement-page operation."
+          ]
+        },
+        {
+          "id": "G01.b",
+          "consequence": "Existing product: preserves working tasks; changes need a baseline and scoped trial.",
+          "checks": [
+            "Record mode explicitly; an existing-project fixture cannot enter the replacement-page operation."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "G02",
+      "region": "goal",
+      "question": "Who needs to accomplish the task?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G02.a",
+          "consequence": "One primary audience: makes the initial path clear; secondary audiences need another route.",
+          "checks": [
+            "Name the audience, context and task; test each promised route with a representative scenario."
+          ]
+        },
+        {
+          "id": "G02.b",
+          "consequence": "Multiple audience routes: serves distinct needs; adds navigation and content to maintain.",
+          "checks": [
+            "Name the audience, context and task; test each promised route with a representative scenario."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "G03",
+      "region": "goal",
+      "question": "What does success actually mean?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G03.a",
+          "consequence": "Information outcome: confirm that a visitor finds and understands the required facts.",
+          "checks": [
+            "Write an observable outcome before selecting a visual direction; a click alone cannot prove completion."
+          ]
+        },
+        {
+          "id": "G03.b",
+          "consequence": "Completed action: requires a real destination, completion event and recovery behavior.",
+          "checks": [
+            "Write an observable outcome before selecting a visual direction; a click alone cannot prove completion."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "G04",
+      "region": "goal",
+      "question": "What must survive the redesign?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "G04.a",
+          "consequence": "Preserve all existing tasks: lowers migration risk; limits immediate restructuring.",
+          "checks": [
+            "List protected content, routes, actions and files; compare them after the trial and undo."
+          ]
+        },
+        {
+          "id": "G04.b",
+          "consequence": "Approve named task changes: permits deeper redesign; requires owner review and regression coverage.",
+          "checks": [
+            "List protected content, routes, actions and files; compare them after the trial and undo."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "G05",
+      "region": "goal",
+      "question": "Which customer implementation is supported?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G05.a",
+          "consequence": "Supported adapter: enables its bounded operations; does not imply support for another framework.",
+          "checks": [
+            "Detect the framework and file shape; unknown or incompatible inputs cannot receive an adapter-supported label."
+          ]
+        },
+        {
+          "id": "G05.b",
+          "consequence": "Specification only: provides reviewed instructions; requires an external implementation and tests.",
+          "checks": [
+            "Detect the framework and file shape; unknown or incompatible inputs cannot receive an adapter-supported label."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "G06",
+      "region": "goal",
+      "question": "Which constraints are fixed?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G06.a",
+          "consequence": "Owner constraints: retain brand, compliance and asset requirements; fewer alternatives remain.",
+          "checks": [
+            "Separate facts, preferences and assumptions; unresolved requirements remain visible in the handoff."
+          ]
+        },
+        {
+          "id": "G06.b",
+          "consequence": "Exploratory brief: permits alternatives; every consequential departure still needs a stated rationale.",
+          "checks": [
+            "Separate facts, preferences and assumptions; unresolved requirements remain visible in the handoff."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "G07",
+      "region": "goal",
+      "question": "What is the cost envelope?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G07.a",
+          "consequence": "Local bounded tools: predictable scope; fewer generated variations.",
+          "checks": [
+            "Record which operations incur cost; a retry or background review cannot silently enable paid calls."
+          ]
+        },
+        {
+          "id": "G07.b",
+          "consequence": "Optional remote generation: broader exploration; requires known cost, privacy and failure policies.",
+          "checks": [
+            "Record which operations incur cost; a retry or background review cannot silently enable paid calls."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "G08",
+      "region": "goal",
+      "question": "How much teaching is visible?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "G08.a",
+          "consequence": "Short guidance: faster movement; deeper lessons remain one deliberate action away.",
+          "checks": [
+            "Toggle, navigate and reload; retain the preference without changing project data or hiding blockers."
+          ]
+        },
+        {
+          "id": "G08.b",
+          "consequence": "Detailed guidance: explains tradeoffs; takes more reading space and time.",
+          "checks": [
+            "Toggle, navigate and reload; retain the preference without changing project data or hiding blockers."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Accordion",
+          "url": "https://design-system.service.gov.uk/components/accordion/",
+          "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        }
+      ]
+    },
+    {
+      "id": "C01",
+      "region": "content",
+      "question": "Where do the words come from?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C01.a",
+          "consequence": "Owner-supplied copy: preserves facts and voice; may need separate editorial review.",
+          "checks": [
+            "Record provenance; export decoded owner strings exactly and flag unapproved claims."
+          ]
+        },
+        {
+          "id": "C01.b",
+          "consequence": "Draft copy: accelerates exploration; must remain visibly unapproved until reviewed.",
+          "checks": [
+            "Record provenance; export decoded owner strings exactly and flag unapproved claims."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "region": "content",
+      "question": "Which facts must be seen before acting?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C02.a",
+          "consequence": "Essential facts inline: supports informed action; uses visible space.",
+          "checks": [
+            "Attempt the task with lessons closed; all prerequisites, qualifications and costs remain available before action."
+          ]
+        },
+        {
+          "id": "C02.b",
+          "consequence": "Supplementary facts on demand: reduces density; risks being missed if used for essentials.",
+          "checks": [
+            "Attempt the task with lessons closed; all prerequisites, qualifications and costs remain available before action."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Accordion",
+          "url": "https://design-system.service.gov.uk/components/accordion/",
+          "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "region": "content",
+      "question": "What does the main action promise?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C03.a",
+          "consequence": "Specific result label: clarifies the next outcome; can be longer.",
+          "checks": [
+            "Ask a reviewer what activation will do; compare with the actual destination and preserve approved wording."
+          ]
+        },
+        {
+          "id": "C03.b",
+          "consequence": "Short contextual label: saves space; needs nearby context that remains visible and programmatic.",
+          "checks": [
+            "Ask a reviewer what activation will do; compare with the actual destination and preserve approved wording."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "region": "content",
+      "question": "Where does the action lead?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C04.a",
+          "consequence": "Confirmed destination: enables a working action after integration and task testing.",
+          "checks": [
+            "Inspect the actual href or request and completion event; no fabricated endpoint or confirmed-success message."
+          ]
+        },
+        {
+          "id": "C04.b",
+          "consequence": "Unconfirmed destination: keeps the design reviewable; cannot be represented as a working conversion path.",
+          "checks": [
+            "Inspect the actual href or request and completion event; no fabricated endpoint or confirmed-success message."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "region": "content",
+      "question": "How are features and qualifications grouped?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C05.a",
+          "consequence": "Headline plus explanation: supports scanning; adds vertical space.",
+          "checks": [
+            "Compare every supported field and feature order across editor, preview, specification and output."
+          ]
+        },
+        {
+          "id": "C05.b",
+          "consequence": "Compact linked detail: reduces initial length; needs a discoverable disclosure and preserved order.",
+          "checks": [
+            "Compare every supported field and feature order across editor, preview, specification and output."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C06",
+      "region": "content",
+      "question": "Which images explain the offering?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C06.a",
+          "consequence": "Owned real asset: adds specificity; needs quality, permission and useful framing.",
+          "checks": [
+            "Record asset source, permission, intended subject and replacement status before export."
+          ]
+        },
+        {
+          "id": "C06.b",
+          "consequence": "Marked placeholder: enables planning; cannot be mistaken for evidence of actual work.",
+          "checks": [
+            "Record asset source, permission, intended subject and replacement status before export."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C07",
+      "region": "content",
+      "question": "What does the image communicate without sight?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "The proposed page uses images.",
+      "approaches": [
+        {
+          "id": "C07.a",
+          "consequence": "Informative alternative text: communicates the relevant meaning; depends on context.",
+          "checks": [
+            "Inspect purpose in context; review text alternatives and keyboard/screen-reader reading sequence."
+          ]
+        },
+        {
+          "id": "C07.b",
+          "consequence": "Decorative treatment: avoids redundant announcements; valid only when no needed information is lost.",
+          "checks": [
+            "Inspect purpose in context; review text alternatives and keyboard/screen-reader reading sequence."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "C08",
+      "region": "content",
+      "question": "Which image crop preserves meaning?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "The proposed page uses images.",
+      "approaches": [
+        {
+          "id": "C08.a",
+          "consequence": "Contain the full image: preserves all edges; may leave spare space.",
+          "checks": [
+            "Inspect narrow and wide crops with the actual asset; preserve original bytes and reversible framing."
+          ]
+        },
+        {
+          "id": "C08.b",
+          "consequence": "Crop around a focal point: strengthens composition; may hide important content at another width.",
+          "checks": [
+            "Inspect narrow and wide crops with the actual asset; preserve original bytes and reversible framing."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C09",
+      "region": "content",
+      "question": "Which quotes and claims are publishable?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "The page includes quotations, endorsements or factual promotional claims.",
+      "approaches": [
+        {
+          "id": "C09.a",
+          "consequence": "Attributed approved claim: provides evidence; requires provenance and permission.",
+          "checks": [
+            "Trace each claim to an owner-approved source; no generated customer endorsement is marked genuine."
+          ]
+        },
+        {
+          "id": "C09.b",
+          "consequence": "Omit unconfirmed proof: avoids fabrication; may reduce persuasive content until supplied.",
+          "checks": [
+            "Trace each claim to an owner-approved source; no generated customer endorsement is marked genuine."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "region": "content",
+      "question": "Which languages need real support?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C10.a",
+          "consequence": "Single declared language: smaller content surface; other-language fallback remains explicit.",
+          "checks": [
+            "Test locale labels, page language, real strings, glyph coverage and date/number conventions."
+          ]
+        },
+        {
+          "id": "C10.b",
+          "consequence": "Multiple locales: expands reach; needs translation, formatting, layout and review per locale.",
+          "checks": [
+            "Test locale labels, page language, real strings, glyph coverage and date/number conventions."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "region": "content",
+      "question": "Which metadata makes this page discoverable?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C11.a",
+          "consequence": "Public indexable page: needs accurate title, description and canonical ownership.",
+          "checks": [
+            "Check rendered metadata and indexing policy; robots directives must never be described as authorization."
+          ]
+        },
+        {
+          "id": "C11.b",
+          "consequence": "Private or preview page: avoids intentional discovery; requires actual access controls for secrecy.",
+          "checks": [
+            "Check rendered metadata and indexing policy; robots directives must never be described as authorization."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+          "limit": "Model least privilege and validate requests; a UI-only restriction is not authorization."
+        }
+      ]
+    },
+    {
+      "id": "C12",
+      "region": "content",
+      "question": "Who maintains content after launch?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "C12.a",
+          "consequence": "Named owner with review date: supports updates; requires an operational commitment.",
+          "checks": [
+            "The handoff names an owner, update path and stale-content policy without inventing contact details."
+          ]
+        },
+        {
+          "id": "C12.b",
+          "consequence": "Time-bounded campaign: reduces long-term maintenance; needs an expiry or archive plan.",
+          "checks": [
+            "The handoff names an owner, update path and stale-content policy without inventing contact details."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "P01",
+      "region": "plan",
+      "question": "Which page roles are necessary?",
+      "mode": "single",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P01.a",
+          "consequence": "Single focused page: short journey; limited room for distinct audiences and tasks.",
+          "checks": [
+            "Map each route to a task and required content; remove orphan pages and identify unsupported output scope."
+          ]
+        },
+        {
+          "id": "P01.b",
+          "consequence": "Multiple named routes: supports distinct tasks; increases navigation, state and regression scope.",
+          "checks": [
+            "Map each route to a task and required content; remove orphan pages and identify unsupported output scope."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "P02",
+      "region": "plan",
+      "question": "What is the meaningful reading sequence?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P02.a",
+          "consequence": "Task-led sequence: brings prerequisites toward the action; suits a focused journey.",
+          "checks": [
+            "Read the DOM outline without visual styling and confirm required relationships still make sense."
+          ]
+        },
+        {
+          "id": "P02.b",
+          "consequence": "Reference-led sections: supports scanning and return visits; needs clear headings and discovery.",
+          "checks": [
+            "Read the DOM outline without visual styling and confirm required relationships still make sense."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Meaningful Sequence",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/meaningful-sequence.html",
+          "limit": "Applies where sequence affects meaning; not every visual order must be identical."
+        }
+      ]
+    },
+    {
+      "id": "P03",
+      "region": "plan",
+      "question": "How does a visitor know where they are?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P03.a",
+          "consequence": "Persistent global navigation: aids orientation; occupies repeated space.",
+          "checks": [
+            "Open a deep link and use Back/Forward; current location and exit routes remain understandable."
+          ]
+        },
+        {
+          "id": "P03.b",
+          "consequence": "Compact contextual navigation: reduces visual weight; needs a clear route home and to other tasks.",
+          "checks": [
+            "Open a deep link and use Back/Forward; current location and exit routes remain understandable."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "P04",
+      "region": "plan",
+      "question": "How many choices appear at once?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P04.a",
+          "consequence": "Grouped visible options: enables comparison; grows with catalogue size.",
+          "checks": [
+            "Find a known option from a cold start; record wrong routes, assistance and recovery."
+          ]
+        },
+        {
+          "id": "P04.b",
+          "consequence": "Progressive filtering: narrows the set; requires a reversible filter and visible active constraints.",
+          "checks": [
+            "Find a known option from a cold start; record wrong routes, assistance and recovery."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Accordion",
+          "url": "https://design-system.service.gov.uk/components/accordion/",
+          "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        }
+      ]
+    },
+    {
+      "id": "P05",
+      "region": "plan",
+      "question": "What is a card's actual purpose?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P05.a",
+          "consequence": "Navigable item: links to a named destination; nested actions need separate interaction design.",
+          "checks": [
+            "Keyboard and pointer operation match the visual affordance; no nested interactive elements or dead whole-card links."
+          ]
+        },
+        {
+          "id": "P05.b",
+          "consequence": "Informational group: supports scanning; must not look clickable without a working action.",
+          "checks": [
+            "Keyboard and pointer operation match the visual affordance; no nested interactive elements or dead whole-card links."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "region": "plan",
+      "question": "How are large collections discovered?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "The page has a collection that can be searched, filtered or browsed.",
+      "approaches": [
+        {
+          "id": "P06.a",
+          "consequence": "Search and filters: useful for known attributes; requires query, empty and error behavior.",
+          "checks": [
+            "Find known and unfamiliar items; retain query/filter state across result and detail navigation."
+          ]
+        },
+        {
+          "id": "P06.b",
+          "consequence": "Curated categories: easier to browse initially; requires ongoing information architecture.",
+          "checks": [
+            "Find known and unfamiliar items; retain query/filter state across result and detail navigation."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "region": "plan",
+      "question": "When does detail get its own page?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P07.a",
+          "consequence": "Inline disclosure: preserves context; can make a page long or crowded.",
+          "checks": [
+            "Open detail by keyboard, return and confirm prior selection, scroll context and unsaved work."
+          ]
+        },
+        {
+          "id": "P07.b",
+          "consequence": "Dedicated detail route: supports sharing and deep work; requires return-state restoration.",
+          "checks": [
+            "Open detail by keyboard, return and confirm prior selection, scroll context and unsaved work."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Accordion",
+          "url": "https://design-system.service.gov.uk/components/accordion/",
+          "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        }
+      ]
+    },
+    {
+      "id": "P08",
+      "region": "plan",
+      "question": "Where do instructions belong?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P08.a",
+          "consequence": "Beside the decision: supports timely understanding; adds local content.",
+          "checks": [
+            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+          ]
+        },
+        {
+          "id": "P08.b",
+          "consequence": "Optional field guide: provides depth; cannot carry information required to complete the main path.",
+          "checks": [
+            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Accordion",
+          "url": "https://design-system.service.gov.uk/components/accordion/",
+          "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        }
+      ]
+    },
+    {
+      "id": "P09",
+      "region": "plan",
+      "question": "What is visible before a prerequisite exists?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P09.a",
+          "consequence": "Explain and link to prerequisite: supports recovery; adds an extra step.",
+          "checks": [
+            "A missing saved design opens a real prerequisite route without overwriting the current draft."
+          ]
+        },
+        {
+          "id": "P09.b",
+          "consequence": "Offer a reversible draft: supports exploration; cannot claim implementation or readiness.",
+          "checks": [
+            "A missing saved design opens a real prerequisite route without overwriting the current draft."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "region": "plan",
+      "question": "How does the map preserve advanced access?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "P10.a",
+          "consequence": "Contextual advanced controls: keeps the current task focused; requires accurate mapping.",
+          "checks": [
+            "Reach a named advanced control from the Garden and return with the same project and selected mode."
+          ]
+        },
+        {
+          "id": "P10.b",
+          "consequence": "Searchable tool directory: supports experts and discovery; needs understandable names and return paths.",
+          "checks": [
+            "Reach a named advanced control from the Garden and return with the same project and selected mode."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D01",
+      "region": "direction",
+      "question": "Which visual references fit the actual task?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D01.a",
+          "consequence": "Task-matched reference: helps compare useful structure; may offer fewer stylistic surprises.",
+          "checks": [
+            "Record the admired property and intended effect; do not copy another brand's words or protected assets."
+          ]
+        },
+        {
+          "id": "D01.b",
+          "consequence": "Cross-domain inspiration: broadens exploration; requires translation rather than copying.",
+          "checks": [
+            "Record the admired property and intended effect; do not copy another brand's words or protected assets."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "region": "direction",
+      "question": "How do alternatives differ meaningfully?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D02.a",
+          "consequence": "Change composition: tests hierarchy and content relationships; needs full reading-order review.",
+          "checks": [
+            "Hold copy and assets constant; name the changed variable and inspect effects outside the focal section."
+          ]
+        },
+        {
+          "id": "D02.b",
+          "consequence": "Change one visual dimension: isolates preference; does not test a different information structure.",
+          "checks": [
+            "Hold copy and assets constant; name the changed variable and inspect effects outside the focal section."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "region": "direction",
+      "question": "Where is emphasis concentrated?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D03.a",
+          "consequence": "One dominant focal area: clarifies entry; secondary information needs a readable route.",
+          "checks": [
+            "Review first impression and required-fact retrieval separately with the real content."
+          ]
+        },
+        {
+          "id": "D03.b",
+          "consequence": "Balanced editorial rhythm: supports exploration; can dilute the main task if every region competes.",
+          "checks": [
+            "Review first impression and required-fact retrieval separately with the real content."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "ONS: User needs",
+          "url": "https://service-manual.ons.gov.uk/content/writing-for-users/user-needs",
+          "limit": "Use to structure need-led content; Focus's option sets are proposals."
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "region": "direction",
+      "question": "Which tone expresses the brand?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D04.a",
+          "consequence": "Restrained foundations with distinctive details: calm and memorable; requires deliberate detail selection.",
+          "checks": [
+            "Explain the role of each distinctive treatment; remove decoration that obscures the task in a comparison."
+          ]
+        },
+        {
+          "id": "D04.b",
+          "consequence": "Expressive visual system: signals personality strongly; requires stronger hierarchy and motion discipline.",
+          "checks": [
+            "Explain the role of each distinctive treatment; remove decoration that obscures the task in a comparison."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Ryohin Keikaku: Three Principles in Manufacturing",
+          "url": "https://www.ryohin-keikaku.jp/en/about-muji/principles",
+          "limit": "Manufacturing philosophy; translating it to UI is our design interpretation, not measured UI evidence."
+        },
+        {
+          "title": "Japan Digital Agency: About the Design System",
+          "url": "https://design.digital.go.jp/dads/guidance/design-system/",
+          "limit": "Japanese public-service context; our English synthesis is a paraphrase and not a cultural definition."
+        }
+      ]
+    },
+    {
+      "id": "D05",
+      "region": "direction",
+      "question": "Which color roles carry meaning?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D05.a",
+          "consequence": "Small semantic palette: creates coherence; fewer accents need clear non-color labels.",
+          "checks": [
+            "Map each color to a role; status and category meaning remain available without color perception."
+          ]
+        },
+        {
+          "id": "D05.b",
+          "consequence": "Broader categorical palette: distinguishes groups; increases contrast and confusion checks.",
+          "checks": [
+            "Map each color to a role; status and category meaning remain available without color perception."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "region": "direction",
+      "question": "Which light or dark treatment fits use?",
+      "mode": "contextual",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D06.a",
+          "consequence": "One tested theme: simpler verification; may not suit every viewing condition.",
+          "checks": [
+            "Inspect all states and media in each offered theme; no untested automatic inversion is advertised."
+          ]
+        },
+        {
+          "id": "D06.b",
+          "consequence": "Multiple themes: respects varied contexts; doubles relevant state and contrast surfaces.",
+          "checks": [
+            "Inspect all states and media in each offered theme; no untested automatic inversion is advertised."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "region": "direction",
+      "question": "Where does Reverie help?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D07.a",
+          "consequence": "Contextual guide: explains the next decision; must stay concise and avoid covering work.",
+          "checks": [
+            "Hide the character and motion; the same actions, labels and explanations remain reachable."
+          ]
+        },
+        {
+          "id": "D07.b",
+          "consequence": "Optional companion: leaves more workspace; help and orientation still need non-character controls.",
+          "checks": [
+            "Hide the character and motion; the same actions, labels and explanations remain reachable."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "region": "direction",
+      "question": "How much visual asymmetry serves the page?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D08.a",
+          "consequence": "Ordered alignment: makes relationships predictable; can feel generic without considered rhythm.",
+          "checks": [
+            "Compare narrow/wide screenshots and keyboard order; decoration must not reorder task meaning."
+          ]
+        },
+        {
+          "id": "D08.b",
+          "consequence": "Deliberate asymmetry: adds tension and personality; must preserve readable order at every width.",
+          "checks": [
+            "Compare narrow/wide screenshots and keyboard order; decoration must not reorder task meaning."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Meaningful Sequence",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/meaningful-sequence.html",
+          "limit": "Applies where sequence affects meaning; not every visual order must be identical."
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "region": "direction",
+      "question": "Where can motion add information?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D09.a",
+          "consequence": "State transition only: signals change; needs reduced-motion behavior.",
+          "checks": [
+            "Disable motion and repeat the task; no essential state information disappears."
+          ]
+        },
+        {
+          "id": "D09.b",
+          "consequence": "Optional narrative motion: supports character and delight; adds performance and distraction risks.",
+          "checks": [
+            "Disable motion and repeat the task; no essential state information disappears."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "region": "direction",
+      "question": "How do we choose a direction?",
+      "mode": "combine",
+      "actor": "owner",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "D10.a",
+          "consequence": "Owner preference with rationale: captures taste; does not establish customer usability.",
+          "checks": [
+            "Separate preference ratings, task results and technical failures; preserve rejected alternatives and reasons."
+          ]
+        },
+        {
+          "id": "D10.b",
+          "consequence": "Matched user comparison: adds observed evidence; costs recruitment and cannot settle every preference.",
+          "checks": [
+            "Separate preference ratings, task results and technical failures; preserve rejected alternatives and reasons."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Using moderated usability testing",
+          "url": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
+          "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+        }
+      ]
+    },
+    {
+      "id": "F01",
+      "region": "craft",
+      "question": "Which font pair is actually deliverable?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F01.a",
+          "consequence": "Bundled licensed pair: predictable assets; increases package size and needs license notices.",
+          "checks": [
+            "Inspect delivered font files, real weights, licenses and fallback; family-name text alone is insufficient."
+          ]
+        },
+        {
+          "id": "F01.b",
+          "consequence": "System fallback: fast and portable; varies by recipient device and changes the intended voice.",
+          "checks": [
+            "Inspect delivered font files, real weights, licenses and fallback; family-name text alone is insufficient."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F02",
+      "region": "craft",
+      "question": "Which weights provide hierarchy?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F02.a",
+          "consequence": "Few verified weights: smaller assets and clear contrast; less tonal range.",
+          "checks": [
+            "Confirm each declared weight exists; reject silent synthetic weight as proof of intended rendering."
+          ]
+        },
+        {
+          "id": "F02.b",
+          "consequence": "Expanded real weights: more nuance; increases loading and verification cost.",
+          "checks": [
+            "Confirm each declared weight exists; reject silent synthetic weight as proof of intended rendering."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "F03",
+      "region": "craft",
+      "question": "How large is body copy in context?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F03.a",
+          "consequence": "Stable relative size: predictable reading; may need content-specific adjustment.",
+          "checks": [
+            "Test the actual text at default and enlarged browser text sizes; no clipped control or unreadable content."
+          ]
+        },
+        {
+          "id": "F03.b",
+          "consequence": "Bounded fluid size: adapts to space; requires zoom and small-screen inspection.",
+          "checks": [
+            "Test the actual text at default and enlarged browser text sizes; no clipped control or unreadable content."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "F04",
+      "region": "craft",
+      "question": "How strongly do headings differ?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F04.a",
+          "consequence": "Moderate scale: compact hierarchy; may need stronger weight or spacing cues.",
+          "checks": [
+            "Inspect hierarchy using long real headings at narrow and wide widths and with fallback fonts."
+          ]
+        },
+        {
+          "id": "F04.b",
+          "consequence": "Expressive scale: distinctive entry; increases wrapping and small-screen risk.",
+          "checks": [
+            "Inspect hierarchy using long real headings at narrow and wide widths and with fallback fonts."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "F05",
+      "region": "craft",
+      "question": "How wide are reading lines?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F05.a",
+          "consequence": "Constrained measure: supports continuous reading; increases page height.",
+          "checks": [
+            "Measure the actual text block and reading experience; ch values are not exact character counts."
+          ]
+        },
+        {
+          "id": "F05.b",
+          "consequence": "Wider information region: suits tables or comparison; needs intentional scanning structure.",
+          "checks": [
+            "Measure the actual text block and reading experience; ch values are not exact character counts."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "MDN: CSS length type",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/length",
+          "limit": "ch is the advance measure of the zero glyph, not an exact count of arbitrary characters."
+        },
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "F06",
+      "region": "craft",
+      "question": "How does line spacing fit the script?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F06.a",
+          "consequence": "Unitless regular rhythm: scales with text; needs actual-script review.",
+          "checks": [
+            "Check accents, multi-line labels and translated text without overlap or clipping."
+          ]
+        },
+        {
+          "id": "F06.b",
+          "consequence": "Context-specific rhythm: handles display or dense material; increases component variations.",
+          "checks": [
+            "Check accents, multi-line labels and translated text without overlap or clipping."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "F07",
+      "region": "craft",
+      "question": "Which number presentation serves the task?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F07.a",
+          "consequence": "Tabular numerals: aids column comparison; changes typographic texture.",
+          "checks": [
+            "Compare real prices, dates and quantities; retain locale formatting and meaningful headers."
+          ]
+        },
+        {
+          "id": "F07.b",
+          "consequence": "Proportional numerals: suits prose; makes aligned numeric scanning harder.",
+          "checks": [
+            "Compare real prices, dates and quantities; retain locale formatting and meaningful headers."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F08",
+      "region": "craft",
+      "question": "What capitalization is legible?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F08.a",
+          "consequence": "Sentence case: preserves familiar word shapes; creates a softer brand voice.",
+          "checks": [
+            "Inspect screen-reader names, translated labels and wrap behavior; never transform stored owner copy silently."
+          ]
+        },
+        {
+          "id": "F08.b",
+          "consequence": "Limited uppercase: adds emphasis; needs spacing, language and long-label review.",
+          "checks": [
+            "Inspect screen-reader names, translated labels and wrap behavior; never transform stored owner copy silently."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F09",
+      "region": "craft",
+      "question": "Which foreground goes with each surface?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F09.a",
+          "consequence": "Paired role tokens: keeps text/background relationships explicit; requires all state pairs.",
+          "checks": [
+            "Measure applicable pairs then inspect rendered text over actual images, overlays and gradients."
+          ]
+        },
+        {
+          "id": "F09.b",
+          "consequence": "Reviewed local override: permits a special region; must carry its own contrast and maintenance evidence.",
+          "checks": [
+            "Measure applicable pairs then inspect rendered text over actual images, overlays and gradients."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F10",
+      "region": "craft",
+      "question": "How are tokens connected?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F10.a",
+          "consequence": "Semantic aliases: supports coordinated changes; needs type and cycle validation.",
+          "checks": [
+            "Reject missing, wrong-type and cyclic references; export resolved values deterministically."
+          ]
+        },
+        {
+          "id": "F10.b",
+          "consequence": "Explicit component values: easy to inspect locally; increases duplication and drift risk.",
+          "checks": [
+            "Reject missing, wrong-type and cyclic references; export resolved values deterministically."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Design Tokens Format Module 2025.10",
+          "url": "https://www.designtokens.org/tr/2025.10/format/",
+          "limit": "Versioned community specification; explicitly not a W3C Standard. No DTCG compatibility is claimed for Focus."
+        }
+      ]
+    },
+    {
+      "id": "F11",
+      "region": "craft",
+      "question": "Which spacing scale governs the page?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F11.a",
+          "consequence": "Shared spacing steps: coherent rhythm; may need a small number of named exceptions.",
+          "checks": [
+            "Compare related components and content groups; inspect when real text wraps to additional lines."
+          ]
+        },
+        {
+          "id": "F11.b",
+          "consequence": "Role-specific steps: supports complex layouts; increases documentation and consistency work.",
+          "checks": [
+            "Compare related components and content groups; inspect when real text wraps to additional lines."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Japan Digital Agency: About the Design System",
+          "url": "https://design.digital.go.jp/dads/guidance/design-system/",
+          "limit": "Japanese public-service context; our English synthesis is a paraphrase and not a cultural definition."
+        }
+      ]
+    },
+    {
+      "id": "F12",
+      "region": "craft",
+      "question": "How much density suits the activity?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F12.a",
+          "consequence": "Comfortable spacing: easier visual separation; shows fewer items per screen.",
+          "checks": [
+            "Complete a collection task at large text and narrow width; record errors and scrolling costs separately."
+          ]
+        },
+        {
+          "id": "F12.b",
+          "consequence": "Compact spacing: supports expert scanning; cannot shrink required hit areas or hide context.",
+          "checks": [
+            "Complete a collection task at large text and narrow width; record errors and scrolling costs separately."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Using moderated usability testing",
+          "url": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
+          "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+        }
+      ]
+    },
+    {
+      "id": "F13",
+      "region": "craft",
+      "question": "Which corner shape fits the visual system?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F13.a",
+          "consequence": "Crisp or lightly rounded: precise expression; can feel severe without balanced spacing.",
+          "checks": [
+            "Inspect nested controls, clipping and focus outlines; shape preference alone is not a usability pass."
+          ]
+        },
+        {
+          "id": "F13.b",
+          "consequence": "Soft rounded shapes: friendly expression; nested shapes need consistent geometry.",
+          "checks": [
+            "Inspect nested controls, clipping and focus outlines; shape preference alone is not a usability pass."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F14",
+      "region": "craft",
+      "question": "What makes a component edge visible?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F14.a",
+          "consequence": "Border or tonal separation: stable with restrained effects; needs sufficient state distinction.",
+          "checks": [
+            "Inspect overlapping regions and forced-colors behavior; required boundaries cannot depend only on shadow."
+          ]
+        },
+        {
+          "id": "F14.b",
+          "consequence": "Elevation or shadow: communicates layering; may disappear in forced-colors or high-contrast contexts.",
+          "checks": [
+            "Inspect overlapping regions and forced-colors behavior; required boundaries cannot depend only on shadow."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F15",
+      "region": "craft",
+      "question": "How does a button show priority?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F15.a",
+          "consequence": "Filled primary with quieter secondary: emphasizes a local next action; requires meaningful action ordering.",
+          "checks": [
+            "Confirm destructive and neutral choices are distinct; inspect every offered state and actual task."
+          ]
+        },
+        {
+          "id": "F15.b",
+          "consequence": "Equal choice treatment: avoids steering a genuine choice; makes hierarchy less forceful.",
+          "checks": [
+            "Confirm destructive and neutral choices are distinct; inspect every offered state and actual task."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "F16",
+      "region": "craft",
+      "question": "How large is the actionable target?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F16.a",
+          "consequence": "Generous hit area: improves acquisition; uses more room.",
+          "checks": [
+            "Measure rendered targets and spacing; distinguish WCAG minimum from Focus's larger product target."
+          ]
+        },
+        {
+          "id": "F16.b",
+          "consequence": "Compact target with applicable spacing: supports dense screens; needs exact minimum and exception review.",
+          "checks": [
+            "Measure rendered targets and spacing; distinguish WCAG minimum from Focus's larger product target."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Target Size Minimum",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+          "limit": "24 by 24 CSS pixels or applicable exceptions; distinguish the separate larger product target."
+        }
+      ]
+    },
+    {
+      "id": "F17",
+      "region": "craft",
+      "question": "Which icon needs a word beside it?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F17.a",
+          "consequence": "Icon plus label: clearer to unfamiliar users; needs more width.",
+          "checks": [
+            "Verify visible meaning and accessible name; an unfamiliar icon cannot rely on hover-only help."
+          ]
+        },
+        {
+          "id": "F17.b",
+          "consequence": "Icon with accessible name and supplemental help: compact; requires recognizability and touch review.",
+          "checks": [
+            "Verify visible meaning and accessible name; an unfamiliar icon cannot rely on hover-only help."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "F18",
+      "region": "craft",
+      "question": "What makes keyboard focus visible?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F18.a",
+          "consequence": "Persistent outline treatment: easy to track; must fit all surfaces.",
+          "checks": [
+            "Tab through the actual page; focus stays visible and is not hidden by sticky content or clipping."
+          ]
+        },
+        {
+          "id": "F18.b",
+          "consequence": "Component-specific focus treatment: matches special controls; increases testing and consistency work.",
+          "checks": [
+            "Tab through the actual page; focus stays visible and is not hidden by sticky content or clipping."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Focus Not Obscured Minimum",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html",
+          "limit": "AA requires the focused component not be entirely hidden; full visibility is the stronger product goal."
+        }
+      ]
+    },
+    {
+      "id": "F19",
+      "region": "craft",
+      "question": "How does an image load without moving the action?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The proposed page uses images.",
+      "approaches": [
+        {
+          "id": "F19.a",
+          "consequence": "Reserved geometry: stabilizes layout; needs correct aspect ratio.",
+          "checks": [
+            "Delay and fail image requests; inspect layout shifts, alternative text and action position."
+          ]
+        },
+        {
+          "id": "F19.b",
+          "consequence": "Responsive art direction: changes crop by context; every source needs matching geometry and meaning.",
+          "checks": [
+            "Delay and fail image requests; inspect layout shifts, alternative text and action position."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Web Vitals",
+          "url": "https://web.dev/articles/vitals",
+          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+        }
+      ]
+    },
+    {
+      "id": "F20",
+      "region": "craft",
+      "question": "Which decorative effects are justified?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F20.a",
+          "consequence": "One purposeful texture or treatment: distinctive without many competing cues.",
+          "checks": [
+            "Compare with the effect disabled; task information, contrast and performance remain intact."
+          ]
+        },
+        {
+          "id": "F20.b",
+          "consequence": "Plain surfaces: faster and cleaner; identity must come from content, type and composition.",
+          "checks": [
+            "Compare with the effect disabled; task information, contrast and performance remain intact."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Ryohin Keikaku: Three Principles in Manufacturing",
+          "url": "https://www.ryohin-keikaku.jp/en/about-muji/principles",
+          "limit": "Manufacturing philosophy; translating it to UI is our design interpretation, not measured UI evidence."
+        }
+      ]
+    },
+    {
+      "id": "F21",
+      "region": "craft",
+      "question": "How is the whole page rhythm checked?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "F21.a",
+          "consequence": "Section-by-section critique: exposes local hierarchy and repetitive structure; requires integration review.",
+          "checks": [
+            "Review both scales with exact content; a local repair cannot remove unrelated content or alter another task."
+          ]
+        },
+        {
+          "id": "F21.b",
+          "consequence": "Whole-page critique: checks flow; can miss small but consequential defects.",
+          "checks": [
+            "Review both scales with exact content; a local repair cannot remove unrelated content or alter another task."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "B01",
+      "region": "behavior",
+      "question": "Is the control a link, button or selection?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The page contains ordinary links, native controls or task actions.",
+      "approaches": [
+        {
+          "id": "B01.a",
+          "consequence": "Native semantic control: brings expected input behavior; appearance follows the real action.",
+          "checks": [
+            "Exercise keyboard and pointer; verify the role, name, value and resulting action match."
+          ]
+        },
+        {
+          "id": "B01.b",
+          "consequence": "Custom composite: supports complex interaction; requires a complete keyboard and state contract.",
+          "checks": [
+            "Exercise keyboard and pointer; verify the role, name, value and resulting action match."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI ARIA Authoring Practices: Patterns",
+          "url": "https://www.w3.org/WAI/ARIA/apg/patterns/",
+          "limit": "Pattern guidance requires actual keyboard and assistive-technology verification."
+        }
+      ]
+    },
+    {
+      "id": "B02",
+      "region": "behavior",
+      "question": "What is the state model?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The interface includes an action beyond reading and ordinary links.",
+      "approaches": [
+        {
+          "id": "B02.a",
+          "consequence": "Explicit finite states: rules out impossible combinations; requires transition design.",
+          "checks": [
+            "Enumerate valid transitions and reject impossible combinations such as success plus pending for one request."
+          ]
+        },
+        {
+          "id": "B02.b",
+          "consequence": "Independent values: flexible for unrelated data; derived status must not contradict the underlying values.",
+          "checks": [
+            "Enumerate valid transitions and reject impossible combinations such as success plus pending for one request."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "React: Choosing the State Structure",
+          "url": "https://react.dev/learn/choosing-the-state-structure",
+          "limit": "Avoid duplicate and contradictory state; no particular state library is required by this research."
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "region": "behavior",
+      "question": "What tells the user an operation started?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "An action depends on a remote operation.",
+      "approaches": [
+        {
+          "id": "B03.a",
+          "consequence": "Immediate pending text: makes a request visible; avoid claiming an estimated duration without data.",
+          "checks": [
+            "With delayed requests, show accurate progress without blocking unrelated work or announcing success early."
+          ]
+        },
+        {
+          "id": "B03.b",
+          "consequence": "Nonblocking background status: preserves flow; needs a discoverable status and failure path.",
+          "checks": [
+            "With delayed requests, show accurate progress without blocking unrelated work or announcing success early."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Status Messages",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+          "limit": "Applies to defined status messages without context changes; not every DOM update needs a live announcement."
+        }
+      ]
+    },
+    {
+      "id": "B04",
+      "region": "behavior",
+      "question": "What proves the operation finished?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "An action depends on a remote operation.",
+      "approaches": [
+        {
+          "id": "B04.a",
+          "consequence": "Confirmed server or device result: supports an accurate success state; depends on the actual operation.",
+          "checks": [
+            "Simulate cancel, rejection and late completion; only the correct current operation can receive success credit."
+          ]
+        },
+        {
+          "id": "B04.b",
+          "consequence": "Owner acknowledgment: records what the owner reports; must not be presented as machine-verified completion.",
+          "checks": [
+            "Simulate cancel, rejection and late completion; only the correct current operation can receive success credit."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B05",
+      "region": "behavior",
+      "question": "What happens after a failed request?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "An action depends on a remote operation.",
+      "approaches": [
+        {
+          "id": "B05.a",
+          "consequence": "Retry with retained input: reduces repeated effort; needs duplicate and stale-request controls.",
+          "checks": [
+            "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
+          ]
+        },
+        {
+          "id": "B05.b",
+          "consequence": "Alternative recovery route: handles unavailable services; must explain what was and was not saved.",
+          "checks": [
+            "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Validation",
+          "url": "https://design-system.service.gov.uk/patterns/validation/",
+          "limit": "Error correction and retained input are useful; its policy on native validation is specific to that system."
+        }
+      ]
+    },
+    {
+      "id": "B06",
+      "region": "behavior",
+      "question": "When is input validated?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The interface accepts user input in a form.",
+      "approaches": [
+        {
+          "id": "B06.a",
+          "consequence": "Validate after interaction and at submission: gives context; needs clear correction guidance.",
+          "checks": [
+            "Test empty, partial, malformed, maximum and composed input; avoid errors before the user can finish typing."
+          ]
+        },
+        {
+          "id": "B06.b",
+          "consequence": "Immediate validation for a specific format: catches issues early; can interrupt typing or composition.",
+          "checks": [
+            "Test empty, partial, malformed, maximum and composed input; avoid errors before the user can finish typing."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Validation",
+          "url": "https://design-system.service.gov.uk/patterns/validation/",
+          "limit": "Error correction and retained input are useful; its policy on native validation is specific to that system."
+        }
+      ]
+    },
+    {
+      "id": "B07",
+      "region": "behavior",
+      "question": "Where are errors described?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The interface accepts user input in a form.",
+      "approaches": [
+        {
+          "id": "B07.a",
+          "consequence": "Field message plus summary: supports correction across a long form; needs focus and links.",
+          "checks": [
+            "Submit multiple errors; navigate to each field and confirm retained values and programmatic association."
+          ]
+        },
+        {
+          "id": "B07.b",
+          "consequence": "Local inline message: suits a small task; must remain discoverable and linked to the field.",
+          "checks": [
+            "Submit multiple errors; navigate to each field and confirm retained values and programmatic association."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Validation",
+          "url": "https://design-system.service.gov.uk/patterns/validation/",
+          "limit": "Error correction and retained input are useful; its policy on native validation is specific to that system."
+        }
+      ]
+    },
+    {
+      "id": "B08",
+      "region": "behavior",
+      "question": "How does an empty collection help?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The page has a collection that can be searched, filtered or browsed.",
+      "approaches": [
+        {
+          "id": "B08.a",
+          "consequence": "Explain and provide a creation action: helps first use; requires a real next step.",
+          "checks": [
+            "Distinguish first use, no matches, permission denied and load failure using controlled fixtures."
+          ]
+        },
+        {
+          "id": "B08.b",
+          "consequence": "Explain active filtering and offer reset: helps zero-result states; must not imply missing stored data.",
+          "checks": [
+            "Distinguish first use, no matches, permission denied and load failure using controlled fixtures."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B09",
+      "region": "behavior",
+      "question": "How is a long task canceled?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "An action depends on a remote operation.",
+      "approaches": [
+        {
+          "id": "B09.a",
+          "consequence": "Abort the work when supported: saves resources; completion may race with cancellation.",
+          "checks": [
+            "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
+          ]
+        },
+        {
+          "id": "B09.b",
+          "consequence": "Stop waiting and report uncertainty: keeps UI responsive; cannot claim the server operation was undone.",
+          "checks": [
+            "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B10",
+      "region": "behavior",
+      "question": "How are repeated submissions handled?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "An action changes stored or external state.",
+      "approaches": [
+        {
+          "id": "B10.a",
+          "consequence": "Server idempotency with a scoped key: prevents duplicate effects under its contract; needs backend support.",
+          "checks": [
+            "Replay the same request, reload and simulate a timeout after server success; check actual server effects."
+          ]
+        },
+        {
+          "id": "B10.b",
+          "consequence": "Client duplicate-click protection: limits accidental requests; cannot guarantee exactly-once server behavior.",
+          "checks": [
+            "Replay the same request, reload and simulate a timeout after server success; check actual server effects."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B11",
+      "region": "behavior",
+      "question": "What happens when the user goes back?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The task includes editable work that may outlive one screen.",
+      "approaches": [
+        {
+          "id": "B11.a",
+          "consequence": "Preserve entered draft and local context: reduces rework; needs bounded storage and privacy policy.",
+          "checks": [
+            "Back, Forward, refresh and route changes retain or discard only as disclosed; no silent overwrite."
+          ]
+        },
+        {
+          "id": "B11.b",
+          "consequence": "Discard only after explicit confirmation: avoids stale sensitive drafts; increases repeated entry.",
+          "checks": [
+            "Back, Forward, refresh and route changes retain or discard only as disclosed; no silent overwrite."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B12",
+      "region": "behavior",
+      "question": "When does work save?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The task includes editable work that may outlive one screen.",
+      "approaches": [
+        {
+          "id": "B12.a",
+          "consequence": "Explicit save: gives a clear boundary; users can forget to save.",
+          "checks": [
+            "Deny storage and reject writes; the UI never says Saved without the promised operation completing."
+          ]
+        },
+        {
+          "id": "B12.b",
+          "consequence": "Autosave with truthful status: reduces manual work; needs error, offline and concurrency handling.",
+          "checks": [
+            "Deny storage and reject writes; the UI never says Saved without the promised operation completing."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B13",
+      "region": "behavior",
+      "question": "How can a user undo a change?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The task includes editable work that may outlive one screen.",
+      "approaches": [
+        {
+          "id": "B13.a",
+          "consequence": "Scoped inverse with preconditions: preserves unrelated work; refuses conflicts.",
+          "checks": [
+            "Undo after an unrelated edit and after reload; retain history and refuse destructive conflict resolution."
+          ]
+        },
+        {
+          "id": "B13.b",
+          "consequence": "Restore a named snapshot: easy to understand; may discard later changes if used without review.",
+          "checks": [
+            "Undo after an unrelated edit and after reload; retain history and refuse destructive conflict resolution."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B14",
+      "region": "behavior",
+      "question": "What happens when two edits compete?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "More than one context can edit the same work.",
+      "approaches": [
+        {
+          "id": "B14.a",
+          "consequence": "Optimistic revision check: detects stale writes; asks the user to resolve a real conflict.",
+          "checks": [
+            "Race updates from two contexts; no last-write data loss is hidden behind a success notification."
+          ]
+        },
+        {
+          "id": "B14.b",
+          "consequence": "Explicit editing lock: prevents simultaneous changes; needs expiry and recovery from abandoned sessions.",
+          "checks": [
+            "Race updates from two contexts; no last-write data loss is hidden behind a success notification."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B15",
+      "region": "behavior",
+      "question": "When is a modal justified?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The interface includes an action beyond reading and ordinary links.",
+      "approaches": [
+        {
+          "id": "B15.a",
+          "consequence": "Inline task: preserves page context; may need more space.",
+          "checks": [
+            "Complete the inline task using ordinary document navigation; Tab can leave the form without modal containment, and no modal semantics are applied."
+          ]
+        },
+        {
+          "id": "B15.b",
+          "consequence": "Modal task: focuses a bounded interaction; requires focus containment, escape and return behavior.",
+          "checks": [
+            "Open the modal by keyboard; focus enters logically and remains inside while open, Escape or the close action dismisses it, and focus returns to a valid initiating context."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI APG: Modal Dialog Pattern",
+          "url": "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/",
+          "limit": "Choose initial focus according to content and task; applying attributes alone is not a pass."
+        }
+      ]
+    },
+    {
+      "id": "B16",
+      "region": "behavior",
+      "question": "Where is supplemental help displayed?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "A control has supplemental help beyond its visible label.",
+      "approaches": [
+        {
+          "id": "B16.a",
+          "consequence": "Visible hint or disclosure: works for touch and keyboard; consumes space or a click.",
+          "checks": [
+            "Test hover, focus, pointer movement, Escape and touch fallback; inspect applicable persistence rules."
+          ]
+        },
+        {
+          "id": "B16.b",
+          "consequence": "Tooltip: compact supplemental information; cannot carry required action instructions or interactive controls.",
+          "checks": [
+            "Test hover, focus, pointer movement, Escape and touch fallback; inspect applicable persistence rules."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI APG: Tooltip Pattern",
+          "url": "https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/",
+          "limit": "The page explicitly says it lacks task-force consensus; do not cite it as a finished normative pattern."
+        },
+        {
+          "title": "Understanding WCAG 2.2: Content on Hover or Focus",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html",
+          "limit": "Dismissible, hoverable and persistent under the defined conditions and exceptions."
+        }
+      ]
+    },
+    {
+      "id": "B17",
+      "region": "behavior",
+      "question": "How do filters affect the URL?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The page has a collection that can be searched, filtered or browsed.",
+      "approaches": [
+        {
+          "id": "B17.a",
+          "consequence": "Shareable URL state: supports deep links and Back; needs bounded parsing and privacy review.",
+          "checks": [
+            "Round-trip query state through refresh and Back; reject malformed values without running injected commands."
+          ]
+        },
+        {
+          "id": "B17.b",
+          "consequence": "Local session state: keeps sensitive filters out of links; less portable and harder to resume elsewhere.",
+          "checks": [
+            "Round-trip query state through refresh and Back; reject malformed values without running injected commands."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B18",
+      "region": "behavior",
+      "question": "How are result updates announced?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The page has a collection that can be searched, filtered or browsed.",
+      "approaches": [
+        {
+          "id": "B18.a",
+          "consequence": "Polite status update: keeps context; must not repeat every keystroke.",
+          "checks": [
+            "Exercise keyboard and assistive technology; confirm result counts and errors are understandable without duplicated speech."
+          ]
+        },
+        {
+          "id": "B18.b",
+          "consequence": "Focused result heading after explicit action: draws attention; must avoid unexpected focus movement.",
+          "checks": [
+            "Exercise keyboard and assistive technology; confirm result counts and errors are understandable without duplicated speech."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Status Messages",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+          "limit": "Applies to defined status messages without context changes; not every DOM update needs a live announcement."
+        }
+      ]
+    },
+    {
+      "id": "B19",
+      "region": "behavior",
+      "question": "How do tables remain usable?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The page contains a tabular comparison.",
+      "approaches": [
+        {
+          "id": "B19.a",
+          "consequence": "Semantic table with named headers: preserves comparison; narrow views may need a deliberate scroll region.",
+          "checks": [
+            "Compare real rows with long values, sort states, keyboard access and narrow layout; preserve header relationships."
+          ]
+        },
+        {
+          "id": "B19.b",
+          "consequence": "Task-specific summary cards: fits small screens; can lose cross-row relationships and efficient comparison.",
+          "checks": [
+            "Compare real rows with long values, sort states, keyboard access and narrow layout; preserve header relationships."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "B20",
+      "region": "behavior",
+      "question": "How is dragging complemented?",
+      "mode": "combine",
+      "actor": "developer",
+      "applies": "The task includes changing item order.",
+      "approaches": [
+        {
+          "id": "B20.a",
+          "consequence": "Drag plus ordinary move controls: supports varied input; adds control surface.",
+          "checks": [
+            "Complete the same reorder task without dragging and confirm persisted order plus undo."
+          ]
+        },
+        {
+          "id": "B20.b",
+          "consequence": "Form-based ordering: predictable keyboard path; less direct manipulation.",
+          "checks": [
+            "Complete the same reorder task without dragging and confirm persisted order plus undo."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B21",
+      "region": "behavior",
+      "question": "What happens when access expires mid-task?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The task uses an authenticated account.",
+      "approaches": [
+        {
+          "id": "B21.a",
+          "consequence": "Retain a safe draft and request sign-in: reduces loss; needs owner-bound recovery.",
+          "checks": [
+            "Expire the session, switch account and resume; no old-owner data or callback crosses into the new account."
+          ]
+        },
+        {
+          "id": "B21.b",
+          "consequence": "Stop and clear sensitive temporary data: prioritizes confidentiality; must explain what can be recovered.",
+          "checks": [
+            "Expire the session, switch account and resume; no old-owner data or callback crosses into the new account."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+          "limit": "Model least privilege and validate requests; a UI-only restriction is not authorization."
+        },
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "B22",
+      "region": "behavior",
+      "question": "When does a transition animate?",
+      "mode": "contextual",
+      "actor": "developer",
+      "applies": "The design uses optional animation or transitions.",
+      "approaches": [
+        {
+          "id": "B22.a",
+          "consequence": "Short informative transition: clarifies state; preserve input responsiveness.",
+          "checks": [
+            "Run with reduced motion, rapid input and cancellation; animation cannot delay or hide the accepted state."
+          ]
+        },
+        {
+          "id": "B22.b",
+          "consequence": "Immediate state change: stable with reduced motion; feedback still needs a visible description.",
+          "checks": [
+            "Run with reduced motion, rapid input and cancellation; animation cannot delay or hide the accepted state."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "R01",
+      "region": "responsive",
+      "question": "Where do layout breakpoints come from?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R01.a",
+          "consequence": "Content-driven boundaries: respond to actual wrapping; require testing between sizes.",
+          "checks": [
+            "Sweep widths around each breakpoint with real content; inspect intermediate widths as well as named devices."
+          ]
+        },
+        {
+          "id": "R01.b",
+          "consequence": "Framework breakpoints: simpler shared convention; may miss the exact failure width.",
+          "checks": [
+            "Sweep widths around each breakpoint with real content; inspect intermediate widths as well as named devices."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Responsive web design basics",
+          "url": "https://web.dev/articles/responsive-web-design-basics",
+          "limit": "Content and input capabilities inform layouts; fixed device screenshots alone do not cover responsiveness."
+        }
+      ]
+    },
+    {
+      "id": "R02",
+      "region": "responsive",
+      "question": "How does the page reflow under zoom?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R02.a",
+          "consequence": "Single-column flow where applicable: supports reading; may lengthen the journey.",
+          "checks": [
+            "For ordinary vertically scrolling content, inspect 320 CSSpixels and 400%zoom from 1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
+          ]
+        },
+        {
+          "id": "R02.b",
+          "consequence": "Dedicated two-dimensional region: preserves a real comparison task; needs a justified exception and navigation.",
+          "checks": [
+            "Identify the specific content requiring two-dimensional layout and justify the applicable exception; keep the surrounding page reflowing and exercise the region with keyboard and zoom."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Reflow",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html",
+          "limit": "Retain the stated two-dimensional-content exceptions; not a whole accessibility assessment."
+        }
+      ]
+    },
+    {
+      "id": "R03",
+      "region": "responsive",
+      "question": "What happens with enlarged text and spacing?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R03.a",
+          "consequence": "Flexible dimensions and wrapping: retains content; changes row and control heights.",
+          "checks": [
+            "Apply enlarged text and spacing; required labels and facts remain readable and operable."
+          ]
+        },
+        {
+          "id": "R03.b",
+          "consequence": "Named truncation with full-text access: preserves compactness; not suitable for critical content or action labels.",
+          "checks": [
+            "Apply enlarged text and spacing; required labels and facts remain readable and operable."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Reflow",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html",
+          "limit": "Retain the stated two-dimensional-content exceptions; not a whole accessibility assessment."
+        }
+      ]
+    },
+    {
+      "id": "R04",
+      "region": "responsive",
+      "question": "How does the interface work without hover?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R04.a",
+          "consequence": "Tap or click disclosure: explicit and portable; adds an activation step.",
+          "checks": [
+            "Complete the same task on touch and keyboard; no essential explanation or action is hover-only."
+          ]
+        },
+        {
+          "id": "R04.b",
+          "consequence": "Persistent hint: always available; uses more space.",
+          "checks": [
+            "Complete the same task on touch and keyboard; no essential explanation or action is hover-only."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Content on Hover or Focus",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html",
+          "limit": "Dismissible, hoverable and persistent under the defined conditions and exceptions."
+        }
+      ]
+    },
+    {
+      "id": "R05",
+      "region": "responsive",
+      "question": "What survives reduced motion?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "The design uses optional animation or transitions.",
+      "approaches": [
+        {
+          "id": "R05.a",
+          "consequence": "Motion-free equivalent: retains meaning; some visual storytelling becomes static.",
+          "checks": [
+            "Change the system preference during use; state, focus and controls remain available without animation dependence."
+          ]
+        },
+        {
+          "id": "R05.b",
+          "consequence": "Reduced rather than removed movement: can preserve orientation; needs sensitivity and task review.",
+          "checks": [
+            "Change the system preference during use; state, focus and controls remain available without animation dependence."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "R06",
+      "region": "responsive",
+      "question": "How are right-to-left layouts handled?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "A promised locale uses right-to-left layout.",
+      "approaches": [
+        {
+          "id": "R06.a",
+          "consequence": "Logical CSS properties: supports directional layout; still needs per-component decisions.",
+          "checks": [
+            "Inspect mixed-direction text, numbers, icons, logos and navigation in actual locales; never mirror all graphics blindly."
+          ]
+        },
+        {
+          "id": "R06.b",
+          "consequence": "Reviewed locale-specific layout: accommodates special composition; increases maintenance burden.",
+          "checks": [
+            "Inspect mixed-direction text, numbers, icons, logos and navigation in actual locales; never mirror all graphics blindly."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        }
+      ]
+    },
+    {
+      "id": "R07",
+      "region": "responsive",
+      "question": "How does the soft keyboard affect the task?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "The interface accepts user input in a form.",
+      "approaches": [
+        {
+          "id": "R07.a",
+          "consequence": "Flowing form layout: adapts naturally; submit action may require scrolling.",
+          "checks": [
+            "Open the mobile keyboard and focus bottom fields; scroll and dismiss without losing input or hiding errors."
+          ]
+        },
+        {
+          "id": "R07.b",
+          "consequence": "Sticky action region: keeps action near input; can obscure focused fields or validation messages.",
+          "checks": [
+            "Open the mobile keyboard and focus bottom fields; scroll and dismiss without losing input or hiding errors."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Understanding WCAG 2.2: Focus Not Obscured Minimum",
+          "url": "https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html",
+          "limit": "AA requires the focused component not be entirely hidden; full visibility is the stronger product goal."
+        }
+      ]
+    },
+    {
+      "id": "R08",
+      "region": "responsive",
+      "question": "What happens when assets fail?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R08.a",
+          "consequence": "Readable fallback and reserved space: keeps the task available; appearance may differ.",
+          "checks": [
+            "Block fonts and images independently; record rendered fallback, content preservation and retry behavior."
+          ]
+        },
+        {
+          "id": "R08.b",
+          "consequence": "Explicit retry for essential media: supports recovery; needs failure messaging and no endless loop.",
+          "checks": [
+            "Block fonts and images independently; record rendered fallback, content preservation and retry behavior."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Typography",
+          "url": "https://web.dev/learn/design/typography",
+          "limit": "Inspect real scripts and text; the page's simplified ch explanation is corrected by the MDN reference."
+        },
+        {
+          "title": "web.dev: Web Vitals",
+          "url": "https://web.dev/articles/vitals",
+          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+        }
+      ]
+    },
+    {
+      "id": "R09",
+      "region": "responsive",
+      "question": "Which assets load first?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R09.a",
+          "consequence": "Prioritize initial meaningful content: improves perceived readiness; requires knowing the actual critical path.",
+          "checks": [
+            "Inspect the request waterfall and visual stability under a declared cold-cache network profile."
+          ]
+        },
+        {
+          "id": "R09.b",
+          "consequence": "Defer off-screen assets: reduces initial work; must not delay visible primary content.",
+          "checks": [
+            "Inspect the request waterfall and visual stability under a declared cold-cache network profile."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Web Vitals",
+          "url": "https://web.dev/articles/vitals",
+          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "region": "responsive",
+      "question": "Which performance evidence is available?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R10.a",
+          "consequence": "Lab measurement: reproducible diagnosis; cannot be relabelled as real-user experience.",
+          "checks": [
+            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75 th percentile when using field data."
+          ]
+        },
+        {
+          "id": "R10.b",
+          "consequence": "Field measurement: reflects actual users; needs traffic, privacy and environment interpretation.",
+          "checks": [
+            "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75 th percentile when using field data."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Web Vitals",
+          "url": "https://web.dev/articles/vitals",
+          "limit": "Good LCP at most2.5s, INP at most200ms and CLS at most0.1 use the75thpercentile; lab and field evidence differ."
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "region": "responsive",
+      "question": "How does the page behave offline?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "An action depends on a remote operation.",
+      "approaches": [
+        {
+          "id": "R11.a",
+          "consequence": "Read-only offline information: keeps some value; changes and completion need an explicit boundary.",
+          "checks": [
+            "Disconnect before, during and after an operation; distinguish queued, failed and confirmed results."
+          ]
+        },
+        {
+          "id": "R11.b",
+          "consequence": "Connection-required workflow: simpler consistency; needs retained input and a useful retry state.",
+          "checks": [
+            "Disconnect before, during and after an operation; distinguish queued, failed and confirmed results."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "region": "responsive",
+      "question": "What is the browser support contract?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R12.a",
+          "consequence": "Bounded tested browsers: clear commitment; unsupported environments need a stated fallback.",
+          "checks": [
+            "Record versions and features actually exercised; a source-level compatibility assumption is not a browser pass."
+          ]
+        },
+        {
+          "id": "R12.b",
+          "consequence": "Progressive enhancement: wider basic access; advanced behavior needs capability detection and equivalent tasks.",
+          "checks": [
+            "Record versions and features actually exercised; a source-level compatibility assumption is not a browser pass."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "region": "responsive",
+      "question": "How do components respond to their container?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R13.a",
+          "consequence": "Container-aware component: reusable across layouts; adds containment and fallback considerations.",
+          "checks": [
+            "Render the component in each promised container, including side panels and embedded contexts."
+          ]
+        },
+        {
+          "id": "R13.b",
+          "consequence": "Viewport-driven styling: simpler page-wide coordination; can fail in narrow panels on wide screens.",
+          "checks": [
+            "Render the component in each promised container, including side panels and embedded contexts."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "web.dev: Responsive web design basics",
+          "url": "https://web.dev/articles/responsive-web-design-basics",
+          "limit": "Content and input capabilities inform layouts; fixed device screenshots alone do not cover responsiveness."
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "region": "responsive",
+      "question": "How does high-contrast presentation work?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "R14.a",
+          "consequence": "Native semantics with system colors: adapts well; custom decoration may be reduced.",
+          "checks": [
+            "Use forced-colors or the supported high-contrast setting; focus, selection and boundaries remain distinguishable."
+          ]
+        },
+        {
+          "id": "R14.b",
+          "consequence": "Reviewed custom treatment: preserves more identity; requires testing every state and fallback.",
+          "checks": [
+            "Use forced-colors or the supported high-contrast setting; focus, selection and boundaries remain distinguishable."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "region": "responsive",
+      "question": "What is printed or shared as a static page?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "Printed or static shared output is in scope.",
+      "approaches": [
+        {
+          "id": "R15.a",
+          "consequence": "Purposeful print layout: preserves useful information; needs its own content and pagination check.",
+          "checks": [
+            "Print or export the actual page and inspect long sections, links and hidden interactive-only facts."
+          ]
+        },
+        {
+          "id": "R15.b",
+          "consequence": "Screen-only declaration: reduces scope; users must know if a printable artifact is unsupported.",
+          "checks": [
+            "Print or export the actual page and inspect long sections, links and hidden interactive-only facts."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "region": "handoff",
+      "question": "Where does the first customer change happen?",
+      "mode": "single",
+      "actor": "owner-and-developer",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "H01.a",
+          "consequence": "Isolated branch or preview: supports review and undo; needs an environment that resembles the customer app.",
+          "checks": [
+            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+          ]
+        },
+        {
+          "id": "H01.b",
+          "consequence": "Instructions without execution: safe planning artifact; cannot be called an applied upgrade.",
+          "checks": [
+            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H02",
+      "region": "handoff",
+      "question": "Which files may be changed?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "H02.a",
+          "consequence": "Explicit allowlist: limits collateral edits; unsupported changes need a new reviewed scope.",
+          "checks": [
+            "Compare the entire diff against allowed paths and protected files; reject unexplained changes."
+          ]
+        },
+        {
+          "id": "H02.b",
+          "consequence": "Owner-reviewed expanded scope: enables deeper redesign; increases regression and rollback work.",
+          "checks": [
+            "Compare the entire diff against allowed paths and protected files; reject unexplained changes."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        },
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H03",
+      "region": "handoff",
+      "question": "How is the baseline preserved?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "H03.a",
+          "consequence": "Revision plus content hashes: binds the trial to exact inputs; needs conflict detection on apply.",
+          "checks": [
+            "Alter a baseline file before apply; the proposal must report a mismatch rather than overwrite it."
+          ]
+        },
+        {
+          "id": "H03.b",
+          "consequence": "Named backup copy: easy to inspect; requires a restore exercise and protected storage.",
+          "checks": [
+            "Alter a baseline file before apply; the proposal must report a mismatch rather than overwrite it."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H04",
+      "region": "handoff",
+      "question": "Who can read and change the project?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H04.a",
+          "consequence": "Owner-only access: limits exposure; collaboration needs explicit grants.",
+          "checks": [
+            "Test allowed and denied reads/writes with separate accounts and guessed resource IDs on the actual server."
+          ]
+        },
+        {
+          "id": "H04.b",
+          "consequence": "Scoped collaborators: enables teamwork; requires role, resource and action checks beyond the UI.",
+          "checks": [
+            "Test allowed and denied reads/writes with separate accounts and guessed resource IDs on the actual server."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+          "limit": "Model least privilege and validate requests; a UI-only restriction is not authorization."
+        }
+      ]
+    },
+    {
+      "id": "H05",
+      "region": "handoff",
+      "question": "Where are secrets and private data allowed?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H05.a",
+          "consequence": "Server-managed secrets: keeps credentials out of browser bundles; requires server access controls.",
+          "checks": [
+            "Inspect bundles, exports, logs and error paths for secrets; do not claim privacy from a hidden UI field."
+          ]
+        },
+        {
+          "id": "H05.b",
+          "consequence": "User-provided local input without persistence: limits retention; still needs safe transport and explicit scope.",
+          "checks": [
+            "Inspect bundles, exports, logs and error paths for secrets; do not claim privacy from a hidden UI field."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+          "limit": "Model least privilege and validate requests; a UI-only restriction is not authorization."
+        }
+      ]
+    },
+    {
+      "id": "H06",
+      "region": "handoff",
+      "question": "How is imported material treated?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The workflow reads uploaded or remote material.",
+      "approaches": [
+        {
+          "id": "H06.a",
+          "consequence": "Bounded structured data: predictable parsing; rejects unsupported fields and sizes.",
+          "checks": [
+            "Test malformed, oversized and hostile content without executing imports, source maps, scripts or embedded instructions."
+          ]
+        },
+        {
+          "id": "H06.b",
+          "consequence": "Reviewed richer input: supports more use cases; requires a distinct parser and threat review.",
+          "checks": [
+            "Test malformed, oversized and hostile content without executing imports, source maps, scripts or embedded instructions."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Cross Site Scripting Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+          "limit": "Use safe sinks and destination-specific protection; one filter or CSP cannot replace all required controls."
+        },
+        {
+          "title": "OWASP: LLM Prompt Injection Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html",
+          "limit": "Prompt labels are not enforcement; validate permissions and parameters at the actual tool boundary."
+        }
+      ]
+    },
+    {
+      "id": "H07",
+      "region": "handoff",
+      "question": "Which URLs can a connector fetch?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "A service fetches a user-selected remote URL.",
+      "approaches": [
+        {
+          "id": "H07.a",
+          "consequence": "Explicitly supported public destinations: bounded scope; requires resolution and connection safeguards.",
+          "checks": [
+            "Exercise IPv 4/IPv 6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
+          ]
+        },
+        {
+          "id": "H07.b",
+          "consequence": "No remote fetch: avoids that network surface; owner supplies permitted local artifacts instead.",
+          "checks": [
+            "Exercise IPv 4/IPv 6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Server Side Request Forgery Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+          "limit": "Review eventual connections as well as DNS checks and redirects; this source does not establish a Focus vulnerability."
+        }
+      ]
+    },
+    {
+      "id": "H08",
+      "region": "handoff",
+      "question": "How does preview content remain isolated?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "The workflow reads uploaded or remote material.",
+      "approaches": [
+        {
+          "id": "H08.a",
+          "consequence": "Static escaped output: small execution surface; cannot demonstrate arbitrary app behavior.",
+          "checks": [
+            "Attempt script injection, parent access and unapproved network actions with harmless fixtures; record the actual isolation boundary."
+          ]
+        },
+        {
+          "id": "H08.b",
+          "consequence": "Sandboxed executable preview: supports interaction; requires permissions, network and cross-origin restrictions.",
+          "checks": [
+            "Attempt script injection, parent access and unapproved network actions with harmless fixtures; record the actual isolation boundary."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: Cross Site Scripting Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+          "limit": "Use safe sinks and destination-specific protection; one filter or CSP cannot replace all required controls."
+        }
+      ]
+    },
+    {
+      "id": "H09",
+      "region": "handoff",
+      "question": "How are third-party assets and dependencies selected?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H09.a",
+          "consequence": "Existing verified dependency: smaller change surface; still needs version and vulnerability review.",
+          "checks": [
+            "Install from the lockfile in a clean directory; review changed dependency paths and production warnings."
+          ]
+        },
+        {
+          "id": "H09.b",
+          "consequence": "New justified dependency: adds capability; requires license, lockfile, maintenance and supply-chain review.",
+          "checks": [
+            "Install from the lockfile in a clean directory; review changed dependency paths and production warnings."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H10",
+      "region": "handoff",
+      "question": "How does a coding recipient receive instructions?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The workflow produces a downloadable or transferred package.",
+      "approaches": [
+        {
+          "id": "H10.a",
+          "consequence": "Exact structured content plus scoped instructions: reduces ambiguity; cannot enforce external-agent behavior.",
+          "checks": [
+            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+          ]
+        },
+        {
+          "id": "H10.b",
+          "consequence": "Human-readable specification: easy to review; needs machine-checkable content and diff verification for automation.",
+          "checks": [
+            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "OWASP: LLM Prompt Injection Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html",
+          "limit": "Prompt labels are not enforcement; validate permissions and parameters at the actual tool boundary."
+        },
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H11",
+      "region": "handoff",
+      "question": "What happens when a package exceeds its limit?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "The workflow produces a downloadable or transferred package.",
+      "approaches": [
+        {
+          "id": "H11.a",
+          "consequence": "Refuse with full-specification recovery: preserves content; adds a manual transfer path.",
+          "checks": [
+            "For current Focus guides, test 60000/60001 UTF-16 code units and Target 59000/59001 preflight values, plus a multibyte fixture proving these are not UTF-8 byte limits. Verify complete recovery without clipping."
+          ]
+        },
+        {
+          "id": "H11.b",
+          "consequence": "Split through a declared protocol: supports larger work; needs ordering, integrity and complete-recipient checks.",
+          "checks": [
+            "A future split protocol must declare its size unit, part order and integrity contract. No current support is claimed. Test missing, reordered, duplicate and altered parts before enabling it."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H12",
+      "region": "handoff",
+      "question": "Whose receipt is recorded, and what does it establish?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "The workflow produces a downloadable or transferred package.",
+      "approaches": [
+        {
+          "id": "H12.a",
+          "consequence": "Current owner acknowledgment: records the owner reporting a saved file; does not establish a colleague received it.",
+          "checks": [
+            "Current Focus records only the current owner's acknowledgment for unchanged work/account/request lifetime. Cancel, supersede and repeat it; stale callbacks receive no saved-work credit. It does not establish a colleague's receipt."
+          ]
+        },
+        {
+          "id": "H12.b",
+          "consequence": "Future recipient-bound delivery evidence: could record a named colleague receiving a specific revision; requires a supported channel and still does not prove task success.",
+          "checks": [
+            "A future colleague delivery channel must bind recipient identity, artifact revision and receipt event. Test wrong recipient, changed artifact, delivery failure and acknowledgment replay; delivery remains distinct from successful use."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H13",
+      "region": "handoff",
+      "question": "What proves the customer's app still works?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "H13.a",
+          "consequence": "Baseline task replay on the integrated preview: tests preservation; requires real tasks and environment.",
+          "checks": [
+            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+          ]
+        },
+        {
+          "id": "H13.b",
+          "consequence": "Static diff review only: catches scope changes; leaves runtime behavior unverified.",
+          "checks": [
+            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "H14",
+      "region": "handoff",
+      "question": "How is the trial undone?",
+      "mode": "contextual",
+      "actor": "owner-and-developer",
+      "applies": "The deliverable changes an existing customer project.",
+      "approaches": [
+        {
+          "id": "H14.a",
+          "consequence": "Scoped inverse with unchanged-input checks: protects unrelated edits; can refuse a conflict.",
+          "checks": [
+            "Apply, modify an unrelated file, undo and replay baseline tasks; unrelated work remains intact."
+          ]
+        },
+        {
+          "id": "H14.b",
+          "consequence": "Restore a complete approved snapshot: broader recovery; requires review of everything replaced.",
+          "checks": [
+            "Apply, modify an unrelated file, undo and replay baseline tasks; unrelated work remains intact."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H15",
+      "region": "handoff",
+      "question": "What authorizes release?",
+      "mode": "single",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H15.a",
+          "consequence": "Review of the exact preview revision: ties approval to concrete work; subsequent changes invalidate it.",
+          "checks": [
+            "Before an authorized release, match the exact reviewed artifact, audience and deployment target. Existing-project releases additionally need the applicable original-task and rollback evidence."
+          ]
+        },
+        {
+          "id": "H15.b",
+          "consequence": "Draft-only delivery: allows inspection; cannot be marketed as a finished live upgrade.",
+          "checks": [
+            "Label the package as a review draft, disclose open checks and unresolved destinations, and describe how the recipient can inspect it without deployment. No release approval is inferred."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H16",
+      "region": "handoff",
+      "question": "What is retained in an iteration history?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "The product retains design attempt history.",
+      "approaches": [
+        {
+          "id": "H16.a",
+          "consequence": "Redacted bounded events: supports learning and traceability; less raw diagnostic detail.",
+          "checks": [
+            "Inspect event payloads for secrets and personal data; export/delete behavior follows the declared policy."
+          ]
+        },
+        {
+          "id": "H16.b",
+          "consequence": "Consented diagnostic capture: richer debugging; needs access, retention and deletion controls.",
+          "checks": [
+            "Inspect event payloads for secrets and personal data; export/delete behavior follows the declared policy."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H17",
+      "region": "handoff",
+      "question": "Who responds after handoff?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H17.a",
+          "consequence": "Named maintainer and rollback contact: supports recovery; requires actual ownership.",
+          "checks": [
+            "The release note names real responsibilities, known limits, recovery steps and how to obtain updates."
+          ]
+        },
+        {
+          "id": "H17.b",
+          "consequence": "Time-limited support scope: bounds the promise; the recipient needs a clear end and transfer path.",
+          "checks": [
+            "The release note names real responsibilities, known limits, recovery steps and how to obtain updates."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "H18",
+      "region": "handoff",
+      "question": "What happens after a dependency or environment change?",
+      "mode": "combine",
+      "actor": "owner-and-developer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "H18.a",
+          "consequence": "Re-run affected checks before updating: preserves evidence integrity; costs maintenance time.",
+          "checks": [
+            "Invalidate affected results when versions or environment change; no old green badge survives by timestamp alone."
+          ]
+        },
+        {
+          "id": "H18.b",
+          "consequence": "Hold the tested version temporarily: delays change; needs a security and support expiry decision.",
+          "checks": [
+            "Invalidate affected results when versions or environment change; no old green badge survives by timestamp alone."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V01",
+      "region": "check",
+      "question": "What is the exact thing being reviewed?",
+      "mode": "single",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V01.a",
+          "consequence": "Built artifact revision: matches delivery; needs retained hashes and environment.",
+          "checks": [
+            "Record revision, build command, output identity and environment next to every claim."
+          ]
+        },
+        {
+          "id": "V01.b",
+          "consequence": "Development preview: fast feedback; cannot establish the production-delivery result.",
+          "checks": [
+            "Record revision, build command, output identity and environment next to every claim."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V02",
+      "region": "check",
+      "question": "Which tasks define the review?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V02.a",
+          "consequence": "Realistic unaided task: reveals discovery problems; needs likely users and neutral prompts.",
+          "checks": [
+            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+          ]
+        },
+        {
+          "id": "V02.b",
+          "consequence": "Guided rehearsal: checks a sequence; assistance must remain explicit in the results.",
+          "checks": [
+            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Using moderated usability testing",
+          "url": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
+          "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+        }
+      ]
+    },
+    {
+      "id": "V03",
+      "region": "check",
+      "question": "How is craft judged?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V03.a",
+          "consequence": "Blind matched comparison: reduces label bias; requires comparable briefs and independent reviewers.",
+          "checks": [
+            "Record hierarchy, typography, composition, imagery and coherence separately from task and security outcomes."
+          ]
+        },
+        {
+          "id": "V03.b",
+          "consequence": "Expert critique with rationale: gives actionable detail; retains subjective judgment and context.",
+          "checks": [
+            "Record hierarchy, typography, composition, imagery and coherence separately from task and security outcomes."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "V04",
+      "region": "check",
+      "question": "How are accessibility results combined?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V04.a",
+          "consequence": "Automated checks plus manual tasks: broader evidence; needs keyboard and assistive-technology work.",
+          "checks": [
+            "Retain tool findings and manual observations separately; all unrun conditions stay visible."
+          ]
+        },
+        {
+          "id": "V04.b",
+          "consequence": "Automated checks alone: fast partial signal; cannot be labelled full accessibility conformance.",
+          "checks": [
+            "Retain tool findings and manual observations separately; all unrun conditions stay visible."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "W3C WAI: Page Structure Tutorial",
+          "url": "https://www.w3.org/WAI/tutorials/page-structure/",
+          "limit": "Semantic orientation guidance; references several conformance levels and does not certify Focus."
+        }
+      ]
+    },
+    {
+      "id": "V05",
+      "region": "check",
+      "question": "What is checked after a repair?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V05.a",
+          "consequence": "Original trigger plus affected neighbors: tests repair and collateral behavior; needs dependency tracking.",
+          "checks": [
+            "Reproduce before the fix, rerun after and inspect unchanged paths; preserve failing evidence."
+          ]
+        },
+        {
+          "id": "V05.b",
+          "consequence": "Only the failing screenshot: quick local feedback; leaves functional and neighboring regressions unknown.",
+          "checks": [
+            "Reproduce before the fix, rerun after and inspect unchanged paths; preserve failing evidence."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "V06",
+      "region": "check",
+      "question": "When is earlier evidence stale?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V06.a",
+          "consequence": "Artifact and dependency binding: invalidates relevant checks; requires explicit effect tracking.",
+          "checks": [
+            "Change content, tokens, account, rule version and adapter separately; invalidate the exact affected claims."
+          ]
+        },
+        {
+          "id": "V06.b",
+          "consequence": "Whole-result invalidation: conservative when effects are unknown; can require extra testing.",
+          "checks": [
+            "Change content, tokens, account, rule version and adapter separately; invalidate the exact affected claims."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V07",
+      "region": "check",
+      "question": "What is the repeatability check?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V07.a",
+          "consequence": "Repeat under the same declared conditions: exposes flaky outcomes; does not prove universal reliability.",
+          "checks": [
+            "Retain both outputs; differing results become an investigated issue rather than a hidden successful rerun."
+          ]
+        },
+        {
+          "id": "V07.b",
+          "consequence": "Vary representative conditions: expands coverage; failures need isolated reproduction.",
+          "checks": [
+            "Retain both outputs; differing results become an investigated issue rather than a hidden successful rerun."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V08",
+      "region": "check",
+      "question": "How are failed options retained?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "The product retains design attempt history.",
+      "approaches": [
+        {
+          "id": "V08.a",
+          "consequence": "Append a rejected attempt with reason: teaches future work; needs bounded storage and privacy.",
+          "checks": [
+            "Verify history distinguishes proposed, applied, checked, rejected and reverted events with real timestamps."
+          ]
+        },
+        {
+          "id": "V08.b",
+          "consequence": "Discard an unsaved exploration: keeps the history small; cannot later be claimed as a tested iteration.",
+          "checks": [
+            "Verify history distinguishes proposed, applied, checked, rejected and reverted events with real timestamps."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V09",
+      "region": "check",
+      "question": "How is a North Star comparison reported?",
+      "mode": "single",
+      "actor": "reviewer",
+      "applies": "The owner intends to make a comparative human-quality claim.",
+      "approaches": [
+        {
+          "id": "V09.a",
+          "consequence": "Matched outcome vector with uncertainty: supports a scoped claim; needs sufficient independent evidence.",
+          "checks": [
+            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+          ]
+        },
+        {
+          "id": "V09.b",
+          "consequence": "Qualitative pilot report: identifies problems; cannot establish statistical equivalence to expert humans.",
+          "checks": [
+            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK: Using moderated usability testing",
+          "url": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
+          "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+        },
+        {
+          "title": "DesignBench: Failure Annotation Guideline",
+          "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
+          "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        }
+      ]
+    },
+    {
+      "id": "V10",
+      "region": "check",
+      "question": "What happens when a required check cannot run?",
+      "mode": "contextual",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V10.a",
+          "consequence": "Keep a visible unverified state: preserves honesty; release can remain blocked by its contract.",
+          "checks": [
+            "An unavailable browser, account or customer fixture never turns into a passed task or an automated guarantee."
+          ]
+        },
+        {
+          "id": "V10.b",
+          "consequence": "Narrow the promised scope through an explicit decision: permits bounded use; gives up the untested promise.",
+          "checks": [
+            "An unavailable browser, account or customer fixture never turns into a passed task or an automated guarantee."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V11",
+      "region": "check",
+      "question": "How is the release monitored?",
+      "mode": "combine",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V11.a",
+          "consequence": "Bounded operational signals: reveals failures; requires privacy-aware collection and response ownership.",
+          "checks": [
+            "Trigger a safe failure fixture; confirm detection, owner notification policy and recovery procedure."
+          ]
+        },
+        {
+          "id": "V11.b",
+          "consequence": "Manual scheduled review: smaller instrumentation surface; slower discovery between checks.",
+          "checks": [
+            "Trigger a safe failure fixture; confirm detection, owner notification policy and recovery procedure."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    },
+    {
+      "id": "V12",
+      "region": "check",
+      "question": "What earns the final readiness statement?",
+      "mode": "single",
+      "actor": "reviewer",
+      "applies": "Review this question for each project.",
+      "approaches": [
+        {
+          "id": "V12.a",
+          "consequence": "Evidence for every promised requirement: supports a scoped release decision; still carries explicit limits.",
+          "checks": [
+            "Trace every promised release requirement to current scoped evidence. A comparative human-quality claim additionally requires its declared study evidence; an ordinary scoped release does not require that claim or study."
+          ]
+        },
+        {
+          "id": "V12.b",
+          "consequence": "Useful draft with open checks: supports review and learning; must stay labelled as a draft.",
+          "checks": [
+            "Label the artifact as a draft and list open checks, unsupported operations and safe next actions. Do not require release approval or human-comparison evidence merely to deliver a reviewable draft."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Focus source contract and Blake's project requirements",
+          "url": null,
+          "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        }
+      ]
+    }
+  ]
+}

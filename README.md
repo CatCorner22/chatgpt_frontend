@@ -1,3 +1,5 @@
+> **Current checkpoint:** See [finalization status and remaining release checks](docs/FINALIZATION-CHECKPOINT.md). The resumed changes are saved locally and are not deployed. The historical release notes below describe their own versions, not final acceptance of this checkout.
+>
 > **Hosted edition:** This checkout publishes Focus to a private Sites workspace with ChatGPT sign-in, per-user browser storage, and complete online library copies. Start with [HOSTED-HANDOFF.md](docs/HOSTED-HANDOFF.md) and the actual limits in [HOSTED-VERIFICATION.md](docs/HOSTED-VERIFICATION.md). The portable release remains a separate preserved deliverable.
 >
 > Run `npm ci`, `npm test`, `npx tsc --noEmit`, and `npm run build:sites`. Keep `.openai/hosting.json` tied to the existing Site; its R2 logical binding is the string `BUCKET`. Never copy credentials into this file. Production requires the Sites identity gateway and provisioned storage. The development preview uses isolated browser storage and does not simulate a real account.

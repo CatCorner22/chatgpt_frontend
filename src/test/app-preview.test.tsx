@@ -23,8 +23,7 @@ afterEach(() => {
 function frame() {
   render(<PreviewFrame t={tokens} c={content} experience="app" />);
   const pages = screen.getByRole("group", { name: "Page type" });
-  return (name: string) =>
-    fireEvent.click(within(pages).getByRole("button", { name, exact: true }));
+  return (name: string) => fireEvent.click(within(pages).getByRole("button", { name }));
 }
 
 function submitSampleSignIn() {

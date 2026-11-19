@@ -33,9 +33,9 @@ it("keeps Git initialization in the intended fixture despite inherited repositor
     ).toBe(join(intended, ".git"));
     expect(readFileSync(join(external, ".git/config"))).toEqual(config);
     expect(Object.keys(safe).some((key) => key.startsWith("GIT_"))).toBe(false);
-    expect(safe.NODE_OPTIONS).toBeUndefined();
-    expect(safe.NODE_PATH).toBeUndefined();
-    expect(safe.PATH).toBe(process.env.PATH);
+    expect(safe["NODE_OPTIONS"]).toBeUndefined();
+    expect(safe["NODE_PATH"]).toBeUndefined();
+    expect(safe["PATH"]).toBe(process.env["PATH"]);
     expect(inherited.GIT_DIR).toBe(join(external, ".git"));
   } finally {
     rmSync(root, { recursive: true, force: true });

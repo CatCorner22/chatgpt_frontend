@@ -28,7 +28,7 @@ export const GARDEN_FORMULA: Record<GardenStepId, GardenFormula> = {
     changes: "An available composition choice changes the authored website’s structure.",
     check: "Can someone find the offer, essential details, and next action in that order?",
     primaryGroup: "composition",
-    primaryLabel: "Explore page composition",
+    primaryLabel: "Arrange the page",
     scopeNote:
       "Composition controls apply to authored websites. Existing apps and app specifications keep their structure; plan structural changes in a scoped handoff.",
   },
@@ -45,8 +45,9 @@ export const GARDEN_FORMULA: Record<GardenStepId, GardenFormula> = {
     primaryLabel: "Explore color pairs",
     details: [
       { group: "fonts", label: "Font pairs" },
-      { group: "hierarchy", label: "Type hierarchy" },
+      { group: "hierarchy", label: "Text size and emphasis" },
       { group: "spacing", label: "Spacing" },
+      { group: "form", label: "Buttons and corners" },
     ],
     scopeNote:
       "For an existing app, these choices prepare a style study and specification. Applying and testing them in the app is a separate step.",
@@ -57,7 +58,7 @@ export const GARDEN_FORMULA: Record<GardenStepId, GardenFormula> = {
     check:
       "Test keyboard focus, validation, loading, success, and recovery in the implemented app.",
     primaryGroup: "form",
-    primaryLabel: "Explore control appearance",
+    primaryLabel: "Choose button appearance",
     scopeNote:
       "Control appearance is a style choice. Real forms, validation, and backend behavior still need implementation and testing.",
   },

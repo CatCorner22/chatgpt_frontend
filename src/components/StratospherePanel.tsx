@@ -13,6 +13,9 @@ import { isStratosphereGroupId } from "@/lib/garden-navigation";
 import type { State } from "@/lib/studio-state";
 import {
   STRATOSPHERE_GROUPS,
+  STRATOSPHERE_FORM,
+  evaluateStratosphereForm,
+  type StratosphereResult,
   deriveStratosphereGraph,
   evaluateStratosphereCandidate,
   selectedStratosphereOption,
@@ -163,7 +166,9 @@ export function StratospherePanel({
     );
   };
   const choose = (optionId: string) => {
-    const candidate = evaluateStratosphereCandidate(input, group.id, optionId);
+    applyChoice(evaluateStratosphereCandidate(input, group.id, optionId));
+  };
+  const applyChoice = (candidate: StratosphereResult) => {
     if (!candidate.accepted) {
       setAnnouncement(
         candidate.issues
@@ -246,6 +251,18 @@ export function StratospherePanel({
             {group.label}
           </h2>
           <p className="stratosphere-description">{group.description}</p>
+          <ol className="stratosphere-small-steps" aria-label="How to make this choice">
+            <li>Choose a starting look below. Your current choices stay until you select one.</li>
+            <li>
+              {group.id === "form"
+                ? "Want more control? Open “Fine-tune buttons and corners” to change one detail at a time."
+                : "Compare the preview using your own words and images."}
+            </li>
+            <li>
+              Check “What carries into your deliverable” before moving on. You can return and adjust
+              this later.
+            </li>
+          </ol>
           {group.authoredOnly && !authored && (
             <p className="stratosphere-custom">
               Your existing structure stays in place. Explore color, typography, spacing, and
@@ -319,6 +336,67 @@ export function StratospherePanel({
               );
             })}
           </fieldset>
+          {group.id === "form" && (
+            <details className="stratosphere-map-details stratosphere-custom-controls">
+              <summary>Fine-tune buttons and corners</summary>
+              <p>
+                First choose how the button looks. Then move the corner slider: 0 is square; 28 is
+                very rounded. These appearance choices keep your action’s words, destination and
+                behavior in place.
+              </p>
+              <label htmlFor="stratosphere-button-treatment">Button treatment</label>
+              <select
+                id="stratosphere-button-treatment"
+                value={state.tokens!.buttonStyle}
+                onChange={(event) =>
+                  applyChoice(evaluateStratosphereForm(input, "buttonStyle", event.target.value))
+                }
+                aria-describedby="stratosphere-form-output"
+              >
+                {STRATOSPHERE_FORM.buttonStyles.map((style) => (
+                  <option key={style} value={style}>
+                    {
+                      {
+                        solid: "Filled",
+                        outline: "Outlined",
+                        pill: "Pill",
+                        underline: "Underlined",
+                      }[style]
+                    }
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="stratosphere-corner-radius">
+                Corner roundness: {state.tokens!.radius}px
+              </label>
+              <input
+                id="stratosphere-corner-radius"
+                type="range"
+                min={STRATOSPHERE_FORM.radius.min}
+                max={STRATOSPHERE_FORM.radius.max}
+                step={STRATOSPHERE_FORM.radius.step}
+                value={state.tokens!.radius}
+                onChange={(event) =>
+                  applyChoice(evaluateStratosphereForm(input, "radius", Number(event.target.value)))
+                }
+                aria-valuetext={`${state.tokens!.radius} pixels`}
+                aria-describedby="stratosphere-form-output"
+              />
+              <p id="stratosphere-form-output">
+                Pill actions stay fully rounded; underlined actions have square edges. This value
+                still sets other applicable corners. Some compositions keep image corners square.
+              </p>
+            </details>
+          )}
+          <aside className="stratosphere-delivery" aria-label="What carries into your deliverable">
+            <strong>What carries into your deliverable</strong>
+            <p>{authored ? group.output.authored : group.output.specification}</p>
+            <p>
+              {authored
+                ? "The page preview, HTML and editable ZIP use the same renderer. Your action destination is kept with the page settings."
+                : "Your design pack carries preferences for your developer to apply. It does not convert the project’s language or replace working actions. Target prepares the scoped trial and rollback plan."}
+            </p>
+          </aside>
           <p className="stratosphere-status" role="status" aria-live="polite">
             {announcement}
           </p>

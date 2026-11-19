@@ -381,3 +381,49 @@
 .garden-field-guide-link {
   margin-bottom: 1.25rem;
 }
+
+.stratosphere-custom-controls label {
+  display: block;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.stratosphere-custom-controls select,
+.stratosphere-custom-controls input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  accent-color: #246655;
+}
+.stratosphere-custom-controls select {
+  padding: 10px;
+  border: 1px solid #698078;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b25;
+}
+.stratosphere-custom-controls :is(select, input):focus-visible {
+  outline: 3px solid #246655;
+  outline-offset: 3px;
+}
+.stratosphere-custom-controls p,
+.stratosphere-delivery p,
+.stratosphere-small-steps {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-block: 10px;
+}
+.stratosphere-delivery {
+  margin-top: 20px;
+  border-left: 3px solid #246655;
+  padding: 12px 16px;
+  background: #edf7f4;
+  color: #172b25;
+}
+.stratosphere-small-steps {
+  padding-left: 22px;
+  list-style: decimal;
+}
+.stratosphere-small-steps li + li {
+  margin-top: 6px;
+}

@@ -19,6 +19,12 @@ import type { PageSettings } from "./page-settings";
 import { PAGE_COMPOSITIONS, isPageComposition, type PageComposition } from "./page-compositions";
 import type { NavId } from "./nav";
 
+/** Shared control domains; custom form choices use the same constraints and graph as presets. */
+export const STRATOSPHERE_FORM = {
+  radius: { min: 0, max: 28, step: 1 },
+  buttonStyles: BUTTON_STYLES,
+} as const;
+
 export type StratosphereInput = {
   tokens: Tokens;
   page: PageSettings;
@@ -136,7 +142,7 @@ const palette = (
 export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   {
     id: "composition",
-    label: "Page composition",
+    label: "Page layout",
     description: "Choose a structure for the authored website.",
     lesson:
       "Composition changes the reading sequence and arrangement. Preserve an existing app's structure until its owner reviews a scoped implementation.",
@@ -163,7 +169,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "palette",
-    label: "Paired palette",
+    label: "Colors",
     description: "White, cool color, or deep ink with complete readable color pairs.",
     lesson: "Distinguish content, surfaces and actions without requiring many colors.",
     authoredOnly: false,
@@ -201,7 +207,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "fonts",
-    label: "Font pairing",
+    label: "Fonts",
     description: "Choose the requested voice of headings and body text.",
     lesson:
       "These three pairs include licensed font files in authored pages. Other choices may use local fallbacks; inspect real words and unsupported characters on the destination device.",
@@ -239,7 +245,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "hierarchy",
-    label: "Type hierarchy",
+    label: "Text size and emphasis",
     description: "Control the scale and case of headings.",
     lesson:
       "The same ratio wraps differently with another font or headline. Inspect real words on narrow screens; advice is not measured usability.",
@@ -276,7 +282,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "spacing",
-    label: "Spacing rhythm",
+    label: "Spacing",
     description: "Set the space between sections and related content.",
     lesson:
       "More space is not always better. Compare the task and long content on a narrow screen.",
@@ -297,7 +303,7 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "form",
-    label: "Action and corner form",
+    label: "Buttons and corners",
     description: "Choose an action treatment and corner preference.",
     lesson:
       "Pills have their own radius and underlined actions have square edges. Some compositions keep image corners square.",
@@ -409,7 +415,12 @@ function inputIssues(input: StratosphereInput): StratosphereIssue[] {
     if (!(values as readonly unknown[]).includes(t[key as keyof typeof enums]))
       invalid(`tokens.${key}`);
   if (!Number.isFinite(t.scale) || t.scale < 1.1 || t.scale > 1.6) invalid("tokens.scale");
-  if (!Number.isInteger(t.radius) || t.radius < 0 || t.radius > 28) invalid("tokens.radius");
+  if (
+    !Number.isInteger(t.radius) ||
+    t.radius < STRATOSPHERE_FORM.radius.min ||
+    t.radius > STRATOSPHERE_FORM.radius.max
+  )
+    invalid("tokens.radius");
   if (t.card !== undefined && !["plain", "glass"].includes(t.card)) invalid("tokens.card");
   if (t.buttonFinish !== undefined && !["flat", "glow", "gloss"].includes(t.buttonFinish))
     invalid("tokens.buttonFinish");
@@ -625,6 +636,41 @@ export function evaluateStratosphereCandidate(
   groupId: string,
   optionId: string,
 ): StratosphereResult {
+  const group = STRATOSPHERE_GROUPS.find((item) => item.id === groupId);
+  const option = group?.options.find((item) => item.id === optionId);
+  return evaluateChoice(input, group, option?.changes);
+}
+
+export function evaluateStratosphereForm(
+  input: StratosphereInput,
+  field: "radius" | "buttonStyle",
+  value: number | string,
+): StratosphereResult {
+  const changes: StratosphereChange[] | undefined =
+    field === "radius" && typeof value === "number"
+      ? [token("radius", value, "Sets applicable corners.")]
+      : field === "buttonStyle" &&
+          STRATOSPHERE_FORM.buttonStyles.includes(value as Tokens["buttonStyle"])
+        ? [
+            token(
+              "buttonStyle",
+              value as Tokens["buttonStyle"],
+              "Sets the action treatment; preserves its destination and behavior.",
+            ),
+          ]
+        : undefined;
+  return evaluateChoice(
+    input,
+    STRATOSPHERE_GROUPS.find((group) => group.id === "form"),
+    changes,
+  );
+}
+
+function evaluateChoice(
+  input: StratosphereInput,
+  group: StratosphereGroup | undefined,
+  changes: readonly StratosphereChange[] | undefined,
+): StratosphereResult {
   const rejected = (issues: StratosphereIssue[]): StratosphereResult => ({
     accepted: false,
     issues,
@@ -632,9 +678,7 @@ export function evaluateStratosphereCandidate(
     tokens: input.tokens,
     page: input.page,
   });
-  const group = STRATOSPHERE_GROUPS.find((item) => item.id === groupId),
-    option = group?.options.find((item) => item.id === optionId);
-  if (!group || !option)
+  if (!group || !changes)
     return rejected([
       {
         id: "unknown-choice",
@@ -650,12 +694,12 @@ export function evaluateStratosphereCandidate(
   if (scope) return rejected([scope]);
   const tokens = { ...input.tokens },
     page = { ...input.page };
-  for (const change of option.changes) {
+  for (const change of changes) {
     if (change.field === "page.composition") page.composition = change.value;
     else (tokens as unknown as Record<string, unknown>)[change.field.slice(7)] = change.value;
   }
   const candidate = { ...input, tokens, page },
-    constraints = colorIssues(candidate);
+    constraints = [...inputIssues(candidate), ...colorIssues(candidate)];
   if (constraints.length) return rejected(constraints);
   return {
     accepted: true,
@@ -663,7 +707,7 @@ export function evaluateStratosphereCandidate(
       ...advice(candidate),
       ...outputLimitations(candidate).filter((issue) => issue.severity !== "block"),
     ],
-    changedFields: option.changes
+    changedFields: changes
       .filter((change) => fieldValue(input, change.field) !== change.value)
       .map((change) => change.field),
     tokens,

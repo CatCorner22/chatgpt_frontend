@@ -214,6 +214,29 @@ afterEach(() => {
 });
 
 describe("Stratosphere workshop", () => {
+  it("guides independent button and corner choices without changing content or destinations", () => {
+    const { initial, onExport } = mount(makeState({ integration: "existing" }), "form");
+    expect(screen.getByRole("list", { name: "How to make this choice" })).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Fine-tune buttons and corners"));
+    fireEvent.change(screen.getByLabelText("Button treatment"), { target: { value: "outline" } });
+    fireEvent.change(screen.getByRole("slider", { name: /Corner roundness/ }), {
+      target: { value: "13" },
+    });
+    const changed = currentState();
+    expect(changed.tokens).toEqual({ ...initial.tokens, buttonStyle: "outline", radius: 13 });
+    expect(changed.content).toEqual(initial.content);
+    expect(changed.page).toEqual(initial.page);
+    expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", "13 pixels");
+    expect(
+      screen.getByRole("complementary", { name: "What carries into your deliverable" }),
+    ).toHaveTextContent("does not convert the project’s language");
+    expect(onExport).not.toHaveBeenCalled();
+    visitGroup("palette");
+    visitGroup("form");
+    expect(screen.getByLabelText("Button treatment")).toHaveValue("outline");
+    expect(screen.getByRole("slider", { hidden: true })).toHaveValue("13");
+  });
+
   it("offers an empty-workshop path to the studio and library without changing saved work", () => {
     localStorage.setItem("refraction:v1", "unfinished owner work");
     const writes = vi.spyOn(Storage.prototype, "setItem");
@@ -258,16 +281,16 @@ describe("Stratosphere workshop", () => {
     const setup = mount(makeState(), "palette");
     visitGroup("fonts");
     setup.request("palette");
-    expect(screen.getByRole("heading", { name: "Font pairing" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fonts" })).toBeVisible();
     setup.request("spacing");
-    expect(screen.getByRole("heading", { name: "Spacing rhythm" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Spacing" })).toHaveFocus();
     setup.request("palette");
-    expect(screen.getByRole("heading", { name: "Paired palette" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Colors" })).toHaveFocus();
     setup.request(undefined);
-    expect(screen.getByRole("heading", { name: "Page composition" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Page layout" })).toHaveFocus();
     visitGroup("form");
     setup.request(undefined);
-    expect(screen.getByRole("heading", { name: "Action and corner form" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Buttons and corners" })).toBeVisible();
     expect(currentState()).toEqual(setup.initial);
     expect(setup.onPatch).not.toHaveBeenCalled();
     expect(setup.onExport).not.toHaveBeenCalled();
@@ -275,12 +298,12 @@ describe("Stratosphere workshop", () => {
 
   it("keeps composition scope blockers visible for a direct request on an existing app", () => {
     const setup = mount(makeState({ integration: "existing" }), "composition");
-    expect(screen.getByRole("heading", { name: "Page composition" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Page layout" })).toBeVisible();
     expect(screen.getByText(/Your existing structure stays in place/)).toBeVisible();
-    const compositions = screen.getByRole("group", { name: "Choose page composition" });
+    const compositions = screen.getByRole("group", { name: "Choose page layout" });
     for (const radio of within(compositions).getAllByRole("radio")) expect(radio).toBeDisabled();
     setup.request(undefined);
-    expect(screen.getByRole("heading", { name: "Paired palette" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Colors" })).toBeVisible();
     expect(currentState()).toEqual(setup.initial);
     expect(setup.onPatch).not.toHaveBeenCalled();
   });

@@ -1,3 +1,6 @@
+import { archiveDesign, readLibrary, writeLibrary } from "@/lib/library";
+import { EMPTY, migrate } from "@/lib/studio-state";
+import { packFiles } from "@/lib/exportPack";
 import { describe, expect, it } from "vitest";
 import { normalizeTokens, contrast } from "@/lib/design";
 import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
@@ -5,6 +8,7 @@ import { buildAuthoredPage } from "@/lib/authored-page";
 import { DEFAULT_IMAGE_FRAMING, IMAGE_POSITIONS } from "@/lib/image-framing";
 import {
   STRATOSPHERE_GROUPS,
+  evaluateStratosphereForm,
   deriveStratosphereGraph,
   evaluateStratosphereCandidate,
   selectedStratosphereOption,
@@ -49,6 +53,90 @@ const content = {
 };
 
 describe("Stratosphere transitions", () => {
+  it.each(["solid", "outline", "pill", "underline"] as const)(
+    "keeps custom %s controls through save/reopen and both delivery formats",
+    (style) => {
+      for (const radius of [0, 7, 28]) {
+        const before = input();
+        const shaped = evaluateStratosphereForm(before, "buttonStyle", style);
+        expect(shaped.accepted).toBe(true);
+        const rounded = evaluateStratosphereForm(
+          { ...before, tokens: shaped.tokens },
+          "radius",
+          radius,
+        );
+        expect(rounded.accepted).toBe(true);
+        const records = new Map<string, string>();
+        const storage = {
+          getItem: (key: string) => records.get(key) ?? null,
+          setItem: (key: string, value: string) => {
+            records.set(key, value);
+          },
+        };
+        const saved = {
+          ...EMPTY,
+          ...before,
+          content,
+          tokens: rounded.tokens,
+          libraryId: "custom-controls",
+        };
+        writeLibrary(archiveDesign([], saved, "2026-11-19T00:00:00Z"), storage);
+        const restored = migrate(readLibrary(storage)[0]!.state);
+        expect(restored.tokens).toEqual(rounded.tokens);
+        expect(restored.page.actionUrl).toBe(before.page.actionUrl);
+        expect(restored.content).toEqual(content);
+        const built = buildAuthoredPage(restored.tokens!, restored.content!, restored.page);
+        expect(built.files["styles.css"]).toBe(built.css);
+        expect(built.html).toContain(built.css);
+        expect(built.html).toContain('href="https://example.test/book"');
+        expect(built.css).toContain(`--radius: ${radius}px`);
+        expect(built.css).toContain(
+          `border-radius: ${style === "pill" ? "999px" : "var(--radius)"}`,
+        );
+        if (style === "underline")
+          expect(built.css).toContain("border-width: 0 0 2px; border-radius: 0");
+        const pack = packFiles(
+          "# Owner's design",
+          restored.tokens!,
+          "Owner",
+          undefined,
+          "existing",
+        );
+        expect(JSON.parse(pack["tokens.json"]!)).toEqual(restored.tokens);
+        expect(pack["PROMPT-SHORT.md"]).toContain(`Preferred action treatment: ${style}`);
+        expect(pack["PROMPT-SHORT.md"]).toContain("handler and states unchanged");
+        expect(
+          deriveStratosphereGraph({ ...before, tokens: restored.tokens! }).snapshot.tokens.radius,
+        ).toBe(radius);
+      }
+    },
+  );
+
+  it.each([-1, 29, 1.5, NaN, Infinity])(
+    "refuses unsupported custom radius %s without changing the input",
+    (radius) => {
+      const before = input();
+      const result = evaluateStratosphereForm(before, "radius", radius);
+      expect(result.accepted).toBe(false);
+      expect(result.tokens).toBe(before.tokens);
+      expect(result.page).toBe(before.page);
+    },
+  );
+
+  it("preserves other choices and enforces existing contrast guards for custom controls", () => {
+    const before = input();
+    const changed = evaluateStratosphereForm(before, "radius", 13);
+    expect(changed.changedFields).toEqual(["tokens.radius"]);
+    expect(changed.tokens).toEqual({ ...before.tokens, radius: 13 });
+    expect(changed.page).toEqual(before.page);
+    expect(evaluateStratosphereForm(before, "buttonStyle", "unsupported").accepted).toBe(false);
+    const lowContrast = {
+      ...before,
+      tokens: { ...before.tokens, accentInk: before.tokens.accent },
+    };
+    expect(evaluateStratosphereForm(lowContrast, "radius", 13).accepted).toBe(false);
+  });
+
   it.each([
     ["card", "mirror"],
     ["buttonFinish", "laser"],

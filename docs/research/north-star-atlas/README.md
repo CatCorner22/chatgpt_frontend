@@ -14,17 +14,17 @@ The catalogue is deliberately extensible. It covers a substantial initial set of
 
 ## Keep the map calm
 
-| Existing region ID | What the user decides here | Tangible result |
-| --- | --- | --- |
-| goal | Who needs what, what exists, what must survive | Task and preservation contract |
-| content | Words, facts, assets, destinations, permission | Reviewed content inventory |
-| plan | Page roles, reading order, navigation, discovery | Structure and journey outline |
-| direction | Visual personality and meaningful alternatives | Chosen art direction with rationale |
-| craft | Type, color roles, spacing, shapes, media and states | Coherent component specifications |
-| behavior | Actions, waits, errors, recovery and persistence | State and transition contracts |
-| responsive | Small screens, zoom, language, input and performance | Context matrix and observations |
-| handoff | Integration scope, security, evidence, undo and ownership | Reviewable transfer package |
-| check | Real tasks, comparisons, regressions and release decision | Evidence attached to the exact result |
+| Existing region ID | What the user decides here                                | Tangible result                       |
+| ------------------ | --------------------------------------------------------- | ------------------------------------- |
+| goal               | Who needs what, what exists, what must survive            | Task and preservation contract        |
+| content            | Words, facts, assets, destinations, permission            | Reviewed content inventory            |
+| plan               | Page roles, reading order, navigation, discovery          | Structure and journey outline         |
+| direction          | Visual personality and meaningful alternatives            | Chosen art direction with rationale   |
+| craft              | Type, color roles, spacing, shapes, media and states      | Coherent component specifications     |
+| behavior           | Actions, waits, errors, recovery and persistence          | State and transition contracts        |
+| responsive         | Small screens, zoom, language, input and performance      | Context matrix and observations       |
+| handoff            | Integration scope, security, evidence, undo and ownership | Reviewable transfer package           |
+| check              | Real tasks, comparisons, regressions and release decision | Evidence attached to the exact result |
 
 These nine regions contain many small decisions; they are not a promise to fit the product into nine screens. Inside a region, show one relevant question, a preview, the main consequence and a way back. Keep a visible path to the advanced choices. A search result can locate a decision without making the owner learn its internal identifier.
 
@@ -90,13 +90,13 @@ Proposed evaluation sequence:
 
 The future evaluator must use a small allowlisted rule language or typed predicates defined in code, never `eval` or JavaScript from imported records. Test rule precedence, missing values, invalid IDs, boundary values, cycles, conflicting constraints, undo and schema upgrades. A deterministic engine guarantees only consistent application of its encoded rules; it cannot prove that the rule set covers every possible failure.
 
-| Example change | Direct effect | Evidence to repeat | Guardrail |
-| --- | --- | --- | --- |
-| Heading font | Family/real weight/fallback metrics | Wrapping, hierarchy, crop balance, narrow layout, asset presence | Unsupported weight or missing font asset is disclosed or blocked for the promised output |
-| Main action destination | Link or request target | Correct navigation, authorization, failure and completion | No invented endpoint or “booking confirmed” without the actual completion event |
-| Higher information density | Spacing and visible rows | Scanning, hit areas, zoom, keyboard focus, disclosure discovery | Do not solve density by shrinking required targets or clipping essential text |
-| Existing-project mode | Scope and adapter contract | Original tasks, file diff, tokens, integration, selective undo | No automatic restructuring through a style-only adapter |
-| Owner/account switch | Permission and work identity | Save, pending export, late callback and receipt lifecycle | Old operations cannot receive credit or expose another owner's work |
+| Example change             | Direct effect                       | Evidence to repeat                                               | Guardrail                                                                                |
+| -------------------------- | ----------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Heading font               | Family/real weight/fallback metrics | Wrapping, hierarchy, crop balance, narrow layout, asset presence | Unsupported weight or missing font asset is disclosed or blocked for the promised output |
+| Main action destination    | Link or request target              | Correct navigation, authorization, failure and completion        | No invented endpoint or “booking confirmed” without the actual completion event          |
+| Higher information density | Spacing and visible rows            | Scanning, hit areas, zoom, keyboard focus, disclosure discovery  | Do not solve density by shrinking required targets or clipping essential text            |
+| Existing-project mode      | Scope and adapter contract          | Original tasks, file diff, tokens, integration, selective undo   | No automatic restructuring through a style-only adapter                                  |
+| Owner/account switch       | Permission and work identity        | Save, pending export, late callback and receipt lifecycle        | Old operations cannot receive credit or expose another owner's work                      |
 
 ## Iteration record for people and LLM developers
 
@@ -144,14 +144,14 @@ Do not offer security as an optional paid appearance upgrade. Stratosphere can e
 
 Interface source inspected at `385adc5fadd3d468bca14e72587e2c667b974182`; the subsequent `48a7bf5` wording repair changes handoff guidance, not this interface inventory. These are source-level observations, not browser acceptance:
 
-| Area | Present implementation | Gap this atlas exposes |
-| --- | --- | --- |
-| Garden | Nine stable regions, approved art, goal and lesson preferences | Several stops lead to the same Studio entry; contextual control navigation still needs implementation |
-| Stratosphere | Six bounded groups: composition, palette, fonts, hierarchy, spacing, form | Most catalogue decisions are not controls yet; no universal rule engine |
-| Authored website | Bounded page compositions, content, images, fonts, HTML/ZIP output | Does not implement arbitrary multi-page customer apps or real business backends |
-| Existing app | Scoped instructions and a narrow React/Vite TSX plus CSS-module source trial | Broad React/Next.js integration remains a goal; unsupported projects cannot be presented as supported |
-| Handoff | Exact copy transport, size refusal, recovery guidance and explicit receipt acknowledgment | Browser receipt, live customer use and final release checks remain unverified |
-| Review | Measured checks plus clearly separate opinion/evidence concepts | No completed blind human comparison or real customer usability study |
+| Area             | Present implementation                                                                    | Gap this atlas exposes                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Garden           | Nine stable regions, approved art, goal and lesson preferences                            | Several stops lead to the same Studio entry; contextual control navigation still needs implementation |
+| Stratosphere     | Six bounded groups: composition, palette, fonts, hierarchy, spacing, form                 | Most catalogue decisions are not controls yet; no universal rule engine                               |
+| Authored website | Bounded page compositions, content, images, fonts, HTML/ZIP output                        | Does not implement arbitrary multi-page customer apps or real business backends                       |
+| Existing app     | Scoped instructions and a narrow React/Vite TSX plus CSS-module source trial              | Broad React/Next.js integration remains a goal; unsupported projects cannot be presented as supported |
+| Handoff          | Exact copy transport, size refusal, recovery guidance and explicit receipt acknowledgment | Browser receipt, live customer use and final release checks remain unverified                         |
+| Review           | Measured checks plus clearly separate opinion/evidence concepts                           | No completed blind human comparison or real customer usability study                                  |
 
 Do not relabel proposed controls as working features. Do not create a fake “100% ready” score by counting visited stops. A draft may remain useful while its launch action stays gated.
 
@@ -200,3 +200,7 @@ Read-only structural check: `python build_catalogue.py`. Regenerate only after e
 The structural lens E-155 found that a draft could still reach release authorization transitively and a new project could inherit existing-project/import requirements. V10 now depends on evidence identity without release authorization. H15.b has a draft-specific check and no release prerequisites. Option `requires` plus `conditionalRequires` is the authoritative selected-path contract; record `requires` is the authoring default and is not unioned back into an override. Prerequisites scoped to another context become explicit conditional edges. Unknown flags request context; a false conditional edge is inapplicable with a reason, never a passed test.
 
 `journey_probe.py` inspects selected planning paths only. Nine tests now cover draft transitive closure, a new owner-typed editorial page, an existing inline form trial, unknown context, invalid option IDs and malformed/cyclic catalogue data. These checks still do not implement a runtime policy, produce task evidence or certify a customer project. All128records remain non-actionable proposals.
+
+## Reproducible formatting
+
+Run catalogue generation and byte checks from a complete Focus checkout with its installed Node development dependencies. The Python builder uses `scripts/format-research-json.mjs` and the existing project Prettier configuration before writing or comparing generated JSON. This keeps generation and formatting consistent; no dependency is downloaded by these commands. Research unittest cases still exercise the Python planning contracts separately.

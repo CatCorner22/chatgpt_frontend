@@ -28,9 +28,7 @@
       ],
       "requires": [],
       "check": "Record mode explicitly; an existing-project fixture cannot enter the replacement-page operation.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -63,9 +61,7 @@
           "checks": [
             "Name the audience, context and task; test each promised route with a representative scenario."
           ],
-          "requires": [
-            "G01"
-          ],
+          "requires": ["G01"],
           "conditionalRequires": []
         },
         {
@@ -74,19 +70,13 @@
           "checks": [
             "Name the audience, context and task; test each promised route with a representative scenario."
           ],
-          "requires": [
-            "G01"
-          ],
+          "requires": ["G01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G01"
-      ],
+      "requires": ["G01"],
       "check": "Name the audience, context and task; test each promised route with a representative scenario.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "single",
@@ -114,9 +104,7 @@
           "checks": [
             "Write an observable outcome before selecting a visual direction; a click alone cannot prove completion."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         },
         {
@@ -125,19 +113,13 @@
           "checks": [
             "Write an observable outcome before selecting a visual direction; a click alone cannot prove completion."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02"
-      ],
+      "requires": ["G02"],
       "check": "Write an observable outcome before selecting a visual direction; a click alone cannot prove completion.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -165,10 +147,7 @@
           "checks": [
             "List protected content, routes, actions and files; compare them after the trial and undo."
           ],
-          "requires": [
-            "G01",
-            "G03"
-          ],
+          "requires": ["G01", "G03"],
           "conditionalRequires": []
         },
         {
@@ -177,21 +156,13 @@
           "checks": [
             "List protected content, routes, actions and files; compare them after the trial and undo."
           ],
-          "requires": [
-            "G01",
-            "G03"
-          ],
+          "requires": ["G01", "G03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G01",
-        "G03"
-      ],
+      "requires": ["G01", "G03"],
       "check": "List protected content, routes, actions and files; compare them after the trial and undo.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "single",
@@ -219,9 +190,7 @@
           "checks": [
             "Detect the framework and file shape; unknown or incompatible inputs cannot receive an adapter-supported label."
           ],
-          "requires": [
-            "G01"
-          ],
+          "requires": ["G01"],
           "conditionalRequires": []
         },
         {
@@ -230,19 +199,13 @@
           "checks": [
             "Detect the framework and file shape; unknown or incompatible inputs cannot receive an adapter-supported label."
           ],
-          "requires": [
-            "G01"
-          ],
+          "requires": ["G01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G01"
-      ],
+      "requires": ["G01"],
       "check": "Detect the framework and file shape; unknown or incompatible inputs cannot receive an adapter-supported label.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -270,9 +233,7 @@
           "checks": [
             "Separate facts, preferences and assumptions; unresolved requirements remain visible in the handoff."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         },
         {
@@ -281,19 +242,13 @@
           "checks": [
             "Separate facts, preferences and assumptions; unresolved requirements remain visible in the handoff."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02"
-      ],
+      "requires": ["G02"],
       "check": "Separate facts, preferences and assumptions; unresolved requirements remain visible in the handoff.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -321,9 +276,7 @@
           "checks": [
             "Record which operations incur cost; a retry or background review cannot silently enable paid calls."
           ],
-          "requires": [
-            "G05"
-          ],
+          "requires": ["G05"],
           "conditionalRequires": []
         },
         {
@@ -332,19 +285,13 @@
           "checks": [
             "Record which operations incur cost; a retry or background review cannot silently enable paid calls."
           ],
-          "requires": [
-            "G05"
-          ],
+          "requires": ["G05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G05"
-      ],
+      "requires": ["G05"],
       "check": "Record which operations incur cost; a retry or background review cannot silently enable paid calls.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "single",
@@ -372,9 +319,7 @@
           "checks": [
             "Toggle, navigate and reload; retain the preference without changing project data or hiding blockers."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         },
         {
@@ -383,19 +328,13 @@
           "checks": [
             "Toggle, navigate and reload; retain the preference without changing project data or hiding blockers."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02"
-      ],
+      "requires": ["G02"],
       "check": "Toggle, navigate and reload; retain the preference without changing project data or hiding blockers.",
-      "sources": [
-        "DISCLOSURE"
-      ],
+      "sources": ["DISCLOSURE"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "single",
@@ -428,9 +367,7 @@
           "checks": [
             "Record provenance; export decoded owner strings exactly and flag unapproved claims."
           ],
-          "requires": [
-            "G03"
-          ],
+          "requires": ["G03"],
           "conditionalRequires": []
         },
         {
@@ -439,19 +376,13 @@
           "checks": [
             "Record provenance; export decoded owner strings exactly and flag unapproved claims."
           ],
-          "requires": [
-            "G03"
-          ],
+          "requires": ["G03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G03"
-      ],
+      "requires": ["G03"],
       "check": "Record provenance; export decoded owner strings exactly and flag unapproved claims.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -479,10 +410,7 @@
           "checks": [
             "Attempt the task with lessons closed; all prerequisites, qualifications and costs remain available before action."
           ],
-          "requires": [
-            "G03",
-            "C01"
-          ],
+          "requires": ["G03", "C01"],
           "conditionalRequires": []
         },
         {
@@ -491,21 +419,13 @@
           "checks": [
             "Attempt the task with lessons closed; all prerequisites, qualifications and costs remain available before action."
           ],
-          "requires": [
-            "G03",
-            "C01"
-          ],
+          "requires": ["G03", "C01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G03",
-        "C01"
-      ],
+      "requires": ["G03", "C01"],
       "check": "Attempt the task with lessons closed; all prerequisites, qualifications and costs remain available before action.",
-      "sources": [
-        "DISCLOSURE"
-      ],
+      "sources": ["DISCLOSURE"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -533,10 +453,7 @@
           "checks": [
             "Ask a reviewer what activation will do; compare with the actual destination and preserve approved wording."
           ],
-          "requires": [
-            "G03",
-            "C01"
-          ],
+          "requires": ["G03", "C01"],
           "conditionalRequires": []
         },
         {
@@ -545,21 +462,13 @@
           "checks": [
             "Ask a reviewer what activation will do; compare with the actual destination and preserve approved wording."
           ],
-          "requires": [
-            "G03",
-            "C01"
-          ],
+          "requires": ["G03", "C01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G03",
-        "C01"
-      ],
+      "requires": ["G03", "C01"],
       "check": "Ask a reviewer what activation will do; compare with the actual destination and preserve approved wording.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -587,9 +496,7 @@
           "checks": [
             "Inspect the actual href or request and completion event; no fabricated endpoint or confirmed-success message."
           ],
-          "requires": [
-            "C03"
-          ],
+          "requires": ["C03"],
           "conditionalRequires": []
         },
         {
@@ -598,19 +505,13 @@
           "checks": [
             "Inspect the actual href or request and completion event; no fabricated endpoint or confirmed-success message."
           ],
-          "requires": [
-            "C03"
-          ],
+          "requires": ["C03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C03"
-      ],
+      "requires": ["C03"],
       "check": "Inspect the actual href or request and completion event; no fabricated endpoint or confirmed-success message.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -638,10 +539,7 @@
           "checks": [
             "Compare every supported field and feature order across editor, preview, specification and output."
           ],
-          "requires": [
-            "C01",
-            "C02"
-          ],
+          "requires": ["C01", "C02"],
           "conditionalRequires": []
         },
         {
@@ -650,21 +548,13 @@
           "checks": [
             "Compare every supported field and feature order across editor, preview, specification and output."
           ],
-          "requires": [
-            "C01",
-            "C02"
-          ],
+          "requires": ["C01", "C02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C01",
-        "C02"
-      ],
+      "requires": ["C01", "C02"],
       "check": "Compare every supported field and feature order across editor, preview, specification and output.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -692,9 +582,7 @@
           "checks": [
             "Record asset source, permission, intended subject and replacement status before export."
           ],
-          "requires": [
-            "G06"
-          ],
+          "requires": ["G06"],
           "conditionalRequires": []
         },
         {
@@ -703,19 +591,13 @@
           "checks": [
             "Record asset source, permission, intended subject and replacement status before export."
           ],
-          "requires": [
-            "G06"
-          ],
+          "requires": ["G06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G06"
-      ],
+      "requires": ["G06"],
       "check": "Record asset source, permission, intended subject and replacement status before export.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -743,9 +625,7 @@
           "checks": [
             "Inspect purpose in context; review text alternatives and keyboard/screen-reader reading sequence."
           ],
-          "requires": [
-            "C06"
-          ],
+          "requires": ["C06"],
           "conditionalRequires": []
         },
         {
@@ -754,19 +634,13 @@
           "checks": [
             "Inspect purpose in context; review text alternatives and keyboard/screen-reader reading sequence."
           ],
-          "requires": [
-            "C06"
-          ],
+          "requires": ["C06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C06"
-      ],
+      "requires": ["C06"],
       "check": "Inspect purpose in context; review text alternatives and keyboard/screen-reader reading sequence.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -794,9 +668,7 @@
           "checks": [
             "Inspect narrow and wide crops with the actual asset; preserve original bytes and reversible framing."
           ],
-          "requires": [
-            "C06"
-          ],
+          "requires": ["C06"],
           "conditionalRequires": []
         },
         {
@@ -805,19 +677,13 @@
           "checks": [
             "Inspect narrow and wide crops with the actual asset; preserve original bytes and reversible framing."
           ],
-          "requires": [
-            "C06"
-          ],
+          "requires": ["C06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C06"
-      ],
+      "requires": ["C06"],
       "check": "Inspect narrow and wide crops with the actual asset; preserve original bytes and reversible framing.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -845,9 +711,7 @@
           "checks": [
             "Trace each claim to an owner-approved source; no generated customer endorsement is marked genuine."
           ],
-          "requires": [
-            "C01"
-          ],
+          "requires": ["C01"],
           "conditionalRequires": []
         },
         {
@@ -856,19 +720,13 @@
           "checks": [
             "Trace each claim to an owner-approved source; no generated customer endorsement is marked genuine."
           ],
-          "requires": [
-            "C01"
-          ],
+          "requires": ["C01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C01"
-      ],
+      "requires": ["C01"],
       "check": "Trace each claim to an owner-approved source; no generated customer endorsement is marked genuine.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -896,10 +754,7 @@
           "checks": [
             "Test locale labels, page language, real strings, glyph coverage and date/number conventions."
           ],
-          "requires": [
-            "G02",
-            "C01"
-          ],
+          "requires": ["G02", "C01"],
           "conditionalRequires": []
         },
         {
@@ -908,21 +763,13 @@
           "checks": [
             "Test locale labels, page language, real strings, glyph coverage and date/number conventions."
           ],
-          "requires": [
-            "G02",
-            "C01"
-          ],
+          "requires": ["G02", "C01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02",
-        "C01"
-      ],
+      "requires": ["G02", "C01"],
       "check": "Test locale labels, page language, real strings, glyph coverage and date/number conventions.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "single",
@@ -950,10 +797,7 @@
           "checks": [
             "Check rendered metadata and indexing policy; robots directives must never be described as authorization."
           ],
-          "requires": [
-            "G01",
-            "G02"
-          ],
+          "requires": ["G01", "G02"],
           "conditionalRequires": []
         },
         {
@@ -962,21 +806,13 @@
           "checks": [
             "Check rendered metadata and indexing policy; robots directives must never be described as authorization."
           ],
-          "requires": [
-            "G01",
-            "G02"
-          ],
+          "requires": ["G01", "G02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G01",
-        "G02"
-      ],
+      "requires": ["G01", "G02"],
       "check": "Check rendered metadata and indexing policy; robots directives must never be described as authorization.",
-      "sources": [
-        "AUTH"
-      ],
+      "sources": ["AUTH"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1004,10 +840,7 @@
           "checks": [
             "The handoff names an owner, update path and stale-content policy without inventing contact details."
           ],
-          "requires": [
-            "C01",
-            "G06"
-          ],
+          "requires": ["C01", "G06"],
           "conditionalRequires": []
         },
         {
@@ -1016,21 +849,13 @@
           "checks": [
             "The handoff names an owner, update path and stale-content policy without inventing contact details."
           ],
-          "requires": [
-            "C01",
-            "G06"
-          ],
+          "requires": ["C01", "G06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C01",
-        "G06"
-      ],
+      "requires": ["C01", "G06"],
       "check": "The handoff names an owner, update path and stale-content policy without inventing contact details.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1058,11 +883,7 @@
           "checks": [
             "Map each route to a task and required content; remove orphan pages and identify unsupported output scope."
           ],
-          "requires": [
-            "G02",
-            "G03",
-            "C02"
-          ],
+          "requires": ["G02", "G03", "C02"],
           "conditionalRequires": []
         },
         {
@@ -1071,23 +892,13 @@
           "checks": [
             "Map each route to a task and required content; remove orphan pages and identify unsupported output scope."
           ],
-          "requires": [
-            "G02",
-            "G03",
-            "C02"
-          ],
+          "requires": ["G02", "G03", "C02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02",
-        "G03",
-        "C02"
-      ],
+      "requires": ["G02", "G03", "C02"],
       "check": "Map each route to a task and required content; remove orphan pages and identify unsupported output scope.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -1115,10 +926,7 @@
           "checks": [
             "Read the DOM outline without visual styling and confirm required relationships still make sense."
           ],
-          "requires": [
-            "C02",
-            "P01"
-          ],
+          "requires": ["C02", "P01"],
           "conditionalRequires": []
         },
         {
@@ -1127,21 +935,13 @@
           "checks": [
             "Read the DOM outline without visual styling and confirm required relationships still make sense."
           ],
-          "requires": [
-            "C02",
-            "P01"
-          ],
+          "requires": ["C02", "P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C02",
-        "P01"
-      ],
+      "requires": ["C02", "P01"],
       "check": "Read the DOM outline without visual styling and confirm required relationships still make sense.",
-      "sources": [
-        "SEQUENCE"
-      ],
+      "sources": ["SEQUENCE"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1169,9 +969,7 @@
           "checks": [
             "Open a deep link and use Back/Forward; current location and exit routes remain understandable."
           ],
-          "requires": [
-            "P01"
-          ],
+          "requires": ["P01"],
           "conditionalRequires": []
         },
         {
@@ -1180,19 +978,13 @@
           "checks": [
             "Open a deep link and use Back/Forward; current location and exit routes remain understandable."
           ],
-          "requires": [
-            "P01"
-          ],
+          "requires": ["P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P01"
-      ],
+      "requires": ["P01"],
       "check": "Open a deep link and use Back/Forward; current location and exit routes remain understandable.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1220,10 +1012,7 @@
           "checks": [
             "Find a known option from a cold start; record wrong routes, assistance and recovery."
           ],
-          "requires": [
-            "G02",
-            "P01"
-          ],
+          "requires": ["G02", "P01"],
           "conditionalRequires": []
         },
         {
@@ -1232,21 +1021,13 @@
           "checks": [
             "Find a known option from a cold start; record wrong routes, assistance and recovery."
           ],
-          "requires": [
-            "G02",
-            "P01"
-          ],
+          "requires": ["G02", "P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02",
-        "P01"
-      ],
+      "requires": ["G02", "P01"],
       "check": "Find a known option from a cold start; record wrong routes, assistance and recovery.",
-      "sources": [
-        "DISCLOSURE"
-      ],
+      "sources": ["DISCLOSURE"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1274,9 +1055,7 @@
           "checks": [
             "Keyboard and pointer operation match the visual affordance; no nested interactive elements or dead whole-card links."
           ],
-          "requires": [
-            "P02"
-          ],
+          "requires": ["P02"],
           "conditionalRequires": []
         },
         {
@@ -1285,19 +1064,13 @@
           "checks": [
             "Keyboard and pointer operation match the visual affordance; no nested interactive elements or dead whole-card links."
           ],
-          "requires": [
-            "P02"
-          ],
+          "requires": ["P02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02"
-      ],
+      "requires": ["P02"],
       "check": "Keyboard and pointer operation match the visual affordance; no nested interactive elements or dead whole-card links.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1325,10 +1098,7 @@
           "checks": [
             "Find known and unfamiliar items; retain query/filter state across result and detail navigation."
           ],
-          "requires": [
-            "P01",
-            "P04"
-          ],
+          "requires": ["P01", "P04"],
           "conditionalRequires": []
         },
         {
@@ -1337,21 +1107,13 @@
           "checks": [
             "Find known and unfamiliar items; retain query/filter state across result and detail navigation."
           ],
-          "requires": [
-            "P01",
-            "P04"
-          ],
+          "requires": ["P01", "P04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P01",
-        "P04"
-      ],
+      "requires": ["P01", "P04"],
       "check": "Find known and unfamiliar items; retain query/filter state across result and detail navigation.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1379,10 +1141,7 @@
           "checks": [
             "Open detail by keyboard, return and confirm prior selection, scroll context and unsaved work."
           ],
-          "requires": [
-            "P01",
-            "P02"
-          ],
+          "requires": ["P01", "P02"],
           "conditionalRequires": []
         },
         {
@@ -1391,21 +1150,13 @@
           "checks": [
             "Open detail by keyboard, return and confirm prior selection, scroll context and unsaved work."
           ],
-          "requires": [
-            "P01",
-            "P02"
-          ],
+          "requires": ["P01", "P02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P01",
-        "P02"
-      ],
+      "requires": ["P01", "P02"],
       "check": "Open detail by keyboard, return and confirm prior selection, scroll context and unsaved work.",
-      "sources": [
-        "DISCLOSURE"
-      ],
+      "sources": ["DISCLOSURE"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1433,10 +1184,7 @@
           "checks": [
             "Complete the main task with the guide unopened; verify all essential instructions remain available."
           ],
-          "requires": [
-            "G08",
-            "C02"
-          ],
+          "requires": ["G08", "C02"],
           "conditionalRequires": []
         },
         {
@@ -1445,21 +1193,13 @@
           "checks": [
             "Complete the main task with the guide unopened; verify all essential instructions remain available."
           ],
-          "requires": [
-            "G08",
-            "C02"
-          ],
+          "requires": ["G08", "C02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G08",
-        "C02"
-      ],
+      "requires": ["G08", "C02"],
       "check": "Complete the main task with the guide unopened; verify all essential instructions remain available.",
-      "sources": [
-        "DISCLOSURE"
-      ],
+      "sources": ["DISCLOSURE"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1487,10 +1227,7 @@
           "checks": [
             "A missing saved design opens a real prerequisite route without overwriting the current draft."
           ],
-          "requires": [
-            "G05",
-            "P01"
-          ],
+          "requires": ["G05", "P01"],
           "conditionalRequires": []
         },
         {
@@ -1499,21 +1236,13 @@
           "checks": [
             "A missing saved design opens a real prerequisite route without overwriting the current draft."
           ],
-          "requires": [
-            "G05",
-            "P01"
-          ],
+          "requires": ["G05", "P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G05",
-        "P01"
-      ],
+      "requires": ["G05", "P01"],
       "check": "A missing saved design opens a real prerequisite route without overwriting the current draft.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1541,10 +1270,7 @@
           "checks": [
             "Reach a named advanced control from the Garden and return with the same project and selected mode."
           ],
-          "requires": [
-            "P03",
-            "P04"
-          ],
+          "requires": ["P03", "P04"],
           "conditionalRequires": []
         },
         {
@@ -1553,21 +1279,13 @@
           "checks": [
             "Reach a named advanced control from the Garden and return with the same project and selected mode."
           ],
-          "requires": [
-            "P03",
-            "P04"
-          ],
+          "requires": ["P03", "P04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P03",
-        "P04"
-      ],
+      "requires": ["P03", "P04"],
       "check": "Reach a named advanced control from the Garden and return with the same project and selected mode.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1595,10 +1313,7 @@
           "checks": [
             "Record the admired property and intended effect; do not copy another brand's words or protected assets."
           ],
-          "requires": [
-            "G03",
-            "G06"
-          ],
+          "requires": ["G03", "G06"],
           "conditionalRequires": []
         },
         {
@@ -1607,21 +1322,13 @@
           "checks": [
             "Record the admired property and intended effect; do not copy another brand's words or protected assets."
           ],
-          "requires": [
-            "G03",
-            "G06"
-          ],
+          "requires": ["G03", "G06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G03",
-        "G06"
-      ],
+      "requires": ["G03", "G06"],
       "check": "Record the admired property and intended effect; do not copy another brand's words or protected assets.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1649,10 +1356,7 @@
           "checks": [
             "Hold copy and assets constant; name the changed variable and inspect effects outside the focal section."
           ],
-          "requires": [
-            "P02",
-            "D01"
-          ],
+          "requires": ["P02", "D01"],
           "conditionalRequires": []
         },
         {
@@ -1661,21 +1365,13 @@
           "checks": [
             "Hold copy and assets constant; name the changed variable and inspect effects outside the focal section."
           ],
-          "requires": [
-            "P02",
-            "D01"
-          ],
+          "requires": ["P02", "D01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02",
-        "D01"
-      ],
+      "requires": ["P02", "D01"],
       "check": "Hold copy and assets constant; name the changed variable and inspect effects outside the focal section.",
-      "sources": [
-        "BENCH"
-      ],
+      "sources": ["BENCH"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1703,10 +1399,7 @@
           "checks": [
             "Review first impression and required-fact retrieval separately with the real content."
           ],
-          "requires": [
-            "P02",
-            "C03"
-          ],
+          "requires": ["P02", "C03"],
           "conditionalRequires": []
         },
         {
@@ -1715,21 +1408,13 @@
           "checks": [
             "Review first impression and required-fact retrieval separately with the real content."
           ],
-          "requires": [
-            "P02",
-            "C03"
-          ],
+          "requires": ["P02", "C03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02",
-        "C03"
-      ],
+      "requires": ["P02", "C03"],
       "check": "Review first impression and required-fact retrieval separately with the real content.",
-      "sources": [
-        "NEEDS"
-      ],
+      "sources": ["NEEDS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1757,10 +1442,7 @@
           "checks": [
             "Explain the role of each distinctive treatment; remove decoration that obscures the task in a comparison."
           ],
-          "requires": [
-            "G06",
-            "D01"
-          ],
+          "requires": ["G06", "D01"],
           "conditionalRequires": []
         },
         {
@@ -1769,22 +1451,13 @@
           "checks": [
             "Explain the role of each distinctive treatment; remove decoration that obscures the task in a comparison."
           ],
-          "requires": [
-            "G06",
-            "D01"
-          ],
+          "requires": ["G06", "D01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G06",
-        "D01"
-      ],
+      "requires": ["G06", "D01"],
       "check": "Explain the role of each distinctive treatment; remove decoration that obscures the task in a comparison.",
-      "sources": [
-        "MUJI",
-        "DADS"
-      ],
+      "sources": ["MUJI", "DADS"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1812,10 +1485,7 @@
           "checks": [
             "Map each color to a role; status and category meaning remain available without color perception."
           ],
-          "requires": [
-            "G06",
-            "P04"
-          ],
+          "requires": ["G06", "P04"],
           "conditionalRequires": []
         },
         {
@@ -1824,21 +1494,13 @@
           "checks": [
             "Map each color to a role; status and category meaning remain available without color perception."
           ],
-          "requires": [
-            "G06",
-            "P04"
-          ],
+          "requires": ["G06", "P04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G06",
-        "P04"
-      ],
+      "requires": ["G06", "P04"],
       "check": "Map each color to a role; status and category meaning remain available without color perception.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1871,10 +1533,7 @@
           "checks": [
             "Inspect all states and media in each offered theme; no untested automatic inversion is advertised."
           ],
-          "requires": [
-            "G02",
-            "D05"
-          ],
+          "requires": ["G02", "D05"],
           "conditionalRequires": []
         },
         {
@@ -1883,21 +1542,13 @@
           "checks": [
             "Inspect all states and media in each offered theme; no untested automatic inversion is advertised."
           ],
-          "requires": [
-            "G02",
-            "D05"
-          ],
+          "requires": ["G02", "D05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02",
-        "D05"
-      ],
+      "requires": ["G02", "D05"],
       "check": "Inspect all states and media in each offered theme; no untested automatic inversion is advertised.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -1925,10 +1576,7 @@
           "checks": [
             "Hide the character and motion; the same actions, labels and explanations remain reachable."
           ],
-          "requires": [
-            "G08",
-            "P08"
-          ],
+          "requires": ["G08", "P08"],
           "conditionalRequires": []
         },
         {
@@ -1937,21 +1585,13 @@
           "checks": [
             "Hide the character and motion; the same actions, labels and explanations remain reachable."
           ],
-          "requires": [
-            "G08",
-            "P08"
-          ],
+          "requires": ["G08", "P08"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G08",
-        "P08"
-      ],
+      "requires": ["G08", "P08"],
       "check": "Hide the character and motion; the same actions, labels and explanations remain reachable.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -1979,10 +1619,7 @@
           "checks": [
             "Compare narrow/wide screenshots and keyboard order; decoration must not reorder task meaning."
           ],
-          "requires": [
-            "P02",
-            "D03"
-          ],
+          "requires": ["P02", "D03"],
           "conditionalRequires": []
         },
         {
@@ -1991,21 +1628,13 @@
           "checks": [
             "Compare narrow/wide screenshots and keyboard order; decoration must not reorder task meaning."
           ],
-          "requires": [
-            "P02",
-            "D03"
-          ],
+          "requires": ["P02", "D03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02",
-        "D03"
-      ],
+      "requires": ["P02", "D03"],
       "check": "Compare narrow/wide screenshots and keyboard order; decoration must not reorder task meaning.",
-      "sources": [
-        "SEQUENCE"
-      ],
+      "sources": ["SEQUENCE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2033,9 +1662,7 @@
           "checks": [
             "Disable motion and repeat the task; no essential state information disappears."
           ],
-          "requires": [
-            "D07"
-          ],
+          "requires": ["D07"],
           "conditionalRequires": []
         },
         {
@@ -2044,19 +1671,13 @@
           "checks": [
             "Disable motion and repeat the task; no essential state information disappears."
           ],
-          "requires": [
-            "D07"
-          ],
+          "requires": ["D07"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D07"
-      ],
+      "requires": ["D07"],
       "check": "Disable motion and repeat the task; no essential state information disappears.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2084,10 +1705,7 @@
           "checks": [
             "Separate preference ratings, task results and technical failures; preserve rejected alternatives and reasons."
           ],
-          "requires": [
-            "D02",
-            "D03"
-          ],
+          "requires": ["D02", "D03"],
           "conditionalRequires": []
         },
         {
@@ -2096,21 +1714,13 @@
           "checks": [
             "Separate preference ratings, task results and technical failures; preserve rejected alternatives and reasons."
           ],
-          "requires": [
-            "D02",
-            "D03"
-          ],
+          "requires": ["D02", "D03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D02",
-        "D03"
-      ],
+      "requires": ["D02", "D03"],
       "check": "Separate preference ratings, task results and technical failures; preserve rejected alternatives and reasons.",
-      "sources": [
-        "USABILITY"
-      ],
+      "sources": ["USABILITY"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2138,10 +1748,7 @@
           "checks": [
             "Inspect delivered font files, real weights, licenses and fallback; family-name text alone is insufficient."
           ],
-          "requires": [
-            "C10",
-            "D04"
-          ],
+          "requires": ["C10", "D04"],
           "conditionalRequires": []
         },
         {
@@ -2150,21 +1757,13 @@
           "checks": [
             "Inspect delivered font files, real weights, licenses and fallback; family-name text alone is insufficient."
           ],
-          "requires": [
-            "C10",
-            "D04"
-          ],
+          "requires": ["C10", "D04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C10",
-        "D04"
-      ],
+      "requires": ["C10", "D04"],
       "check": "Inspect delivered font files, real weights, licenses and fallback; family-name text alone is insufficient.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2197,9 +1796,7 @@
           "checks": [
             "Confirm each declared weight exists; reject silent synthetic weight as proof of intended rendering."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": []
         },
         {
@@ -2208,19 +1805,13 @@
           "checks": [
             "Confirm each declared weight exists; reject silent synthetic weight as proof of intended rendering."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F01"
-      ],
+      "requires": ["F01"],
       "check": "Confirm each declared weight exists; reject silent synthetic weight as proof of intended rendering.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2248,9 +1839,7 @@
           "checks": [
             "Test the actual text at default and enlarged browser text sizes; no clipped control or unreadable content."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": []
         },
         {
@@ -2259,19 +1848,13 @@
           "checks": [
             "Test the actual text at default and enlarged browser text sizes; no clipped control or unreadable content."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F01"
-      ],
+      "requires": ["F01"],
       "check": "Test the actual text at default and enlarged browser text sizes; no clipped control or unreadable content.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2299,11 +1882,7 @@
           "checks": [
             "Inspect hierarchy using long real headings at narrow and wide widths and with fallback fonts."
           ],
-          "requires": [
-            "F02",
-            "F03",
-            "D03"
-          ],
+          "requires": ["F02", "F03", "D03"],
           "conditionalRequires": []
         },
         {
@@ -2312,23 +1891,13 @@
           "checks": [
             "Inspect hierarchy using long real headings at narrow and wide widths and with fallback fonts."
           ],
-          "requires": [
-            "F02",
-            "F03",
-            "D03"
-          ],
+          "requires": ["F02", "F03", "D03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F02",
-        "F03",
-        "D03"
-      ],
+      "requires": ["F02", "F03", "D03"],
       "check": "Inspect hierarchy using long real headings at narrow and wide widths and with fallback fonts.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2356,10 +1925,7 @@
           "checks": [
             "Measure the actual text block and reading experience; ch values are not exact character counts."
           ],
-          "requires": [
-            "F03",
-            "P02"
-          ],
+          "requires": ["F03", "P02"],
           "conditionalRequires": []
         },
         {
@@ -2368,22 +1934,13 @@
           "checks": [
             "Measure the actual text block and reading experience; ch values are not exact character counts."
           ],
-          "requires": [
-            "F03",
-            "P02"
-          ],
+          "requires": ["F03", "P02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F03",
-        "P02"
-      ],
+      "requires": ["F03", "P02"],
       "check": "Measure the actual text block and reading experience; ch values are not exact character counts.",
-      "sources": [
-        "LENGTH",
-        "TYPE"
-      ],
+      "sources": ["LENGTH", "TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2411,10 +1968,7 @@
           "checks": [
             "Check accents, multi-line labels and translated text without overlap or clipping."
           ],
-          "requires": [
-            "F03",
-            "C10"
-          ],
+          "requires": ["F03", "C10"],
           "conditionalRequires": []
         },
         {
@@ -2423,21 +1977,13 @@
           "checks": [
             "Check accents, multi-line labels and translated text without overlap or clipping."
           ],
-          "requires": [
-            "F03",
-            "C10"
-          ],
+          "requires": ["F03", "C10"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F03",
-        "C10"
-      ],
+      "requires": ["F03", "C10"],
       "check": "Check accents, multi-line labels and translated text without overlap or clipping.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2465,10 +2011,7 @@
           "checks": [
             "Compare real prices, dates and quantities; retain locale formatting and meaningful headers."
           ],
-          "requires": [
-            "F01",
-            "P01"
-          ],
+          "requires": ["F01", "P01"],
           "conditionalRequires": []
         },
         {
@@ -2477,21 +2020,13 @@
           "checks": [
             "Compare real prices, dates and quantities; retain locale formatting and meaningful headers."
           ],
-          "requires": [
-            "F01",
-            "P01"
-          ],
+          "requires": ["F01", "P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F01",
-        "P01"
-      ],
+      "requires": ["F01", "P01"],
       "check": "Compare real prices, dates and quantities; retain locale formatting and meaningful headers.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2519,10 +2054,7 @@
           "checks": [
             "Inspect screen-reader names, translated labels and wrap behavior; never transform stored owner copy silently."
           ],
-          "requires": [
-            "C10",
-            "F01"
-          ],
+          "requires": ["C10", "F01"],
           "conditionalRequires": []
         },
         {
@@ -2531,21 +2063,13 @@
           "checks": [
             "Inspect screen-reader names, translated labels and wrap behavior; never transform stored owner copy silently."
           ],
-          "requires": [
-            "C10",
-            "F01"
-          ],
+          "requires": ["C10", "F01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C10",
-        "F01"
-      ],
+      "requires": ["C10", "F01"],
       "check": "Inspect screen-reader names, translated labels and wrap behavior; never transform stored owner copy silently.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2573,9 +2097,7 @@
           "checks": [
             "Measure applicable pairs then inspect rendered text over actual images, overlays and gradients."
           ],
-          "requires": [
-            "D05"
-          ],
+          "requires": ["D05"],
           "conditionalRequires": []
         },
         {
@@ -2584,19 +2106,13 @@
           "checks": [
             "Measure applicable pairs then inspect rendered text over actual images, overlays and gradients."
           ],
-          "requires": [
-            "D05"
-          ],
+          "requires": ["D05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D05"
-      ],
+      "requires": ["D05"],
       "check": "Measure applicable pairs then inspect rendered text over actual images, overlays and gradients.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2624,10 +2140,7 @@
           "checks": [
             "Reject missing, wrong-type and cyclic references; export resolved values deterministically."
           ],
-          "requires": [
-            "D05",
-            "F01"
-          ],
+          "requires": ["D05", "F01"],
           "conditionalRequires": []
         },
         {
@@ -2636,21 +2149,13 @@
           "checks": [
             "Reject missing, wrong-type and cyclic references; export resolved values deterministically."
           ],
-          "requires": [
-            "D05",
-            "F01"
-          ],
+          "requires": ["D05", "F01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D05",
-        "F01"
-      ],
+      "requires": ["D05", "F01"],
       "check": "Reject missing, wrong-type and cyclic references; export resolved values deterministically.",
-      "sources": [
-        "DTCG"
-      ],
+      "sources": ["DTCG"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2678,10 +2183,7 @@
           "checks": [
             "Compare related components and content groups; inspect when real text wraps to additional lines."
           ],
-          "requires": [
-            "P02",
-            "F03"
-          ],
+          "requires": ["P02", "F03"],
           "conditionalRequires": []
         },
         {
@@ -2690,21 +2192,13 @@
           "checks": [
             "Compare related components and content groups; inspect when real text wraps to additional lines."
           ],
-          "requires": [
-            "P02",
-            "F03"
-          ],
+          "requires": ["P02", "F03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02",
-        "F03"
-      ],
+      "requires": ["P02", "F03"],
       "check": "Compare related components and content groups; inspect when real text wraps to additional lines.",
-      "sources": [
-        "DADS"
-      ],
+      "sources": ["DADS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2732,10 +2226,7 @@
           "checks": [
             "Complete a collection task at large text and narrow width; record errors and scrolling costs separately."
           ],
-          "requires": [
-            "G02",
-            "F11"
-          ],
+          "requires": ["G02", "F11"],
           "conditionalRequires": []
         },
         {
@@ -2744,21 +2235,13 @@
           "checks": [
             "Complete a collection task at large text and narrow width; record errors and scrolling costs separately."
           ],
-          "requires": [
-            "G02",
-            "F11"
-          ],
+          "requires": ["G02", "F11"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G02",
-        "F11"
-      ],
+      "requires": ["G02", "F11"],
       "check": "Complete a collection task at large text and narrow width; record errors and scrolling costs separately.",
-      "sources": [
-        "USABILITY"
-      ],
+      "sources": ["USABILITY"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2786,10 +2269,7 @@
           "checks": [
             "Inspect nested controls, clipping and focus outlines; shape preference alone is not a usability pass."
           ],
-          "requires": [
-            "D04",
-            "F11"
-          ],
+          "requires": ["D04", "F11"],
           "conditionalRequires": []
         },
         {
@@ -2798,21 +2278,13 @@
           "checks": [
             "Inspect nested controls, clipping and focus outlines; shape preference alone is not a usability pass."
           ],
-          "requires": [
-            "D04",
-            "F11"
-          ],
+          "requires": ["D04", "F11"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D04",
-        "F11"
-      ],
+      "requires": ["D04", "F11"],
       "check": "Inspect nested controls, clipping and focus outlines; shape preference alone is not a usability pass.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2840,9 +2312,7 @@
           "checks": [
             "Inspect overlapping regions and forced-colors behavior; required boundaries cannot depend only on shadow."
           ],
-          "requires": [
-            "F09"
-          ],
+          "requires": ["F09"],
           "conditionalRequires": []
         },
         {
@@ -2851,19 +2321,13 @@
           "checks": [
             "Inspect overlapping regions and forced-colors behavior; required boundaries cannot depend only on shadow."
           ],
-          "requires": [
-            "F09"
-          ],
+          "requires": ["F09"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F09"
-      ],
+      "requires": ["F09"],
       "check": "Inspect overlapping regions and forced-colors behavior; required boundaries cannot depend only on shadow.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -2891,11 +2355,7 @@
           "checks": [
             "Confirm destructive and neutral choices are distinct; inspect every offered state and actual task."
           ],
-          "requires": [
-            "C03",
-            "D03",
-            "F09"
-          ],
+          "requires": ["C03", "D03", "F09"],
           "conditionalRequires": []
         },
         {
@@ -2904,23 +2364,13 @@
           "checks": [
             "Confirm destructive and neutral choices are distinct; inspect every offered state and actual task."
           ],
-          "requires": [
-            "C03",
-            "D03",
-            "F09"
-          ],
+          "requires": ["C03", "D03", "F09"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C03",
-        "D03",
-        "F09"
-      ],
+      "requires": ["C03", "D03", "F09"],
       "check": "Confirm destructive and neutral choices are distinct; inspect every offered state and actual task.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -2948,10 +2398,7 @@
           "checks": [
             "Measure rendered targets and spacing; distinguish WCAG minimum from Focus's larger product target."
           ],
-          "requires": [
-            "F12",
-            "F15"
-          ],
+          "requires": ["F12", "F15"],
           "conditionalRequires": []
         },
         {
@@ -2960,21 +2407,13 @@
           "checks": [
             "Measure rendered targets and spacing; distinguish WCAG minimum from Focus's larger product target."
           ],
-          "requires": [
-            "F12",
-            "F15"
-          ],
+          "requires": ["F12", "F15"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F12",
-        "F15"
-      ],
+      "requires": ["F12", "F15"],
       "check": "Measure rendered targets and spacing; distinguish WCAG minimum from Focus's larger product target.",
-      "sources": [
-        "TARGET"
-      ],
+      "sources": ["TARGET"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3002,10 +2441,7 @@
           "checks": [
             "Verify visible meaning and accessible name; an unfamiliar icon cannot rely on hover-only help."
           ],
-          "requires": [
-            "C03",
-            "F16"
-          ],
+          "requires": ["C03", "F16"],
           "conditionalRequires": []
         },
         {
@@ -3014,21 +2450,13 @@
           "checks": [
             "Verify visible meaning and accessible name; an unfamiliar icon cannot rely on hover-only help."
           ],
-          "requires": [
-            "C03",
-            "F16"
-          ],
+          "requires": ["C03", "F16"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C03",
-        "F16"
-      ],
+      "requires": ["C03", "F16"],
       "check": "Verify visible meaning and accessible name; an unfamiliar icon cannot rely on hover-only help.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3056,10 +2484,7 @@
           "checks": [
             "Tab through the actual page; focus stays visible and is not hidden by sticky content or clipping."
           ],
-          "requires": [
-            "F09",
-            "F14"
-          ],
+          "requires": ["F09", "F14"],
           "conditionalRequires": []
         },
         {
@@ -3068,21 +2493,13 @@
           "checks": [
             "Tab through the actual page; focus stays visible and is not hidden by sticky content or clipping."
           ],
-          "requires": [
-            "F09",
-            "F14"
-          ],
+          "requires": ["F09", "F14"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F09",
-        "F14"
-      ],
+      "requires": ["F09", "F14"],
       "check": "Tab through the actual page; focus stays visible and is not hidden by sticky content or clipping.",
-      "sources": [
-        "FOCUSVISIBLE"
-      ],
+      "sources": ["FOCUSVISIBLE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3110,10 +2527,7 @@
           "checks": [
             "Delay and fail image requests; inspect layout shifts, alternative text and action position."
           ],
-          "requires": [
-            "C07",
-            "C08"
-          ],
+          "requires": ["C07", "C08"],
           "conditionalRequires": []
         },
         {
@@ -3122,21 +2536,13 @@
           "checks": [
             "Delay and fail image requests; inspect layout shifts, alternative text and action position."
           ],
-          "requires": [
-            "C07",
-            "C08"
-          ],
+          "requires": ["C07", "C08"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C07",
-        "C08"
-      ],
+      "requires": ["C07", "C08"],
       "check": "Delay and fail image requests; inspect layout shifts, alternative text and action position.",
-      "sources": [
-        "VITALS"
-      ],
+      "sources": ["VITALS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3164,10 +2570,7 @@
           "checks": [
             "Compare with the effect disabled; task information, contrast and performance remain intact."
           ],
-          "requires": [
-            "D04",
-            "F09"
-          ],
+          "requires": ["D04", "F09"],
           "conditionalRequires": []
         },
         {
@@ -3176,21 +2579,13 @@
           "checks": [
             "Compare with the effect disabled; task information, contrast and performance remain intact."
           ],
-          "requires": [
-            "D04",
-            "F09"
-          ],
+          "requires": ["D04", "F09"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D04",
-        "F09"
-      ],
+      "requires": ["D04", "F09"],
       "check": "Compare with the effect disabled; task information, contrast and performance remain intact.",
-      "sources": [
-        "MUJI"
-      ],
+      "sources": ["MUJI"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3218,11 +2613,7 @@
           "checks": [
             "Review both scales with exact content; a local repair cannot remove unrelated content or alter another task."
           ],
-          "requires": [
-            "D02",
-            "F04",
-            "F11"
-          ],
+          "requires": ["D02", "F04", "F11"],
           "conditionalRequires": []
         },
         {
@@ -3231,23 +2622,13 @@
           "checks": [
             "Review both scales with exact content; a local repair cannot remove unrelated content or alter another task."
           ],
-          "requires": [
-            "D02",
-            "F04",
-            "F11"
-          ],
+          "requires": ["D02", "F04", "F11"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D02",
-        "F04",
-        "F11"
-      ],
+      "requires": ["D02", "F04", "F11"],
       "check": "Review both scales with exact content; a local repair cannot remove unrelated content or alter another task.",
-      "sources": [
-        "BENCH"
-      ],
+      "sources": ["BENCH"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3275,10 +2656,7 @@
           "checks": [
             "Exercise keyboard and pointer; verify the role, name, value and resulting action match."
           ],
-          "requires": [
-            "C03",
-            "P05"
-          ],
+          "requires": ["C03", "P05"],
           "conditionalRequires": []
         },
         {
@@ -3287,21 +2665,13 @@
           "checks": [
             "Exercise keyboard and pointer; verify the role, name, value and resulting action match."
           ],
-          "requires": [
-            "C03",
-            "P05"
-          ],
+          "requires": ["C03", "P05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C03",
-        "P05"
-      ],
+      "requires": ["C03", "P05"],
       "check": "Exercise keyboard and pointer; verify the role, name, value and resulting action match.",
-      "sources": [
-        "APG"
-      ],
+      "sources": ["APG"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3331,13 +2701,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         },
         {
@@ -3348,23 +2712,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B01"
-      ],
+      "requires": ["B01"],
       "check": "Enumerate valid transitions and reject impossible combinations such as success plus pending for one request.",
-      "sources": [
-        "REACT"
-      ],
+      "sources": ["REACT"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3394,13 +2748,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         },
         {
@@ -3411,23 +2759,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B02"
-      ],
+      "requires": ["B02"],
       "check": "With delayed requests, show accurate progress without blocking unrelated work or announcing success early.",
-      "sources": [
-        "STATUS"
-      ],
+      "sources": ["STATUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3455,17 +2793,9 @@
           "checks": [
             "Simulate cancel, rejection and late completion; only the correct current operation can receive success credit."
           ],
-          "requires": [
-            "C04"
-          ],
+          "requires": ["C04"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         },
         {
@@ -3474,28 +2804,15 @@
           "checks": [
             "Simulate cancel, rejection and late completion; only the correct current operation can receive success credit."
           ],
-          "requires": [
-            "C04"
-          ],
+          "requires": ["C04"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B02",
-        "C04"
-      ],
+      "requires": ["B02", "C04"],
       "check": "Simulate cancel, rejection and late completion; only the correct current operation can receive success credit.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3523,10 +2840,7 @@
           "checks": [
             "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
           ],
-          "requires": [
-            "B03",
-            "B04"
-          ],
+          "requires": ["B03", "B04"],
           "conditionalRequires": []
         },
         {
@@ -3535,21 +2849,13 @@
           "checks": [
             "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action."
           ],
-          "requires": [
-            "B03",
-            "B04"
-          ],
+          "requires": ["B03", "B04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "B03",
-        "B04"
-      ],
+      "requires": ["B03", "B04"],
       "check": "Fail the operation at each boundary; useful input survives and retry cannot duplicate a completed action.",
-      "sources": [
-        "VALIDATION"
-      ],
+      "sources": ["VALIDATION"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3579,13 +2885,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         },
         {
@@ -3596,23 +2896,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B01"
-      ],
+      "requires": ["B01"],
       "check": "Test empty, partial, malformed, maximum and composed input; avoid errors before the user can finish typing.",
-      "sources": [
-        "VALIDATION"
-      ],
+      "sources": ["VALIDATION"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3640,9 +2930,7 @@
           "checks": [
             "Submit multiple errors; navigate to each field and confirm retained values and programmatic association."
           ],
-          "requires": [
-            "B06"
-          ],
+          "requires": ["B06"],
           "conditionalRequires": []
         },
         {
@@ -3651,19 +2939,13 @@
           "checks": [
             "Submit multiple errors; navigate to each field and confirm retained values and programmatic association."
           ],
-          "requires": [
-            "B06"
-          ],
+          "requires": ["B06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "B06"
-      ],
+      "requires": ["B06"],
       "check": "Submit multiple errors; navigate to each field and confirm retained values and programmatic association.",
-      "sources": [
-        "VALIDATION"
-      ],
+      "sources": ["VALIDATION"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3691,17 +2973,9 @@
           "checks": [
             "Distinguish first use, no matches, permission denied and load failure using controlled fixtures."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         },
         {
@@ -3710,28 +2984,15 @@
           "checks": [
             "Distinguish first use, no matches, permission denied and load failure using controlled fixtures."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P06",
-        "B02"
-      ],
+      "requires": ["P06", "B02"],
       "check": "Distinguish first use, no matches, permission denied and load failure using controlled fixtures.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3759,10 +3020,7 @@
           "checks": [
             "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
           ],
-          "requires": [
-            "B03",
-            "B04"
-          ],
+          "requires": ["B03", "B04"],
           "conditionalRequires": []
         },
         {
@@ -3771,21 +3029,13 @@
           "checks": [
             "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work."
           ],
-          "requires": [
-            "B03",
-            "B04"
-          ],
+          "requires": ["B03", "B04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "B03",
-        "B04"
-      ],
+      "requires": ["B03", "B04"],
       "check": "Race cancel against completion; display the actual known state and prevent stale callbacks changing new work.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3815,20 +3065,8 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            },
-            {
-              "decision": "B05",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } },
+            { "decision": "B05", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         },
         {
@@ -3839,31 +3077,14 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            },
-            {
-              "decision": "B05",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } },
+            { "decision": "B05", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B04",
-        "B05"
-      ],
+      "requires": ["B04", "B05"],
       "check": "Replay the same request, reload and simulate a timeout after server success; check actual server effects.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -3891,17 +3112,9 @@
           "checks": [
             "Back, Forward, refresh and route changes retain or discard only as disclosed; no silent overwrite."
           ],
-          "requires": [
-            "P03"
-          ],
+          "requires": ["P03"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         },
         {
@@ -3910,28 +3123,15 @@
           "checks": [
             "Back, Forward, refresh and route changes retain or discard only as disclosed; no silent overwrite."
           ],
-          "requires": [
-            "P03"
-          ],
+          "requires": ["P03"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P03",
-        "B02"
-      ],
+      "requires": ["P03", "B02"],
       "check": "Back, Forward, refresh and route changes retain or discard only as disclosed; no silent overwrite.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -3959,17 +3159,9 @@
           "checks": [
             "Deny storage and reject writes; the UI never says Saved without the promised operation completing."
           ],
-          "requires": [
-            "B11"
-          ],
+          "requires": ["B11"],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         },
         {
@@ -3978,28 +3170,15 @@
           "checks": [
             "Deny storage and reject writes; the UI never says Saved without the promised operation completing."
           ],
-          "requires": [
-            "B11"
-          ],
+          "requires": ["B11"],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B04",
-        "B11"
-      ],
+      "requires": ["B04", "B11"],
       "check": "Deny storage and reject writes; the UI never says Saved without the promised operation completing.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4027,17 +3206,9 @@
           "checks": [
             "Undo after an unrelated edit and after reload; retain history and refuse destructive conflict resolution."
           ],
-          "requires": [
-            "B12"
-          ],
+          "requires": ["B12"],
           "conditionalRequires": [
-            {
-              "decision": "G04",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "G04", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -4046,28 +3217,15 @@
           "checks": [
             "Undo after an unrelated edit and after reload; retain history and refuse destructive conflict resolution."
           ],
-          "requires": [
-            "B12"
-          ],
+          "requires": ["B12"],
           "conditionalRequires": [
-            {
-              "decision": "G04",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "G04", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "G04",
-        "B12"
-      ],
+      "requires": ["G04", "B12"],
       "check": "Undo after an unrelated edit and after reload; retain history and refuse destructive conflict resolution.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4097,13 +3255,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         },
         {
@@ -4114,23 +3266,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B12"
-      ],
+      "requires": ["B12"],
       "check": "Race updates from two contexts; no last-write data loss is hidden behind a success notification.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4158,17 +3300,9 @@
           "checks": [
             "Complete the inline task using ordinary document navigation; Tab can leave the form without modal containment, and no modal semantics are applied."
           ],
-          "requires": [
-            "P07"
-          ],
+          "requires": ["P07"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         },
         {
@@ -4177,28 +3311,15 @@
           "checks": [
             "Open the modal by keyboard; focus enters logically and remains inside while open, Escape or the close action dismisses it, and focus returns to a valid initiating context."
           ],
-          "requires": [
-            "P07"
-          ],
+          "requires": ["P07"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P07",
-        "B01"
-      ],
+      "requires": ["P07", "B01"],
       "check": "Apply the selected pattern: ordinary navigation for inline work; contained focus and deliberate return for a modal. Exercise the actual task.",
-      "sources": [
-        "DIALOG"
-      ],
+      "sources": ["DIALOG"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4226,17 +3347,9 @@
           "checks": [
             "Test hover, focus, pointer movement, Escape and touch fallback; inspect applicable persistence rules."
           ],
-          "requires": [
-            "P08"
-          ],
+          "requires": ["P08"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         },
         {
@@ -4245,29 +3358,15 @@
           "checks": [
             "Test hover, focus, pointer movement, Escape and touch fallback; inspect applicable persistence rules."
           ],
-          "requires": [
-            "P08"
-          ],
+          "requires": ["P08"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P08",
-        "B01"
-      ],
+      "requires": ["P08", "B01"],
       "check": "Test hover, focus, pointer movement, Escape and touch fallback; inspect applicable persistence rules.",
-      "sources": [
-        "TOOLTIP",
-        "HOVER"
-      ],
+      "sources": ["TOOLTIP", "HOVER"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4295,17 +3394,9 @@
           "checks": [
             "Round-trip query state through refresh and Back; reject malformed values without running injected commands."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B11",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B11", "when": { "flag": "hasDraft", "equals": true } }
           ]
         },
         {
@@ -4314,28 +3405,15 @@
           "checks": [
             "Round-trip query state through refresh and Back; reject malformed values without running injected commands."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B11",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B11", "when": { "flag": "hasDraft", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P06",
-        "B11"
-      ],
+      "requires": ["P06", "B11"],
       "check": "Round-trip query state through refresh and Back; reject malformed values without running injected commands.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4363,17 +3441,9 @@
           "checks": [
             "Exercise keyboard and assistive technology; confirm result counts and errors are understandable without duplicated speech."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B03",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B03", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         },
         {
@@ -4382,28 +3452,15 @@
           "checks": [
             "Exercise keyboard and assistive technology; confirm result counts and errors are understandable without duplicated speech."
           ],
-          "requires": [
-            "P06"
-          ],
+          "requires": ["P06"],
           "conditionalRequires": [
-            {
-              "decision": "B03",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B03", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "P06",
-        "B03"
-      ],
+      "requires": ["P06", "B03"],
       "check": "Exercise keyboard and assistive technology; confirm result counts and errors are understandable without duplicated speech.",
-      "sources": [
-        "STATUS"
-      ],
+      "sources": ["STATUS"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4431,10 +3488,7 @@
           "checks": [
             "Compare real rows with long values, sort states, keyboard access and narrow layout; preserve header relationships."
           ],
-          "requires": [
-            "P01",
-            "P02"
-          ],
+          "requires": ["P01", "P02"],
           "conditionalRequires": []
         },
         {
@@ -4443,21 +3497,13 @@
           "checks": [
             "Compare real rows with long values, sort states, keyboard access and narrow layout; preserve header relationships."
           ],
-          "requires": [
-            "P01",
-            "P02"
-          ],
+          "requires": ["P01", "P02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P01",
-        "P02"
-      ],
+      "requires": ["P01", "P02"],
       "check": "Compare real rows with long values, sort states, keyboard access and narrow layout; preserve header relationships.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4485,17 +3531,9 @@
           "checks": [
             "Complete the same reorder task without dragging and confirm persisted order plus undo."
           ],
-          "requires": [
-            "P02"
-          ],
+          "requires": ["P02"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         },
         {
@@ -4504,28 +3542,15 @@
           "checks": [
             "Complete the same reorder task without dragging and confirm persisted order plus undo."
           ],
-          "requires": [
-            "P02"
-          ],
+          "requires": ["P02"],
           "conditionalRequires": [
-            {
-              "decision": "B01",
-              "when": {
-                "flag": "hasControls",
-                "equals": true
-              }
-            }
+            { "decision": "B01", "when": { "flag": "hasControls", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B01",
-        "P02"
-      ],
+      "requires": ["B01", "P02"],
       "check": "Complete the same reorder task without dragging and confirm persisted order plus undo.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4555,20 +3580,8 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B11",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            },
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B11", "when": { "flag": "hasDraft", "equals": true } },
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         },
         {
@@ -4579,32 +3592,14 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B11",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            },
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B11", "when": { "flag": "hasDraft", "equals": true } },
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B11",
-        "B12"
-      ],
+      "requires": ["B11", "B12"],
       "check": "Expire the session, switch account and resume; no old-owner data or callback crosses into the new account.",
-      "sources": [
-        "AUTH",
-        "FOCUS"
-      ],
+      "sources": ["AUTH", "FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4632,17 +3627,9 @@
           "checks": [
             "Run with reduced motion, rapid input and cancellation; animation cannot delay or hide the accepted state."
           ],
-          "requires": [
-            "D09"
-          ],
+          "requires": ["D09"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         },
         {
@@ -4651,28 +3638,15 @@
           "checks": [
             "Run with reduced motion, rapid input and cancellation; animation cannot delay or hide the accepted state."
           ],
-          "requires": [
-            "D09"
-          ],
+          "requires": ["D09"],
           "conditionalRequires": [
-            {
-              "decision": "B02",
-              "when": {
-                "flag": "hasInteractiveTask",
-                "equals": true
-              }
-            }
+            { "decision": "B02", "when": { "flag": "hasInteractiveTask", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "D09",
-        "B02"
-      ],
+      "requires": ["D09", "B02"],
       "check": "Run with reduced motion, rapid input and cancellation; animation cannot delay or hide the accepted state.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4700,11 +3674,7 @@
           "checks": [
             "Sweep widths around each breakpoint with real content; inspect intermediate widths as well as named devices."
           ],
-          "requires": [
-            "P02",
-            "F03",
-            "F11"
-          ],
+          "requires": ["P02", "F03", "F11"],
           "conditionalRequires": []
         },
         {
@@ -4713,23 +3683,13 @@
           "checks": [
             "Sweep widths around each breakpoint with real content; inspect intermediate widths as well as named devices."
           ],
-          "requires": [
-            "P02",
-            "F03",
-            "F11"
-          ],
+          "requires": ["P02", "F03", "F11"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "P02",
-        "F03",
-        "F11"
-      ],
+      "requires": ["P02", "F03", "F11"],
       "check": "Sweep widths around each breakpoint with real content; inspect intermediate widths as well as named devices.",
-      "sources": [
-        "RESPONSIVE"
-      ],
+      "sources": ["RESPONSIVE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4757,17 +3717,9 @@
           "checks": [
             "For ordinary vertically scrolling content, inspect320CSSpixels and400%zoom from1280; required content and functions reflow without two-dimensional page scrolling. Do not require a table choice for a tableless page."
           ],
-          "requires": [
-            "R01"
-          ],
+          "requires": ["R01"],
           "conditionalRequires": [
-            {
-              "decision": "B19",
-              "when": {
-                "flag": "hasTables",
-                "equals": true
-              }
-            }
+            { "decision": "B19", "when": { "flag": "hasTables", "equals": true } }
           ]
         },
         {
@@ -4776,27 +3728,15 @@
           "checks": [
             "Identify the specific content requiring two-dimensional layout and justify the applicable exception; keep the surrounding page reflowing and exercise the region with keyboard and zoom."
           ],
-          "requires": [
-            "R01"
-          ],
+          "requires": ["R01"],
           "conditionalRequires": [
-            {
-              "decision": "B19",
-              "when": {
-                "flag": "hasTables",
-                "equals": true
-              }
-            }
+            { "decision": "B19", "when": { "flag": "hasTables", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "R01"
-      ],
+      "requires": ["R01"],
       "check": "Check 320 CSS pixels and 400% zoom from 1280; no required content or function disappears outside valid exceptions.",
-      "sources": [
-        "REFLOW"
-      ],
+      "sources": ["REFLOW"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4824,10 +3764,7 @@
           "checks": [
             "Apply enlarged text and spacing; required labels and facts remain readable and operable."
           ],
-          "requires": [
-            "F03",
-            "F06"
-          ],
+          "requires": ["F03", "F06"],
           "conditionalRequires": []
         },
         {
@@ -4836,21 +3773,13 @@
           "checks": [
             "Apply enlarged text and spacing; required labels and facts remain readable and operable."
           ],
-          "requires": [
-            "F03",
-            "F06"
-          ],
+          "requires": ["F03", "F06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F03",
-        "F06"
-      ],
+      "requires": ["F03", "F06"],
       "check": "Apply enlarged text and spacing; required labels and facts remain readable and operable.",
-      "sources": [
-        "REFLOW"
-      ],
+      "sources": ["REFLOW"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4880,13 +3809,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B16",
-              "when": {
-                "flag": "hasSupplementalHelp",
-                "equals": true
-              }
-            }
+            { "decision": "B16", "when": { "flag": "hasSupplementalHelp", "equals": true } }
           ]
         },
         {
@@ -4897,23 +3820,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "B16",
-              "when": {
-                "flag": "hasSupplementalHelp",
-                "equals": true
-              }
-            }
+            { "decision": "B16", "when": { "flag": "hasSupplementalHelp", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B16"
-      ],
+      "requires": ["B16"],
       "check": "Complete the same task on touch and keyboard; no essential explanation or action is hover-only.",
-      "sources": [
-        "HOVER"
-      ],
+      "sources": ["HOVER"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4941,9 +3854,7 @@
           "checks": [
             "Change the system preference during use; state, focus and controls remain available without animation dependence."
           ],
-          "requires": [
-            "B22"
-          ],
+          "requires": ["B22"],
           "conditionalRequires": []
         },
         {
@@ -4952,19 +3863,13 @@
           "checks": [
             "Change the system preference during use; state, focus and controls remain available without animation dependence."
           ],
-          "requires": [
-            "B22"
-          ],
+          "requires": ["B22"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "B22"
-      ],
+      "requires": ["B22"],
       "check": "Change the system preference during use; state, focus and controls remain available without animation dependence.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -4992,10 +3897,7 @@
           "checks": [
             "Inspect mixed-direction text, numbers, icons, logos and navigation in actual locales; never mirror all graphics blindly."
           ],
-          "requires": [
-            "C10",
-            "P02"
-          ],
+          "requires": ["C10", "P02"],
           "conditionalRequires": []
         },
         {
@@ -5004,21 +3906,13 @@
           "checks": [
             "Inspect mixed-direction text, numbers, icons, logos and navigation in actual locales; never mirror all graphics blindly."
           ],
-          "requires": [
-            "C10",
-            "P02"
-          ],
+          "requires": ["C10", "P02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C10",
-        "P02"
-      ],
+      "requires": ["C10", "P02"],
       "check": "Inspect mixed-direction text, numbers, icons, logos and navigation in actual locales; never mirror all graphics blindly.",
-      "sources": [
-        "TYPE"
-      ],
+      "sources": ["TYPE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5046,10 +3940,7 @@
           "checks": [
             "Open the mobile keyboard and focus bottom fields; scroll and dismiss without losing input or hiding errors."
           ],
-          "requires": [
-            "B06",
-            "R01"
-          ],
+          "requires": ["B06", "R01"],
           "conditionalRequires": []
         },
         {
@@ -5058,21 +3949,13 @@
           "checks": [
             "Open the mobile keyboard and focus bottom fields; scroll and dismiss without losing input or hiding errors."
           ],
-          "requires": [
-            "B06",
-            "R01"
-          ],
+          "requires": ["B06", "R01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "B06",
-        "R01"
-      ],
+      "requires": ["B06", "R01"],
       "check": "Open the mobile keyboard and focus bottom fields; scroll and dismiss without losing input or hiding errors.",
-      "sources": [
-        "FOCUSVISIBLE"
-      ],
+      "sources": ["FOCUSVISIBLE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5100,17 +3983,9 @@
           "checks": [
             "Block fonts and images independently; record rendered fallback, content preservation and retry behavior."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": [
-            {
-              "decision": "F19",
-              "when": {
-                "flag": "hasImages",
-                "equals": true
-              }
-            }
+            { "decision": "F19", "when": { "flag": "hasImages", "equals": true } }
           ]
         },
         {
@@ -5119,29 +3994,15 @@
           "checks": [
             "Block fonts and images independently; record rendered fallback, content preservation and retry behavior."
           ],
-          "requires": [
-            "F01"
-          ],
+          "requires": ["F01"],
           "conditionalRequires": [
-            {
-              "decision": "F19",
-              "when": {
-                "flag": "hasImages",
-                "equals": true
-              }
-            }
+            { "decision": "F19", "when": { "flag": "hasImages", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "F01",
-        "F19"
-      ],
+      "requires": ["F01", "F19"],
       "check": "Block fonts and images independently; record rendered fallback, content preservation and retry behavior.",
-      "sources": [
-        "TYPE",
-        "VITALS"
-      ],
+      "sources": ["TYPE", "VITALS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5169,17 +4030,9 @@
           "checks": [
             "Inspect the request waterfall and visual stability under a declared cold-cache network profile."
           ],
-          "requires": [
-            "R01"
-          ],
+          "requires": ["R01"],
           "conditionalRequires": [
-            {
-              "decision": "F19",
-              "when": {
-                "flag": "hasImages",
-                "equals": true
-              }
-            }
+            { "decision": "F19", "when": { "flag": "hasImages", "equals": true } }
           ]
         },
         {
@@ -5188,28 +4041,15 @@
           "checks": [
             "Inspect the request waterfall and visual stability under a declared cold-cache network profile."
           ],
-          "requires": [
-            "R01"
-          ],
+          "requires": ["R01"],
           "conditionalRequires": [
-            {
-              "decision": "F19",
-              "when": {
-                "flag": "hasImages",
-                "equals": true
-              }
-            }
+            { "decision": "F19", "when": { "flag": "hasImages", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "F19",
-        "R01"
-      ],
+      "requires": ["F19", "R01"],
       "check": "Inspect the request waterfall and visual stability under a declared cold-cache network profile.",
-      "sources": [
-        "VITALS"
-      ],
+      "sources": ["VITALS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5237,9 +4077,7 @@
           "checks": [
             "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75th percentile when using field data."
           ],
-          "requires": [
-            "R09"
-          ],
+          "requires": ["R09"],
           "conditionalRequires": []
         },
         {
@@ -5248,19 +4086,13 @@
           "checks": [
             "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75th percentile when using field data."
           ],
-          "requires": [
-            "R09"
-          ],
+          "requires": ["R09"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "R09"
-      ],
+      "requires": ["R09"],
       "check": "Report LCP, INP and CLS with collection method; compare good thresholds at the specified 75th percentile when using field data.",
-      "sources": [
-        "VITALS"
-      ],
+      "sources": ["VITALS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5288,17 +4120,9 @@
           "checks": [
             "Disconnect before, during and after an operation; distinguish queued, failed and confirmed results."
           ],
-          "requires": [
-            "B05"
-          ],
+          "requires": ["B05"],
           "conditionalRequires": [
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         },
         {
@@ -5307,28 +4131,15 @@
           "checks": [
             "Disconnect before, during and after an operation; distinguish queued, failed and confirmed results."
           ],
-          "requires": [
-            "B05"
-          ],
+          "requires": ["B05"],
           "conditionalRequires": [
-            {
-              "decision": "B12",
-              "when": {
-                "flag": "hasDraft",
-                "equals": true
-              }
-            }
+            { "decision": "B12", "when": { "flag": "hasDraft", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "B05",
-        "B12"
-      ],
+      "requires": ["B05", "B12"],
       "check": "Disconnect before, during and after an operation; distinguish queued, failed and confirmed results.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5356,10 +4167,7 @@
           "checks": [
             "Record versions and features actually exercised; a source-level compatibility assumption is not a browser pass."
           ],
-          "requires": [
-            "G05",
-            "R01"
-          ],
+          "requires": ["G05", "R01"],
           "conditionalRequires": []
         },
         {
@@ -5368,21 +4176,13 @@
           "checks": [
             "Record versions and features actually exercised; a source-level compatibility assumption is not a browser pass."
           ],
-          "requires": [
-            "G05",
-            "R01"
-          ],
+          "requires": ["G05", "R01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G05",
-        "R01"
-      ],
+      "requires": ["G05", "R01"],
       "check": "Record versions and features actually exercised; a source-level compatibility assumption is not a browser pass.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5410,10 +4210,7 @@
           "checks": [
             "Render the component in each promised container, including side panels and embedded contexts."
           ],
-          "requires": [
-            "R01",
-            "P10"
-          ],
+          "requires": ["R01", "P10"],
           "conditionalRequires": []
         },
         {
@@ -5422,21 +4219,13 @@
           "checks": [
             "Render the component in each promised container, including side panels and embedded contexts."
           ],
-          "requires": [
-            "R01",
-            "P10"
-          ],
+          "requires": ["R01", "P10"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "R01",
-        "P10"
-      ],
+      "requires": ["R01", "P10"],
       "check": "Render the component in each promised container, including side panels and embedded contexts.",
-      "sources": [
-        "RESPONSIVE"
-      ],
+      "sources": ["RESPONSIVE"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5464,10 +4253,7 @@
           "checks": [
             "Use forced-colors or the supported high-contrast setting; focus, selection and boundaries remain distinguishable."
           ],
-          "requires": [
-            "F14",
-            "F18"
-          ],
+          "requires": ["F14", "F18"],
           "conditionalRequires": []
         },
         {
@@ -5476,21 +4262,13 @@
           "checks": [
             "Use forced-colors or the supported high-contrast setting; focus, selection and boundaries remain distinguishable."
           ],
-          "requires": [
-            "F14",
-            "F18"
-          ],
+          "requires": ["F14", "F18"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "F14",
-        "F18"
-      ],
+      "requires": ["F14", "F18"],
       "check": "Use forced-colors or the supported high-contrast setting; focus, selection and boundaries remain distinguishable.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "rendered",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5518,10 +4296,7 @@
           "checks": [
             "Print or export the actual page and inspect long sections, links and hidden interactive-only facts."
           ],
-          "requires": [
-            "C02",
-            "P01"
-          ],
+          "requires": ["C02", "P01"],
           "conditionalRequires": []
         },
         {
@@ -5530,21 +4305,13 @@
           "checks": [
             "Print or export the actual page and inspect long sections, links and hidden interactive-only facts."
           ],
-          "requires": [
-            "C02",
-            "P01"
-          ],
+          "requires": ["C02", "P01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C02",
-        "P01"
-      ],
+      "requires": ["C02", "P01"],
       "check": "Print or export the actual page and inspect long sections, links and hidden interactive-only facts.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5572,10 +4339,7 @@
           "checks": [
             "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
           ],
-          "requires": [
-            "G04",
-            "G05"
-          ],
+          "requires": ["G04", "G05"],
           "conditionalRequires": []
         },
         {
@@ -5584,21 +4348,13 @@
           "checks": [
             "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
           ],
-          "requires": [
-            "G04",
-            "G05"
-          ],
+          "requires": ["G04", "G05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G04",
-        "G05"
-      ],
+      "requires": ["G04", "G05"],
       "check": "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -5626,9 +4382,7 @@
           "checks": [
             "Compare the entire diff against allowed paths and protected files; reject unexplained changes."
           ],
-          "requires": [
-            "H01"
-          ],
+          "requires": ["H01"],
           "conditionalRequires": []
         },
         {
@@ -5637,20 +4391,13 @@
           "checks": [
             "Compare the entire diff against allowed paths and protected files; reject unexplained changes."
           ],
-          "requires": [
-            "H01"
-          ],
+          "requires": ["H01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H01"
-      ],
+      "requires": ["H01"],
       "check": "Compare the entire diff against allowed paths and protected files; reject unexplained changes.",
-      "sources": [
-        "BENCH",
-        "FOCUS"
-      ],
+      "sources": ["BENCH", "FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5678,10 +4425,7 @@
           "checks": [
             "Alter a baseline file before apply; the proposal must report a mismatch rather than overwrite it."
           ],
-          "requires": [
-            "H01",
-            "H02"
-          ],
+          "requires": ["H01", "H02"],
           "conditionalRequires": []
         },
         {
@@ -5690,21 +4434,13 @@
           "checks": [
             "Alter a baseline file before apply; the proposal must report a mismatch rather than overwrite it."
           ],
-          "requires": [
-            "H01",
-            "H02"
-          ],
+          "requires": ["H01", "H02"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H01",
-        "H02"
-      ],
+      "requires": ["H01", "H02"],
       "check": "Alter a baseline file before apply; the proposal must report a mismatch rather than overwrite it.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5732,17 +4468,9 @@
           "checks": [
             "Test allowed and denied reads/writes with separate accounts and guessed resource IDs on the actual server."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": [
-            {
-              "decision": "H01",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H01", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -5751,28 +4479,15 @@
           "checks": [
             "Test allowed and denied reads/writes with separate accounts and guessed resource IDs on the actual server."
           ],
-          "requires": [
-            "G02"
-          ],
+          "requires": ["G02"],
           "conditionalRequires": [
-            {
-              "decision": "H01",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H01", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "G02",
-        "H01"
-      ],
+      "requires": ["G02", "H01"],
       "check": "Test allowed and denied reads/writes with separate accounts and guessed resource IDs on the actual server.",
-      "sources": [
-        "AUTH"
-      ],
+      "sources": ["AUTH"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5800,9 +4515,7 @@
           "checks": [
             "Inspect bundles, exports, logs and error paths for secrets; do not claim privacy from a hidden UI field."
           ],
-          "requires": [
-            "H04"
-          ],
+          "requires": ["H04"],
           "conditionalRequires": []
         },
         {
@@ -5811,19 +4524,13 @@
           "checks": [
             "Inspect bundles, exports, logs and error paths for secrets; do not claim privacy from a hidden UI field."
           ],
-          "requires": [
-            "H04"
-          ],
+          "requires": ["H04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H04"
-      ],
+      "requires": ["H04"],
       "check": "Inspect bundles, exports, logs and error paths for secrets; do not claim privacy from a hidden UI field.",
-      "sources": [
-        "AUTH"
-      ],
+      "sources": ["AUTH"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5851,10 +4558,7 @@
           "checks": [
             "Test malformed, oversized and hostile content without executing imports, source maps, scripts or embedded instructions."
           ],
-          "requires": [
-            "G05",
-            "H05"
-          ],
+          "requires": ["G05", "H05"],
           "conditionalRequires": []
         },
         {
@@ -5863,22 +4567,13 @@
           "checks": [
             "Test malformed, oversized and hostile content without executing imports, source maps, scripts or embedded instructions."
           ],
-          "requires": [
-            "G05",
-            "H05"
-          ],
+          "requires": ["G05", "H05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G05",
-        "H05"
-      ],
+      "requires": ["G05", "H05"],
       "check": "Test malformed, oversized and hostile content without executing imports, source maps, scripts or embedded instructions.",
-      "sources": [
-        "XSS",
-        "PROMPT"
-      ],
+      "sources": ["XSS", "PROMPT"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5908,13 +4603,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "H06",
-              "when": {
-                "flag": "hasImportedContent",
-                "equals": true
-              }
-            }
+            { "decision": "H06", "when": { "flag": "hasImportedContent", "equals": true } }
           ]
         },
         {
@@ -5925,23 +4614,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "H06",
-              "when": {
-                "flag": "hasImportedContent",
-                "equals": true
-              }
-            }
+            { "decision": "H06", "when": { "flag": "hasImportedContent", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "H06"
-      ],
+      "requires": ["H06"],
       "check": "Exercise IPv4/IPv6, redirect, retry, timeout and size limits; verify the eventual connection obeys destination policy.",
-      "sources": [
-        "SSRF"
-      ],
+      "sources": ["SSRF"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -5969,9 +4648,7 @@
           "checks": [
             "Attempt script injection, parent access and unapproved network actions with harmless fixtures; record the actual isolation boundary."
           ],
-          "requires": [
-            "H06"
-          ],
+          "requires": ["H06"],
           "conditionalRequires": []
         },
         {
@@ -5980,19 +4657,13 @@
           "checks": [
             "Attempt script injection, parent access and unapproved network actions with harmless fixtures; record the actual isolation boundary."
           ],
-          "requires": [
-            "H06"
-          ],
+          "requires": ["H06"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H06"
-      ],
+      "requires": ["H06"],
       "check": "Attempt script injection, parent access and unapproved network actions with harmless fixtures; record the actual isolation boundary.",
-      "sources": [
-        "XSS"
-      ],
+      "sources": ["XSS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -6020,17 +4691,9 @@
           "checks": [
             "Install from the lockfile in a clean directory; review changed dependency paths and production warnings."
           ],
-          "requires": [
-            "G05"
-          ],
+          "requires": ["G05"],
           "conditionalRequires": [
-            {
-              "decision": "H02",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H02", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -6039,28 +4702,15 @@
           "checks": [
             "Install from the lockfile in a clean directory; review changed dependency paths and production warnings."
           ],
-          "requires": [
-            "G05"
-          ],
+          "requires": ["G05"],
           "conditionalRequires": [
-            {
-              "decision": "H02",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H02", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "G05",
-        "H02"
-      ],
+      "requires": ["G05", "H02"],
       "check": "Install from the lockfile in a clean directory; review changed dependency paths and production warnings.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6088,24 +4738,10 @@
           "checks": [
             "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
           ],
-          "requires": [
-            "C01"
-          ],
+          "requires": ["C01"],
           "conditionalRequires": [
-            {
-              "decision": "H02",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            },
-            {
-              "decision": "H06",
-              "when": {
-                "flag": "hasImportedContent",
-                "equals": true
-              }
-            }
+            { "decision": "H02", "when": { "flag": "hasExistingProject", "equals": true } },
+            { "decision": "H06", "when": { "flag": "hasImportedContent", "equals": true } }
           ]
         },
         {
@@ -6114,37 +4750,16 @@
           "checks": [
             "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
           ],
-          "requires": [
-            "C01"
-          ],
+          "requires": ["C01"],
           "conditionalRequires": [
-            {
-              "decision": "H02",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            },
-            {
-              "decision": "H06",
-              "when": {
-                "flag": "hasImportedContent",
-                "equals": true
-              }
-            }
+            { "decision": "H02", "when": { "flag": "hasExistingProject", "equals": true } },
+            { "decision": "H06", "when": { "flag": "hasImportedContent", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "C01",
-        "H02",
-        "H06"
-      ],
+      "requires": ["C01", "H02", "H06"],
       "check": "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions.",
-      "sources": [
-        "PROMPT",
-        "FOCUS"
-      ],
+      "sources": ["PROMPT", "FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6172,9 +4787,7 @@
           "checks": [
             "For current Focus guides, test60000/60001UTF-16code units and Target59000/59001preflight values, plus a multibyte fixture proving these are not UTF-8byte limits. Verify complete recovery without clipping."
           ],
-          "requires": [
-            "H10"
-          ],
+          "requires": ["H10"],
           "conditionalRequires": []
         },
         {
@@ -6183,19 +4796,13 @@
           "checks": [
             "A future split protocol must declare its size unit, part order and integrity contract. No current support is claimed. Test missing, reordered, duplicate and altered parts before enabling it."
           ],
-          "requires": [
-            "H10"
-          ],
+          "requires": ["H10"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H10"
-      ],
+      "requires": ["H10"],
       "check": "Test the declared size unit at and above its exact boundary; current Focus guide limits count UTF-16 code units, not UTF-8 bytes. Never clip.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -6223,17 +4830,9 @@
           "checks": [
             "Current Focus records only the current owner's acknowledgment for unchanged work/account/request lifetime. Cancel, supersede and repeat it; stale callbacks receive no saved-work credit. It does not establish a colleague's receipt."
           ],
-          "requires": [
-            "H10"
-          ],
+          "requires": ["H10"],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         },
         {
@@ -6242,28 +4841,15 @@
           "checks": [
             "A future colleague delivery channel must bind recipient identity, artifact revision and receipt event. Test wrong recipient, changed artifact, delivery failure and acknowledgment replay; delivery remains distinct from successful use."
           ],
-          "requires": [
-            "H10"
-          ],
+          "requires": ["H10"],
           "conditionalRequires": [
-            {
-              "decision": "B04",
-              "when": {
-                "flag": "hasRemoteRequest",
-                "equals": true
-              }
-            }
+            { "decision": "B04", "when": { "flag": "hasRemoteRequest", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "H10",
-        "B04"
-      ],
+      "requires": ["H10", "B04"],
       "check": "Name the actor, artifact and event; owner saved-work credit and colleague receipt cannot be treated as the same evidence.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -6291,11 +4877,7 @@
           "checks": [
             "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
           ],
-          "requires": [
-            "G04",
-            "H02",
-            "H03"
-          ],
+          "requires": ["G04", "H02", "H03"],
           "conditionalRequires": []
         },
         {
@@ -6304,23 +4886,13 @@
           "checks": [
             "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
           ],
-          "requires": [
-            "G04",
-            "H02",
-            "H03"
-          ],
+          "requires": ["G04", "H02", "H03"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G04",
-        "H02",
-        "H03"
-      ],
+      "requires": ["G04", "H02", "H03"],
       "check": "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes.",
-      "sources": [
-        "BENCH"
-      ],
+      "sources": ["BENCH"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6348,10 +4920,7 @@
           "checks": [
             "Apply, modify an unrelated file, undo and replay baseline tasks; unrelated work remains intact."
           ],
-          "requires": [
-            "H03",
-            "H13"
-          ],
+          "requires": ["H03", "H13"],
           "conditionalRequires": []
         },
         {
@@ -6360,21 +4929,13 @@
           "checks": [
             "Apply, modify an unrelated file, undo and replay baseline tasks; unrelated work remains intact."
           ],
-          "requires": [
-            "H03",
-            "H13"
-          ],
+          "requires": ["H03", "H13"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H03",
-        "H13"
-      ],
+      "requires": ["H03", "H13"],
       "check": "Apply, modify an unrelated file, undo and replay baseline tasks; unrelated work remains intact.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -6404,20 +4965,8 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "H13",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            },
-            {
-              "decision": "H14",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H13", "when": { "flag": "hasExistingProject", "equals": true } },
+            { "decision": "H14", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -6432,9 +4981,7 @@
       ],
       "requires": [],
       "check": "Match artifact hashes, reviewed revision, intended audience and deploy target immediately before release.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -6462,10 +5009,7 @@
           "checks": [
             "Inspect event payloads for secrets and personal data; export/delete behavior follows the declared policy."
           ],
-          "requires": [
-            "H05",
-            "H04"
-          ],
+          "requires": ["H05", "H04"],
           "conditionalRequires": []
         },
         {
@@ -6474,21 +5018,13 @@
           "checks": [
             "Inspect event payloads for secrets and personal data; export/delete behavior follows the declared policy."
           ],
-          "requires": [
-            "H05",
-            "H04"
-          ],
+          "requires": ["H05", "H04"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H05",
-        "H04"
-      ],
+      "requires": ["H05", "H04"],
       "check": "Inspect event payloads for secrets and personal data; export/delete behavior follows the declared policy.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6516,10 +5052,7 @@
           "checks": [
             "The release note names real responsibilities, known limits, recovery steps and how to obtain updates."
           ],
-          "requires": [
-            "C12",
-            "H15"
-          ],
+          "requires": ["C12", "H15"],
           "conditionalRequires": []
         },
         {
@@ -6528,21 +5061,13 @@
           "checks": [
             "The release note names real responsibilities, known limits, recovery steps and how to obtain updates."
           ],
-          "requires": [
-            "C12",
-            "H15"
-          ],
+          "requires": ["C12", "H15"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "C12",
-        "H15"
-      ],
+      "requires": ["C12", "H15"],
       "check": "The release note names real responsibilities, known limits, recovery steps and how to obtain updates.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6570,10 +5095,7 @@
           "checks": [
             "Invalidate affected results when versions or environment change; no old green badge survives by timestamp alone."
           ],
-          "requires": [
-            "H09",
-            "H17"
-          ],
+          "requires": ["H09", "H17"],
           "conditionalRequires": []
         },
         {
@@ -6582,21 +5104,13 @@
           "checks": [
             "Invalidate affected results when versions or environment change; no old green badge survives by timestamp alone."
           ],
-          "requires": [
-            "H09",
-            "H17"
-          ],
+          "requires": ["H09", "H17"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H09",
-        "H17"
-      ],
+      "requires": ["H09", "H17"],
       "check": "Invalidate affected results when versions or environment change; no old green badge survives by timestamp alone.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6626,13 +5140,7 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "H03",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H03", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -6643,23 +5151,13 @@
           ],
           "requires": [],
           "conditionalRequires": [
-            {
-              "decision": "H03",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H03", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "H03"
-      ],
+      "requires": ["H03"],
       "check": "Record revision, build command, output identity and environment next to every claim.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "single",
@@ -6687,10 +5185,7 @@
           "checks": [
             "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
           ],
-          "requires": [
-            "G03",
-            "V01"
-          ],
+          "requires": ["G03", "V01"],
           "conditionalRequires": []
         },
         {
@@ -6699,21 +5194,13 @@
           "checks": [
             "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
           ],
-          "requires": [
-            "G03",
-            "V01"
-          ],
+          "requires": ["G03", "V01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "G03",
-        "V01"
-      ],
+      "requires": ["G03", "V01"],
       "check": "Record task outcome, help given, errors and recovery; simulated personas are not real participants.",
-      "sources": [
-        "USABILITY"
-      ],
+      "sources": ["USABILITY"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6741,11 +5228,7 @@
           "checks": [
             "Record hierarchy, typography, composition, imagery and coherence separately from task and security outcomes."
           ],
-          "requires": [
-            "D10",
-            "F21",
-            "V01"
-          ],
+          "requires": ["D10", "F21", "V01"],
           "conditionalRequires": []
         },
         {
@@ -6754,23 +5237,13 @@
           "checks": [
             "Record hierarchy, typography, composition, imagery and coherence separately from task and security outcomes."
           ],
-          "requires": [
-            "D10",
-            "F21",
-            "V01"
-          ],
+          "requires": ["D10", "F21", "V01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "D10",
-        "F21",
-        "V01"
-      ],
+      "requires": ["D10", "F21", "V01"],
       "check": "Record hierarchy, typography, composition, imagery and coherence separately from task and security outcomes.",
-      "sources": [
-        "BENCH"
-      ],
+      "sources": ["BENCH"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6798,11 +5271,7 @@
           "checks": [
             "Retain tool findings and manual observations separately; all unrun conditions stay visible."
           ],
-          "requires": [
-            "R02",
-            "R03",
-            "F18"
-          ],
+          "requires": ["R02", "R03", "F18"],
           "conditionalRequires": []
         },
         {
@@ -6811,23 +5280,13 @@
           "checks": [
             "Retain tool findings and manual observations separately; all unrun conditions stay visible."
           ],
-          "requires": [
-            "R02",
-            "R03",
-            "F18"
-          ],
+          "requires": ["R02", "R03", "F18"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "R02",
-        "R03",
-        "F18"
-      ],
+      "requires": ["R02", "R03", "F18"],
       "check": "Retain tool findings and manual observations separately; all unrun conditions stay visible.",
-      "sources": [
-        "WAI"
-      ],
+      "sources": ["WAI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -6855,17 +5314,9 @@
           "checks": [
             "Reproduce before the fix, rerun after and inspect unchanged paths; preserve failing evidence."
           ],
-          "requires": [
-            "V01"
-          ],
+          "requires": ["V01"],
           "conditionalRequires": [
-            {
-              "decision": "H13",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H13", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         },
         {
@@ -6874,28 +5325,15 @@
           "checks": [
             "Reproduce before the fix, rerun after and inspect unchanged paths; preserve failing evidence."
           ],
-          "requires": [
-            "V01"
-          ],
+          "requires": ["V01"],
           "conditionalRequires": [
-            {
-              "decision": "H13",
-              "when": {
-                "flag": "hasExistingProject",
-                "equals": true
-              }
-            }
+            { "decision": "H13", "when": { "flag": "hasExistingProject", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "H13",
-        "V01"
-      ],
+      "requires": ["H13", "V01"],
       "check": "Reproduce before the fix, rerun after and inspect unchanged paths; preserve failing evidence.",
-      "sources": [
-        "BENCH"
-      ],
+      "sources": ["BENCH"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6923,10 +5361,7 @@
           "checks": [
             "Change content, tokens, account, rule version and adapter separately; invalidate the exact affected claims."
           ],
-          "requires": [
-            "V01",
-            "H18"
-          ],
+          "requires": ["V01", "H18"],
           "conditionalRequires": []
         },
         {
@@ -6935,21 +5370,13 @@
           "checks": [
             "Change content, tokens, account, rule version and adapter separately; invalidate the exact affected claims."
           ],
-          "requires": [
-            "V01",
-            "H18"
-          ],
+          "requires": ["V01", "H18"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "V01",
-        "H18"
-      ],
+      "requires": ["V01", "H18"],
       "check": "Change content, tokens, account, rule version and adapter separately; invalidate the exact affected claims.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -6977,9 +5404,7 @@
           "checks": [
             "Retain both outputs; differing results become an investigated issue rather than a hidden successful rerun."
           ],
-          "requires": [
-            "V05"
-          ],
+          "requires": ["V05"],
           "conditionalRequires": []
         },
         {
@@ -6988,19 +5413,13 @@
           "checks": [
             "Retain both outputs; differing results become an investigated issue rather than a hidden successful rerun."
           ],
-          "requires": [
-            "V05"
-          ],
+          "requires": ["V05"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "V05"
-      ],
+      "requires": ["V05"],
       "check": "Retain both outputs; differing results become an investigated issue rather than a hidden successful rerun.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -7028,9 +5447,7 @@
           "checks": [
             "Verify history distinguishes proposed, applied, checked, rejected and reverted events with real timestamps."
           ],
-          "requires": [
-            "H16"
-          ],
+          "requires": ["H16"],
           "conditionalRequires": []
         },
         {
@@ -7039,19 +5456,13 @@
           "checks": [
             "Verify history distinguishes proposed, applied, checked, rejected and reverted events with real timestamps."
           ],
-          "requires": [
-            "H16"
-          ],
+          "requires": ["H16"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "H16"
-      ],
+      "requires": ["H16"],
       "check": "Verify history distinguishes proposed, applied, checked, rejected and reverted events with real timestamps.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -7079,11 +5490,7 @@
           "checks": [
             "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
           ],
-          "requires": [
-            "V02",
-            "V03",
-            "R10"
-          ],
+          "requires": ["V02", "V03", "R10"],
           "conditionalRequires": []
         },
         {
@@ -7092,24 +5499,13 @@
           "checks": [
             "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
           ],
-          "requires": [
-            "V02",
-            "V03",
-            "R10"
-          ],
+          "requires": ["V02", "V03", "R10"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "V02",
-        "V03",
-        "R10"
-      ],
+      "requires": ["V02", "V03", "R10"],
       "check": "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits.",
-      "sources": [
-        "USABILITY",
-        "BENCH"
-      ],
+      "sources": ["USABILITY", "BENCH"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "single",
@@ -7137,9 +5533,7 @@
           "checks": [
             "An unavailable browser, account or customer fixture never turns into a passed task or an automated guarantee."
           ],
-          "requires": [
-            "V01"
-          ],
+          "requires": ["V01"],
           "conditionalRequires": []
         },
         {
@@ -7148,19 +5542,13 @@
           "checks": [
             "An unavailable browser, account or customer fixture never turns into a passed task or an automated guarantee."
           ],
-          "requires": [
-            "V01"
-          ],
+          "requires": ["V01"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "V01"
-      ],
+      "requires": ["V01"],
       "check": "An unavailable browser, account or customer fixture never turns into a passed task or an automated guarantee.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "contextual",
@@ -7188,17 +5576,9 @@
           "checks": [
             "Trigger a safe failure fixture; confirm detection, owner notification policy and recovery procedure."
           ],
-          "requires": [
-            "H17"
-          ],
+          "requires": ["H17"],
           "conditionalRequires": [
-            {
-              "decision": "H16",
-              "when": {
-                "flag": "hasIterationHistory",
-                "equals": true
-              }
-            }
+            { "decision": "H16", "when": { "flag": "hasIterationHistory", "equals": true } }
           ]
         },
         {
@@ -7207,28 +5587,15 @@
           "checks": [
             "Trigger a safe failure fixture; confirm detection, owner notification policy and recovery procedure."
           ],
-          "requires": [
-            "H17"
-          ],
+          "requires": ["H17"],
           "conditionalRequires": [
-            {
-              "decision": "H16",
-              "when": {
-                "flag": "hasIterationHistory",
-                "equals": true
-              }
-            }
+            { "decision": "H16", "when": { "flag": "hasIterationHistory", "equals": true } }
           ]
         }
       ],
-      "requires": [
-        "H16",
-        "H17"
-      ],
+      "requires": ["H16", "H17"],
       "check": "Trigger a safe failure fixture; confirm detection, owner notification policy and recovery procedure.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "runtime",
       "status": "proposal",
       "selectionMode": "combine",
@@ -7256,20 +5623,9 @@
           "checks": [
             "Trace every promised release requirement to current scoped evidence. A comparative human-quality claim additionally requires its declared study evidence; an ordinary scoped release does not require that claim or study."
           ],
-          "requires": [
-            "V04",
-            "V05",
-            "V10",
-            "H15"
-          ],
+          "requires": ["V04", "V05", "V10", "H15"],
           "conditionalRequires": [
-            {
-              "decision": "V09",
-              "when": {
-                "flag": "claimsNorthStarEquivalence",
-                "equals": true
-              }
-            }
+            { "decision": "V09", "when": { "flag": "claimsNorthStarEquivalence", "equals": true } }
           ]
         },
         {
@@ -7278,21 +5634,13 @@
           "checks": [
             "Label the artifact as a draft and list open checks, unsupported operations and safe next actions. Do not require release approval or human-comparison evidence merely to deliver a reviewable draft."
           ],
-          "requires": [
-            "V01",
-            "V10"
-          ],
+          "requires": ["V01", "V10"],
           "conditionalRequires": []
         }
       ],
-      "requires": [
-        "V01",
-        "V10"
-      ],
+      "requires": ["V01", "V10"],
       "check": "Each statement traces to current evidence; no score, checklist count or character celebration overrides an open gate.",
-      "sources": [
-        "FOCUS"
-      ],
+      "sources": ["FOCUS"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",

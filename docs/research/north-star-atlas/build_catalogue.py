@@ -3,6 +3,7 @@ import argparse
 import csv
 import hashlib
 import json
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -12,6 +13,18 @@ REGIONS = dict(zip("GCPDFBRHV", (
 )))
 KINDS = {"contract", "observed-task", "artifact", "runtime", "rendered", "review"}
 COLUMNS = ["id", "question", "option_a", "option_b", "requires", "check", "sources", "evidence_kind"]
+
+
+def canonical_json(value):
+    """Share the maintained formatter; checking and generation use identical bytes."""
+    formatter = next((parent / 'scripts/format-research-json.mjs' for parent in ROOT.parents
+                      if (parent / 'scripts/format-research-json.mjs').is_file()), None)
+    if formatter is None:
+        raise ValueError('Run from the complete Focus checkout with its installed dependencies')
+    return subprocess.run(
+        ['node', str(formatter), str(ROOT / 'decisions.json')],
+        input=json.dumps(value, ensure_ascii=False), text=True, capture_output=True, check=True,
+    ).stdout.encode('utf-8')
 
 
 def validate(catalogue, sources, contracts):
@@ -197,7 +210,7 @@ def main():
     parser.add_argument("--write", action="store_true", help="Generate adjacent decisions.json explicitly")
     args = parser.parse_args()
     catalogue, sources = build()
-    encoded = (json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n").encode()
+    encoded = canonical_json(catalogue)
     target = ROOT / "decisions.json"
     if args.write:
         target.write_bytes(encoded)

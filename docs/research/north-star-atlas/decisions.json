@@ -1182,7 +1182,7 @@
           "id": "P08.a",
           "consequence": "Beside the decision: supports timely understanding; adds local content.",
           "checks": [
-            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+            "Hide optional teaching; identify the current step, what its next action will do, and how to return. Essential instructions stay visible."
           ],
           "requires": ["G08", "C02"],
           "conditionalRequires": []
@@ -1191,15 +1191,15 @@
           "id": "P08.b",
           "consequence": "Optional field guide: provides depth; cannot carry information required to complete the main path.",
           "checks": [
-            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+            "Hide optional teaching; identify the current step, what its next action will do, and how to return. Essential instructions stay visible."
           ],
           "requires": ["G08", "C02"],
           "conditionalRequires": []
         }
       ],
       "requires": ["G08", "C02"],
-      "check": "Complete the main task with the guide unopened; verify all essential instructions remain available.",
-      "sources": ["DISCLOSURE"],
+      "check": "Hide optional teaching; identify the current step, what its next action will do, and how to return. Essential instructions stay visible.",
+      "sources": ["DISCLOSURE", "XAG-UI"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4345,7 +4345,7 @@
           "id": "H01.a",
           "consequence": "Isolated branch or preview: supports review and undo; needs an environment that resembles the customer app.",
           "checks": [
-            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+            "Identify the exact baseline revision and isolated preview target. Keep preview and live status visible; a preview success does not authorize or verify a live change."
           ],
           "requires": ["G04", "G05"],
           "conditionalRequires": []
@@ -4354,15 +4354,15 @@
           "id": "H01.b",
           "consequence": "Instructions without execution: safe planning artifact; cannot be called an applied upgrade.",
           "checks": [
-            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+            "Describe the intended baseline and preview plan as unexecuted. Exported instructions and selected design values do not establish any repository or live-site change."
           ],
           "requires": ["G04", "G05"],
           "conditionalRequires": []
         }
       ],
       "requires": ["G04", "G05"],
-      "check": "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design.",
-      "sources": ["FOCUS"],
+      "check": "Name the baseline revision, target environment and current mode. Planning, preview and live operation remain distinct; uploading or choosing a design never applies a live change.",
+      "sources": ["FOCUS", "NASA-HF"],
       "evidenceKind": "contract",
       "status": "proposal",
       "selectionMode": "single",
@@ -4744,7 +4744,7 @@
           "id": "H10.a",
           "consequence": "Exact structured content plus scoped instructions: reduces ambiguity; cannot enforce external-agent behavior.",
           "checks": [
-            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+            "Rehearse with the actual exported files. The recipient reports changed files, commands and results, open checks, and who acts next; a confident explanation is not execution evidence."
           ],
           "requires": ["C01"],
           "conditionalRequires": [
@@ -4756,7 +4756,7 @@
           "id": "H10.b",
           "consequence": "Human-readable specification: easy to review; needs machine-checkable content and diff verification for automation.",
           "checks": [
-            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+            "Rehearse with the actual exported files. The recipient reports changed files, commands and results, open checks, and who acts next; a confident explanation is not execution evidence."
           ],
           "requires": ["C01"],
           "conditionalRequires": [
@@ -4766,8 +4766,8 @@
         }
       ],
       "requires": ["C01", "H02", "H06"],
-      "check": "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions.",
-      "sources": ["PROMPT", "FOCUS"],
+      "check": "Rehearse with the actual exported files. The recipient reports changed files, commands and results, open checks, and who acts next; a confident explanation is not execution evidence.",
+      "sources": ["PROMPT", "FOCUS", "NASA-HF"],
       "evidenceKind": "artifact",
       "status": "proposal",
       "selectionMode": "combine",
@@ -4883,7 +4883,7 @@
           "id": "H13.a",
           "consequence": "Baseline task replay on the integrated preview: tests preservation; requires real tasks and environment.",
           "checks": [
-            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+            "Replay protected tasks on the actual baseline and integrated preview, including permission denial, failed saves and recovery. Record each observed outcome and investigate consequential differences."
           ],
           "requires": ["G04", "H02", "H03"],
           "conditionalRequires": []
@@ -4892,15 +4892,15 @@
           "id": "H13.b",
           "consequence": "Static diff review only: catches scope changes; leaves runtime behavior unverified.",
           "checks": [
-            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+            "Inspect the actual diff for scope and content preservation. Keep runtime, accessibility and recovery outcomes unverified until the corresponding tasks are exercised; a clean diff alone cannot pass them."
           ],
           "requires": ["G04", "H02", "H03"],
           "conditionalRequires": []
         }
       ],
       "requires": ["G04", "H02", "H03"],
-      "check": "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes.",
-      "sources": ["BENCH"],
+      "check": "For an integrated preview, replay protected success, failure, permission and recovery tasks before and after. Include consequential uncommon failures; static review leaves runtime outcomes unverified.",
+      "sources": ["BENCH", "FDA-HF"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5191,7 +5191,7 @@
           "id": "V02.a",
           "consequence": "Realistic unaided task: reveals discovery problems; needs likely users and neutral prompts.",
           "checks": [
-            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+            "Use representative people and neutral task prompts for the first attempt. Record help, errors, completion and recovery; a coached retry cannot replace the original result."
           ],
           "requires": ["G03", "V01"],
           "conditionalRequires": []
@@ -5200,15 +5200,15 @@
           "id": "V02.b",
           "consequence": "Guided rehearsal: checks a sequence; assistance must remain explicit in the results.",
           "checks": [
-            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+            "Record the instructions, assistance and repetitions used in the rehearsal. Report what the guided sequence demonstrated without presenting it as unaided discovery or a real-user study when only an agent participated."
           ],
           "requires": ["G03", "V01"],
           "conditionalRequires": []
         }
       ],
       "requires": ["G03", "V01"],
-      "check": "Record task outcome, help given, errors and recovery; simulated personas are not real participants.",
-      "sources": ["USABILITY"],
+      "check": "Record first-attempt outcomes, help given, errors and recovery with representative users. Keep coached repetitions separate; simulated personas are not real participants.",
+      "sources": ["USABILITY", "FDA-HF"],
       "evidenceKind": "observed-task",
       "status": "proposal",
       "selectionMode": "combine",
@@ -5496,7 +5496,7 @@
           "id": "V09.a",
           "consequence": "Matched outcome vector with uncertainty: supports a scoped claim; needs sufficient independent evidence.",
           "checks": [
-            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+            "Define the comparison before testing: matched brief and content, a human-designed reference, independent craft review, real task outcomes, technical checks and uncertainty. Keep unknown or failed dimensions visible."
           ],
           "requires": ["V02", "V03", "R10"],
           "conditionalRequires": []
@@ -5505,15 +5505,15 @@
           "id": "V09.b",
           "consequence": "Qualitative pilot report: identifies problems; cannot establish statistical equivalence to expert humans.",
           "checks": [
-            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+            "Report concrete pilot observations and limitations. An AI-only ranking or a small qualitative pilot cannot establish statistical equivalence to expert human work."
           ],
           "requires": ["V02", "V03", "R10"],
           "conditionalRequires": []
         }
       ],
       "requires": ["V02", "V03", "R10"],
-      "check": "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits.",
-      "sources": ["USABILITY", "BENCH"],
+      "check": "Use the same brief and content with a human-designed reference for a parity claim. Report task, craft and technical outcomes separately with uncertainty; an AI-only visual ranking cannot establish North Star equivalence.",
+      "sources": ["USABILITY", "BENCH", "UIBENCH"],
       "evidenceKind": "review",
       "status": "proposal",
       "selectionMode": "single",

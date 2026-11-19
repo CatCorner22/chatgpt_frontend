@@ -300,6 +300,46 @@
       "checks": [
         "Label the package as a review draft, disclose open checks and unresolved destinations, and describe how the recipient can inspect it without deployment. No release approval is inferred."
       ]
+    },
+    "H01.a": {
+      "checks": [
+        "Identify the exact baseline revision and isolated preview target. Keep preview and live status visible; a preview success does not authorize or verify a live change."
+      ]
+    },
+    "H01.b": {
+      "checks": [
+        "Describe the intended baseline and preview plan as unexecuted. Exported instructions and selected design values do not establish any repository or live-site change."
+      ]
+    },
+    "H13.a": {
+      "checks": [
+        "Replay protected tasks on the actual baseline and integrated preview, including permission denial, failed saves and recovery. Record each observed outcome and investigate consequential differences."
+      ]
+    },
+    "H13.b": {
+      "checks": [
+        "Inspect the actual diff for scope and content preservation. Keep runtime, accessibility and recovery outcomes unverified until the corresponding tasks are exercised; a clean diff alone cannot pass them."
+      ]
+    },
+    "V02.a": {
+      "checks": [
+        "Use representative people and neutral task prompts for the first attempt. Record help, errors, completion and recovery; a coached retry cannot replace the original result."
+      ]
+    },
+    "V02.b": {
+      "checks": [
+        "Record the instructions, assistance and repetitions used in the rehearsal. Report what the guided sequence demonstrated without presenting it as unaided discovery or a real-user study when only an agent participated."
+      ]
+    },
+    "V09.a": {
+      "checks": [
+        "Define the comparison before testing: matched brief and content, a human-designed reference, independent craft review, real task outcomes, technical checks and uncertainty. Keep unknown or failed dimensions visible."
+      ]
+    },
+    "V09.b": {
+      "checks": [
+        "Report concrete pilot observations and limitations. An AI-only ranking or a small qualitative pilot cannot establish statistical equivalence to expert human work."
+      ]
     }
   },
   "contextImplications": {

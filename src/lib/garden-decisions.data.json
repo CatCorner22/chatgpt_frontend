@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "catalogueSha256": "1239215732d300361f87ad931363ad13cfcfad0fde3ab63a4ebfcb436c735df1",
+  "catalogueSha256": "58a38b24cfcd4dc54030b3482ef57611bd72738b1064e30f219e654286fc4249",
   "status": "Planning guidance; selections do not implement or verify a customer project.",
   "decisions": [
     {
@@ -852,14 +852,14 @@
           "id": "P08.a",
           "consequence": "Beside the decision: supports timely understanding; adds local content.",
           "checks": [
-            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+            "Hide optional teaching; identify the current step, what its next action will do, and how to return. Essential instructions stay visible."
           ]
         },
         {
           "id": "P08.b",
           "consequence": "Optional field guide: provides depth; cannot carry information required to complete the main path.",
           "checks": [
-            "Complete the main task with the guide unopened; verify all essential instructions remain available."
+            "Hide optional teaching; identify the current step, what its next action will do, and how to return. Essential instructions stay visible."
           ]
         }
       ],
@@ -868,6 +868,11 @@
           "title": "GOV.UK: Accordion",
           "url": "https://design-system.service.gov.uk/components/accordion/",
           "limit": "Do not hide information everyone needs; its component policy is not a universal law."
+        },
+        {
+          "title": "Xbox Accessibility Guideline 114: UI context",
+          "url": "https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/114",
+          "limit": "Game guidance informs orientation, action consequences and context changes. Applying it to the Garden Path remains a product hypothesis requiring user testing."
         }
       ]
     },
@@ -3078,14 +3083,14 @@
           "id": "H01.a",
           "consequence": "Isolated branch or preview: supports review and undo; needs an environment that resembles the customer app.",
           "checks": [
-            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+            "Identify the exact baseline revision and isolated preview target. Keep preview and live status visible; a preview success does not authorize or verify a live change."
           ]
         },
         {
           "id": "H01.b",
           "consequence": "Instructions without execution: safe planning artifact; cannot be called an applied upgrade.",
           "checks": [
-            "Identify the baseline revision and preview target; no live app modification occurs merely from uploading or selecting a design."
+            "Describe the intended baseline and preview plan as unexecuted. Exported instructions and selected design values do not establish any repository or live-site change."
           ]
         }
       ],
@@ -3094,6 +3099,11 @@
           "title": "Focus source contract and Blake's project requirements",
           "url": null,
           "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        },
+        {
+          "title": "NASA-STD-3001 Volume 2: Crew Interfaces, sections 10.2 and 10.6",
+          "url": "https://www.nasa.gov/reference/10-0-crew-interfaces-vol-2/",
+          "limit": "Spaceflight requirements are not web-app requirements. Focus adapts mode, state and responsibility clarity; no NASA compliance or universal response-time threshold is claimed."
         }
       ]
     },
@@ -3367,14 +3377,14 @@
           "id": "H10.a",
           "consequence": "Exact structured content plus scoped instructions: reduces ambiguity; cannot enforce external-agent behavior.",
           "checks": [
-            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+            "Rehearse with the actual exported files. The recipient reports changed files, commands and results, open checks, and who acts next; a confident explanation is not execution evidence."
           ]
         },
         {
           "id": "H10.b",
           "consequence": "Human-readable specification: easy to review; needs machine-checkable content and diff verification for automation.",
           "checks": [
-            "Use actual exported files in a fresh recipient rehearsal; inspect output copy, scope and unresolved instructions."
+            "Rehearse with the actual exported files. The recipient reports changed files, commands and results, open checks, and who acts next; a confident explanation is not execution evidence."
           ]
         }
       ],
@@ -3388,6 +3398,11 @@
           "title": "Focus source contract and Blake's project requirements",
           "url": null,
           "limit": "Product boundaries and owner preferences; not external research or proof of browser behavior."
+        },
+        {
+          "title": "NASA-STD-3001 Volume 2: Crew Interfaces, sections 10.2 and 10.6",
+          "url": "https://www.nasa.gov/reference/10-0-crew-interfaces-vol-2/",
+          "limit": "Spaceflight requirements are not web-app requirements. Focus adapts mode, state and responsibility clarity; no NASA compliance or universal response-time threshold is claimed."
         }
       ]
     },
@@ -3465,14 +3480,14 @@
           "id": "H13.a",
           "consequence": "Baseline task replay on the integrated preview: tests preservation; requires real tasks and environment.",
           "checks": [
-            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+            "Replay protected tasks on the actual baseline and integrated preview, including permission denial, failed saves and recovery. Record each observed outcome and investigate consequential differences."
           ]
         },
         {
           "id": "H13.b",
           "consequence": "Static diff review only: catches scope changes; leaves runtime behavior unverified.",
           "checks": [
-            "Run original success, failure, permission and recovery tasks before and after; compare actual outcomes."
+            "Inspect the actual diff for scope and content preservation. Keep runtime, accessibility and recovery outcomes unverified until the corresponding tasks are exercised; a clean diff alone cannot pass them."
           ]
         }
       ],
@@ -3481,6 +3496,11 @@
           "title": "DesignBench: Failure Annotation Guideline",
           "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
           "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        },
+        {
+          "title": "FDA: Applying Human Factors and Usability Engineering, August 3, 2026",
+          "url": "https://www.fda.gov/media/80481/download",
+          "limit": "Medical-device guidance supplies a method analogy for consequential tasks and representative users. Its regulatory scope and participant minimum are not imposed on Focus."
         }
       ]
     },
@@ -3682,14 +3702,14 @@
           "id": "V02.a",
           "consequence": "Realistic unaided task: reveals discovery problems; needs likely users and neutral prompts.",
           "checks": [
-            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+            "Use representative people and neutral task prompts for the first attempt. Record help, errors, completion and recovery; a coached retry cannot replace the original result."
           ]
         },
         {
           "id": "V02.b",
           "consequence": "Guided rehearsal: checks a sequence; assistance must remain explicit in the results.",
           "checks": [
-            "Record task outcome, help given, errors and recovery; simulated personas are not real participants."
+            "Record the instructions, assistance and repetitions used in the rehearsal. Report what the guided sequence demonstrated without presenting it as unaided discovery or a real-user study when only an agent participated."
           ]
         }
       ],
@@ -3698,6 +3718,11 @@
           "title": "GOV.UK: Using moderated usability testing",
           "url": "https://www.gov.uk/service-manual/user-research/using-moderated-usability-testing",
           "limit": "Use actual or likely users and neutral tasks; agent personas are not participant evidence."
+        },
+        {
+          "title": "FDA: Applying Human Factors and Usability Engineering, August 3, 2026",
+          "url": "https://www.fda.gov/media/80481/download",
+          "limit": "Medical-device guidance supplies a method analogy for consequential tasks and representative users. Its regulatory scope and participant minimum are not imposed on Focus."
         }
       ]
     },
@@ -3899,14 +3924,14 @@
           "id": "V09.a",
           "consequence": "Matched outcome vector with uncertainty: supports a scoped claim; needs sufficient independent evidence.",
           "checks": [
-            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+            "Define the comparison before testing: matched brief and content, a human-designed reference, independent craft review, real task outcomes, technical checks and uncertainty. Keep unknown or failed dimensions visible."
           ]
         },
         {
           "id": "V09.b",
           "consequence": "Qualitative pilot report: identifies problems; cannot establish statistical equivalence to expert humans.",
           "checks": [
-            "Predefine the comparison rule and retain raw allowed evidence; report missing data and model/setup limits."
+            "Report concrete pilot observations and limitations. An AI-only ranking or a small qualitative pilot cannot establish statistical equivalence to expert human work."
           ]
         }
       ],
@@ -3920,6 +3945,11 @@
           "title": "DesignBench: Failure Annotation Guideline",
           "url": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
           "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+        },
+        {
+          "title": "UI-Bench v3: Expert comparison of AI text-to-app tools, September 3, 2025",
+          "url": "https://arxiv.org/html/2508.20410v3",
+          "limit": "English desktop visual preference among 2025 AI tools. No human-designed baseline; accessibility, load time and code quality excluded. Ratings are not percentages or evidence of human parity."
         }
       ]
     },

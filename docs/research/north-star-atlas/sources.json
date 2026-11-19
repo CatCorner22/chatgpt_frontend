@@ -167,5 +167,29 @@
     "locator": "https://github.com/WebPAI/DesignBench/blob/main/assets/Failure_Annotation_Guideline.md",
     "kind": "author-research-artifact",
     "limit": "Creation, edits and repairs need distinct review; benchmark findings do not establish Focus's performance."
+  },
+  "NASA-HF": {
+    "title": "NASA-STD-3001 Volume 2: Crew Interfaces, sections 10.2 and 10.6",
+    "locator": "https://www.nasa.gov/reference/10-0-crew-interfaces-vol-2/",
+    "kind": "cross-domain-human-factors",
+    "limit": "Spaceflight requirements are not web-app requirements. Focus adapts mode, state and responsibility clarity; no NASA compliance or universal response-time threshold is claimed."
+  },
+  "FDA-HF": {
+    "title": "FDA: Applying Human Factors and Usability Engineering, August 3, 2026",
+    "locator": "https://www.fda.gov/media/80481/download",
+    "kind": "cross-domain-usability-method",
+    "limit": "Medical-device guidance supplies a method analogy for consequential tasks and representative users. Its regulatory scope and participant minimum are not imposed on Focus."
+  },
+  "XAG-UI": {
+    "title": "Xbox Accessibility Guideline 114: UI context",
+    "locator": "https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/114",
+    "kind": "cross-domain-accessibility-guidance",
+    "limit": "Game guidance informs orientation, action consequences and context changes. Applying it to the Garden Path remains a product hypothesis requiring user testing."
+  },
+  "UIBENCH": {
+    "title": "UI-Bench v3: Expert comparison of AI text-to-app tools, September 3, 2025",
+    "locator": "https://arxiv.org/html/2508.20410v3",
+    "kind": "visual-preference-benchmark",
+    "limit": "English desktop visual preference among 2025 AI tools. No human-designed baseline; accessibility, load time and code quality excluded. Ratings are not percentages or evidence of human parity."
   }
 }

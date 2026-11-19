@@ -1,6 +1,6 @@
 # Focus North Star Decision Atlas
 
-Research and implementation proposal, version 0.3. Researched 18 November 2026, America/New_York. Prepared by the builder. The catalogue is a design specification, not a claim that its controls or checks are implemented. Its proposals are subject to independent review. The published app is unchanged by this document.
+Research and implementation proposal, version 0.4. Researched 18 November 2026, America/New_York. Prepared by the builder. The catalogue is a design specification, not a claim that its controls or checks are implemented. Its proposals are subject to independent review. The published app is unchanged by this document.
 
 North Star retains Blake's definition: “vibe-coded frontend UI, UX, etc. that is as good as the best human coders.” Cat Samurai means a calm, playful, distinctive surface with disciplined, powerful behavior underneath. Preserve Reverie, her kite, the Garden Path, and the owner's explicit rejection of beige app surfaces.
 
@@ -215,3 +215,7 @@ Run catalogue generation and byte checks from a complete Focus checkout with its
 - B04 applies to those operations. B03/B05/B09/R11 retain their remote-request scope. Local save and export fixtures therefore keep completion evidence without requiring unrelated remote-network work.
 
 Conflicts produce `conflicting-planning-choices`; missing selections/context or inapplicable required decisions produce `incomplete-planning-context`. These records remain research proposals and cannot authorize a customer mutation. The negative fixtures include contradictions in both project modes, draft-only release, absent operation context, and malformed constraint references. Semantic relationships not declared here remain unverified.
+
+## Bounded evidence refinement in version 0.4
+
+Six existing field-note questions now clarify orientation, preview/live scope, recipient responsibility, static versus executed checks, first-attempt evidence and the human-reference requirement for North Star comparisons. Eight approach-specific checks keep different evidence types separate. The registry has 32 sources; the catalogue remains 128 non-actionable questions and 256 approaches. See [the bounded research pass](../NORTH-STAR-BOUNDED-PASS.md) for source limits, implemented guidance changes and the recommended single customer-transfer rehearsal. No new customer operation or deployment is implied.

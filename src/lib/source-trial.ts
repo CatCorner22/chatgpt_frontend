@@ -131,15 +131,17 @@ function editSources(
   marker: string,
   changes: SourceTrialChange[],
 ): [SourceTrialEdit, SourceTrialEdit] {
-  const { component, stylesheet, alias, wrapperClassEnd, inspection } = analysis;
+  const { component, stylesheet, wrapperClassEnd, inspection } = analysis;
   requireTrial(trialMarker.test(marker), "The proposed trial marker is unreadable.");
-  const suffix = ` + " " + ${alias}.${marker}`;
+  // A literal scope marker needs no new CSS-module export or generated .d.ts
+  // entry. Keep the customer's existing role classes local to their module.
+  const suffix = ` + " ${marker}"`;
   const afterComponent =
     component.content.slice(0, wrapperClassEnd) + suffix + component.content.slice(wrapperClassEnd);
   const eol = stylesheet.content.match(/\r?\n/)?.[0] ?? "\n";
   const rules = (["heading", "body", "action"] as const).map((role) =>
     [
-      `.${marker} .${inspection.roles[role].className} {`,
+      `:global(.${marker}) .${inspection.roles[role].className} {`,
       ...changes
         .filter((change) => change.role === role)
         .map(({ property, after }) => `  ${property}: ${after};`),

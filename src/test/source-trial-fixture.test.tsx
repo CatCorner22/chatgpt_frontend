@@ -1,5 +1,5 @@
 import { isolatedChildEnv } from "./isolated-child-env";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { ComponentType } from "react";
 import { execFile } from "node:child_process";
@@ -81,7 +81,32 @@ async function readSources(directory: string): Promise<SourceTrialFile[]> {
 async function buildFixture(kind: "before" | "after" | "restored", files: SourceTrialFile[]) {
   const directory = await temporary(kind);
   await writeSources(directory, files);
+  // Real projects may keep generated, exact CSS-module declarations. A two-file
+  // proposal must compile without changing that third file or relaxing its type.
+  await writeFile(
+    join(directory, "src/Booking.module.css.d.ts"),
+    await readFile(join(fixtureRoot, "Booking.module.css.d.ts")),
+  );
   await symlink(resolve(workspace, "node_modules"), join(directory, "node_modules"), "dir");
+  await exec(
+    process.execPath,
+    [
+      resolve(workspace, "node_modules/typescript/bin/tsc"),
+      "--noEmit",
+      "--jsx",
+      "react-jsx",
+      "--lib",
+      "ES2022,DOM",
+      "--moduleResolution",
+      "Bundler",
+      "--module",
+      "ESNext",
+      "--strict",
+      "--skipLibCheck",
+      "src/Booking.tsx",
+    ],
+    { cwd: directory, env: isolatedChildEnv(), maxBuffer: 1024 * 1024 },
+  );
   await exec(process.execPath, ["--input-type=module", "-e", buildOwnedFixture, directory], {
     cwd: workspace,
     env: isolatedChildEnv(),
@@ -244,7 +269,7 @@ describe("owned React/Vite source-trial proof", () => {
     },
   );
 
-  it("consumes the appended CSS-module class in the built React markup and emitted CSS", () => {
+  it("consumes the literal scope marker with local CSS-module roles in built markup and CSS", () => {
     const snapshots = builds.map(({ Component, css }) => {
       installFixtureCss(css);
       const mounted = render(<Component requestBooking={vi.fn()} />);
@@ -296,6 +321,28 @@ describe("owned React/Vite source-trial proof", () => {
     expect(before!.actionRadius).toBe("4px");
     expect(Number.parseFloat(after!.actionRadius)).toBeGreaterThanOrEqual(999);
     expect(after!.css).toContain(":focus-visible");
+  });
+
+  it("does not restyle an unmarked neighbour using the same local role classes", () => {
+    const before = builds.find((build) => build.kind === "before")!;
+    const after = builds.find((build) => build.kind === "after")!;
+    installFixtureCss(after.css);
+    const Before = before.Component;
+    const After = after.Component;
+    const { container } = render(
+      <>
+        <Before requestBooking={vi.fn()} />
+        <After requestBooking={vi.fn()} />
+      </>,
+    );
+    const [originalPage, changedPage] = container.querySelectorAll("main");
+    const originalAction = within(originalPage!).getByRole("button", { name: "Book lesson" });
+    const changedAction = within(changedPage!).getByRole("button", { name: "Book lesson" });
+    expect(originalPage!.className).not.toContain("focusTrial_");
+    expect(changedPage!.className).toMatch(/\bfocusTrial_[a-f0-9]{12}\b/);
+    expect(originalAction.className).toBe(changedAction.className);
+    expect(getComputedStyle(originalAction).backgroundColor).toBe("rgb(22, 75, 62)");
+    expect(getComputedStyle(changedAction).backgroundColor).toBe("rgb(122, 29, 73)");
   });
 
   it("applies the real patch and inverse with git while preserving unrelated later work", async () => {

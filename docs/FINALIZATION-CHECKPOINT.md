@@ -1,5 +1,7 @@
 # Focus: finalization checkpoint — 19 November 2026
 
+Follow-up: the complete-project rehearsal exposed and repaired a generated-output failure with exact CSS-module type declarations. See `SOURCE-TRIAL-TYPED-CSS.md` for the original failure, fresh-package build/task/recovery results and unchanged release limits. The earlier `2bf534a` backup remains preserved; use the later repair checkpoint for new source proposals.
+
 This is a recoverable development checkpoint, not approval to deploy or a claim that the North Star goal is complete. The last recorded live owner-private app is v15 (`c475dc9`); the resumed changes are local. See `/workspace/FOCUS-PAUSED-CHECKPOINT.md` and `/workspace/FOCUS-RESUMED-CHECKPOINT.md` for that distinction.
 
 ## Check it yourself in five minutes

@@ -90,13 +90,11 @@ describe("Target source trial", () => {
     const source = original();
     const trial = await prepareSourceTrial(source, design);
     const [tsx, css] = trial.files;
-    expect(tsx.after).toMatch(
-      /className=\{styles\.page \+ " " \+ styles\.focusTrial_[a-f0-9]{12}\}/,
-    );
-    expect(tsx.after.replace(/ \+ " " \+ styles\.focusTrial_[a-f0-9]{12}/, "")).toBe(tsx.before);
+    expect(tsx.after).toMatch(/className=\{styles\.page \+ " focusTrial_[a-f0-9]{12}"\}/);
+    expect(tsx.after.replace(/ \+ " focusTrial_[a-f0-9]{12}"/, "")).toBe(tsx.before);
     expect(css.after.startsWith(css.before)).toBe(true);
     const added = css.after.slice(css.before.length);
-    expect(added.match(/\.focusTrial_[a-f0-9]{12} \.\w+ \{/g)).toHaveLength(3);
+    expect(added.match(/:global\(\.focusTrial_[a-f0-9]{12}\) \.\w+ \{/g)).toHaveLength(3);
     expect(added).not.toContain(".page");
     expect(added).not.toContain("outline");
     expect(trial.contract.effective.ground).toBe("#f4f8fa");

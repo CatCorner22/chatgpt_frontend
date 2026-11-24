@@ -1,0 +1,2 @@
+# Keep upstream license bytes identical to their published hashes on every checkout.
+assets/vendor-fonts/licenses/*-OFL.txt -text

@@ -14,7 +14,11 @@ import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { workHash } from "@/lib/ux";
 
-const tokens = normalizeTokens({ bg: "#f7fbff", accent: "#245cd6" });
+const tokens = normalizeTokens({
+  headingFont: "Instrument Serif",
+  bg: "#f7fbff",
+  accent: "#245cd6",
+});
 const initialTime = "2026-11-18T00:00:00Z";
 const revisitTime = "2026-11-18T01:00:00Z";
 const projectId = "authored-product-details";

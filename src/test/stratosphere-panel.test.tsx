@@ -22,8 +22,8 @@ const operations = vi.hoisted(() => ({
   download: vi.fn(),
   owner: vi.fn(),
 }));
-vi.mock("@/components/AuthoredPagePanel", () => ({
-  AuthoredPagePanel: (props: AuthoredProps) => {
+vi.mock("@/components/AuthoredPageEditor", () => ({
+  AuthoredPageEditor: (props: AuthoredProps) => {
     operations.authored(props);
     return <div data-testid="authored-preview">Authored page preview</div>;
   },

@@ -56,3 +56,11 @@ These additions reduce missing decisions and improve understanding. The subseque
 Deliver one reference-quality customer journey from start to finish, with real content, bundled fonts, purposeful images, complete failure/recovery states and a verified handoff. Use actual reviewers and intended users to identify where it loses to excellent human work. Feed those findings back into composition and interaction decisions before adding more loosely connected tools or templates.
 
 Browser infrastructure remains a prerequisite for claiming a completed visual/interactive acceptance pass. The [Product Design audit skill](skill://Plugin_fa77aec24fc08191bc6e57f377126d76/audit/SKILL.md) instructs: “Do not claim an audit if the actual flow could not be accessed and captured.” This document therefore records source-backed conclusions and proposed acceptance criteria, not screenshots or observations that could not be obtained.
+
+## Gallery typography on a recipient's device
+
+The local candidate embeds both chosen typefaces for 41 of the 49 Gallery designs, up from seven. This covers all 38 Originals. In the authored website editor, each selected family loads on demand. Each download carries the selected normal Latin font faces and their original license notices. Customers can read the standalone page offline. Eight other Gallery designs still depend on an installed font or a fallback for at least one role. The Studio shows which families travel with the page.
+
+A changed typeface can move a line break or change a button’s width. Focus now requests a fresh visual review for an authored page that gained an embedded face. The saved design values and the existing-app source trial retain their existing formats.
+
+The repeatable browser check opens a local build with a simulated owner, downloads each Original through the editor, and compares the preview and both export formats. It identifies the font Chromium actually used for the heading and opening paragraph at 320 and 1280 pixels. A signed-in staging trial and an independent comparison with work by expert designers remain open. [Browser check](../scripts/test-gallery-type.mjs)

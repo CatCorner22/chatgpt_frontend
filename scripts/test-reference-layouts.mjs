@@ -223,7 +223,7 @@ try {
   const report = {
     at: new Date().toISOString(),
     rendererSha256: createHash("sha256")
-      .update(readFileSync(join(root, "src/lib/authored-page.ts")))
+      .update(readFileSync(join(root, "src/lib/render-authored-page.ts")))
       .digest("hex"),
     results: output,
     failures,

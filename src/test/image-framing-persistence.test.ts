@@ -128,8 +128,9 @@ describe("image framing persistence and evidence identity", () => {
     expect(JSON.stringify(explicitDefault.page)).toBe(JSON.stringify(legacyPage));
     expect(explicitDefault.page).not.toHaveProperty("imageFraming");
     expect(workHash(opened)).toBe("672765259");
-    // The no-feature content-flow renderer revision changes evidence identity, not saved work.
-    expect(launchFingerprint(tokens, artifact(opened))).toBe("artifact-v1:63fb8b14380a96a0");
+    // The legacy Fraunces design now includes its typeface. Saved work retains its old hash.
+    expect(artifact(opened)).toHaveProperty("authoredFontRevision", "gallery-type-v1");
+    expect(launchFingerprint(tokens, artifact(opened))).toBe("artifact-v1:6381a08fd1e44fc3");
     expect(workHash(explicitDefault)).toBe(workHash(legacy));
     expect(launchFingerprint(tokens, artifact(explicitDefault))).toBe(
       launchFingerprint(tokens, artifact(legacy)),

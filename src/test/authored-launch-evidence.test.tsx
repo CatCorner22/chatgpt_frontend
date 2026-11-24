@@ -32,7 +32,11 @@ vi.mock("@/lib/launch.functions", () => ({ saveProgress: vi.fn() }));
 vi.mock("@/components/ShotReview", () => ({ ShotReview: () => null }));
 vi.mock("@/components/FixList", () => ({ FixList: () => null }));
 
-const tokens = normalizeTokens({ bg: "#f7fbff", accent: "#245cd6" });
+const tokens = normalizeTokens({
+  headingFont: "Instrument Serif",
+  bg: "#f7fbff",
+  accent: "#245cd6",
+});
 const state: State = {
   ...EMPTY,
   stage: "rx",
@@ -125,6 +129,27 @@ beforeEach(() => {
 });
 
 describe("authored content-flow evidence boundary", () => {
+  it("requires a fresh review only for authored pages that gained an embedded font", () => {
+    const newPair = normalizeTokens({ headingFont: "Outfit", bodyFont: "DM Sans" });
+    const input = { ...state, tokens: newPair };
+    const before = { ...oldArtifact(input), authoredOutputRevision: "content-flow-v1" };
+    const after = buildStudioLaunchArtifact(input);
+    expect(after).toEqual({ ...before, authoredFontRevision: "gallery-type-v1" });
+    expect(launchFingerprint(newPair, before)).not.toEqual(launchFingerprint(newPair, after));
+    for (const unaffected of [
+      { ...input, integration: "existing" as const },
+      { ...input, purpose: { ...input.purpose, experience: "app" as const } },
+      { ...input, content: null },
+      { ...input, tokens: null },
+      state,
+    ]) {
+      expect(buildStudioLaunchArtifact(unaffected)).not.toHaveProperty("authoredFontRevision");
+    }
+    expect(
+      buildStudioLaunchArtifact({ ...input, tokens: { ...tokens, bodyFont: "Inter" } }),
+    ).toHaveProperty("authoredFontRevision", "gallery-type-v1");
+  });
+
   it("invalidates earlier output evidence for unchanged authored inputs with no visible features", () => {
     const old = reviewed();
     const current = buildStudioLaunchArtifact(state);

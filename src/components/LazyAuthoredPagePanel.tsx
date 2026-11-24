@@ -1,16 +1,39 @@
 import { Component, lazy, Suspense, type ComponentProps } from "react";
-import type { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
+import type { AuthoredPageEditor } from "./AuthoredPageEditor";
+import { normalizeTokens } from "@/lib/design";
+import { loadAuthoredFontFamilies } from "@/lib/load-authored-fonts";
 import { Button } from "@/components/ui/button";
 
-const loadPanel = () =>
-  import("./AuthoredPagePanel").then((module) => ({ default: module.AuthoredPagePanel }));
-const createPanel = () => lazy(loadPanel);
-type Props = ComponentProps<typeof AuthoredPagePanel>;
+type Props = Omit<ComponentProps<typeof AuthoredPageEditor>, "families">;
+
+function createPanel(heading: string, body: string) {
+  return lazy(async () => {
+    const [module, families] = await Promise.all([
+      import("./AuthoredPageEditor"),
+      loadAuthoredFontFamilies(heading, body),
+    ]);
+    const Editor = module.AuthoredPageEditor;
+    return { default: (props: Props) => <Editor {...props} families={families} /> };
+  });
+}
+
+type LoaderProps = Props & { heading: string; body: string };
 type State = { failed: boolean; Panel: ReturnType<typeof createPanel> };
 
-/** The editor and its font catalog load together once a project needs the authored panel. */
-export class LazyAuthoredPagePanel extends Component<Props, State> {
-  override state = { failed: false, Panel: createPanel() };
+export function LazyAuthoredPagePanel(props: Props) {
+  const { headingFont, bodyFont } = normalizeTokens(props.tokens);
+  return (
+    <PageLoader
+      key={JSON.stringify([headingFont, bodyFont])}
+      {...props}
+      heading={headingFont}
+      body={bodyFont}
+    />
+  );
+}
+
+class PageLoader extends Component<LoaderProps, State> {
+  override state = { failed: false, Panel: createPanel(this.props.heading, this.props.body) };
 
   static getDerivedStateFromError() {
     return { failed: true };
@@ -25,7 +48,12 @@ export class LazyAuthoredPagePanel extends Component<Props, State> {
           <Button
             type="button"
             variant="outline"
-            onClick={() => this.setState({ failed: false, Panel: createPanel() })}
+            onClick={() =>
+              this.setState({
+                failed: false,
+                Panel: createPanel(this.props.heading, this.props.body),
+              })
+            }
           >
             Try loading preview again
           </Button>

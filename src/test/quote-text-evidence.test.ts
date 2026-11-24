@@ -14,7 +14,7 @@ import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { workHash } from "@/lib/ux";
 
-const tokens = normalizeTokens({});
+const tokens = normalizeTokens({ headingFont: "Instrument Serif" });
 const initialTime = "2026-11-18T00:00:00Z";
 const revisitTime = "2026-11-18T01:00:00Z";
 const projectId = "authored-quote-text";

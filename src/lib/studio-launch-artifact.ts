@@ -1,3 +1,4 @@
+import { usesNewGalleryTypeface } from "./authored-font-availability";
 import type { State } from "./studio-state";
 import {
   authoredQuoteChangesLegacyOutput,
@@ -5,7 +6,7 @@ import {
   hasAuthoredFeatureDescription,
 } from "./authored-content";
 
-type LaunchState = Pick<State, "content" | "page" | "purpose" | "nav" | "integration">;
+type LaunchState = Pick<State, "content" | "page" | "purpose" | "nav" | "integration" | "tokens">;
 
 /** Runtime review identity only; never added to saved page settings or work hashes. */
 export function buildStudioLaunchArtifact(state: LaunchState) {
@@ -27,6 +28,11 @@ export function buildStudioLaunchArtifact(state: LaunchState) {
     nav: state.nav,
     // Preserve prior revisions and exact legacy identities for unaffected renderer branches.
     ...(authoredOutputRevision ? { authoredOutputRevision } : {}),
+    ...(isAuthoredPage &&
+    state.tokens &&
+    usesNewGalleryTypeface(state.tokens.headingFont, state.tokens.bodyFont)
+      ? { authoredFontRevision: "gallery-type-v1" as const }
+      : {}),
     ...(isAuthoredPage && authoredQuoteChangesLegacyOutput(state.content?.quote)
       ? { authoredQuoteRevision: "quote-text-v1" as const }
       : {}),

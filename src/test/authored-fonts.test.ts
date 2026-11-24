@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { AUTHORED_FONT_FAMILIES } from "../lib/authored-font-availability";
-import catalog from "../lib/authored-fonts.data.json";
+import directions from "../lib/directions.data.json";
+import * as catalog from "../lib/authored-families";
+import { loadAuthoredFontFamilies } from "../lib/load-authored-fonts";
 import {
   AUTHORED_FONT_COVERAGE,
   buildEmbeddedFonts,
@@ -14,13 +16,18 @@ import {
 
 const vendor = "assets/vendor-fonts";
 const generator = "scripts/generate-authored-fonts.mjs";
-const generated = "src/lib/authored-fonts.data.json";
 const sourceBase64 = /url\("data:font\/woff2;base64,([A-Za-z0-9+/]+={0,2})"\) format\("woff2"\)/g;
 const digest = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 const pairs = [
   ["Instrument Serif", "Instrument Sans", 400],
   ["Space Grotesk", "IBM Plex Sans", 600],
   ["Newsreader", "Literata", 600],
+  ["Outfit", "DM Sans", 600],
+  ["Manrope", "Inter", 600],
+  ["Bricolage Grotesque", "Public Sans", 600],
+  ["Playfair Display", "DM Sans", 600],
+  ["JetBrains Mono", "Public Sans", 600],
+  ["Fraunces", "Instrument Sans", 600],
 ] as const;
 
 describe("portable authored font assets", () => {
@@ -28,16 +35,15 @@ describe("portable authored font assets", () => {
     const result = spawnSync(process.execPath, [generator, "--check"], { encoding: "utf8" });
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
-    expect(readFileSync(generated).length).toBeLessThanOrEqual(1024 * 1024);
-    expect(catalog.families.map((family) => family.name)).toEqual(
-      pairs.flatMap(([heading, body]) => [heading, body]),
+    expect(new Set(catalog.families.map((family) => family.name))).toEqual(
+      new Set(pairs.flatMap(([heading, body]) => [heading, body])),
     );
     expect(AUTHORED_FONT_FAMILIES).toEqual(catalog.families.map((family) => family.name));
   });
 
   it.each(pairs)(
     "embeds the verified assets and exact notices for %s and %s only",
-    (heading, body, headingWeight) => {
+    async (heading, body, headingWeight) => {
       const fonts = buildEmbeddedFonts(heading, body);
       expect(getAuthoredFontAvailability(heading, body)).toEqual({
         includedFamilies: [heading, body],
@@ -49,9 +55,10 @@ describe("portable authored font assets", () => {
       expect(fonts.headingStack).toMatch(new RegExp(`^"Focus ${heading} v1", "${heading}", `));
       expect(fonts.bodyStack).toMatch(new RegExp(`^"Focus ${body} v1", "${body}", `));
 
-      const families = catalog.families.filter((family) =>
-        fonts.includedFamilies.includes(family.name),
+      const families = fonts.includedFamilies.map((name) =>
+        catalog.families.find((family) => family.name === name)!,
       );
+      expect(await loadAuthoredFontFamilies(heading, body)).toEqual(families);
       const selectedFaces = families.flatMap((family) => family.faces);
       const sources = [...fonts.css.matchAll(sourceBase64)];
       expect(sources).toHaveLength(selectedFaces.length);
@@ -95,6 +102,15 @@ describe("portable authored font assets", () => {
     },
   );
 
+  it("embeds both selected typefaces for every Gallery Original", () => {
+    for (const { id, direction } of directions) {
+      const { headingFont, bodyFont } = direction.tokens;
+      const fonts = buildEmbeddedFonts(headingFont, bodyFont);
+      expect(fonts.missingFamilies, id).toEqual([]);
+      expect(fonts.includedFamilies, id).toEqual([...new Set([headingFont, bodyFont])]);
+    }
+  });
+
   it("embeds a family and its notices once when both roles use it", () => {
     const fonts = buildEmbeddedFonts("Newsreader", "Newsreader");
     expect(fonts.includedFamilies).toEqual(["Newsreader"]);
@@ -114,13 +130,13 @@ describe("portable authored font assets", () => {
     expect(fonts.missingFamilies).toEqual([hostile]);
     expect(fonts.headingStack).toBe("system-ui, sans-serif");
     expect(fonts.css).not.toContain(hostile);
-    expect(buildEmbeddedFonts("Fraunces", "Karla")).toEqual({
+    expect(buildEmbeddedFonts("DM Serif Display", "Karla")).toEqual({
       css: "",
-      headingStack: '"Fraunces", Georgia, serif',
+      headingStack: '"DM Serif Display", Georgia, serif',
       bodyStack: '"Karla", system-ui, sans-serif',
       headingWeight: 600,
       includedFamilies: [],
-      missingFamilies: ["Fraunces", "Karla"],
+      missingFamilies: ["DM Serif Display", "Karla"],
       supportingFiles: {},
       licenseNotice: "",
     });

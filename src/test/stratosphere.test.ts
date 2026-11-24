@@ -24,7 +24,7 @@ function input(): StratosphereInput {
       muted: "#475569",
       accent: "#1d4ed8",
       accentInk: "#ffffff",
-      headingFont: "Fraunces",
+      headingFont: "DM Serif Display",
       bodyFont: "Karla",
       scale: 1.22,
       radius: 6,
@@ -480,7 +480,9 @@ describe("Stratosphere graph and output boundaries", () => {
     const fallback = deriveStratosphereGraph(current).issues.find(
       (issue) => issue.id === "font-availability",
     )!;
-    expect(fallback.message).toContain("Local font installation or fallback: Fraunces, Karla");
+    expect(fallback.message).toContain(
+      "Local font installation or fallback: DM Serif Display, Karla",
+    );
     const customer = deriveStratosphereGraph({ ...authored, integration: "existing" }).issues.find(
       (issue) => issue.id === "font-availability",
     )!;

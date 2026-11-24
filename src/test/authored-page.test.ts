@@ -518,15 +518,15 @@ describe("authored page export", () => {
 
   it("identifies each mixed font outcome and keeps owner input out of font CSS", () => {
     const result = buildAuthoredPage(
-      normalizeTokens({ headingFont: "Fraunces", bodyFont: "Instrument Sans" }),
+      normalizeTokens({ headingFont: "DM Serif Display", bodyFont: "Instrument Sans" }),
       content,
       options,
     );
     const fonts = result.readiness.find((note) => note.id === "fonts")?.message;
     expect(fonts).toMatch(/Instrument Sans.*embedded|embedded.*Instrument Sans/i);
-    expect(fonts).toMatch(/Fraunces.*fallback/i);
-    expect(result.css).toContain('--heading: "Fraunces", Georgia, serif');
-    expect(result.css).not.toContain("Focus Fraunces");
+    expect(fonts).toMatch(/DM Serif Display.*fallback/i);
+    expect(result.css).toContain('--heading: "DM Serif Display", Georgia, serif');
+    expect(result.css).not.toContain("Focus DM Serif Display");
     const hostile = '";}body{background:url(https://example.com/font)}</style><script>';
     const malformed = buildAuthoredPage(
       { ...tokens, headingFont: hostile as typeof tokens.headingFont },

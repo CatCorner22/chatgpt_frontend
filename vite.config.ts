@@ -18,6 +18,8 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
+    // The independently installable kit shares the app’s schema runtime in the bundled Review Room.
+    resolve: { dedupe: ["zod"] },
     // This checkout is the Sites edition; portable archives retain their own configuration.
     define: { "import.meta.env.VITE_FOCUS_HOSTED": JSON.stringify("true") },
   },

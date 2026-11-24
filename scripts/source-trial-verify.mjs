@@ -218,10 +218,13 @@ async function inspectPath(path, kind) {
   fail("Invalid filesystem path.");
 }
 
-async function readBounded(path, maximum) {
+async function readBounded(
+  path,
+  maximum,
+  sizeError = "A required file is empty or exceeds its byte limit.",
+) {
   const checked = await inspectPath(path, "file");
-  if (checked.size < 1 || checked.size > maximum)
-    fail("A required file is empty or exceeds its byte limit.");
+  if (checked.size < 1 || checked.size > maximum) fail(sizeError);
   const handle = await open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
     const start = await handle.stat();
@@ -239,7 +242,7 @@ async function readBounded(path, maximum) {
       if (!bytesRead) break;
       length += bytesRead;
     }
-    if (length > maximum) fail("A required file exceeds its byte limit.");
+    if (length > maximum) fail(sizeError);
     const end = await handle.stat();
     const stillAtPath = await inspectPath(path, "file");
     if (
@@ -349,11 +352,11 @@ async function main() {
   validatePatch(data["rollback.patch"], contract.files);
   for (const file of contract.files) {
     const expectedBytes = file[`${direction}Bytes`];
-    const bytes = await readBounded(join(project, file.path), expectedBytes);
+    const mismatch =
+      "The project file differs from the expected snapshot. Keep your changes and review the differences before continuing.";
+    const bytes = await readBounded(join(project, file.path), expectedBytes, mismatch);
     if (bytes.length !== expectedBytes || hash(bytes) !== file[`${direction}Sha256`])
-      fail(
-        "The project does not match both expected whole-file snapshots. Stop and review the changed files.",
-      );
+      fail(mismatch);
   }
   process.stdout.write(
     `Verified bundle integrity and both ${direction} file snapshots at this check. No files changed. This point-in-time result is not an application guard, build, browser test, or release approval.\n`,

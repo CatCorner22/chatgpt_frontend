@@ -205,6 +205,9 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
       const beforeCheck = await snapshot(f.base);
       const result = verify(f.bundle, f.project, "after");
       expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain(
+        "Keep your changes and review the differences before continuing.",
+      );
       expect(result.stderr).not.toContain("private-later-edit-sentinel");
       expect(result.stdout).not.toContain("private-later-edit-sentinel");
       expect(await snapshot(f.base)).toEqual(beforeCheck);

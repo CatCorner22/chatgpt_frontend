@@ -52,6 +52,13 @@ export function BlindReviewRoom() {
   const errorRef = useRef<HTMLDivElement>(null);
   const taskHeading = useRef<HTMLHeadingElement>(null);
   const restored = useRef(false);
+  const fileRead = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      fileRead.current++;
+    };
+  }, []);
 
   useEffect(() => {
     if (restored.current) return;
@@ -103,14 +110,19 @@ export function BlindReviewRoom() {
 
   const loadFile = async (file: File | undefined) => {
     if (!file) return;
+    const request = ++fileRead.current;
+    setPendingPacket(null);
     setError("");
     try {
       if (file.size > MAX_REVIEW_PACKET_BYTES)
         throw new Error("Choose a reviewer packet smaller than 2 MB.");
-      const packet = parseReviewerPacket(await file.text());
+      const contents = await file.text();
+      if (request !== fileRead.current) return;
+      const packet = parseReviewerPacket(contents);
       if (session) setPendingPacket(packet);
       else begin(packet);
     } catch (cause) {
+      if (request !== fileRead.current) return;
       setError(
         cause instanceof Error
           ? cause.message
@@ -200,6 +212,8 @@ export function BlindReviewRoom() {
   };
 
   const reset = () => {
+    fileRead.current++;
+    setPendingPacket(null);
     try {
       focusLocalStorage.removeItem(REVIEW_ROOM_KEY);
       setSession(null);

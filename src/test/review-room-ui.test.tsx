@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BlindReviewRoom } from "@/components/BlindReviewRoom";
 import { createReviewSession, REVIEW_ROOM_KEY } from "@/lib/review-room";
 import { packetFixture } from "./review-room.fixture";
@@ -19,6 +20,30 @@ afterEach(() => {
 });
 
 describe("review room workflow", () => {
+  it("keeps the latest packet when an older read finishes last", async () => {
+    let finish!: (value: string) => void;
+    const older = new Promise<string>((resolve) => {
+      finish = resolve;
+    });
+    const makeFile = (read: () => Promise<string>) =>
+      Object.assign(new File([], "packet.json"), { text: read });
+    render(
+      <StrictMode>
+        <BlindReviewRoom />
+      </StrictMode>,
+    );
+    const input = await screen.findByLabelText("Reviewer packet · JSON, up to 2 MB");
+    fireEvent.change(input, { target: { files: [makeFile(() => older)] } });
+    const latest = packetFixture();
+    latest.samples.reverse();
+    fireEvent.change(input, { target: { files: [makeFile(async () => JSON.stringify(latest))] } });
+    await screen.findByRole("link", { name: /Open image/ });
+    await act(async () => finish(JSON.stringify(packetFixture())));
+    expect(JSON.parse(localStorage.getItem(REVIEW_ROOM_KEY)!).order).toEqual([
+      "sample-b",
+      "sample-a",
+    ]);
+  });
   it("keeps the organizer’s planned order when a packet is uploaded and the page reloads", async () => {
     const packet = packetFixture();
     packet.samples.reverse();

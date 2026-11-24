@@ -92,6 +92,8 @@ export function SourceTrialPanel({
 }: SourceTrialPanelProps) {
   const id = useId();
   const [runtime, setRuntime] = useState("");
+  const [githubBase, setGithubBase] = useState("");
+  const invalidBase = Boolean(githubBase && !/^[0-9a-f]{40}$/.test(githubBase));
   const [inputs, setInputs] = useState<Inputs>(emptyInputs);
   const [inspection, setInspection] = useState<SourceTrialInspection | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -157,6 +159,7 @@ export function SourceTrialPanel({
     confirmedNow.current = false;
     setProposal(null);
     setInspection(null);
+    setGithubBase("");
     setConfirmed(false);
     setBusy(null);
     setError("");
@@ -298,7 +301,11 @@ export function SourceTrialPanel({
     try {
       selected.verify();
       if (!current() || !confirmedNow.current) return;
-      const blob = await buildSourceTrialPackage(selected.value, { draft, designTitle });
+      const blob = await buildSourceTrialPackage(selected.value, {
+        draft,
+        designTitle,
+        githubBase,
+      });
       if (!current()) return;
       selected.verify();
       downloadBlob(blob, "focus-source-trial-proposal.zip");
@@ -658,16 +665,51 @@ export function SourceTrialPanel({
                   className={`${fieldClass} font-mono text-xs`}
                 />
               </details>
-              <Button type="button" onClick={() => void download()} disabled={!!busy}>
+              <details>
+                <summary className="min-h-11 cursor-pointer py-3 font-medium">
+                  Review in a separate GitHub branch
+                </summary>
+                <p id={`${id}-base-help`} className="my-2 text-sm">
+                  Your developer can use the download to rehearse the edits in a fresh local copy,
+                  then share a draft pull request for review. To tie it to one saved version, copy
+                  the full commit ID from that version’s page on GitHub.
+                </p>
+                <label htmlFor={`${id}-base`} className="text-sm font-medium">
+                  Starting GitHub commit (optional)
+                </label>
+                <input
+                  id={`${id}-base`}
+                  value={githubBase}
+                  onChange={(event) => setGithubBase(event.target.value.trim().toLowerCase())}
+                  aria-invalid={invalidBase}
+                  aria-describedby={`${id}-base-help${invalidBase ? " " + id + "-base-error" : ""}`}
+                  maxLength={80}
+                  disabled={!!busy}
+                  spellCheck={false}
+                  autoComplete="off"
+                  className={`${fieldClass} font-mono text-sm`}
+                />
+              </details>
+              {invalidBase && (
+                <p id={`${id}-base-error`} className="text-sm">
+                  Paste all 40 characters from GitHub or clear this field to choose the version
+                  later.
+                </p>
+              )}
+              <Button
+                type="button"
+                onClick={() => void download()}
+                disabled={!!busy || invalidBase}
+              >
                 {busy === "download"
                   ? "Preparing proposal download…"
                   : "Download proposed code change"}
               </Button>
               <p className="text-sm text-muted-foreground">
                 Give focus-source-trial-proposal.zip to your coding assistant or developer. It
-                includes your trial plan, private source excerpts, exact edits, checks and stop
-                conditions in AGENT-HANDOFF.md. It is not a public website package, test certificate
-                or release approval.
+                includes your trial plan, private source excerpts, exact edits, GitHub branch
+                helper, and checks and stop conditions in AGENT-HANDOFF.md. It is not a public
+                website package, test certificate or release approval.
               </p>
               <label htmlFor={`${id}-kickoff`} className="block text-sm font-medium">
                 Message to include with the proposal

@@ -18,10 +18,18 @@ import {
 } from "./image-framing";
 import { isPageComposition, type PageComposition } from "./page-compositions";
 
+type PageImage = { src: string; alt: string; credit?: string };
 export type PageOptions = {
   composition: PageComposition;
   actionUrl: string;
-  image?: { src: string; alt: string };
+  image?: PageImage;
+  relatedStory?: {
+    title: string;
+    url: string;
+    placement: "after-intro" | "after-article";
+    image?: PageImage;
+    imageFraming?: ImageFraming;
+  };
   imageFraming?: ImageFraming;
 };
 
@@ -182,6 +190,24 @@ export function renderAuthoredPage(
       message:
         "The image was omitted. Use an embedded PNG, JPEG, or WebP under 2 MiB with a meaningful description.",
     });
+  const story = options.relatedStory;
+  const storyDestination = actionDestination(story?.url);
+  const storyTitle = text(story?.title);
+  const storyReady = !!(storyTitle && storyDestination && /^https?:/i.test(storyDestination));
+  const storyImage = rasterImage(story?.image);
+  const storyCredit = text(story?.image?.credit);
+  if (story && !storyReady)
+    readiness.push({
+      id: "story-link",
+      message: "Give the related story a title and its full website address, or remove the story.",
+    });
+  if (story?.image && (!storyImage || !storyCredit))
+    readiness.push({
+      id: "story-image",
+      message:
+        "Add a readable story image, its description and a public credit, or remove the image.",
+    });
+  const storyFraming = getImageFramingCss(story?.imageFraming);
   const framing = image && compactImageFraming(options.imageFraming);
   const framed = framing ? getImageFramingCss(framing) : undefined;
   const brand = text(content.brand) || "Untitled project";
@@ -251,6 +277,7 @@ export function renderAuthoredPage(
   ];
   readiness.push({ id: "fonts", message: fontNotes.filter(Boolean).join(" ") });
 
+  const leadCredit = image && text(options.image?.credit);
   const space = { airy: 1.25, balanced: 1, compact: 0.85 }[t.density];
   const link = readableOn(t.accent, t.bg);
   const css = `/* Focus authored page. The standalone HTML embeds this exact stylesheet.
@@ -404,7 +431,23 @@ ${hasStaticProductFeatures ? ".feature-static-heading { display: flex; align-ite
 .journal .feature-row { grid-template-columns: 2.5rem minmax(0, 1fr); column-gap: 1.25rem; row-gap: .75rem; }
 .journal .feature-row .feature-body { grid-column: 2; }
 .journal .quote-section { max-inline-size: calc(66.666666% - 2rem); border-radius: 0; }
-/* Decorative texture never sits behind reading text. */
+${
+  storyReady
+    ? `.related-story { border-block-start: 1px solid var(--muted); padding-block: clamp(2rem, 5vw, 4.5rem); display: grid; align-items: center; gap: clamp(1rem, 3vw, 3rem); }
+.related-story:has(figure) { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.related-story .eyebrow { margin-block-end: .65rem; }
+.related-story h2 a { min-block-size: 44px; display: inline-block; max-width: 100%; }
+.related-story figure { min-inline-size: 0; margin: 0; }
+.related-story img { inline-size: 100%; aspect-ratio: 3/2; object-fit: ${storyFraming.fit}; object-position: ${storyFraming.position}; }
+.related-story figcaption { margin-block-start: .5rem; color: var(--muted); font-size: 1rem; overflow-wrap: anywhere; }
+.showcase .related-story { max-inline-size: 1440px; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 5rem); }
+@media (max-width: ${IMAGE_NARROW_BREAKPOINT}px) {
+  .related-story:has(figure) { grid-template-columns: minmax(0, 1fr); }
+  .related-story img { object-position: ${storyFraming.narrowPosition}; }
+}
+`
+    : ""
+}${leadCredit ? ".visual-caption { overflow-wrap: anywhere; }\n" : ""}/* Decorative texture never sits behind reading text. */
 ${t.texture === "grid" ? ".visual { background-image: linear-gradient(var(--surface-muted) 1px, transparent 1px), linear-gradient(90deg, var(--surface-muted) 1px, transparent 1px); background-size: 4rem 4rem; } .visual .original-art { background: var(--surface); margin: 1.25rem; inline-size: calc(100% - 2.5rem); }" : ""}
 ${t.texture === "grain" ? ".visual::before { content: ''; position: absolute; inset: 0; pointer-events: none; border: 1px dotted var(--surface-muted); border-radius: inherit; }" : ""}
 @media (max-width: ${IMAGE_NARROW_BREAKPOINT}px) {
@@ -468,7 +511,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
           image
             ? `<img class="owner-image" src="${escape(image.src)}" alt="${escape(image.alt)}" width="1200" height="900" decoding="async">`
             : ornament(composition)
-        }</figure>`;
+        }${image && text(options.image?.credit) ? `<figcaption class="visual-caption"><bdi>${escape(text(options.image?.credit))}</bdi></figcaption>` : ""}</figure>`;
   const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
   const featureLinks = features
     .map(
@@ -502,8 +545,12 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   const quoteSection = quote
     ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>${escape(quote)}</p></blockquote></section>`
     : "";
+  const related = storyReady
+    ? `<section class="related-story" aria-labelledby="related-story-title"><div><p class="eyebrow">Related reading</p><h2 id="related-story-title"><a href="${escape(storyDestination)}">${escape(storyTitle)}</a></h2></div>${storyImage && storyCredit ? `<figure><img src="${escape(storyImage.src)}" alt="${escape(storyImage.alt)}" width="720" height="480" loading="lazy" decoding="async"><figcaption>${escape(storyCredit)}</figcaption></figure>` : ""}</section>`
+    : "";
+  const relatedAfterIntro = story?.placement === "after-intro";
   const closing =
-    action && (hasDetails || quote)
+    action && (hasDetails || quote) && !(storyReady && !relatedAfterIntro)
       ? `<section class="closing" aria-label="Next step"><h2>${escape(text(content.cta) || "Continue")}</h2>${actionLink()}</section>`
       : "";
   const navigation = hasHeroAction
@@ -524,7 +571,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   <a class="skip" href="#main">Skip to content</a>
   <div class="site-shell">
     <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a>${navigation}</header>
-    <main id="main" tabindex="-1">${hero}${details}${quoteSection}${closing}</main>
+    <main id="main" tabindex="-1">${hero}${relatedAfterIntro ? related : ""}${details}${quoteSection}${relatedAfterIntro ? "" : related}${closing}</main>
     <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">Back to top ↑</a></footer>
   </div>
 </body>
@@ -565,7 +612,7 @@ Keep the original backup until the restored design and its image have been check
 
 To change words in this exported page, edit index.html. A supplied image is an
 embedded data URL; a developer can replace its src with a local image filename,
-keep an accurate alt description, and include that image file when hosting.${framingReadme}
+keep an accurate alt description, and include that image file when hosting.${framingReadme}${storyReady ? "\nThe related-story section contains your reading order, story title and navigation\naddress. Preserve image descriptions, credits and any license conditions when editing." : ""}
 Edits to exported files do not update the original Focus design.
 
 The separate standalone HTML download embeds the same generated CSS. It needs

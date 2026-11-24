@@ -56,6 +56,7 @@ export type StratosphereGroup = {
   description: string;
   lesson: string;
   authoredOnly: boolean;
+  recheck: string;
   output: { authored: string; specification: string };
   options: readonly StratosphereOption[];
 };
@@ -142,6 +143,8 @@ const palette = (
 export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   {
     id: "composition",
+    recheck:
+      "Follow the reading and keyboard order on a phone. Open the primary action and related links.",
     label: "Page layout",
     description: "Choose a structure for the authored website.",
     lesson:
@@ -169,6 +172,8 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "palette",
+    recheck:
+      "Read text on each actual background. Tab to the main action and check its focus indicator.",
     label: "Colors",
     description: "White, cool color, or deep ink with complete readable color pairs.",
     lesson: "Distinguish content, surfaces and actions without requiring many colors.",
@@ -207,6 +212,8 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "fonts",
+    recheck:
+      "Check the exported heading wraps and the longest button label fits on a clean device.",
     label: "Fonts",
     description: "Choose the requested voice of headings and body text.",
     lesson:
@@ -245,6 +252,8 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "hierarchy",
+    recheck:
+      "Read the headings in order and enlarge text to check the price and primary action remain visible.",
     label: "Text size and emphasis",
     description: "Control the scale and case of headings.",
     lesson:
@@ -282,6 +291,8 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "spacing",
+    recheck:
+      "Resize across the page breakpoints and check for clipped content and crowded touch targets.",
     label: "Spacing",
     description: "Set the space between sections and related content.",
     lesson:
@@ -303,6 +314,8 @@ export const STRATOSPHERE_GROUPS: readonly StratosphereGroup[] = [
   },
   {
     id: "form",
+    recheck:
+      "Activate the real control by keyboard and touch. Check focus, its destination, and recovery after a failed action.",
     label: "Buttons and corners",
     description: "Choose an action treatment and corner preference.",
     lesson:
@@ -736,6 +749,13 @@ function pageSnapshot(page: PageSettings): PageSettings {
     framing = compactImageFraming(page.imageFraming);
   delete snapshot.imageFraming;
   if (framing) snapshot.imageFraming = ordered(framing);
+  if (page.relatedStory) {
+    const story = { ...page.relatedStory };
+    delete story.imageFraming;
+    const storyFraming = compactImageFraming(page.relatedStory.imageFraming);
+    if (storyFraming) story.imageFraming = ordered(storyFraming);
+    snapshot.relatedStory = ordered(story);
+  }
   return ordered(snapshot);
 }
 function imageFramingOutput(input: StratosphereInput, invalid: boolean) {
@@ -889,6 +909,40 @@ export function deriveStratosphereGraph(input: StratosphereInput): StratosphereG
         fields: ["integration", "purpose.experience"],
         blocked: !!unavailable,
       });
+  }
+  if (input.page.relatedStory) {
+    const authored = profile === "authored-website" && !invalid.length;
+    const story = input.page.relatedStory;
+    nodes.push(
+      node(
+        "output:related-story",
+        "output",
+        "Related reading",
+        authored
+          ? `Preview and both website exports place the related story ${story.placement === "after-intro" ? "after the introduction" : "after the article"} once its title, destination and chosen image are ready.`
+          : "Saved with this design. Apply and check reading order in the customer project.",
+        authored,
+      ),
+    );
+    edges.push({
+      id: "composition-related-story",
+      from: "group:composition",
+      to: "output:related-story",
+      kind: "affects",
+      reason:
+        "Changing the article structure can move the story link. Check reading order, keyboard access, image and credit in the exported page.",
+      fields: [
+        "page.composition",
+        "page.relatedStory.title",
+        "page.relatedStory.url",
+        "page.relatedStory.placement",
+        "page.relatedStory.imageId",
+        "page.relatedStory.imageAlt",
+        "page.relatedStory.imageCredit",
+        "page.relatedStory.imageFraming",
+      ],
+      blocked: !authored,
+    });
   }
   const imageFraming = imageFramingOutput(input, !!invalid.length);
   nodes.push(

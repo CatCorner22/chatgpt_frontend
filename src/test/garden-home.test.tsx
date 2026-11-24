@@ -3,6 +3,7 @@ import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
+import { gardenJourneyKey, readGardenJourney } from "@/lib/garden-journey";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
 import { LIBRARY_KEY } from "@/lib/library";
 import { PROGRESS_KEY } from "@/lib/launch";
@@ -11,6 +12,7 @@ import { STUDIO_KEY } from "@/lib/projects";
 
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus navigation</header> }));
 vi.mock("@tanstack/react-router", () => ({
+  useBlocker: vi.fn(),
   Link: ({
     to,
     search,
@@ -58,6 +60,45 @@ afterEach(() => {
 });
 
 describe("Garden home", () => {
+  it("saves a visitor goal and an approach across stops and reload without granting completion", async () => {
+    seedProtectedRecords();
+    const { unmount } = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Choose a class and book it" },
+    });
+    visitStep("plan");
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "scannable-sections" },
+    });
+    fireEvent.change(screen.getByLabelText("What must the visitor see before they decide?"), {
+      target: { value: "Class price and times" },
+    });
+    const saved = readGardenJourney(null);
+    expect(saved.brief?.task).toBe("Choose a class and book it");
+    expect(saved.brief?.decisions["plan"]).toEqual({
+      choice: "scannable-sections",
+      note: "Class price and times",
+    });
+    unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Preferred approach")).toHaveValue("scannable-sections");
+    expect(screen.getByLabelText("What must the visitor see before they decide?")).toHaveValue(
+      "Class price and times",
+    );
+    localStorage.setItem(
+      gardenJourneyKey(null),
+      JSON.stringify({ ...saved.brief, task: "Edited elsewhere" }),
+    );
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "guided-sequence" },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("saved in another tab");
+    expect(readGardenJourney(null).brief?.task).toBe("Edited elsewhere");
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
+  });
+
   it("preserves newer lesson and goal choices when an older tab moves to another stop", async () => {
     localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
     render(<GardenHome />);

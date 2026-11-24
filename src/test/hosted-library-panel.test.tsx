@@ -7,7 +7,7 @@ import { createLibraryBackup, restoreLibraryBackup } from "@/lib/transfer";
 import { HostedClientError, readOnlineLibrary, saveOnlineLibrary } from "@/lib/hosted-client";
 
 vi.mock("@/components/HostedBoundary", () => ({ useHostedSession: vi.fn() }));
-vi.mock("@/lib/browser-storage", () => ({ focusLocalStorage: {} }));
+vi.mock("@/lib/browser-storage", () => ({ focusLocalStorage: window.localStorage }));
 vi.mock("@/lib/library", () => ({ readLibrarySnapshot: vi.fn() }));
 vi.mock("@/lib/transfer", () => ({ createLibraryBackup: vi.fn(), restoreLibraryBackup: vi.fn() }));
 vi.mock("@/lib/hosted-client", async (original) => ({
@@ -35,6 +35,7 @@ const restored = {
   conflicts: 0,
   imageCount: 1,
   imagesAdded: 1,
+  journeysAdded: 0,
   legacy: false,
   designCount: 1,
 };
@@ -47,6 +48,7 @@ function deferred<T>() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   vi.mocked(useHostedSession).mockReturnValue({
     user: { id: "owner-a", email: "a@example.test" },
     storageAvailable: true,
@@ -74,12 +76,24 @@ describe("explicit online library handoff", () => {
     expect(saveOnlineLibrary).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save library online" })).toBeDisabled();
   });
+  it("detects a Garden brief edited in another tab while the online save is in flight", async () => {
+    const { gardenJourneyKey } = await import("@/lib/garden-journey");
+    const pending = deferred<string>();
+    vi.mocked(saveOnlineLibrary).mockReturnValue(pending.promise);
+    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    await screen.findByText(/no online library yet/);
+    fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
+    await waitFor(() => expect(saveOnlineLibrary).toHaveBeenCalledOnce());
+    window.localStorage.setItem(gardenJourneyKey(entry.id), "edited while saving");
+    await act(async () => pending.resolve('"revision-2"'));
+    expect(await screen.findByRole("status")).toHaveTextContent(/changed during the save/);
+  });
   it("saves the validated image-complete backup with the checked creation precondition", async () => {
     render(<HostedLibraryPanel onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "Saved 1 design online with their images and saved history",
+      "Saved 1 design online with their images, Garden briefs, and saved history",
     );
     expect(createLibraryBackup).toHaveBeenCalledWith([entry], expect.any(Object));
     expect(saveOnlineLibrary).toHaveBeenCalledWith(

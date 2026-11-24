@@ -23,18 +23,15 @@ export interface BenchmarkMetric {
 const mean = (values: number[]) =>
   values.length ? values.reduce((total, value) => total + value, 0) / values.length : null;
 
-/**
- * Fixed-sample, reviewer-clustered analysis conditional on the supplied page panel.
- * Intervals use a simultaneous 95% Hoeffding bound across the 15 declared endpoints.
- * A pilot's broad interval is inconclusive, not a failed quality judgement.
- */
-export function evaluateBenchmark(input: BenchmarkManifest, data: BlindEvaluation[]) {
-  const manifest = benchmarkManifestSchema.parse(input);
+export function collectReviewAnswers(
+  material: { id: string; samples: { id: string; kind: "image" | "interactive" }[] },
+  data: BlindEvaluation[],
+) {
   const evaluations = z.array(blindEvaluationSchema).parse(data);
-  const samples = new Map(manifest.samples.map((sample) => [sample.id, sample]));
+  const samples = new Map(material.samples.map((sample) => [sample.id, sample]));
   const byReviewer = new Map<string, Map<string, BlindEvaluation>>();
   for (const evaluation of evaluations) {
-    if (evaluation.benchmarkId !== manifest.id)
+    if (evaluation.benchmarkId !== material.id)
       throw new Error("An evaluation belongs to a different benchmark.");
     const sample = samples.get(evaluation.sampleId);
     if (!sample) throw new Error(`Unknown sample ID: ${evaluation.sampleId}.`);
@@ -51,6 +48,18 @@ export function evaluateBenchmark(input: BenchmarkManifest, data: BlindEvaluatio
     reviewer.set(evaluation.sampleId, evaluation);
     byReviewer.set(evaluation.reviewerCode, reviewer);
   }
+  return byReviewer;
+}
+
+/**
+ * Fixed-sample, reviewer-clustered analysis conditional on the supplied page panel.
+ * Intervals use a simultaneous 95% Hoeffding bound across the 15 declared endpoints.
+ * A pilot's broad interval is inconclusive, not a failed quality judgement.
+ */
+export function evaluateBenchmark(input: BenchmarkManifest, data: BlindEvaluation[]) {
+  const manifest = benchmarkManifestSchema.parse(input);
+  const byReviewer = collectReviewAnswers(manifest, data);
+  const evaluations = [...byReviewer.values()].flatMap((rows) => [...rows.values()]);
   const pairs = manifest.tasks.map((task) => {
     const rows = manifest.samples.filter((sample) => sample.taskId === task.id);
     const candidate = rows.find((sample) => sample.group === "spec");

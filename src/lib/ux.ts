@@ -8,6 +8,8 @@ type WorkState = {
   direction: string;
   content?: unknown;
   page?: unknown;
+  past?: unknown;
+  future?: unknown;
   nav?: unknown;
   purpose?: unknown;
   integration?: unknown;
@@ -35,9 +37,21 @@ export function hasUnsavedWork(s: WorkState) {
   return workHash(s) !== s.savedHash;
 }
 
-/** Account rows carry page settings, while uploaded image bytes remain browser-local. */
+function hasLocalPageAsset(page: unknown): boolean {
+  if (!page || typeof page !== "object") return false;
+  if ("imageId" in page && page.imageId) return true;
+  const story = "relatedStory" in page && page.relatedStory;
+  return !!(story && typeof story === "object" && "imageId" in story && story.imageId);
+}
+
+/** Account rows contain the settings and undo history, but image bytes live in this browser. */
 export function hasBrowserOnlyImage(s: WorkState): boolean {
-  return !!(s.page && typeof s.page === "object" && "imageId" in s.page && s.page.imageId);
+  if (hasLocalPageAsset(s.page)) return true;
+  return [s.past, s.future].some(
+    (history) =>
+      Array.isArray(history) &&
+      history.some((step) => step && typeof step === "object" && hasLocalPageAsset(step.page)),
+  );
 }
 
 /** A delayed save acknowledges its snapshot, never a different design or newer edits. */

@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { webcrypto } from "node:crypto";
 import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { newGardenJourney, writeGardenJourney } from "@/lib/garden-journey";
 import { normalizeTokens } from "@/lib/design";
 import { LIBRARY_KEY, type LibraryEntry } from "@/lib/library";
 import { EMPTY_TARGET_DRAFT, TARGET_DRAFT_KEY, type TargetDraft } from "@/lib/target";
@@ -118,6 +119,24 @@ afterEach(() => {
 });
 
 describe("Target guided preparation", () => {
+  it("stops a pending owner-selected Garden brief delivery when another tab edits that brief", async () => {
+    seed();
+    const brief = { ...newGardenJourney(entry.id, "existing"), task: "Book a class" };
+    const raw = writeGardenJourney(brief, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    const finish = deferredPack();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    expect(operations.prepare).toHaveBeenCalledWith(expect.anything(), expect.anything(), brief);
+    writeGardenJourney({ ...brief, task: "Book two places" }, raw);
+    await finish();
+    expect(operations.download).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Garden brief changed");
+    fireEvent.click(screen.getByRole("button", { name: "Remove Garden brief" }));
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    expect(screen.getByText("Book two places")).toBeInTheDocument();
+  });
+
   it("keeps the source tools closed until requested and clears them on step exit without losing the plan", async () => {
     seed();
     await openReview();

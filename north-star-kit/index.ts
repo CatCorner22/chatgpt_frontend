@@ -16,4 +16,5 @@ export * from "./logic/duels";
 export * from "./blind-test/score";
 export * from "./blind-test/benchmark";
 export * from "./blind-test/evaluate";
+export * from "./blind-test/pilot";
 export * from "./page-checks/index";

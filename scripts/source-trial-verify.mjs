@@ -11,6 +11,7 @@ const COMPANIONS = [
   "AGENT-HANDOFF.md",
   "START-HERE.md",
   "TRIAL-PLAN.md",
+  "github-trial.mjs",
   "forward.patch",
   "rollback.patch",
   "trial-contract.json",

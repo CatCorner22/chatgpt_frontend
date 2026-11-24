@@ -1,5 +1,6 @@
 import { focusLocalStorage } from "./browser-storage";
 import { z } from "zod";
+import { gardenJourneyKey, parseGardenJourney, type GardenJourney } from "./garden-journey";
 import { safeUrl } from "./critic";
 import { normalizeTokens, type Tokens } from "./design";
 import {
@@ -269,7 +270,24 @@ const transferStateSchema = z
   .object({
     tokens: z.record(z.string(), z.unknown()).nullable().optional(),
     content: transferContentSchema.nullable().optional(),
-    page: z.object({ imageId: imageIdSchema.nullish() }).passthrough().optional(),
+    page: z
+      .object({
+        imageId: imageIdSchema.nullish(),
+        imageCredit: z.string().max(500).optional(),
+        relatedStory: z
+          .object({
+            title: z.string().max(240),
+            url: z.string().max(2000),
+            placement: z.enum(["after-intro", "after-article"]),
+            imageId: imageIdSchema.nullable(),
+            imageAlt: z.string().max(500),
+            imageCredit: z.string().max(500).optional(),
+          })
+          .passthrough()
+          .optional(),
+      })
+      .passthrough()
+      .optional(),
     stage: z.enum(["brief", "directions", "exam", "review", "rx"]).optional(),
     stepIndex: z.number().int().min(0).max(8).optional(),
     brief: z.string().max(20000).optional(),
@@ -320,6 +338,10 @@ const libraryEnvelopeSchema = z.object({
   kind: z.literal("focus-library-backup").optional(),
   version: z.literal(1),
   entries: z.array(transferEntrySchema).max(MAX_TRANSFER_ENTRIES),
+  journeys: z
+    .array(z.object({ designId: z.string() }).passthrough())
+    .max(MAX_TRANSFER_ENTRIES)
+    .optional(),
   assets: z
     .object({ version: z.literal(1), images: z.record(imageIdSchema, z.string().max(1_010_000)) })
     .strict()
@@ -348,6 +370,7 @@ function validatedEntries(input: unknown): { entries: LibraryEntry[]; imageIds: 
     if (required && (!next.tokens || !next.content))
       throw new Error("A saved design is missing its content or design values.");
     if (next.page?.imageId) imageIds.add(next.page.imageId);
+    if (next.page?.relatedStory?.imageId) imageIds.add(next.page.relatedStory.imageId);
     return {
       ...next,
       ...(next.tokens ? { tokens: normalizeTokens(next.tokens) } : {}),
@@ -455,9 +478,14 @@ export async function createLibraryBackup(
     images[id] = await validateImageAsset(id, stored);
     await decodeImageAsset(stored);
   }
+  const journeys = checked.entries.flatMap(({ id }) => {
+    const stored = store.getItem(gardenJourneyKey(id));
+    return stored === null ? [] : [parseGardenJourney(stored, id)];
+  });
   const raw = JSON.stringify(
     {
       kind: "focus-library-backup",
+      ...(journeys.length ? { journeys } : {}),
       version: 1,
       entries: checked.entries,
       assets: { version: 1, images },
@@ -484,12 +512,23 @@ function parsedLibraryEnvelope(raw: string) {
     );
   return parsed.data;
 }
+function validatedJourneys(envelope: ReturnType<typeof parsedLibraryEnvelope>) {
+  const ids = new Set(envelope.entries.map((entry) => entry.id));
+  const journeys = new Map<string, GardenJourney>();
+  for (const record of envelope.journeys ?? []) {
+    if (!ids.has(record.designId) || journeys.has(record.designId))
+      throw new Error("Each Garden brief must belong to one design in this backup.");
+    journeys.set(record.designId, parseGardenJourney(JSON.stringify(record), record.designId));
+  }
+  return journeys;
+}
 /** Server-safe validation of a self-contained backup; browser restore also decodes every raster. */
 export async function validateCompleteLibraryBackup(raw: string): Promise<void> {
   const envelope = parsedLibraryEnvelope(raw);
   if (envelope.kind !== "focus-library-backup" || !envelope.assets)
     throw new Error("Choose a complete library backup with its image files from My designs.");
   const incoming = validatedEntries(envelope.entries);
+  validatedJourneys(envelope);
   const images = envelope.assets.images;
   const keys = Object.keys(images);
   if (keys.length > MAX_TRANSFER_IMAGES || keys.some((id) => !incoming.imageIds.has(id)))
@@ -616,33 +655,66 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
   const inspected = inspectLibrary(before);
   const existing = validatedEntries(inspected.entries).entries;
   const merged = [...existing];
+  const journeys = validatedJourneys(envelope);
+  const observedBriefs = new Map<string, string | null>();
+  const newBriefs = new Map<string, string>();
+  function storedBrief(id: string) {
+    const key = gardenJourneyKey(id);
+    if (!observedBriefs.has(key)) observedBriefs.set(key, store.getItem(key));
+    return newBriefs.get(key) ?? observedBriefs.get(key) ?? null;
+  }
+  function briefFits(id: string, brief: GardenJourney | undefined, occupied: boolean) {
+    const raw = storedBrief(id);
+    if (raw === null) return true;
+    if (!occupied) return false; // An orphaned local brief belongs to earlier work.
+    if (!brief) return true; // Older backups can merge into designs with later planning.
+    try {
+      return (
+        canonicalTransferValue(parseGardenJourney(raw, id)) ===
+        canonicalTransferValue({ ...brief, designId: id })
+      );
+    } catch {
+      return false;
+    }
+  }
+  function keepBrief(id: string, brief: GardenJourney | undefined) {
+    if (brief && storedBrief(id) === null)
+      newBriefs.set(gardenJourneyKey(id), JSON.stringify({ ...brief, designId: id }));
+  }
   let added = 0,
     duplicates = 0,
     conflicts = 0;
   for (const entry of incoming.entries) {
     const occupied = merged.find((candidate) => candidate.id === entry.id);
     const identity = transferIdentity(entry);
-    if (occupied && transferIdentity(occupied) === identity) {
+    const brief = journeys.get(entry.id);
+    const fits = briefFits(entry.id, brief, !!occupied);
+    if (occupied && transferIdentity(occupied) === identity && fits) {
+      keepBrief(entry.id, brief);
       duplicates++;
       continue;
     }
     let id = entry.id;
-    if (occupied) {
+    if (occupied || !fits) {
       const base = `restored-${await contentHash(new TextEncoder().encode(identity))}`;
       const priorCopy = merged.find(
         (candidate) =>
           (candidate.id === base || candidate.id.startsWith(`${base}-`)) &&
-          transferIdentity(candidate) === identity,
+          transferIdentity(candidate) === identity &&
+          briefFits(candidate.id, brief, true),
       );
       if (priorCopy) {
+        keepBrief(priorCopy.id, brief);
         duplicates++;
         continue;
       }
       id = base;
       let suffix = 2;
-      while (merged.some((candidate) => candidate.id === id)) id = `${base}-${suffix++}`;
+      while (merged.some((candidate) => candidate.id === id) || storedBrief(id) !== null)
+        id = `${base}-${suffix++}`;
       conflicts++;
     }
+    keepBrief(id, brief);
     merged.push(portableEntry(entry, id));
     added++;
   }
@@ -673,9 +745,14 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
     throw new Error(
       "Your library changed while the backup was being checked. Try restoring again; no designs were replaced.",
     );
+  for (const [key, observed] of observedBriefs)
+    if (store.getItem(key) !== observed)
+      throw new Error(
+        "A Garden brief changed during restore. Retry to preserve the latest choices.",
+      );
   const written: [string, string][] = [];
   try {
-    for (const [key, data] of pending) {
+    for (const [key, data] of [...pending, ...newBriefs]) {
       store.setItem(key, data);
       written.push([key, data]);
     }
@@ -691,8 +768,8 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
     }
     throw new Error(
       rollbackFailed
-        ? "Browser storage stopped the restore. Existing designs were not replaced, but some unused image copies could not be removed. Keep your backup file and retry after freeing space."
-        : "There is not enough browser storage to restore this backup. No designs were replaced and new image copies were removed. Keep your backup file and retry after freeing space.",
+        ? "Browser storage stopped the restore. Existing designs were not replaced, but some unused backup items could not be removed. Keep your backup file and retry after freeing space."
+        : "There is not enough browser storage to restore this backup. No designs were replaced and new backup items were removed. Keep your backup file and retry after freeing space.",
     );
   }
   return {
@@ -702,6 +779,7 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
     conflicts,
     imageCount: assets.size,
     imagesAdded: pending.length,
+    journeysAdded: newBriefs.size,
     legacy: !envelope.assets,
     designCount: incoming.entries.length,
   };

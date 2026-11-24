@@ -2,12 +2,15 @@ import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { BookingRehearsalDownload } from "@/components/BookingRehearsalDownload";
 import { BrandLogo } from "@/components/BrandArt";
 import { LazySourceTrialPanel } from "@/components/LazySourceTrialPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { downloadBlob } from "@/lib/exportPack";
+import { GardenJourneySummary } from "@/components/GardenJourneySummary";
+import { readGardenJourney, type GardenJourney } from "@/lib/garden-journey";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
 import type { LibraryEntry } from "@/lib/library";
 import {
@@ -73,6 +76,11 @@ export function Target() {
   const [pendingRestore, setPendingRestore] = useState<ReturnType<typeof readTargetDraft> | null>(
     null,
   );
+  const [attachedJourney, setAttachedJourney] = useState<{
+    brief: GardenJourney;
+    raw: string;
+  } | null>(null);
+  const [journeyMessage, setJourneyMessage] = useState("");
   const [sourceOpen, setSourceOpen] = useState(false);
   const sourceEpoch = useRef(0);
   const savedRaw = useRef<string | null>(null);
@@ -87,6 +95,8 @@ export function Target() {
     sourceEpoch.current++;
     setSourceOpen(false);
     setStep(nextStep);
+    setAttachedJourney(null);
+    setJourneyMessage("");
   };
   const unsaved = ready && content !== savedContent;
   const blocker = useBlocker({
@@ -100,6 +110,8 @@ export function Target() {
   }, []);
 
   const loadLibrary = useCallback(() => {
+    setAttachedJourney(null);
+    setJourneyMessage("");
     const result = readTargetLibrary();
     if (result.issue === null || result.entries.length > 0) setEntries(result.entries);
     setLibraryIssue(result.issue);
@@ -257,6 +269,8 @@ export function Target() {
     revision.current++;
     generation.current++;
     const restored = snapshot.draft ?? { ...EMPTY_TARGET_DRAFT };
+    setAttachedJourney(null);
+    setJourneyMessage("");
     setDraft(restored);
     savedRaw.current = snapshot.raw;
     setSavedContent(JSON.stringify(restored));
@@ -367,10 +381,20 @@ export function Target() {
     setIssues([]);
     try {
       const verifySources = capturePreparationContext();
-      const blob = await prepareTargetPack(draftSnapshot, selected);
+      const verifyJourney = () => {
+        if (attachedJourney && readGardenJourney(selected.id).raw !== attachedJourney.raw)
+          throw new Error(
+            "Your Garden brief changed. Remove it and add the current copy before preparing this ZIP.",
+          );
+      };
+      verifyJourney();
+      const blob = attachedJourney
+        ? await prepareTargetPack(draftSnapshot, selected, attachedJourney.brief)
+        : await prepareTargetPack(draftSnapshot, selected);
       if (!mounted.current || generation.current !== job || revision.current !== draftRevision)
         return;
       verifySources();
+      verifyJourney();
       downloadBlob(
         blob,
         draftSnapshot.integration === "existing"
@@ -413,6 +437,7 @@ export function Target() {
           </div>
           <BrandLogo variant="target" decorative />
         </header>
+        <BookingRehearsalDownload />
 
         {!ready ? (
           <p role="status" className="py-8">
@@ -653,6 +678,45 @@ export function Target() {
                       A small, specific trial is easier to compare, test and undo. Describe the
                       intended result in your own words.
                     </p>
+                    {selected && (!draft.improvement || !draft.tasks) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            const { brief } = readGardenJourney(selected.id);
+                            if (!brief || brief.goal !== draft.integration)
+                              throw new Error(
+                                "Open a Garden brief for this design and starting point, or enter your answers below.",
+                              );
+                            const copyGoal = !draft.improvement && !!brief.task.trim();
+                            const copyPreserve = !draft.tasks && !!brief.preserve.trim();
+                            if (!copyGoal && !copyPreserve)
+                              throw new Error(
+                                "This brief has no answers to add to the empty fields.",
+                              );
+                            if (copyGoal) change("improvement", brief.task);
+                            if (copyPreserve) change("tasks", brief.preserve);
+                            setJourneyMessage(
+                              "Garden answers added. Review them here before continuing.",
+                            );
+                          } catch (cause) {
+                            setJourneyMessage(
+                              cause instanceof Error
+                                ? cause.message
+                                : "Your Garden brief could not be read.",
+                            );
+                          }
+                        }}
+                      >
+                        Fill empty answers from my Garden brief
+                      </Button>
+                    )}
+                    {journeyMessage && (
+                      <p role="status" className="text-sm">
+                        {journeyMessage}
+                      </p>
+                    )}
                     <div>
                       <label htmlFor="target-page" className="font-medium">
                         Which page or screen will you start with?
@@ -791,6 +855,58 @@ export function Target() {
                           : "Your ZIP is a design specification and starter styling for a new, empty project. It is not a finished app; behavior, data, accessibility and deployment still need implementation and testing."}
                       </p>
                     </div>
+                    {selected && (
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => {
+                            setPrepared(false);
+                            setStatus("");
+                            setIssues([]);
+                            if (attachedJourney) {
+                              setAttachedJourney(null);
+                              setJourneyMessage("Journey brief removed from this ZIP.");
+                              return;
+                            }
+                            try {
+                              const { brief, raw } = readGardenJourney(selected.id);
+                              if (!brief || raw === null)
+                                throw new Error(
+                                  "This design has no saved Garden brief. Open My journey brief on the Garden Path, then select this design.",
+                                );
+                              if (brief.goal !== draft.integration)
+                                throw new Error(
+                                  "This brief uses a different project starting point. Check the design and starting point first.",
+                                );
+                              setAttachedJourney({ brief, raw });
+                              setJourneyMessage(
+                                "Your Garden choices and checks will be included in DESIGN.md.",
+                              );
+                            } catch (cause) {
+                              setJourneyMessage(
+                                cause instanceof Error
+                                  ? cause.message
+                                  : "Your Garden brief could not be read.",
+                              );
+                            }
+                          }}
+                        >
+                          {attachedJourney ? "Remove Garden brief" : "Include my Garden brief"}
+                        </Button>
+                        {journeyMessage && (
+                          <p role="status" className="text-sm">
+                            {journeyMessage}
+                          </p>
+                        )}
+                        {attachedJourney && (
+                          <details className="text-sm">
+                            <summary>Review the included brief</summary>
+                            <GardenJourneySummary brief={attachedJourney.brief} />
+                          </details>
+                        )}
+                      </div>
+                    )}
                     <dl className="space-y-4 border-y border-border py-5 text-sm">
                       {[
                         ["Trial page", draft.page],

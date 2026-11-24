@@ -1,0 +1,64 @@
+.page {
+  color: #173946;
+  background-color: #f7fbfd;
+  padding: clamp(1rem, 5vw, 3rem);
+  border-radius: 1.25rem;
+}
+.studio {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+}
+.heading {
+  margin: 1.2rem 0 0;
+  color: #183e49;
+  font-family: Georgia, serif;
+  font-size: clamp(2.2rem, 8vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1.02;
+}
+.body {
+  max-width: 36rem;
+  color: #354f58;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+.form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+.field {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.4rem 0.65rem;
+  color: #173946;
+  border: 1px solid #69808b;
+  border-radius: 0.35rem;
+  background-color: #ffffff;
+}
+.price {
+  margin-bottom: 1rem;
+}
+.action {
+  justify-self: start;
+  max-width: 100%;
+  margin-top: 0.6rem;
+  min-height: 44px;
+  background-color: #214b53;
+  color: #ffffff;
+  font-weight: 600;
+  border: 0;
+  border-radius: 5px;
+  padding: 0.7rem 1.3rem;
+}
+.action:focus-visible {
+  outline: 3px solid #185fb9;
+  outline-offset: 3px;
+}
+.feedback {
+  min-height: 1.5em;
+  line-height: 1.5;
+}

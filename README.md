@@ -1,4 +1,4 @@
-> **Current checkpoint:** See [finalization status and remaining release checks](docs/FINALIZATION-CHECKPOINT.md). The resumed changes are saved locally and are not deployed. The historical release notes below describe their own versions, not final acceptance of this checkout.
+> **Garden Path and delivery.** Use the [customer walkthrough](docs/GARDEN-TO-DELIVERY.md) to carry decisions into an exported website or a reversible change to an existing React/Vite project. Earlier checkpoints describe their own versions.
 >
 > **Hosted edition:** This checkout publishes Focus to a private Sites workspace with ChatGPT sign-in, per-user browser storage, and complete online library copies. Start with [HOSTED-HANDOFF.md](docs/HOSTED-HANDOFF.md) and the actual limits in [HOSTED-VERIFICATION.md](docs/HOSTED-VERIFICATION.md). The portable release remains a separate preserved deliverable.
 >

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
 import { normalizeTokens, type Content } from "@/lib/design";
+import { newGardenJourney } from "@/lib/garden-journey";
 import { createOwnerStorage } from "@/lib/browser-storage";
 import { LIBRARY_KEY, type LibraryEntry } from "@/lib/library";
 import {
@@ -341,5 +342,28 @@ describe("Target prepares a truthful trial handoff", () => {
     });
     expect(targetStepIssues(expanded, 3, [entry])).toEqual([]);
     await expect(prepareTargetPack(expanded, entry)).rejects.toThrow(/too long/);
+  });
+});
+
+describe("Target includes owner-selected Garden decisions", () => {
+  it("binds the brief to the exact saved design and goal, and preserves it inside the received ZIP", async () => {
+    const journey = {
+      ...newGardenJourney(entry.id, "existing"),
+      audience: "A new visitor",
+      task: "See <prices> & book",
+      decisions: {
+        plan: { choice: "scannable-sections", note: "Price and duration go together." },
+      },
+    };
+    const zip = await JSZip.loadAsync(await prepareTargetPack(complete(), entry, journey));
+    const md = await zip.file("focus-restyle/DESIGN.md")!.async("string");
+    const json = md.split("## Garden journey brief")[1]!.split("```json")[1]!.split("```")[0]!;
+    expect(JSON.parse(json).brief).toEqual(journey);
+    await expect(
+      prepareTargetPack(complete(), entry, { ...journey, designId: "other" }),
+    ).rejects.toThrow(/different design/);
+    await expect(prepareTargetPack(complete(), entry, { ...journey, goal: "new" })).rejects.toThrow(
+      /different design/,
+    );
   });
 });

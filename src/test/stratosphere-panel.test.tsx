@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState, type AnchorHTMLAttributes, type ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeTokens } from "@/lib/design";
@@ -15,6 +15,7 @@ import {
 type AuthoredProps = ComponentProps<
   typeof import("@/components/AuthoredPagePanel").AuthoredPagePanel
 >;
+import { newGardenJourney, writeGardenJourney } from "@/lib/garden-journey";
 const operations = vi.hoisted(() => ({
   authored: vi.fn(),
   preview: vi.fn(),
@@ -214,6 +215,27 @@ afterEach(() => {
 });
 
 describe("Stratosphere workshop", () => {
+  it("applies the linked Garden plan via a real layout change only on an explicit click", async () => {
+    const brief = {
+      ...newGardenJourney("workshop-design", "new"),
+      decisions: { plan: { choice: "scannable-sections", note: "" } },
+    };
+    const raw = writeGardenJourney(brief, null);
+    const result = mount(makeState(), "composition");
+    const suggested = await screen.findByRole("button", { name: "Apply Journal from my brief" });
+    expect(result.onPatch).not.toHaveBeenCalled();
+    writeGardenJourney(
+      { ...brief, decisions: { plan: { choice: "guided-sequence", note: "" } } },
+      raw,
+    );
+    fireEvent.click(suggested);
+    expect(result.onPatch).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Apply Product from my brief" }));
+    expect(result.onPatch).toHaveBeenCalledOnce();
+    expect(result.onPatch.mock.calls[0]![0].page.composition).toBe("product");
+    expect(result.onExport).not.toHaveBeenCalled();
+  });
+
   it("guides independent button and corner choices without changing content or destinations", () => {
     const { initial, onExport } = mount(makeState({ integration: "existing" }), "form");
     expect(screen.getByRole("list", { name: "How to make this choice" })).toBeInTheDocument();
@@ -406,6 +428,19 @@ describe("Stratosphere workshop", () => {
     }
   });
 
+  it("applies a compared layout through the workshop's constraints and records its paired hero layout", async () => {
+    const setup = mount(makeState(), "composition");
+    await screen.findByTestId("authored-preview");
+    const workshop = authoredProps().layoutWorkshop!;
+    expect(workshop.blocked).toBe(false);
+    act(() => workshop.choose("journal"));
+    expect(currentState().page.composition).toBe("journal");
+    expect(currentState().tokens?.heroLayout).toBe("editorial");
+    expect(JSON.parse(authoredProps().decisionRecord!).source.page.composition).toBe("journal");
+    expect(setup.onExport).not.toHaveBeenCalled();
+    setup.request("spacing");
+    expect(authoredProps().layoutWorkshop).toBeUndefined();
+  });
   it("restores optional lessons and saves only the brief preference while preserving the Garden position", () => {
     const preferences = { ...GARDEN_DEFAULTS, step: "responsive", goal: "new", brief: false };
     localStorage.setItem(GARDEN_KEY, JSON.stringify(preferences));
@@ -488,7 +523,18 @@ describe("Stratosphere workshop", () => {
     );
     const downloaded = await readBlob(operations.download.mock.calls[0]![0] as Blob);
     expect(downloaded).toBe(record);
-    expect(JSON.parse(downloaded).source).toEqual(inputOf(before));
+    const decisionMap = JSON.parse(downloaded);
+    expect(decisionMap.source).toEqual(inputOf(before));
+    expect(decisionMap.deliveryChecks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          decision: "fonts",
+          fields: expect.arrayContaining(["tokens.headingFont", "tokens.bodyFont"]),
+          check: expect.stringContaining("button label"),
+          status: "not-run",
+        }),
+      ]),
+    );
     expect(screen.getByText(/records choices, not completed tests/)).toBeVisible();
     expect(currentState()).toEqual(before);
     expect(setup.onPatch).toHaveBeenCalledTimes(patchCount);

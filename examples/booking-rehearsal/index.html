@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Book a pottery class · River Kiln</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+        background: #e9eff4;
+        color: #18323d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: clamp(0.6rem, 4vw, 3rem);
+      }
+      #root {
+        max-width: 44rem;
+        margin: auto;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #185fb9;
+        outline-offset: 3px;
+      }
+      details {
+        padding: 1rem;
+      }
+      summary {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

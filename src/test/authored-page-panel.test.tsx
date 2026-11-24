@@ -287,3 +287,79 @@ describe("image framing in the authored workspace", () => {
     expect(current.onSettings).not.toHaveBeenCalled();
   });
 });
+
+describe("related reading transfer controls", () => {
+  const openStory = {
+    title: "A companion article",
+    url: "https://museum.example/articles/two",
+    placement: "after-article" as const,
+    imageId: null,
+    imageAlt: "",
+  };
+  it("keeps an unfinished link editable and re-enables delivery after the author supplies its real destination", () => {
+    function Editor() {
+      const [settings, onSettings] = useState<PageSettings>(DEFAULT_PAGE_SETTINGS);
+      return (
+        <AuthoredPagePanel
+          content={content}
+          tokens={normalizeTokens({})}
+          settings={settings}
+          onSettings={onSettings}
+          onContent={vi.fn()}
+          onExport={vi.fn()}
+          projectState={{}}
+        />
+      );
+    }
+    render(<Editor />);
+    fireEvent.click(screen.getByRole("button", { name: "Add a related story" }));
+    const download = screen.getByRole("button", { name: "Download page ZIP" });
+    expect(download).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Story title"), { target: { value: openStory.title } });
+    fireEvent.change(screen.getByLabelText("Story website address"), {
+      target: { value: "data:text/html,story" },
+    });
+    expect(download).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Story website address"), {
+      target: { value: openStory.url },
+    });
+    expect(download).toBeEnabled();
+    expect(screen.getByTitle("Working page preview").getAttribute("srcdoc")).toContain(
+      openStory.url,
+    );
+  });
+  it("drops an in-flight photo if its story is removed before the upload finishes", async () => {
+    let complete!: (value: string) => void;
+    vi.mocked(savePageImage).mockReturnValue(
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+    );
+    const onSettings = vi.fn();
+    const props = {
+      content,
+      tokens: normalizeTokens({}),
+      onSettings,
+      onContent: vi.fn(),
+      onExport: vi.fn(),
+      projectState: {},
+    };
+    const { rerender } = render(
+      <AuthoredPagePanel
+        {...props}
+        settings={{ ...DEFAULT_PAGE_SETTINGS, relatedStory: openStory }}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Choose a story image"), {
+      target: { files: [new File(["test"], "story.jpg", { type: "image/jpeg" })] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Remove related story" }));
+    expect(onSettings).toHaveBeenLastCalledWith(DEFAULT_PAGE_SETTINGS);
+    rerender(<AuthoredPagePanel {...props} settings={DEFAULT_PAGE_SETTINGS} />);
+    await act(async () => {
+      complete("b".repeat(64));
+    });
+    expect(onSettings).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled();
+  });
+});

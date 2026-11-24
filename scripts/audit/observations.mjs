@@ -34,9 +34,21 @@ export function installLayoutShiftObserver() {
       } else state.sessionScore += entry.value;
       state.lastShift = entry.startTime;
       state.maxSessionScore = Math.max(state.maxSessionScore, state.sessionScore);
-      if (state.samples.length < 100)
-        state.samples.push({ value: entry.value, startTimeMs: entry.startTime });
-      else state.truncated = true;
+      if (state.samples.length < 100) {
+        const moved = (entry.sources ?? [])
+          .slice(0, 5)
+          .map(({ node, previousRect, currentRect }) => ({
+            element:
+              node instanceof Element
+                ? node.id
+                  ? `#${node.id.slice(0, 150)}`
+                  : node.localName
+                : "Unavailable",
+            before: [previousRect.x, previousRect.y, previousRect.width, previousRect.height],
+            after: [currentRect.x, currentRect.y, currentRect.width, currentRect.height],
+          }));
+        state.samples.push({ value: entry.value, startTimeMs: entry.startTime, moved });
+      } else state.truncated = true;
     }
   };
   if (
@@ -272,6 +284,13 @@ export function findingsFromObservation(observations, scenario, baseline) {
       : {}),
   });
   const cls = observations.layoutShift;
+  const moved = cls.samples
+    ?.flatMap((sample) => sample.moved ?? [])
+    .find(
+      (box) =>
+        box.element !== "Unavailable" &&
+        box.before.some((value, index) => value !== box.after[index]),
+    );
   findings.push({
     ruleId: "browser-bounded-layout-shift",
     status: !cls.supported ? "could-not-measure" : cls.maxSessionScore > 0 ? "fails" : "holds",
@@ -281,7 +300,11 @@ export function findingsFromObservation(observations, scenario, baseline) {
       : cls.reason || "Layout-shift performance entries are unsupported.",
     required: "No observed unexpected layout shift in the bounded visit (project craft target).",
     ...(cls.supported && cls.maxSessionScore > 0
-      ? { fix: "Reserve space for late-loading content and repeat the same observation window." }
+      ? {
+          fix: moved
+            ? `Inspect ${moved.element}. Its rendered box changed from [${moved.before.join(", ")}] to [${moved.after.join(", ")}] (x, y, width, height in CSS pixels). Check earlier content and font loading, then repeat the visit.`
+            : "Reserve space for late-loading content and repeat the same observation window.",
+        }
       : {}),
   });
   if (scenario.textSpacing) {

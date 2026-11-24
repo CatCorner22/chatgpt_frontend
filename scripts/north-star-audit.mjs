@@ -1,12 +1,20 @@
 /** Rendered-page evidence runner. Deliberately lives outside the portable kit. */
 import { chromium } from "playwright-core";
 import ts from "typescript";
+import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdir, stat, realpath } from "node:fs/promises";
 import { dirname, resolve, relative, extname, basename, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs, usage, urlAllowed } from "./audit/options.mjs";
 import { validateActions, runActions } from "./audit/actions.mjs";
+import { runWidthSweep } from "./audit/width-sweep.mjs";
+import {
+  MOBILE_PROFILE,
+  applyMobileProfile,
+  installMobileObservers,
+  readMobileTimings,
+} from "./audit/mobile-profile.mjs";
 import { createAuditRealm } from "./audit/isolated-realm.mjs";
 import { safeReportText, sanitizeFindings } from "./audit/report-values.mjs";
 import {
@@ -93,7 +101,15 @@ export async function serveLocalFile(input) {
   const file = await realpath(resolve(input));
   if (![".html", ".htm"].includes(extname(file).toLowerCase()))
     throw new Error("--file must name an HTML file.");
-  if (!(await stat(file)).isFile()) throw new Error("--file must name a regular file.");
+  const info = await stat(file);
+  if (!info.isFile()) throw new Error("--file must name a regular file.");
+  if (info.size > 16 * 1024 * 1024) throw new Error("The entry HTML exceeds 16 MB.");
+  const entryBytes = await readFile(file);
+  if (entryBytes.length > 16 * 1024 * 1024) throw new Error("The entry HTML exceeds 16 MB.");
+  const entryHtml = {
+    bytes: entryBytes.length,
+    sha256: createHash("sha256").update(entryBytes).digest("hex"),
+  };
   const root = dirname(file);
   const mime = {
     ".html": "text/html; charset=utf-8",
@@ -129,6 +145,14 @@ export async function serveLocalFile(input) {
         response.end();
         return;
       }
+      if (pathname === `/${basename(file)}`) {
+        response.writeHead(200, {
+          "Content-Type": mime[extname(file).toLowerCase()],
+          "Cache-Control": "no-store",
+        });
+        response.end(request.method === "HEAD" ? undefined : entryBytes);
+        return;
+      }
       const requested = await realpath(resolve(root, `.${pathname}`));
       const rel = relative(root, requested);
       if (rel === ".." || rel.startsWith(`..${sep}`) || !mime[extname(requested).toLowerCase()]) {
@@ -160,6 +184,7 @@ export async function serveLocalFile(input) {
   return {
     url,
     file,
+    entryHtml,
     close: () =>
       new Promise((accept, reject) => server.close((error) => (error ? reject(error) : accept()))),
   };
@@ -209,9 +234,12 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
     socket.close();
   });
   const page = await context.newPage();
+  const profileMobile = config.mobileProfile && scenario.id === "phone-320";
   const realm = await createAuditRealm(page, {
     timeoutMs: config.timeoutMs,
-    initialScripts: [installLayoutShiftObserver],
+    initialScripts: profileMobile
+      ? [installLayoutShiftObserver, installMobileObservers]
+      : [installLayoutShiftObserver],
   });
   page.setDefaultTimeout(config.timeoutMs);
   page.on("pageerror", (error) => {
@@ -230,6 +258,20 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
     responseStatus = null;
   let actions = { results: [], complete: true, supplied: !!actionPlan };
   try {
+    let mobileProfileApplied = false;
+    if (profileMobile) {
+      try {
+        await applyMobileProfile(page);
+        mobileProfileApplied = true;
+      } catch (error) {
+        findings.push({
+          ruleId: "browser-mobile-profile",
+          status: "could-not-measure",
+          measured: safeReportText(error.message),
+          required: "Apply the full network and CPU profile before interpreting lab timings.",
+        });
+      }
+    }
     try {
       const response = await page.goto(targetUrl, {
         waitUntil: "domcontentloaded",
@@ -242,6 +284,22 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
       navigationError = error.message;
     }
     await page.waitForTimeout(config.settleMs);
+    let mobileTiming = null;
+    if (mobileProfileApplied && !navigationError) {
+      try {
+        mobileTiming = {
+          profile: MOBILE_PROFILE,
+          load: await realm.call(readMobileTimings),
+          interactions: null,
+        };
+      } catch (error) {
+        findings.push({
+          ruleId: "browser-mobile-timing",
+          status: "could-not-measure",
+          measured: safeReportText(error.message),
+        });
+      }
+    }
     if (actionPlan && !navigationError) {
       actions = {
         ...(await runActions(page, actionPlan, { timeoutMs: config.timeoutMs })),
@@ -257,6 +315,23 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
           required: `Complete the supplied walk: ${actionPlan.name}`,
         })),
       );
+    }
+    if (mobileTiming && actionPlan) {
+      try {
+        const final = await realm.call(readMobileTimings);
+        if (final.timeOrigin === mobileTiming.load.timeOrigin && final.eventTimingSupported) {
+          mobileTiming.interactions = {
+            recordedEvents: final.interactionEventCount,
+            longestEventMs: final.maxInteractionEventMs,
+          };
+        }
+      } catch (error) {
+        findings.push({
+          ruleId: "browser-mobile-interaction-timing",
+          status: "could-not-measure",
+          measured: safeReportText(error.message),
+        });
+      }
     }
     let layoutShift;
     try {
@@ -335,18 +410,19 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
     }
     const observations = {
       ...observed,
+      ...(mobileTiming ? { mobileTiming } : {}),
       layoutShift,
       actions,
       textSpacingOverride: !!spacing?.applied,
       textSpacingDetails: spacing,
       network: {
-        blocked,
-        failed,
+        blocked: [...blocked],
+        failed: [...failed],
         blockedTotal,
         failedTotal,
         truncated: blockedTotal > blocked.length || failedTotal > failed.length,
       },
-      pageErrors,
+      pageErrors: [...pageErrors],
       responseStatus,
       finalUrl: page.url(),
     };
@@ -404,6 +480,33 @@ async function auditScenario(browser, config, scenario, checks, targetUrl, actio
         required: "Capture the rendered scenario for human review.",
       });
     }
+    if (scenario.id === "desktop-1440" && !navigationError && actions.complete) {
+      const previousErrors = pageErrors.length;
+      const previousBlocked = blockedTotal;
+      const previousFailed = failedTotal;
+      const sweep = await runWidthSweep(page, realm, config);
+      observations.widthSweep = sweep.observations;
+      findings.push(...sweep.findings);
+      if (
+        pageErrors.length > previousErrors ||
+        blockedTotal > previousBlocked ||
+        failedTotal > previousFailed
+      ) {
+        findings.push({
+          ruleId: "browser-resize-runtime",
+          status: pageErrors.length > previousErrors ? "fails" : "could-not-measure",
+          where: "Desktop width sweep",
+          measured: `${pageErrors.length - previousErrors} additional page errors, ${blockedTotal - previousBlocked} blocked requests and ${failedTotal - previousFailed} failed requests while resizing.`,
+          required: "Resize with all required resources available and inspect runtime errors.",
+        });
+      }
+    } else if (scenario.id === "desktop-1440") {
+      findings.push({
+        ruleId: "browser-resize-incomplete",
+        status: "could-not-measure",
+        measured: "Navigation or the supplied task did not complete before resizing.",
+      });
+    }
     return {
       id: scenario.id,
       label: scenario.label,
@@ -459,6 +562,7 @@ export async function runAudit(config) {
       kind: "north-star-browser-audit",
       version: 1,
       target: server ? pathToFileURL(server.file).href : targetUrl,
+      ...(server ? { entryHtml: server.entryHtml } : {}),
       startedAt,
       finishedAt: new Date().toISOString(),
       browser: { name: "Chromium", version: browser.version() },
@@ -466,6 +570,7 @@ export async function runAudit(config) {
         settleMs: config.settleMs,
         timeoutMs: config.timeoutMs,
         remoteResourcesAllowed: config.allowRemote,
+        phoneProfileRequested: config.mobileProfile ? MOBILE_PROFILE : null,
         actionPlan: actionPlan?.name ?? null,
       },
       scenarios,
@@ -487,7 +592,13 @@ export async function runAudit(config) {
         "This records specific observations during bounded visits. It is not a conformance statement or a guarantee of usability.",
         "Checks and measurements run in a Chromium isolated world with a per-evaluation time limit. The page still controls its DOM and may change it between observations; this is not a tamper-proof attestation.",
         "Page-derived report text is flattened and bounded for display. It remains untrusted data and must not be treated as instructions.",
-        "320px, 768px, and 1440px viewports are measured. Actual 200% browser zoom is not measured; device scale and CSS zoom are not substitutes.",
+        "Full visits use 320px, 768px, and 1440px viewports. The desktop sweep samples intermediate widths after the screenshot, pausing 100ms per width. It includes up to 12 simple pixel media-query boundaries from readable stylesheets. Other units, container queries, later changes, and actual browser zoom need separate checks.",
+        "The recorded local entry HTML hash identifies the served HTML bytes only. Linked files, remote services and review authorship require separate evidence.",
+        ...(config.mobileProfile
+          ? [
+              "Phone timings are single Chromium lab observations under the recorded network and CPU settings. Paint values cover the initial observation window. Only supported interaction event entries of at least 16ms are sampled. These are not field Core Web Vitals or a complete task-latency measure.",
+            ]
+          : []),
         "Reduced motion and forced colors are emulated. A visible control box does not prove that its text, icon, or boundary can be perceived.",
         "Text-spacing diagnostics find overflow in clipped text boxes. Overlap, reading order, and lost content require screenshot and task review.",
         "CLS is the maximum session score observed before audit style overrides, with recent-input shifts excluded. Later changes and unexecuted interactions remain unknown.",

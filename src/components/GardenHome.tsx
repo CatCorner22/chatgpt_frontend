@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { GardenJourneyBrief } from "@/components/GardenJourneyBrief";
 import { GardenDecisionGuide } from "@/components/GardenDecisionGuide";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
@@ -246,6 +247,8 @@ export function GardenHome() {
               </details>
             </div>
           )}
+
+          <GardenJourneyBrief step={step} goal={preferences.goal} />
 
           <p className="garden-evidence">
             {isGoal ? "Your live site stays unchanged while you plan." : step.evidenceNote}

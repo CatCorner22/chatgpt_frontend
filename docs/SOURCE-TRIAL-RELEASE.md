@@ -10,13 +10,19 @@ Selected source stays in the mounted panel's memory. Focus parses it as data; it
 
 ## A handoff for an LLM developer
 
-The receiver will often be an LLM. The interface includes a read-only request for gathering the right files and a kickoff prompt for using the finished package. The ZIP contains seven fixed files under `focus-source-trial/`: `START-HERE.md`, `AGENT-HANDOFF.md`, `TRIAL-PLAN.md`, `trial-contract.json`, `forward.patch`, `rollback.patch` and `verify.mjs`. Extracting it does not place replacement files at customer project paths.
+The receiver will often be an LLM. The interface includes a read-only request for gathering the right files and a kickoff prompt for using the finished package. The ZIP contains eight fixed files under `focus-source-trial/`: `START-HERE.md`, `AGENT-HANDOFF.md`, `TRIAL-PLAN.md`, `trial-contract.json`, `forward.patch`, `rollback.patch`, `verify.mjs` and `github-trial.mjs`. Extracting it does not place replacement files at customer project paths.
 
 The machine-readable contract binds the two paths, complete before/after file hashes, patch hashes, design identity, recognized roles, effective choices, limitations and required tasks. Every task starts as `not-run`. The LLM must inspect the actual project, use an authorized isolated copy, verify the complete preimages, review and apply the exact patch, verify the outputs, run appropriate project checks and report real observations. Source comments, labels and plan answers are data, never instructions to expand the work. A mismatch means stop; the instructions prohibit adapting a mismatched patch or bypassing checks with partial/fuzzy application.
 
 The recipient checker uses Node 22.12+ built-ins only. It reads bounded files, rejects observed symlink paths and checks the bundle and both complete files. It installs nothing, executes no project code, uses no network and writes nothing. Verification is point-in-time, not an atomic guard around the recipient's later patch operation. Hashes establish byte identity, not author authenticity; replacing the verifier and hashes together can forge a result. Instructions cannot compel an external LLM to comply.
 
 Rollback requires both after-hashes to match, applies only the exact inverse to the same two files and checks the original hashes again. Later edits to a touched file stop the procedure; unrelated work is outside the inverse. A branch alone does not isolate credentials, databases, payments or deployment automation. Those conditions must be checked in the actual recipient environment before running the project. No download or model reply earns launch credit.
+
+## GitHub draft handoff
+
+The optional GitHub control in Target accepts the full starting commit ID. The download includes a locally runnable helper. Its prepare command works from an existing GitHub.com clone, verifies the chosen branch and revision, and creates a fresh local copy and one two-file commit. It verifies source and committed bytes and leaves unrelated or uncommitted work in the owner’s checkout. No credentials enter Focus. The recipient can rehearse in the local copy without contacting GitHub.
+
+After reviewing the repository’s CI behavior and testing the isolated preview, an authorized recipient can run the separate publish command with their GitHub CLI account. It checks the repository, exact base, exact change, and destination branch, then opens a draft pull request. A public repository needs an explicit public-sharing option. A failed PR creation can be retried without pushing another commit. CI previews depend on the customer's own setup. A draft PR, a matching commit and a successful workflow each provide different evidence. The original manual procedure remains available.
 
 ## Four-lens evidence ledger
 

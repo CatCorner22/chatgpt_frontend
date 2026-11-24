@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, symlink, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadChecks, serveLocalFile, SCENARIOS } from "../north-star-audit.mjs";
@@ -35,7 +36,10 @@ test("local fixture server rejects hidden paths and symlinks escaping the chosen
     await writeFile(join(directory, "outside.json"), '{"outside":true}');
     await symlink(join(directory, "outside.json"), join(directory, "site", "escape.json"));
     server = await serveLocalFile(join(directory, "site", "page.html"));
-    assert.equal((await fetch(server.url)).status, 200);
+    const original = "<!doctype html><title>Example</title>";
+    assert.equal(server.entryHtml.sha256, createHash("sha256").update(original).digest("hex"));
+    await writeFile(join(directory, "site", "page.html"), "Changed after the audit began");
+    assert.equal(await (await fetch(server.url)).text(), original);
     const origin = new URL(server.url).origin;
     assert.equal((await fetch(`${origin}/.secret.json`)).status, 403);
     assert.equal((await fetch(`${origin}/escape.json`)).status, 403);

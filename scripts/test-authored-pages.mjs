@@ -45,33 +45,87 @@ try {
     viewport: { width: 1440, height: 1000 },
     acceptDownloads: true,
   });
+  page.setDefaultTimeout(20_000);
   page.on("pageerror", (e) => pageErrors.push(e.message));
+  const owner = "authored-browser-fixture";
+  const loopback = ["127.0.0.1", "localhost", "[::1]"].includes(studioUrl.hostname);
+  if (loopback) {
+    await page.route(new URL("/api/hosted/session", studioUrl).href, (route) =>
+      route.fulfill({
+        json: { mode: "hosted", user: { id: owner, email: null }, storageAvailable: false },
+      }),
+    );
+  }
   await page.goto(url, { waitUntil: "networkidle" });
-  // A legacy saved state deliberately has no page settings; migration must supply them.
+  // Exercise the legacy-save migration in the local and simulated hosted editor.
   await page.evaluate(
-    ({ tokens, content }) =>
-      localStorage.setItem(
-        "refraction:v1",
-        JSON.stringify({
-          version: 2,
-          stage: "rx",
-          brief: "Example ceramics studio",
-          content,
-          tokens,
-          direction: "Garden Ledger",
-          libraryId: "authored-browser-fixture",
-          quick: true,
-          picks: [],
-          history: [],
-          directions: [],
-          stepIndex: 3,
-        }),
-      ),
-    { tokens: testTokens, content: exampleContent },
+    ({ tokens, content, loopback, owner }) => {
+      const save = JSON.stringify({
+        version: 2,
+        stage: "rx",
+        brief: "Example ceramics studio",
+        content,
+        tokens,
+        direction: "Garden Ledger",
+        libraryId: "authored-browser-fixture",
+        quick: true,
+        picks: [],
+        history: [],
+        directions: [],
+        stepIndex: 3,
+      });
+      localStorage.setItem("refraction:v1", save);
+      if (loopback)
+        localStorage.setItem(
+          `focus:owner:v1:${encodeURIComponent("sites:" + owner)}:refraction:v1`,
+          save,
+        );
+    },
+    { tokens: testTokens, content: exampleContent, loopback, owner },
   );
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "See it. Use it. Take it with you." }).waitFor();
   await page.getByLabel("Where should the main action lead?").fill("https://example.com/studio");
+  const compare = page.getByRole("button", { name: "Compare layouts with your content" });
+  await compare.click();
+  await page.getByLabel("What does your visitor want to do?").selectOption("read");
+  await page
+    .frameLocator('iframe[title="Editorial comparison on phone"]')
+    .getByRole("heading", { name: exampleContent.headline })
+    .waitFor();
+  const journalPhone = page.frameLocator('iframe[title="Journal comparison on phone"]');
+  await journalPhone.getByRole("heading", { name: exampleContent.headline }).waitFor();
+  assert.equal(
+    await journalPhone.locator(".journal-index a").count(),
+    exampleContent.features.length,
+  );
+  await page.getByLabel("Compare", { exact: true }).selectOption("second");
+  const journalDesktop = page.frameLocator('iframe[title="Journal comparison on desktop"]');
+  await journalDesktop.getByRole("heading", { name: exampleContent.headline }).waitFor();
+  for (const [frame, expectedWidth] of [
+    [journalPhone, 320],
+    [journalDesktop, 1024],
+  ]) {
+    assert.equal(await frame.locator("body").evaluate(() => innerWidth), expectedWidth);
+    assert.equal(
+      await frame.locator(".hero-actions a").getAttribute("href"),
+      "https://example.com/studio",
+    );
+  }
+  const comparison = page.locator(".layout-comparison");
+  await comparison.screenshot({ path: `${dir}/layout-comparison.png` });
+  await page.setViewportSize({ width: 320, height: 850 });
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= 320);
+  assert.equal(await journalDesktop.locator("body").evaluate(() => innerWidth), 1024);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const compared = await page.getByTitle("Journal comparison on desktop").getAttribute("srcdoc");
+  await page.getByRole("button", { name: "Use Journal layout" }).click();
+  await page.getByRole("button", { name: "Using Journal" }).waitFor();
+  await compare.click();
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("radio", { name: /^Journal/ }).waitFor();
+  assert.equal(await page.getByRole("radio", { name: /^Journal/ }).isChecked(), true);
+  assert.equal(await page.getByTitle("Working page preview").getAttribute("srcdoc"), compared);
   const results = [];
   for (const composition of ["Studio", "Editorial", "Product", "Showcase", "Journal"]) {
     await page.getByRole("radio", { name: new RegExp("^" + composition) }).check();
@@ -83,6 +137,8 @@ try {
       .locator('iframe[title="Working page preview"]')
       .getAttribute("srcdoc");
     assert.equal(html, iframeHtml, "Preview and download must contain the same document.");
+    if (composition === "Journal")
+      assert.equal(html, compared, "The chosen comparative preview must travel intact.");
     assert.ok(html.includes("https://example.com/studio"));
     assert.ok(!/<script\b/i.test(html));
     const file = `${dir}/${composition.toLowerCase()}.html`;
@@ -194,6 +250,7 @@ try {
     results,
     checks: [
       "legacy save migration",
+      "task-based layout comparison, phone/desktop viewports and selected layout surviving reload",
       "exact preview/download parity",
       "embedded font faces loaded and licenses retained",
       "valid source ZIP",

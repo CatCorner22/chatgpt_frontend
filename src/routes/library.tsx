@@ -125,9 +125,11 @@ function Library() {
           ? "This backup contains no designs. Your library is unchanged."
           : result.added
             ? `Restored ${result.added} ${result.added === 1 ? "design" : "designs"} and retained ${result.imageCount} referenced ${result.imageCount === 1 ? "image" : "images"}. Existing designs were kept.${result.conflicts ? ` ${result.conflicts} ${result.conflicts === 1 ? "conflicting design was" : "conflicting designs were"} added as a separate copy.` : ""}`
-            : result.imagesAdded
-              ? `Recovered ${result.imagesAdded} missing image files. These designs were already in your library.`
-              : "These designs and their images are already in your library. No duplicate designs were added.",
+            : result.journeysAdded
+              ? `Recovered ${result.journeysAdded} Garden brief(s) and ${result.imagesAdded} missing images for your saved designs.`
+              : result.imagesAdded
+                ? `Recovered ${result.imagesAdded} missing image files. These designs were already in your library.`
+                : "These designs and their images are already in your library. No duplicate designs were added.",
       );
     } catch (error) {
       if (error instanceof LibraryRecoveryError) {

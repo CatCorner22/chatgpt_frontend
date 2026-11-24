@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useHostedSession } from "@/components/HostedBoundary";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { readLibrarySnapshot } from "@/lib/library";
+import { gardenJourneyKey } from "@/lib/garden-journey";
 import { createLibraryBackup, restoreLibraryBackup } from "@/lib/transfer";
 import { HostedClientError, readOnlineLibrary, saveOnlineLibrary } from "@/lib/hosted-client";
 
@@ -95,6 +96,10 @@ export function HostedLibraryPanel({
         throw new Error(
           "There are no saved designs in this browser yet. Create a design in the studio first; the online copy has not changed.",
         );
+      const briefSnapshots = snapshot.entries.map(({ id }) => {
+        const key = gardenJourneyKey(id);
+        return [key, focusLocalStorage.getItem(key)] as const;
+      });
       const raw = await createLibraryBackup(snapshot.entries, focusLocalStorage);
       if (controller.signal.aborted) return;
       const etag = await saveOnlineLibrary(userId, raw, remote?.etag ?? null, controller.signal);
@@ -103,12 +108,14 @@ export function HostedLibraryPanel({
       setReviewed(true);
       let changed = true;
       try {
-        changed = readLibrarySnapshot(focusLocalStorage).raw !== snapshot.raw;
+        changed =
+          readLibrarySnapshot(focusLocalStorage).raw !== snapshot.raw ||
+          briefSnapshots.some(([key, value]) => focusLocalStorage.getItem(key) !== value);
       } catch {
         /* The submitted copy was saved; unreadable later work is not acknowledged. */
       }
       setStatus(
-        `Saved ${snapshot.entries.length} ${snapshot.entries.length === 1 ? "design" : "designs"} online with their images and saved history.${changed ? " Your browser library changed during the save; save again to include those later changes." : " This is a copy of your saved library, not an unfinished studio draft."}`,
+        `Saved ${snapshot.entries.length} ${snapshot.entries.length === 1 ? "design" : "designs"} online with their images, Garden briefs, and saved history.${changed ? " Your browser library changed during the save; save again to include those later changes." : " This is a copy of your saved library, not an unfinished studio draft."}`,
       );
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -140,9 +147,11 @@ export function HostedLibraryPanel({
       setStatus(
         result.added
           ? `Restored ${result.added} ${result.added === 1 ? "design" : "designs"} and ${result.imageCount} referenced images. Your existing browser designs were kept.${result.conflicts ? " Different versions were kept as separate copies." : ""}`
-          : result.imagesAdded
-            ? `Recovered ${result.imagesAdded} missing images. Existing designs were kept.`
-            : "The online designs are already in this browser. Your existing work was kept.",
+          : result.journeysAdded
+            ? `Recovered ${result.journeysAdded} Garden brief(s) and ${result.imagesAdded} missing images for your saved designs.`
+            : result.imagesAdded
+              ? `Recovered ${result.imagesAdded} missing images. Existing designs were kept.`
+              : "The online designs are already in this browser. Your existing work was kept.",
       );
       onRestored();
     } catch (error) {
@@ -166,9 +175,9 @@ export function HostedLibraryPanel({
         Your online library
       </h2>
       <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        Save a private copy of the designs in My designs, including their images and saved history.
-        On another device, restore this copy to continue. Your unfinished studio draft and other
-        browser settings stay in this browser.
+        Save a private copy of the designs in My designs, including their images, Garden briefs, and
+        saved history. On another device, restore this copy to continue. Your unfinished studio
+        draft and other browser settings stay in this browser.
       </p>
       {session.user ? (
         <p className="mt-2 break-words text-sm">

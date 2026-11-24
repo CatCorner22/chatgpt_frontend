@@ -13,6 +13,10 @@ export function contentHandoffJson(content: Content): string {
       quote: content.quote,
     },
   };
+  return handoffJson(data);
+}
+
+export function handoffJson(data: object): string {
   // Encode inside JSON string tokens only: structural punctuation must stay JSON.
   // These spellings cannot close the Markdown fence, become HTML, or be rewritten
   // by the guide sanitizer. JSON.parse recovers the original characters exactly.

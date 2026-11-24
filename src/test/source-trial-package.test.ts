@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
+  access,
+  chmod,
+  copyFile,
   mkdir,
   mkdtemp,
   readFile,
@@ -47,6 +50,7 @@ const bundleFiles = [
   "AGENT-HANDOFF.md",
   "START-HERE.md",
   "TRIAL-PLAN.md",
+  "github-trial.mjs",
   "forward.patch",
   "rollback.patch",
   "trial-contract.json",
@@ -66,7 +70,7 @@ async function prepare(source = files) {
   });
 }
 
-async function fixture(source = files) {
+async function fixture(source = files, githubBase = "") {
   const base = await mkdtemp(join(tmpdir(), "focus-source-trial-package-"));
   temporary.push(base);
   const project = join(base, "project");
@@ -78,7 +82,7 @@ async function fixture(source = files) {
   await writeFile(join(project, "unrelated.txt"), "Keep this later work.\n");
   const prepared = await prepare(source);
   const zip = await JSZip.loadAsync(
-    await buildSourceTrialPackage(prepared, { draft, designTitle: "Clear booking" }),
+    await buildSourceTrialPackage(prepared, { draft, designTitle: "Clear booking", githubBase }),
     { checkCRC32: true },
   );
   const bundle = join(base, "focus-source-trial");
@@ -137,7 +141,7 @@ async function reseal(bundle: string) {
 }
 
 describe("source trial package: actual ZIP and read-only recipient verifier", () => {
-  it("exports only seven fixed files in a separate folder and verifies both exact snapshots without writes", async () => {
+  it("exports only the fixed proposal and GitHub trial files in a separate folder and verifies both exact snapshots without writes", async () => {
     const f = await fixture();
     expect(
       Object.values(f.zip.files)
@@ -227,6 +231,7 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
 
   it.each([
     "AGENT-HANDOFF.md",
+    "github-trial.mjs",
     "forward.patch",
     "rollback.patch",
     "trial-contract.json",
@@ -437,4 +442,177 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     expect(plan).toContain(draft.page);
     expect(plan).not.toMatch(/mutated-.*-sentinel/);
   });
+});
+
+const fixtureRepo = "FocusExamples/owned-trial";
+function localGit(project: string, ...args: string[]) {
+  const result = spawnSync("git", ["-C", project, ...args], {
+    env: { ...isolatedChildEnv(), GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  return result.stdout.trimEnd();
+}
+async function githubFixture(pin?: string) {
+  const f = await fixture(files, pin);
+  localGit(f.project, "-c", "init.defaultBranch=main", "init");
+  localGit(f.project, "add", "src", "unrelated.txt");
+  localGit(
+    f.project,
+    "-c",
+    "user.name=Test",
+    "-c",
+    "user.email=test@localhost",
+    "commit",
+    "-m",
+    "owned baseline",
+  );
+  localGit(f.project, "remote", "add", "origin", "https://github.com/" + fixtureRepo + ".git");
+  const revision = localGit(f.project, "rev-parse", "HEAD");
+  const directory = join(f.base, "isolated trial");
+  const helper = (args: string[], extraEnv: NodeJS.ProcessEnv = {}) =>
+    spawnSync(process.execPath, [join(f.bundle, "github-trial.mjs"), ...args], {
+      env: { ...isolatedChildEnv(), ...extraEnv },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+  const prepareArgs = ["prepare", f.project, "main", revision, directory];
+  const publishArgs = ["publish", directory, fixtureRepo];
+  return { ...f, revision, directory, helper, prepareArgs, publishArgs };
+}
+
+describe("GitHub trial from a recipient's actual download", () => {
+  it("prepares exactly two committed edits in a fresh clone, preserves uncommitted owner work and supports selective undo", async () => {
+    const f = await githubFixture();
+    await writeFile(join(f.project, "unrelated.txt"), "Owner's current edit.\n");
+    const outcome = f.helper(f.prepareArgs);
+    expect(outcome.status, outcome.stderr).toBe(0);
+    expect(outcome.stdout).toMatch(/GitHub has not been contacted/i);
+    expect(localGit(f.directory, "rev-parse", "HEAD^")).toBe(f.revision);
+    expect(localGit(f.directory, "remote")).toBe("");
+    expect(
+      localGit(f.directory, "diff", "--name-only", "HEAD^", "HEAD").split("\n").sort(),
+    ).toEqual(files.map((f) => f.path).sort());
+    expect(localGit(f.project, "branch", "--show-current")).toBe("main");
+    expect(await readFile(join(f.project, "unrelated.txt"), "utf8")).toBe(
+      "Owner's current edit.\n",
+    );
+    expect(verify(f.bundle, f.directory, "after").status).toBe(0);
+    expect(f.helper(f.prepareArgs).status).not.toBe(0);
+    expect(f.helper(["publish", f.directory, "Different/Repository"]).status).not.toBe(0);
+    await writeFile(join(f.directory, "unrelated.txt"), "Later edits survive undo.\n");
+    const altered = f.helper(f.publishArgs);
+    expect(altered.stderr).toMatch(/additional edits/);
+    expect(applyOwnedFixturePatch(f.bundle, f.directory, "rollback.patch").status).toBe(0);
+    expect(verify(f.bundle, f.directory, "before").status).toBe(0);
+    expect(await readFile(join(f.directory, "unrelated.txt"), "utf8")).toBe(
+      "Later edits survive undo.\n",
+    );
+  });
+
+  it("binds the owner pin, refuses a stale branch and never creates trial directories inside the source checkout", async () => {
+    const f = await githubFixture("1".repeat(40));
+    expect(f.helper(f.prepareArgs).stderr).toMatch(/baseline recorded/);
+    await expect(access(f.directory)).rejects.toThrow();
+    await expect(
+      buildSourceTrialPackage(f.prepared, { draft, designTitle: "Booking", githubBase: "short" }),
+    ).rejects.toThrow(/40-character/);
+    const g = await githubFixture();
+    expect(g.helper(["prepare", g.project, "main", "2".repeat(40), g.directory]).stderr).toMatch(
+      /branch has moved/,
+    );
+    expect(
+      g.helper(["prepare", g.project, "main", g.revision, join(g.project, "inside")]).stderr,
+    ).toMatch(/outside/);
+    await expect(access(join(g.project, "inside"))).rejects.toThrow();
+    // New local Git configuration requires a fresh isolated copy.
+    expect(g.helper(g.prepareArgs).status).toBe(0);
+    localGit(g.directory, "config", "remote.unexpected.url", "https://example.invalid/test");
+    expect(g.helper(g.publishArgs).stderr).toMatch(/configuration changed/);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "shares via a creation-only Git push, refuses drift and public defaults, and recovers after interrupted draft creation",
+    async () => {
+      const f = await githubFixture();
+      expect(f.helper(f.prepareArgs).status).toBe(0);
+      const head = localGit(f.directory, "rev-parse", "HEAD");
+      const branch = localGit(f.directory, "branch", "--show-current");
+      const remote = join(f.base, "local-remote.git");
+      localGit(f.base, "clone", "--bare", "--no-hardlinks", f.project, remote);
+      const bin = join(f.base, "test-cli");
+      await mkdir(bin);
+      const gitPath = spawnSync("which", ["git"], { encoding: "utf8" }).stdout.trim();
+      // Only this fixture hostname is translated to the local bare repository. Git itself
+      // performs every ref discovery, creation-only push, and object transfer in the test.
+      await writeFile(
+        join(bin, "git"),
+        [
+          "#!/bin/sh",
+          'exec "$FOCUS_TEST_GIT_BINARY" -c "url.$FOCUS_TEST_GIT_REMOTE.insteadOf=$FOCUS_TEST_GIT_URL" "$@"',
+        ].join("\n"),
+      );
+      await copyFile(resolve("src/test/fixtures/source-trial-gh.cjs"), join(bin, "gh"));
+      await chmod(join(bin, "git"), 0o700);
+      await chmod(join(bin, "gh"), 0o700);
+      const env = {
+        PATH: bin + ":" + process.env["PATH"],
+        FOCUS_TEST_GIT_BINARY: gitPath,
+        FOCUS_TEST_GIT_REMOTE: remote,
+        FOCUS_TEST_GIT_URL: "https://github.com/" + fixtureRepo + ".git",
+        FOCUS_TEST_GITHUB: JSON.stringify({
+          pullFile: join(bin, "pr"),
+          repo: fixtureRepo,
+          branch,
+          head,
+          base: f.revision,
+        }),
+      };
+      // Move the simulated remote base while leaving the recipient's source intact.
+      localGit(
+        f.project,
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@localhost",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "other work",
+      );
+      localGit(f.project, "push", remote, "main");
+      expect(f.helper(f.publishArgs, env).stderr).toMatch(/GitHub base has moved/);
+      expect(localGit(remote, "branch", "--list", branch)).toBe("");
+      // Use a fresh independent baseline remote for the interrupted-publication case.
+      await rm(remote, { recursive: true });
+      localGit(f.base, "clone", "--bare", "--no-hardlinks", f.project, remote);
+      localGit(remote, "update-ref", "refs/heads/main", f.revision);
+      const publicEnv = { ...env, FOCUS_TEST_PUBLIC: "yes" };
+      expect(f.helper(f.publishArgs, publicEnv).stderr).toMatch(/publicly visible/);
+      expect(localGit(remote, "branch", "--list", branch)).toBe("");
+      const args = [...f.publishArgs, "--allow-public"];
+      const interrupted = f.helper(args, { ...publicEnv, FOCUS_TEST_INTERRUPT: "yes" });
+      expect(interrupted.stderr).toMatch(/draft could not be confirmed/);
+      expect(localGit(remote, "rev-parse", "refs/heads/" + branch)).toBe(head);
+      const resumed = f.helper(args, publicEnv);
+      expect(resumed.status, resumed.stderr).toBe(0);
+      expect(resumed.stdout).toContain(
+        "Draft pull request: https://github.com/" + fixtureRepo + "/pull/1",
+      );
+      const repeated = f.helper(args, publicEnv);
+      expect(repeated.status, repeated.stderr).toBe(0);
+      expect(repeated.stdout).toContain(
+        "Existing pull request: https://github.com/" + fixtureRepo + "/pull/1",
+      );
+      expect(f.helper(args, { ...publicEnv, FOCUS_TEST_PR_DRIFT: "1".repeat(40) }).stderr).toMatch(
+        /references different commits/,
+      );
+      localGit(remote, "update-ref", "refs/heads/" + branch, f.revision);
+      expect(f.helper(args, publicEnv).stderr).toMatch(/different work/);
+      expect(localGit(remote, "rev-parse", "refs/heads/" + branch)).toBe(f.revision);
+      expect(localGit(remote, "rev-parse", "main")).toBe(f.revision);
+    },
+    30_000,
+  );
 });

@@ -3,16 +3,18 @@ import { readFile, writeFile, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdir } from "node:os";
-import { randomInt } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { rolldown } from "rolldown";
 
 const help = `North Star benchmark organizer
 
   node scripts/north-star-benchmark.mjs init organizer.json
+  node scripts/north-star-benchmark.mjs init-pilot organizer.json
   node scripts/north-star-benchmark.mjs packet organizer.json reviewer.json [--order order.json]
   node scripts/north-star-benchmark.mjs score organizer.json report.json answers-a.json [answers-b.json ...]
 
 init   Write a draft containing six task briefs and no invented pages or reviewers.
+init-pilot Start a matched one-shot, Focus and expert comparison for booking and editorial tasks.
 packet Validate organizer data and export a separate neutral reviewer packet.
        Without --order, shuffle sample IDs using system randomness. For a fixed
        counterbalancing plan, supply a JSON array containing each sample ID once.
@@ -68,10 +70,10 @@ async function main(args) {
     return;
   }
   const [command, ...paths] = args;
-  if (!["init", "packet", "score"].includes(command))
+  if (!["init", "init-pilot", "packet", "score"].includes(command))
     throw new Error(`Unknown command: ${command}. Use --help.`);
-  if (command === "init" && paths.length !== 1)
-    throw new Error("init needs exactly one output file.");
+  const init = command === "init" || command === "init-pilot";
+  if (init && paths.length !== 1) throw new Error("init needs exactly one output file.");
   if (
     command === "packet" &&
     !(paths.length === 2 || (paths.length === 4 && paths[2] === "--order"))
@@ -83,14 +85,22 @@ async function main(args) {
     throw new Error("score needs organizer.json report.json and one or more answer files.");
   const { runtime, cleanup } = await loadRuntime();
   try {
-    if (command === "init") {
-      const path = await save(paths[0], runtime.createBenchmarkPlan());
+    if (init) {
+      const plan =
+        command === "init-pilot"
+          ? runtime.createPilotPlan(randomUUID())
+          : runtime.createBenchmarkPlan();
+      const path = await save(paths[0], plan);
       process.stdout.write(
         `Draft organizer plan written to ${path}\nNo sample pages or participant answers were invented. Add matched artifacts and genuine source provenance before making a reviewer packet.\n`,
       );
       return;
     }
-    const manifest = runtime.benchmarkManifestSchema.parse(await json(paths[0]));
+    const raw = await json(paths[0]);
+    const pilot = raw?.protocol === "matched-three-v1";
+    const manifest = (pilot ? runtime.pilotManifestSchema : runtime.benchmarkManifestSchema).parse(
+      raw,
+    );
     if (command === "packet") {
       for (const sample of manifest.samples) {
         let url;
@@ -115,7 +125,10 @@ async function main(args) {
           const other = randomInt(index + 1);
           [order[index], order[other]] = [order[other], order[index]];
         }
-      const packet = runtime.createReviewerPacket(manifest, order);
+      const packet = (pilot ? runtime.createPilotPacket : runtime.createReviewerPacket)(
+        manifest,
+        order,
+      );
       const path = await save(paths[1], packet);
       process.stdout.write(
         `Reviewer packet written to ${path}\n${packet.samples.length} samples; organizer labels and provenance excluded. Inspect the actual assets for source clues before collection.\n`,
@@ -129,7 +142,7 @@ async function main(args) {
         throw new Error(`Answer file belongs to another benchmark: ${path}`);
       evaluations.push(...bundle.evaluations);
     }
-    const report = runtime.evaluateBenchmark(manifest, evaluations);
+    const report = (pilot ? runtime.scorePilot : runtime.evaluateBenchmark)(manifest, evaluations);
     const path = await save(paths[1], report);
     process.stdout.write(
       `Evaluation written to ${path}\n${report.statement}\n${report.counts.completeReviewers} complete reviewer codes; ${report.counts.evaluations} ratings. Reviewer codes alone do not establish independent participants.\n`,

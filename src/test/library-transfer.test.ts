@@ -495,3 +495,75 @@ it.each(["content", "settings"])(
     expect(repeated.entries[0]?.state).toEqual(edited.entries[0].state);
   },
 );
+
+describe("design-bound Garden briefs travel with the customer's library", () => {
+  it("restores exact choices, preserves a changed local brief as a separate design, and repeats safely", async () => {
+    const { newGardenJourney, gardenJourneyKey, parseGardenJourney } =
+      await import("@/lib/garden-journey");
+    const design = entry();
+    const key = gardenJourneyKey(design.id);
+    const original = { ...newGardenJourney(design.id, "existing"), task: "Book exactly once" };
+    const src = sourceStore();
+    src.setItem(key, JSON.stringify(original));
+    const backup = await transfer.createLibraryBackup([design], src);
+    await transfer.validateCompleteLibraryBackup(backup);
+    const dst = memoryStore();
+    expect((await transfer.restoreLibraryBackup(backup, dst)).journeysAdded).toBe(1);
+    expect(parseGardenJourney(dst.getItem(key)!, design.id)).toEqual(original);
+    dst.setItem(key, JSON.stringify({ ...original, task: "Keep my later decision" }));
+    const result = await transfer.restoreLibraryBackup(backup, dst);
+    expect(result.conflicts).toBe(1);
+    const other = result.entries.find((item) => item.id !== design.id)!;
+    expect(parseGardenJourney(dst.getItem(gardenJourneyKey(other.id))!, other.id)).toEqual({
+      ...original,
+      designId: other.id,
+    });
+    expect(parseGardenJourney(dst.getItem(key)!, design.id).task).toBe("Keep my later decision");
+    expect((await transfer.restoreLibraryBackup(backup, dst)).added).toBe(0);
+    expect((await transfer.restoreLibraryBackup(backup, dst)).journeysAdded).toBe(0);
+  });
+
+  it("restores a missing brief beside an unchanged design and rejects orphan or duplicate incoming briefs before writes", async () => {
+    const { newGardenJourney, gardenJourneyKey } = await import("@/lib/garden-journey");
+    const design = entry();
+    const src = sourceStore();
+    const legacy = await transfer.createLibraryBackup([design], src);
+    const sourceBrief = newGardenJourney(design.id, "new");
+    src.setItem(gardenJourneyKey(design.id), JSON.stringify(sourceBrief));
+    const backup = await transfer.createLibraryBackup([design], src);
+    const dst = memoryStore();
+    await transfer.restoreLibraryBackup(legacy, dst);
+    expect(await transfer.restoreLibraryBackup(backup, dst)).toMatchObject({
+      added: 0,
+      journeysAdded: 1,
+    });
+    for (const journeys of [[{ ...sourceBrief, designId: "absent" }], [sourceBrief, sourceBrief]]) {
+      const invalid = JSON.stringify({ ...JSON.parse(backup), journeys });
+      const empty = memoryStore();
+      await expect(transfer.validateCompleteLibraryBackup(invalid)).rejects.toThrow(/Garden brief/);
+      await expect(transfer.restoreLibraryBackup(invalid, empty)).rejects.toThrow(/Garden brief/);
+      expect(empty.data.size).toBe(0);
+    }
+  });
+
+  it("removes newly written brief and images if the library commit fails", async () => {
+    const { newGardenJourney, gardenJourneyKey } = await import("@/lib/garden-journey");
+    const design = entry();
+    const src = sourceStore();
+    src.setItem(
+      gardenJourneyKey(design.id),
+      JSON.stringify(newGardenJourney(design.id, "existing")),
+    );
+    const backup = await transfer.createLibraryBackup([design], src);
+    const dst = memoryStore();
+    const failAtCommit = {
+      ...dst,
+      setItem(key: string, value: string) {
+        if (key === LIBRARY_KEY) throw new Error("Storage full");
+        dst.setItem(key, value);
+      },
+    };
+    await expect(transfer.restoreLibraryBackup(backup, failAtCommit)).rejects.toThrow(/storage/i);
+    expect(dst.data.size).toBe(0);
+  });
+});

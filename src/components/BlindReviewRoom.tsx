@@ -10,6 +10,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { PilotOrganizer } from "@/components/PilotOrganizer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -48,6 +49,7 @@ export function BlindReviewRoom() {
   const [pendingPacket, setPendingPacket] = useState<ReviewerPacket | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
   const [missing, setMissing] = useState<string[]>([]);
+  const [organizing, setOrganizing] = useState(false);
   const [summary, setSummary] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
   const taskHeading = useRef<HTMLHeadingElement>(null);
@@ -261,6 +263,13 @@ export function BlindReviewRoom() {
     </>
   );
 
+  if (organizing && !session)
+    return (
+      <>
+        <AppHeader />
+        <PilotOrganizer onClose={() => setOrganizing(false)} />
+      </>
+    );
   return (
     <>
       <AppHeader />
@@ -319,6 +328,17 @@ export function BlindReviewRoom() {
                 The packet is read in this browser. Sample pages open only when you choose their
                 link.
               </p>
+              <Button
+                variant="outline"
+                className="mt-5"
+                onClick={() => {
+                  fileRead.current++;
+                  setError("");
+                  setOrganizing(true);
+                }}
+              >
+                Open private organizer workspace
+              </Button>
             </div>
             <div className="border-t border-border pt-8 md:border-l md:border-t-0 md:pl-10 md:pt-0">
               <h2 className="font-display text-xl">Before you begin</h2>

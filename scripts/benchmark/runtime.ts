@@ -5,3 +5,10 @@ export {
 } from "../../north-star-kit/blind-test/benchmark";
 export { blindEvaluationBundleSchema } from "../../north-star-kit/blind-test/reviewer";
 export { evaluateBenchmark } from "../../north-star-kit/blind-test/evaluate";
+
+export {
+  createPilotPlan,
+  createPilotPacket,
+  pilotManifestSchema,
+  scorePilot,
+} from "../../north-star-kit/blind-test/pilot";

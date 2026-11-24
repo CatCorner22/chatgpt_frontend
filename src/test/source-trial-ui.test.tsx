@@ -189,7 +189,15 @@ describe("Optional source trial", () => {
     ).toContain("src/Booking.tsx");
     expect(document.querySelector("main")).toBeNull();
     expect(operations.download).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Download proposed code change" }));
+    fireEvent.click(screen.getByText("Review in a separate GitHub branch"));
+    const baseline = screen.getByRole("textbox", { name: "Starting GitHub commit (optional)" });
+    const download = screen.getByRole("button", { name: "Download proposed code change" });
+    fireEvent.change(baseline, { target: { value: "short" } });
+    expect(baseline).toHaveAttribute("aria-invalid", "true");
+    expect(download).toBeDisabled();
+    fireEvent.change(baseline, { target: { value: "A".repeat(40) } });
+    expect(download).toBeEnabled();
+    fireEvent.click(download);
     await waitFor(() =>
       expect(operations.download).toHaveBeenCalledWith(
         expect.any(Blob),
@@ -199,6 +207,7 @@ describe("Optional source trial", () => {
     expect(operations.package.mock.calls[0]![0].inspection.roles.action.label).toBe(
       "Reserve a place",
     );
+    expect(operations.package.mock.calls[0]![1].githubBase).toBe("a".repeat(40));
     expect(screen.getByText(/Download started.*coding assistant/)).toBeVisible();
     expect(
       (

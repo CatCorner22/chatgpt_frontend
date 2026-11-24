@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, Download, Network } from "lucide-react";
 import { LazyAuthoredPagePanel } from "@/components/LazyAuthoredPagePanel";
+import { GardenLayoutSuggestion } from "@/components/GardenLayoutSuggestion";
 import { DesignPreview } from "@/components/DesignPreview";
 import { ContentEditor } from "@/components/ContentEditor";
 import { InteractionLab } from "@/components/InteractionLab";
@@ -146,11 +147,23 @@ export function StratospherePanel({
             "Declared dependencies and current values; not a browser or customer-release certificate.",
           source: input,
           graph,
+          deliveryChecks: STRATOSPHERE_GROUPS.filter(
+            (group) => !group.authoredOnly || authored,
+          ).map((group) => ({
+            decision: group.id,
+            fields: [
+              ...new Set(
+                group.options.flatMap((option) => option.changes.map((change) => change.field)),
+              ),
+            ],
+            check: group.recheck,
+            status: "not-run",
+          })),
         },
         null,
         2,
       ),
-    [input, graph],
+    [input, graph, authored],
   );
   const group = STRATOSPHERE_GROUPS.find((candidate) => candidate.id === groupId)!;
   const selected = selectedStratosphereOption(input, group.id);
@@ -182,7 +195,7 @@ export function StratospherePanel({
       onChange({ tokens: candidate.tokens, page: candidate.page });
     setAnnouncement(
       candidate.changedFields.length
-        ? `Updated ${group.label.toLowerCase()}. The preview and decision map now use these values. Undo is available in the studio toolbar.`
+        ? `Updated ${group.label.toLowerCase()}. The preview and decision map now use these values. Undo is available in the studio toolbar. ${group.recheck}`
         : "This choice already matches your design.",
     );
     setDownloadError("");
@@ -258,11 +271,16 @@ export function StratospherePanel({
                 ? "Want more control? Open “Fine-tune buttons and corners” to change one detail at a time."
                 : "Compare the preview using your own words and images."}
             </li>
-            <li>
-              Check “What carries into your deliverable” before moving on. You can return and adjust
-              this later.
-            </li>
+            <li>{group.recheck}</li>
           </ol>
+          {group.id === "composition" && authored && state.libraryId && (
+            <GardenLayoutSuggestion
+              key={state.libraryId}
+              designId={state.libraryId}
+              current={state.page.composition}
+              onApply={choose}
+            />
+          )}
           {group.authoredOnly && !authored && (
             <p className="stratosphere-custom">
               Your existing structure stays in place. Explore color, typography, spacing, and
@@ -420,6 +438,9 @@ export function StratospherePanel({
               onExport={onExport}
               projectState={state as unknown as Record<string, unknown>}
               decisionRecord={decisionRecord}
+              {...(group.id === "composition" && {
+                layoutWorkshop: { choose, blocked: currentBlockers.length > 0 },
+              })}
               compact
             />
           ) : (

@@ -18,7 +18,11 @@ const wrongSelection = "Choose the two files at the exact paths listed in the pr
 const oversizedReturn = "A returned file exceeds the byte limit for this proposal.";
 const componentLimit = SOURCE_TRIAL_LIMITS.componentBytes;
 const stylesheetLimit = SOURCE_TRIAL_LIMITS.stylesheetBytes;
-const growthLimit = SOURCE_TRIAL_LIMITS.afterGrowthBytes;
+function growthFor(prepared: PreparedSourceTrial) {
+  return prepared?.contract?.version === 2
+    ? SOURCE_TRIAL_LIMITS.v2AfterGrowthBytes
+    : SOURCE_TRIAL_LIMITS.afterGrowthBytes;
+}
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
 const readArrayKind = Object.getOwnPropertyDescriptor(
   typedArrayPrototype,
@@ -32,7 +36,10 @@ function requireBoundedProposalShape(value: PreparedSourceTrial) {
   let fields = 0;
   // Two patches and two source snapshots, plus bounded contract and inspection text.
   let textBudget =
-    2 * SOURCE_TRIAL_LIMITS.patchBytes + 2 * SOURCE_TRIAL_LIMITS.totalBytes + growthLimit + 32_768;
+    2 * SOURCE_TRIAL_LIMITS.patchBytes +
+    2 * SOURCE_TRIAL_LIMITS.totalBytes +
+    growthFor(value) +
+    32_768;
   while (pending.length) {
     requireTrial(++fields <= 512, unsafeProposal);
     const item = pending.pop();
@@ -91,11 +98,11 @@ function snapshotProposal(prepared: PreparedSourceTrial): PreparedSourceTrial {
         entry.beforeBytes <= limit &&
         Number.isSafeInteger(entry.afterBytes) &&
         entry.afterBytes > 0 &&
-        entry.afterBytes <= limit + growthLimit &&
+        entry.afterBytes <= limit + growthFor(prepared) &&
         typeof edit.before === "string" &&
         edit.before.length <= limit &&
         typeof edit.after === "string" &&
-        edit.after.length <= limit + growthLimit,
+        edit.after.length <= limit + growthFor(prepared),
       unsafeProposal,
     );
   }
@@ -134,7 +141,7 @@ function snapshotReturnedFiles(
     return { path, bytes, size };
   });
   requireTrial(
-    ordered[0]!.size + ordered[1]!.size <= SOURCE_TRIAL_LIMITS.totalBytes + growthLimit,
+    ordered[0]!.size + ordered[1]!.size <= SOURCE_TRIAL_LIMITS.totalBytes + growthFor(proposal),
     oversizedReturn,
   );
   try {

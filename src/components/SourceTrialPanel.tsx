@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SourceTrialChoices } from "@/components/SourceTrialChoices";
+import { inspectBookingComparison } from "@/lib/booking-comparison";
 import { SourceTrialReturnPanel } from "@/components/SourceTrialReturnPanel";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/exportPack";
@@ -13,8 +15,14 @@ import {
   type PreparedSourceTrial,
   type SourceTrialFile,
   type SourceTrialInspection,
+  type SourceTrialOptions,
 } from "@/lib/source-trial";
 import { buildSourceTrialPackage, SOURCE_TRIAL_KICKOFF } from "@/lib/source-trial-package";
+
+const defaultOptions: SourceTrialOptions = { typography: "preserve", bookingLayout: "compact" };
+type ReviewedSource = SourceTrialInspection & {
+  booking: ReturnType<typeof inspectBookingComparison>;
+};
 
 type InputKind = "component" | "stylesheet";
 type SourceInput = {
@@ -78,16 +86,18 @@ export type SourceTrialPanelProps = {
   designTitle: string;
   draft: TargetDraft;
   contextKey: string;
+  gardenComparison?: boolean;
   /** Captures and checks the parent's owner, saved design and exact draft revision. */
   captureContext: () => () => void;
 };
 
-/** Selected source is ephemeral data: never rendered, executed, uploaded or persisted. */
+/** Source is ephemeral. Previews render only recognized text as React children. */
 export function SourceTrialPanel({
   design,
   designTitle,
   draft,
   contextKey,
+  gardenComparison = false,
   captureContext,
 }: SourceTrialPanelProps) {
   const id = useId();
@@ -95,7 +105,8 @@ export function SourceTrialPanel({
   const [githubBase, setGithubBase] = useState("");
   const invalidBase = Boolean(githubBase && !/^[0-9a-f]{40}$/.test(githubBase));
   const [inputs, setInputs] = useState<Inputs>(emptyInputs);
-  const [inspection, setInspection] = useState<SourceTrialInspection | null>(null);
+  const [inspection, setInspection] = useState<ReviewedSource | null>(null);
+  const [options, setOptions] = useState<SourceTrialOptions>(defaultOptions);
   const [confirmed, setConfirmed] = useState(false);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [busy, setBusy] = useState<"prepare" | "download" | null>(null);
@@ -152,18 +163,26 @@ export function SourceTrialPanel({
       verifyParent();
     };
   }
-  function invalidate() {
+  function invalidateProposal() {
     sourceRevision.current++;
     generation.current++;
     proposalNow.current = null;
     confirmedNow.current = false;
     setProposal(null);
-    setInspection(null);
-    setGithubBase("");
     setConfirmed(false);
     setBusy(null);
     setError("");
     setNotice("");
+  }
+  function invalidate() {
+    invalidateProposal();
+    setInspection(null);
+    setGithubBase("");
+    setOptions(defaultOptions);
+  }
+  function changeOptions(next: SourceTrialOptions) {
+    invalidateProposal();
+    setOptions(next);
   }
   function updateInput(kind: InputKind, patch: Partial<SourceInput>) {
     inputsNow.current = { ...inputsNow.current, [kind]: { ...inputsNow.current[kind], ...patch } };
@@ -240,9 +259,11 @@ export function SourceTrialPanel({
       const verify = capture();
       if (runtime !== "vite")
         throw new Error("This source-change format supports React with Vite only.");
-      const found = inspectSourceTrial(filesForTrial());
+      const files = filesForTrial();
+      const found = inspectSourceTrial(files);
+      const booking = inspectBookingComparison(files[0]!.content);
       verify();
-      setInspection(found);
+      setInspection({ ...found, booking });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "This page needs a developer-guided integration.",
@@ -267,7 +288,7 @@ export function SourceTrialPanel({
       const verify = capture();
       if (runtime !== "vite" || !inspection || !confirmedNow.current)
         throw new Error("Check the page and confirm its recognized parts before preparing edits.");
-      const prepared = await prepareSourceTrial(filesForTrial(), design);
+      const prepared = await prepareSourceTrial(filesForTrial(), design, options);
       if (!current()) return;
       verify();
       const result = { value: prepared, verify, revision, contextKey: expectedContext };
@@ -359,6 +380,8 @@ export function SourceTrialPanel({
   const reading = inputs.component.reading || inputs.stylesheet.reading;
   const actionIssue = sourceTrialActionIssue(design.tokens);
   const visibleProposal = proposal?.contextKey === contextKey ? proposal : null;
+  const contract = visibleProposal?.value.contract;
+  const assets = contract?.version === 2 ? contract.assets : [];
   return (
     <section
       aria-labelledby={`${id}-heading`}
@@ -369,7 +392,7 @@ export function SourceTrialPanel({
           A proposed change for one existing page
         </h3>
         <p className="mt-2 text-sm leading-relaxed">
-          Provide the page’s source files and review exact styling edits. Your coding assistant or
+          Provide the page’s source files and review what would change. Your coding assistant or
           developer applies the proposal in the separate preview; Focus does not connect to GitHub
           or run this page.
         </p>
@@ -533,11 +556,14 @@ export function SourceTrialPanel({
                   </div>
                 ))}
               </dl>
-              <p className="text-sm">
-                Only these recognized heading, body and action styles can change: colors, fonts and
-                action shape. Other page content, controls and behavior still need checking in the
-                actual project.
-              </p>
+              <SourceTrialChoices
+                headingFont={design.tokens.headingFont}
+                bodyFont={design.tokens.bodyFont}
+                options={options}
+                onChange={changeOptions}
+                booking={inspection.booking}
+                gardenComparison={gardenComparison}
+              />
               <label className="flex min-h-11 items-start gap-3 text-sm font-medium">
                 <input
                   type="checkbox"
@@ -571,10 +597,13 @@ export function SourceTrialPanel({
                 Proposed source changes — page not run here
               </h4>
               <p className="text-sm">
-                Design: {designTitle}. Review these {visibleProposal.value.files.length} file
-                changes with your coding assistant or developer. The proposal preserves the existing
-                page background and layout rules. Font changes can alter wrapping and need preview
-                checks; this proposal does not add font files.
+                For {designTitle}, review the two edited source files with your developer.
+                {assets.length > 0
+                  ? " The ZIP also includes the selected fonts and their licenses. Check the rendered type and line breaks on the actual page."
+                  : " The existing page keeps its fonts."}
+                {contract?.version === 2 &&
+                  contract.bookingLayout === "compare" &&
+                  " The proposal replaces the compact class picker with a choice for each class showing its time and total."}
               </p>
               <div
                 className="overflow-x-auto"
@@ -633,6 +662,21 @@ export function SourceTrialPanel({
                   <li key={file.path}>{file.path}</li>
                 ))}
               </ul>
+              {assets.length > 0 && (
+                <details>
+                  <summary className="min-h-11 cursor-pointer py-3 font-medium">
+                    Included fonts and licenses ({assets.length} files)
+                  </summary>
+                  <ul className="list-inside list-disc break-words text-sm">
+                    {assets.map((asset) => (
+                      <li key={asset.path}>{asset.path}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-sm">
+                    The handoff verifier checks these files separately from the two source edits.
+                  </p>
+                </details>
+              )}
               <details>
                 <summary className="min-h-11 cursor-pointer py-3 font-medium">
                   Review exact forward and undo patches

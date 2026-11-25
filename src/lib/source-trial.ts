@@ -1,6 +1,9 @@
 import { contrast, normalizeTokens, HEADING_FONTS, BODY_FONTS, type Tokens } from "./design";
 import { fixContrast } from "./engine";
 import { fontStack } from "./fonts";
+import { applyBookingComparison } from "./booking-comparison";
+import { makeSourceTrialAssetPatches } from "./source-trial-asset-diff";
+import { prepareTrialFonts, type TrialFontFile } from "./source-trial-typography";
 import { analyzeSourceTrial, validateEditedSyntax } from "./source-trial-analysis";
 import { makeSourceTrialPatch } from "./source-trial-diff";
 import {
@@ -10,6 +13,7 @@ import {
   requireTrial,
   SOURCE_TRIAL_LIMITS,
   trialMarker,
+  trialGrowthLimit,
   utf8,
   type PreparedSourceTrial,
   type SourceTrialChange,
@@ -17,6 +21,7 @@ import {
   type SourceTrialEdit,
   type SourceTrialFile,
   type SourceTrialInspection,
+  type SourceTrialOptions,
 } from "./source-trial-model";
 
 export { SOURCE_TRIAL_LIMITS, SourceTrialError } from "./source-trial-model";
@@ -26,6 +31,8 @@ export type {
   SourceTrialContract,
   SourceTrialFile,
   SourceTrialInspection,
+  SourceTrialOptions,
+  SourceTrialAsset,
 } from "./source-trial-model";
 
 type Analysis = ReturnType<typeof analyzeSourceTrial>;
@@ -33,13 +40,31 @@ type Effective = SourceTrialContract["effective"];
 type Design = SourceTrialContract["design"];
 const sha256 = /^[a-f0-9]{64}$/;
 const opaqueHex = /^#[a-f0-9]{6}$/;
-const changedProperties = () => ({
-  heading: ["color", "font-family"],
-  body: ["color", "font-family"],
-  action: ["background-color", "color", "font-family", "border-radius"],
-});
+function changedProperties(options?: SourceTrialOptions) {
+  const fonts = options?.typography === "preserve" ? [] : ["font-family"];
+  return {
+    heading: ["color", ...fonts],
+    body: ["color", ...fonts],
+    action: ["background-color", "color", ...fonts, "border-radius"],
+  };
+}
 
-function describeEffective(tokens: Tokens, ground: string): Effective {
+function snapshotOptions(input?: SourceTrialOptions): SourceTrialOptions | undefined {
+  if (input === undefined) return undefined;
+  requireTrial(
+    input &&
+      ["portable", "preserve"].includes(input.typography) &&
+      ["compare", "compact"].includes(input.bookingLayout),
+    "Choose a supported typography and class layout.",
+  );
+  return { typography: input.typography, bookingLayout: input.bookingLayout };
+}
+
+function describeEffective(
+  tokens: Tokens,
+  ground: string,
+  options?: SourceTrialOptions,
+): Effective {
   const fixed = fixContrast({ ...tokens, bg: ground });
   return {
     ground,
@@ -52,11 +77,15 @@ function describeEffective(tokens: Tokens, ground: string): Effective {
     headingFont: fixed.headingFont,
     bodyFont: fixed.bodyFont,
     buttonRadius: fixed.buttonStyle === "pill" ? 999 : fixed.radius,
-    changedProperties: changedProperties(),
+    changedProperties: changedProperties(options),
   };
 }
 
-function unpackEffective(effective: Effective, ground: string): Effective {
+function unpackEffective(
+  effective: Effective,
+  ground: string,
+  options?: SourceTrialOptions,
+): Effective {
   const { colors } = effective;
   requireTrial(
     effective.ground === ground &&
@@ -85,18 +114,28 @@ function unpackEffective(effective: Effective, ground: string): Effective {
     headingFont: effective.headingFont,
     bodyFont: effective.bodyFont,
     buttonRadius: effective.buttonRadius,
-    changedProperties: changedProperties(),
+    changedProperties: changedProperties(options),
   };
 }
 
-function resolveChanges(analysis: Analysis, effective: Effective): SourceTrialChange[] {
+function resolveChanges(
+  analysis: Analysis,
+  effective: Effective,
+  fonts?: { heading: string; body: string },
+): SourceTrialChange[] {
   const local = {
-    heading: { color: effective.colors.heading, "font-family": fontStack(effective.headingFont) },
-    body: { color: effective.colors.body, "font-family": fontStack(effective.bodyFont) },
+    heading: {
+      color: effective.colors.heading,
+      "font-family": fonts?.heading ?? fontStack(effective.headingFont),
+    },
+    body: {
+      color: effective.colors.body,
+      "font-family": fonts?.body ?? fontStack(effective.bodyFont),
+    },
     action: {
       "background-color": effective.colors.actionBackground,
       color: effective.colors.actionText,
-      "font-family": fontStack(effective.bodyFont),
+      "font-family": fonts?.body ?? fontStack(effective.bodyFont),
       "border-radius": `${effective.buttonRadius}px`,
     },
   };
@@ -105,24 +144,26 @@ function resolveChanges(analysis: Analysis, effective: Effective): SourceTrialCh
     const declarations = (analysis.styles.get(className) ?? [])
       .filter(({ state }) => !state)
       .reverse();
-    return Object.entries(local[role]).map(([property, after]) => {
-      // A shorthand declaration makes the specific previous value uncertain.
-      const last = declarations.find(
-        (declaration) =>
-          declaration.property === property ||
-          (property === "font-family" && declaration.property === "font") ||
-          (property === "background-color" && declaration.property === "background") ||
-          (property === "border-radius" &&
-            declaration.property.startsWith("border-") &&
-            declaration.property.endsWith("radius")),
-      );
-      return {
-        role,
-        property,
-        before: last?.property === property && last.value.length <= 400 ? last.value : null,
-        after,
-      };
-    });
+    return Object.entries(local[role])
+      .filter(([name]) => effective.changedProperties[role].includes(name))
+      .map(([property, after]) => {
+        // A shorthand declaration makes the specific previous value uncertain.
+        const last = declarations.find(
+          (declaration) =>
+            declaration.property === property ||
+            (property === "font-family" && declaration.property === "font") ||
+            (property === "background-color" && declaration.property === "background") ||
+            (property === "border-radius" &&
+              declaration.property.startsWith("border-") &&
+              declaration.property.endsWith("radius")),
+        );
+        return {
+          role,
+          property,
+          before: last?.property === property && last.value.length <= 400 ? last.value : null,
+          after,
+        };
+      });
   });
 }
 
@@ -130,13 +171,16 @@ function editSources(
   analysis: Analysis,
   marker: string,
   changes: SourceTrialChange[],
+  fontFaces: string,
+  bodyColor: string,
+  options?: SourceTrialOptions,
 ): [SourceTrialEdit, SourceTrialEdit] {
   const { component, stylesheet, wrapperClassEnd, inspection } = analysis;
   requireTrial(trialMarker.test(marker), "The proposed trial marker is unreadable.");
   // A literal scope marker needs no new CSS-module export or generated .d.ts
   // entry. Keep the customer's existing role classes local to their module.
   const suffix = ` + " ${marker}"`;
-  const afterComponent =
+  const scopedComponent =
     component.content.slice(0, wrapperClassEnd) + suffix + component.content.slice(wrapperClassEnd);
   const eol = stylesheet.content.match(/\r?\n/)?.[0] ?? "\n";
   const rules = (["heading", "body", "action"] as const).map((role) =>
@@ -148,10 +192,20 @@ function editSources(
       "}",
     ].join(eol),
   );
-  const added = `${stylesheet.content.endsWith("\n") ? "" : eol}${eol}/* Focus source trial */${eol}${rules.join(eol)}${eol}`;
+  const layout =
+    options?.bookingLayout === "compare"
+      ? applyBookingComparison(scopedComponent, marker, bodyColor)
+      : null;
+  const afterComponent = layout?.component ?? scopedComponent;
+  const blocks = [fontFaces, rules.join("\n"), layout?.stylesheetAddition]
+    .filter(Boolean)
+    .join("\n")
+    .replace(/\r?\n/g, eol);
+  const added = `${stylesheet.content.endsWith("\n") ? "" : eol}${eol}/* Focus source trial */${eol}${blocks}${eol}`;
   const afterStylesheet = stylesheet.content + added;
   requireTrial(
-    utf8(suffix).length + utf8(added).length <= SOURCE_TRIAL_LIMITS.afterGrowthBytes,
+    utf8(afterComponent).length - utf8(component.content).length + utf8(added).length <=
+      trialGrowthLimit(options ? 2 : 1),
     "The proposed changes exceed the source trial’s size limit.",
   );
   return [
@@ -160,8 +214,11 @@ function editSources(
   ];
 }
 
-function taskRows(action: "a" | "button"): SourceTrialContract["tasks"] {
-  return [
+function taskRows(
+  action: "a" | "button",
+  options?: SourceTrialOptions,
+): SourceTrialContract["tasks"] {
+  const tasks: SourceTrialContract["tasks"] = [
     {
       id: "visual-and-keyboard",
       expected:
@@ -183,6 +240,23 @@ function taskRows(action: "a" | "button"): SourceTrialContract["tasks"] {
       status: "not-run",
     },
   ];
+  if (options?.typography === "portable") {
+    tasks.push({
+      id: "rendered-type",
+      expected:
+        "With external networks disconnected and local project assets available, inspect the fonts actually rendering the heading, supporting text and primary action on phone and desktop. Record unexpected fallback.",
+      status: "not-run",
+    });
+  }
+  if (options?.bookingLayout === "compare") {
+    tasks.push({
+      id: "class-comparison",
+      expected:
+        "Compare both class times and totals, choose the lower-priced class and confirm its total. Check keyboard selection, retained answers and a single booking after a lost confirmation with test services.",
+      status: "not-run",
+    });
+  }
+  return tasks;
 }
 
 async function fingerprintSource(files: readonly SourceTrialFile[]): Promise<string> {
@@ -213,18 +287,41 @@ async function materialize(
   design: Design,
   sourceFingerprint: string,
   effective: Effective,
-): Promise<PreparedSourceTrial> {
+  options?: SourceTrialOptions,
+): Promise<{ prepared: PreparedSourceTrial; assets: TrialFontFile[] }> {
   const { inspection } = analysis;
-  const seed = await hashText(JSON.stringify([design.id, design.fingerprint, sourceFingerprint]));
-  const changes = resolveChanges(analysis, effective);
+  const identity = [design.id, design.fingerprint, sourceFingerprint];
+  if (options) identity.push(options.typography, options.bookingLayout);
+  const scope = (await hashText(JSON.stringify(identity))).slice(0, 12);
+  const fonts =
+    options?.typography === "portable"
+      ? await prepareTrialFonts(
+          effective.headingFont,
+          effective.bodyFont,
+          inspection.stylesheetPath,
+          scope,
+        )
+      : undefined;
+  const assets = fonts?.assets ?? [];
+  const changes = resolveChanges(analysis, effective, fonts);
   requireTrial(
-    changes.some(({ before, after }) => before !== after),
+    options?.bookingLayout === "compare" || changes.some(({ before, after }) => before !== after),
     "The selected role declarations already match these visual choices.",
   );
-  const files = editSources(analysis, `focusTrial_${seed.slice(0, 12)}`, changes);
+  const files = editSources(
+    analysis,
+    `focusTrial_${scope}`,
+    changes,
+    fonts?.fontFaces ?? "",
+    effective.colors.body,
+    options,
+  );
   validateEditedSyntax(files[0].after, files[1].after);
-  const patch = makeSourceTrialPatch(files);
-  const inversePatch = makeSourceTrialPatch(files, true);
+  const assetPatch = await makeSourceTrialAssetPatches(
+    assets.map(({ record, data }) => ({ path: record.path, bytes: data })),
+  );
+  const patch = makeSourceTrialPatch(files) + assetPatch.forward;
+  const inversePatch = makeSourceTrialPatch(files, true) + assetPatch.inverse;
   requireTrial(
     [patch, inversePatch].every((item) => utf8(item).length <= SOURCE_TRIAL_LIMITS.patchBytes),
     "The proposed patches exceed the source trial’s size limit.",
@@ -234,15 +331,21 @@ async function materialize(
     hashText(patch),
     hashText(inversePatch),
   ]);
-  return {
+  const prepared: PreparedSourceTrial = {
     inspection,
     patch,
     inversePatch,
     files,
     changes,
     contract: {
-      version: 1,
-      adapter: "react-vite-css-module-v1",
+      ...(options
+        ? {
+            version: 2 as const,
+            adapter: "react-vite-css-module-v2" as const,
+            ...options,
+            assets: assets.map(({ record }) => record),
+          }
+        : { version: 1 as const, adapter: "react-vite-css-module-v1" as const }),
       status: "static-checks-complete",
       design,
       sourceFingerprint,
@@ -252,13 +355,20 @@ async function materialize(
       inspection,
       effective,
       limits: [
-        "React with Vite is owner-declared. This check covers only the two selected files.",
-        "The page background and base wrapper styles stay in place. Fonts use installed faces and system fallbacks.",
+        options
+          ? "React with Vite is owner-declared. The proposal covers the two selected source files and any listed new font assets."
+          : "React with Vite is owner-declared. This check covers only the two selected files.",
+        options?.typography === "portable"
+          ? "Licensed local fonts cover the bundled Latin subsets in normal style and the listed weights. Check actual rendered fonts on the recipient’s page. Other characters and unsupported styles can fall back or be synthesized."
+          : options
+            ? "The app keeps its existing font-family declarations and inheritance."
+            : "The page background and base wrapper styles stay in place. Fonts use installed faces and system fallbacks.",
         "The surrounding CSS cascade, layout, behavior, production integrations and rendered accessibility still need review.",
       ],
-      tasks: taskRows(inspection.roles.action.element),
+      tasks: taskRows(inspection.roles.action.element, options),
     },
   };
+  return { prepared, assets };
 }
 
 export function inspectSourceTrial(files: readonly SourceTrialFile[]): SourceTrialInspection {
@@ -275,7 +385,9 @@ export function sourceTrialActionIssue(tokens: Pick<Tokens, "buttonStyle">): str
 export async function prepareSourceTrial(
   files: readonly SourceTrialFile[],
   design: { id: string; tokens: Tokens },
+  choices?: SourceTrialOptions,
 ): Promise<PreparedSourceTrial> {
+  const options = snapshotOptions(choices);
   const id = design.id;
   requireDesignId(id);
   const tokens = normalizeTokens(design.tokens);
@@ -287,15 +399,17 @@ export async function prepareSourceTrial(
     hashText(JSON.stringify(tokens)),
     fingerprintSource(source),
   ]);
-  return materialize(
+  const { prepared } = await materialize(
     analysis,
     { id, fingerprint },
     sourceFingerprint,
-    describeEffective(tokens, analysis.inspection.ground),
+    describeEffective(tokens, analysis.inspection.ground, options),
+    options,
   );
+  return prepared;
 }
 
-async function checkPrepared(candidate: PreparedSourceTrial): Promise<PreparedSourceTrial> {
+async function checkPrepared(candidate: PreparedSourceTrial) {
   requireTrial(
     candidate &&
       Array.isArray(candidate.files) &&
@@ -313,7 +427,7 @@ async function checkPrepared(candidate: PreparedSourceTrial): Promise<PreparedSo
   );
   readSourcePair(
     candidate.files.map(({ path, after }) => ({ path, content: after })),
-    true,
+    candidate.contract.version,
   );
   const stored = JSON.stringify(candidate);
   const analysis = analyzeSourceTrial(originals);
@@ -323,14 +437,31 @@ async function checkPrepared(candidate: PreparedSourceTrial): Promise<PreparedSo
     typeof fingerprint === "string" && sha256.test(fingerprint),
     "The trial’s design fingerprint is unreadable.",
   );
-  const effective = unpackEffective(candidate.contract.effective, analysis.inspection.ground);
+  const options =
+    candidate.contract.version === 2 ? snapshotOptions(candidate.contract) : undefined;
+  const effective = unpackEffective(
+    candidate.contract.effective,
+    analysis.inspection.ground,
+    options,
+  );
   const sourceFingerprint = await fingerprintSource(originals);
-  const expected = await materialize(analysis, { id, fingerprint }, sourceFingerprint, effective);
+  const expected = await materialize(
+    analysis,
+    { id, fingerprint },
+    sourceFingerprint,
+    effective,
+    options,
+  );
   requireTrial(
-    stored === JSON.stringify(expected),
+    stored === JSON.stringify(expected.prepared),
     "The prepared trial or its file hashes changed. Prepare it again before downloading.",
   );
   return expected;
+}
+
+/** Reconstruct the selected assets from the licensed catalog, never from customer input. */
+export async function verifiedTrialAssets(prepared: PreparedSourceTrial): Promise<TrialFontFile[]> {
+  return (await checkPrepared(prepared)).assets;
 }
 
 export async function verifyPreparedSourceTrial(prepared: PreparedSourceTrial): Promise<void> {
@@ -347,7 +478,10 @@ export async function verifySourceTrialSnapshot(
     direction === "before" || direction === "after",
     "Select a valid verification direction.",
   );
-  const selected = readSourcePair(files, direction === "after").map(({ path, content }) => ({
+  const selected = readSourcePair(
+    files,
+    direction === "after" ? prepared.contract.version : undefined,
+  ).map(({ path, content }) => ({
     path,
     content,
   }));
@@ -355,7 +489,7 @@ export async function verifySourceTrialSnapshot(
     checkPrepared(prepared),
     Promise.all(selected.map(({ content }) => hashText(content))),
   ]);
-  const matching = trial.contract.files.every((entry, index) => {
+  const matching = trial.prepared.contract.files.every((entry, index) => {
     const expected = direction === "before" ? entry.beforeSha256 : entry.afterSha256;
     return entry.path === selected[index]!.path && hashes[index] === expected;
   });

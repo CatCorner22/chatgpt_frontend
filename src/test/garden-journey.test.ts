@@ -62,6 +62,21 @@ describe("Garden journey briefs", () => {
     );
   });
 
+  it("carries a requested comparison through the downloaded brief without giving it implementation credit", () => {
+    const draft = {
+      ...newGardenJourney("s", "existing"),
+      decisions: {
+        plan: { choice: "compare-options", note: "See the class time and total first." },
+      },
+    };
+    const packet = gardenJourneyJson(draft);
+    expect(importGardenJourney(packet, "s")).toEqual(draft);
+    expect(JSON.parse(packet).stops[0]).toMatchObject({
+      approach: "Show options together before choosing",
+      status: "needs-project-check",
+    });
+    expect(JSON.parse(packet).authoredWebsiteLayoutSuggestion).toBeNull();
+  });
   it("produces a lossless portable record of requested choices, tradeoffs and unrun checks", () => {
     const draft = {
       ...newGardenJourney("s", "existing"),

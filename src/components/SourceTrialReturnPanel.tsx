@@ -263,6 +263,13 @@ function ReturnedFiles({
         project’s current state. Choose them in their matching slots below. Focus compares bytes
         with this proposal; it does not connect to or change the project.
       </p>
+      {prepared.contract.version === 2 && prepared.contract.assets.length > 0 && (
+        <p className="text-sm">
+          This check covers the page and stylesheet only. Ask your developer to run the ZIP’s
+          verifier on the project to check the font and license files, then confirm which fonts the
+          browser renders.
+        </p>
+      )}
       <p className="text-sm text-muted-foreground">
         Use the exact filenames shown. Your browser cannot confirm the project folder, so check the
         full paths with the sender. Selecting a file does not show that it is running on the site.

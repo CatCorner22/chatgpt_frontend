@@ -30,7 +30,7 @@ export const GARDEN_FORMULA: Record<GardenStepId, GardenFormula> = {
     primaryGroup: "composition",
     primaryLabel: "Arrange the page",
     scopeNote:
-      "Composition controls apply to authored websites. Existing apps and app specifications keep their structure; plan structural changes in a scoped handoff.",
+      "For an existing app, record the structure you want in your brief. Target can preview two layouts for a recognized class picker. Other layouts go to your developer for review.",
   },
   direction: {
     do: "Choose one visual direction that fits your content and audience.",

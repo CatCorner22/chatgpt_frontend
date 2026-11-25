@@ -63,14 +63,17 @@ afterEach(async () => {
   await Promise.all(temporary.splice(0).map((path) => rm(path, { recursive: true, force: true })));
 });
 
-async function prepare(source = files) {
-  return prepareSourceTrial(source, {
+async function prepare(source = files, portable = false) {
+  const design = {
     id: draft.designId,
     tokens: normalizeTokens({ bg: "#F4F8FA", accent: "#2156B8", radius: 8 }),
-  });
+  };
+  return portable
+    ? prepareSourceTrial(source, design, { typography: "portable", bookingLayout: "compact" })
+    : prepareSourceTrial(source, design);
 }
 
-async function fixture(source = files, githubBase = "") {
+async function fixture(source = files, githubBase = "", portable = false) {
   const base = await mkdtemp(join(tmpdir(), "focus-source-trial-package-"));
   temporary.push(base);
   const project = join(base, "project");
@@ -80,7 +83,7 @@ async function fixture(source = files, githubBase = "") {
     await writeFile(join(project, file.path), file.content);
   }
   await writeFile(join(project, "unrelated.txt"), "Keep this later work.\n");
-  const prepared = await prepare(source);
+  const prepared = await prepare(source, portable);
   const zip = await JSZip.loadAsync(
     await buildSourceTrialPackage(prepared, { draft, designTitle: "Clear booking", githubBase }),
     { checkCRC32: true },
@@ -88,7 +91,10 @@ async function fixture(source = files, githubBase = "") {
   const bundle = join(base, "focus-source-trial");
   await mkdir(bundle);
   for (const file of Object.values(zip.files).filter((file) => !file.dir)) {
-    expect(file.name).toMatch(/^focus-source-trial\/[A-Za-z.-]+$/);
+    if (portable && file.name.startsWith("focus-source-trial/assets/")) {
+      expect(file.name).toMatch(/^focus-source-trial\/assets\/[A-Za-z0-9_.-]+$/);
+      await mkdir(join(bundle, "assets"), { recursive: true });
+    } else expect(file.name).toMatch(/^focus-source-trial\/[A-Za-z.-]+$/);
     await writeFile(join(base, file.name), await file.async("nodebuffer"), { flag: "wx" });
   }
   return { base, project, prepared, zip, bundle };
@@ -454,8 +460,8 @@ function localGit(project: string, ...args: string[]) {
   expect(result.status, result.stderr).toBe(0);
   return result.stdout.trimEnd();
 }
-async function githubFixture(pin?: string) {
-  const f = await fixture(files, pin);
+async function githubFixture(pin?: string, portable = false) {
+  const f = await fixture(files, pin, portable);
   localGit(f.project, "-c", "init.defaultBranch=main", "init");
   localGit(f.project, "add", "src", "unrelated.txt");
   localGit(
@@ -483,6 +489,29 @@ async function githubFixture(pin?: string) {
 }
 
 describe("GitHub trial from a recipient's actual download", () => {
+  it("prepares a commit containing only the two source edits and the exact licensed assets, then undoes it", async () => {
+    const f = await githubFixture(undefined, true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a version 2 font trial");
+    expect(contract.assets.length).toBeGreaterThan(1);
+    const result = f.helper(f.prepareArgs);
+    expect(result.status, result.stderr).toBe(0);
+    const expected = [...contract.files, ...contract.assets].map((entry) => entry.path).sort();
+    expect(
+      localGit(f.directory, "diff", "--name-only", "HEAD^", "HEAD").split("\n").sort(),
+    ).toEqual(expected);
+    for (const asset of contract.assets) {
+      expect(digest(await readFile(join(f.directory, asset.path)))).toBe(asset.sha256);
+      await expect(access(join(f.project, asset.path))).rejects.toThrow();
+    }
+    await writeFile(join(f.directory, "keep.txt"), "Owner edit");
+    expect(applyOwnedFixturePatch(f.bundle, f.directory, "rollback.patch").status).toBe(0);
+    expect(verify(f.bundle, f.directory, "before").status).toBe(0);
+    expect(await readFile(join(f.directory, "keep.txt"), "utf8")).toBe("Owner edit");
+    for (const asset of contract.assets)
+      await expect(access(join(f.directory, asset.path))).rejects.toThrow();
+  });
+
   it("prepares exactly two committed edits in a fresh clone, preserves uncommitted owner work and supports selective undo", async () => {
     const f = await githubFixture();
     await writeFile(join(f.project, "unrelated.txt"), "Owner's current edit.\n");
@@ -615,4 +644,82 @@ describe("GitHub trial from a recipient's actual download", () => {
     },
     30_000,
   );
+});
+
+describe("portable source trial recipient checks", () => {
+  it("refuses occupied asset paths and symlinked ancestors before applying, including byte-identical customer files", async () => {
+    const f = await fixture(files, "", true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const font = contract.assets.find((entry) => entry.path.endsWith(".woff2"))!;
+    const target = join(f.project, font.path);
+    const bundled = join(f.bundle, "assets", font.path.split("/").at(-1)!);
+    expect(verify(f.bundle, f.project).status).toBe(0);
+    await mkdir(dirname(target), { recursive: true });
+    await copyFile(bundled, target);
+    expect(verify(f.bundle, f.project).stderr).toContain("already exists");
+    expect(await readFile(target)).toEqual(await readFile(bundled));
+    await rm(dirname(target), { recursive: true });
+    const outside = join(f.base, "kept-assets");
+    await mkdir(outside);
+    await symlink(outside, dirname(target));
+    expect(verify(f.bundle, f.project).stderr).toContain("Symlink");
+    expect(await readdir(outside)).toEqual([]);
+  });
+
+  it("compares raw font and license bytes, refuses later changes and removes only the owned files", async () => {
+    const f = await fixture(files, "", true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const result = applyOwnedFixturePatch(f.bundle, f.project, "forward.patch");
+    expect(result.status, result.stderr).toBe(0);
+    expect(verify(f.bundle, f.project, "after").status).toBe(0);
+    for (const file of contract.assets) {
+      const target = join(f.project, file.path);
+      const original = await readFile(target);
+      expect(digest(original)).toBe(file.sha256);
+      await writeFile(target, Buffer.alloc(original.length));
+      expect(verify(f.bundle, f.project, "after").status).not.toBe(0);
+      await writeFile(target, original);
+    }
+    if (process.platform !== "win32") {
+      const target = join(f.project, contract.assets[0]!.path);
+      await chmod(target, 0o755);
+      expect(verify(f.bundle, f.project, "after").stderr).toContain("permissions");
+      await chmod(target, 0o644);
+    }
+    const later = join(dirname(join(f.project, contract.assets[0]!.path)), "customer-note.txt");
+    await writeFile(later, "Keep this new file.");
+    const reverse = applyOwnedFixturePatch(f.bundle, f.project, "rollback.patch");
+    expect(reverse.status, reverse.stderr).toBe(0);
+    const before = verify(f.bundle, f.project);
+    expect(before.status, before.stderr).toBe(0);
+    expect(await readFile(later, "utf8")).toBe("Keep this new file.");
+    for (const file of contract.assets)
+      await expect(access(join(f.project, file.path))).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("refuses corrupted bundled assets and altered binary payloads even when patch hashes have been recomputed", async () => {
+    const f = await fixture(files, "", true);
+    const contract = structuredClone(f.prepared.contract);
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const asset = contract.assets[0]!;
+    const bundled = join(f.bundle, "assets", asset.path.split("/").at(-1)!);
+    const clean = await readFile(bundled);
+    await writeFile(bundled, Buffer.alloc(clean.length));
+    expect(verify(f.bundle, f.project).status).not.toBe(0);
+    await writeFile(bundled, clean);
+    const changed = f.prepared.patch.replace(
+      /(GIT binary patch\nliteral \d+\n[a-zA-Z])([!-~])/,
+      (_, head: string, old: string) => head + (old === "0" ? "1" : "0"),
+    );
+    expect(changed).not.toBe(f.prepared.patch);
+    contract.patchSha256 = digest(changed);
+    await writeFile(join(f.bundle, "forward.patch"), changed);
+    await writeFile(join(f.bundle, "trial-contract.json"), JSON.stringify(contract));
+    await reseal(f.bundle);
+    expect(verify(f.bundle, f.project).status).not.toBe(0);
+    for (const file of files)
+      expect(await readFile(join(f.project, file.path), "utf8")).toBe(file.content);
+  });
 });

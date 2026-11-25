@@ -985,6 +985,10 @@ export function Target() {
                               design={{ id: selected.id, tokens: selected.state.tokens }}
                               designTitle={selected.title}
                               draft={draft}
+                              gardenComparison={
+                                attachedJourney?.brief.decisions["plan"]?.choice ===
+                                "compare-options"
+                              }
                               captureContext={captureSourceContext}
                             />
                           )}

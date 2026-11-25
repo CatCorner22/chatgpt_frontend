@@ -4,6 +4,7 @@ export const SOURCE_TRIAL_LIMITS = {
   totalBytes: 192 * 1024,
   patchBytes: 512 * 1024,
   afterGrowthBytes: 2048,
+  v2AfterGrowthBytes: 8192,
 } as const;
 
 export class SourceTrialError extends Error {
@@ -20,9 +21,19 @@ export type SourceTrialInspection = {
   roles: { heading: Role; body: Role; action: Role & { element: "a" | "button" } };
 };
 
-export type SourceTrialContract = {
-  version: 1;
-  adapter: "react-vite-css-module-v1";
+export type SourceTrialOptions = {
+  typography: "preserve" | "portable";
+  bookingLayout: "compact" | "compare";
+};
+export type SourceTrialAsset = { path: string; bytes: number; sha256: string };
+export type SourceTrialContract = (
+  | { version: 1; adapter: "react-vite-css-module-v1" }
+  | ({
+      version: 2;
+      adapter: "react-vite-css-module-v2";
+      assets: SourceTrialAsset[];
+    } & SourceTrialOptions)
+) & {
   status: "static-checks-complete";
   design: { id: string; fingerprint: string };
   sourceFingerprint: string;
@@ -108,9 +119,15 @@ export function requireSourcePath(path: unknown): asserts path is string {
 
 export const utf8 = (source: string) => new TextEncoder().encode(source);
 
+export function trialGrowthLimit(version: SourceTrialContract["version"]) {
+  return version === 2
+    ? SOURCE_TRIAL_LIMITS.v2AfterGrowthBytes
+    : SOURCE_TRIAL_LIMITS.afterGrowthBytes;
+}
+
 export function readSourcePair(
   files: readonly SourceTrialFile[],
-  after = false,
+  afterVersion?: SourceTrialContract["version"],
 ): [SourceTrialFile, SourceTrialFile] {
   requireTrial(
     Array.isArray(files) && files.length === 2,
@@ -123,7 +140,7 @@ export function readSourcePair(
   const component = files.find((file) => file.path.endsWith(".tsx"));
   const stylesheet = files.find((file) => file.path.endsWith(".module.css"));
   requireTrial(component && stylesheet, "Choose a .tsx page and a .module.css file.");
-  const growth = after ? SOURCE_TRIAL_LIMITS.afterGrowthBytes : 0;
+  const growth = afterVersion ? trialGrowthLimit(afterVersion) : 0;
   const validate = (file: SourceTrialFile, limit: number) => {
     requireTrial(
       typeof file.content === "string" && file.content.length > 0 && file.content.length <= limit,
@@ -160,8 +177,12 @@ export function requireDesignId(id: unknown): asserts id is string {
   );
 }
 
-export async function hashText(text: string): Promise<string> {
+export async function hashBytes(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   requireTrial(globalThis.crypto?.subtle, "Use a secure browser context to prepare this trial.");
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", utf8(text).buffer);
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function hashText(text: string): Promise<string> {
+  return hashBytes(utf8(text));
 }

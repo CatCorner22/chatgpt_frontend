@@ -91,7 +91,7 @@ function verify(project, direction) {
     process.execPath,
     [join(bundle, "verify.mjs"), direction, project],
     bundle,
-    "The proposal or the two files differ from the expected " +
+    "The proposal or the trial files differ from the expected " +
       direction +
       " snapshots. Stop and inspect.",
   );
@@ -100,7 +100,8 @@ const contractBytes = () => readFileSync(join(bundle, "trial-contract.json"));
 function verifyCommit(project, state) {
   verify(project, "after");
   const bytes = contractBytes();
-  const files = JSON.parse(bytes).files;
+  const contract = JSON.parse(bytes);
+  const assets = contract.version === 2 ? contract.assets : [];
   ensure(state.contract === hash(bytes), "This package belongs to a different trial.");
   ensure(
     txt(
@@ -121,30 +122,35 @@ function verifyCommit(project, state) {
   );
   const changed = git(
     project,
-    ["diff", "--no-ext-diff", "--name-only", "--no-renames", "-z", state.base, state.head],
+    ["diff", "--no-ext-diff", "--name-status", "--no-renames", "-z", state.base, state.head],
     "Cannot inspect the committed change.",
   );
-  const names = changed.toString("utf8").split("\0").filter(Boolean).sort();
+  const entries = changed.toString("utf8").split("\0");
+  entries.pop(); // Git terminates the last path with NUL.
+  const paths = new Map();
+  for (let i = 0; i < entries.length; i += 2) paths.set(entries[i + 1], entries[i]);
   ensure(
-    JSON.stringify(names) === JSON.stringify(files.map((f) => f.path).sort()),
-    "The commit contains unexpected paths.",
+    paths.size === contract.files.length + assets.length &&
+      contract.files.every((file) => paths.get(file.path) === "M") &&
+      assets.every((asset) => paths.get(asset.path) === "A"),
+    "The commit contains unexpected paths or replaces an existing asset.",
   );
-  for (const file of files) {
-    for (const [revision, expected] of [
-      [state.base, file.beforeSha256],
-      [state.head, file.afterSha256],
-    ]) {
-      const blob = git(
-        project,
-        ["cat-file", "blob", revision + ":" + file.path],
-        "Cannot inspect both committed source files.",
-      );
-      ensure(
-        hash(blob) === expected,
-        "Committed bytes differ from the proposal. Check line ending and repository filter settings.",
-      );
-    }
+  function verifyBlob(revision, path, expected) {
+    const blob = git(
+      project,
+      ["cat-file", "blob", revision + ":" + path],
+      "Cannot inspect the committed trial file.",
+    );
+    ensure(
+      hash(blob) === expected,
+      "Committed bytes differ from the proposal. Check line ending and repository filter settings.",
+    );
   }
+  for (const file of contract.files) {
+    verifyBlob(state.base, file.path, file.beforeSha256);
+    verifyBlob(state.head, file.path, file.afterSha256);
+  }
+  for (const asset of assets) verifyBlob(state.head, asset.path, asset.sha256);
   ensure(
     !git(
       project,
@@ -472,7 +478,7 @@ function publish(args) {
       "--title",
       "Review the Focus styling trial",
       "--body",
-      "Two scoped React/Vite style changes. Reviewed baseline: " +
+      "A scoped React/Vite page trial. Reviewed baseline: " +
         state.base +
         ". Trial commit: " +
         state.head +

@@ -124,7 +124,9 @@ describe("customer transfer acceptance: real archive and documented manual proce
         .every((name) => name.startsWith("focus-restyle/")),
     ).toBe(true);
     const guide = await readFile(join(directory, "focus-restyle/START-HERE.md"), "utf8");
-    expect(guide).toMatch(/save a copy/i);
+    expect(guide).toMatch(
+      /save a named backup of the customer project, including uncommitted work/i,
+    );
     expect(guide).toMatch(/never unzip over customer files/i);
     expect(guide).toMatch(/one.*wrapper/i);
     expect(guide).toMatch(/wait for approval/i);

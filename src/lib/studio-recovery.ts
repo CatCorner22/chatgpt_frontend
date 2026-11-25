@@ -121,6 +121,13 @@ export function studioHistoryNeedsRecovery(value: unknown): boolean {
   });
 }
 
+/** A checkpoint is usable only after a read confirms the complete copy. */
+export function keepStudioCheckpoint(storage: SaveStorage, key: string, raw: string): void {
+  if (storage.getItem(key) !== null) throw new Error("Recovery key already exists");
+  storage.setItem(key, raw);
+  if (storage.getItem(key) !== raw) throw new Error("Recovery copy was not retained");
+}
+
 /** Never replace unreadable owner data before a second, verified copy exists. */
 export function restoreStudioSave<T>(
   storage: SaveStorage,
@@ -151,10 +158,7 @@ export function restoreStudioSave<T>(
     // its repaired state. Both paths must preserve the original before saving.
   }
   try {
-    // A collision must not overwrite an older recovery copy.
-    if (storage.getItem(recoveryKey) !== null) throw new Error("Recovery key already exists");
-    storage.setItem(recoveryKey, raw);
-    if (storage.getItem(recoveryKey) !== raw) throw new Error("Recovery copy was not retained");
+    keepStudioCheckpoint(storage, recoveryKey, raw);
     return { status: "ready", state, recoveryKey };
   } catch {
     return {

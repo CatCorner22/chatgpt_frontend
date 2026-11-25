@@ -75,6 +75,27 @@ try {
   await visit("/?view=studio");
   await page.getByTitle("Working page preview").waitFor();
   await visit("/");
+  const newProject = page.getByRole("radio", { name: "New app or website", exact: true });
+  await newProject.waitFor();
+  await page.getByRole("radio", { name: "Existing app or website", exact: true }).waitFor();
+  // This fixture blocks off-origin requests. A fallback font can draw the text even if
+  // the stylesheet fails, so verify both the computed stack and the loaded font face.
+  for (const [element, family] of [
+    [page.getByRole("heading", { level: 1 }), "Focus Manrope"],
+    [button("Continue"), "Focus DM Sans"],
+  ]) {
+    const loaded = await element.evaluate(async (node, family) => {
+      await document.fonts.ready;
+      const first = getComputedStyle(node).fontFamily.split(",")[0].replace(/["']/g, "");
+      return (
+        first === family &&
+        [...document.fonts].some(
+          (face) => face.family.replace(/["']/g, "") === family && face.status === "loaded",
+        )
+      );
+    }, family);
+    assert(loaded, family + " did not render on the first page.");
+  }
   await button("Open my journey brief").click();
   await page.getByLabel("Project starting point").selectOption("new");
   await page.getByLabel("What should someone be able to do?").fill("Find class prices & times");

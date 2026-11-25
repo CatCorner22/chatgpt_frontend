@@ -73,10 +73,88 @@ export function GardenHome() {
   const isGoal = step.id === "goal";
   const studio = step.action === "studio" || step.action === "gallery";
 
+  const introduction = (
+    <>
+      <div className="garden-work-top">
+        <div className="garden-step-navigation">
+          <p className="eyebrow">
+            Step {index + 1} of {GARDEN_STEPS.length}
+          </p>
+          {!isGoal && (
+            <button type="button" className="garden-text-action" onClick={() => visit("goal")}>
+              Change starting point
+            </button>
+          )}
+        </div>
+        <label className="garden-brief-toggle">
+          <input
+            type="checkbox"
+            checked={preferences.brief}
+            disabled={!ready}
+            onChange={(event) => change({ brief: event.target.checked })}
+            aria-describedby="garden-brief-help"
+          />
+          Keep it brief
+        </label>
+      </div>
+      <span id="garden-brief-help" className="sr-only">
+        Hide the longer lessons. Your preference is saved in this browser when storage is available.
+      </span>
+      {issue && (
+        <p role="status" className="garden-storage-note">
+          {issue} You can keep exploring in this tab.
+        </p>
+      )}
+      <h1 ref={heading} id="garden-heading" tabIndex={-1}>
+        {isGoal ? "Where do we start?" : step.title}
+      </h1>
+      <p className="garden-intro">{isGoal ? "I’m Reverie, your design guide." : step.intro}</p>
+    </>
+  );
+
   return (
     <div className="garden-page">
       <AppHeader />
-      <main id="main-content" className="garden-layout" aria-busy={!ready}>
+      <main
+        id="main-content"
+        className={isGoal ? "garden-layout garden-entry-layout" : "garden-layout"}
+        aria-busy={!ready}
+      >
+        {isGoal && (
+          <section className="garden-work garden-entry" aria-labelledby="garden-heading">
+            {introduction}
+            <fieldset className="garden-goals garden-entry-choices" disabled={!ready}>
+              <legend className="sr-only">Choose a starting point</legend>
+              {step.choices.map((choice) => (
+                <label key={choice.id} className="garden-goal">
+                  <input
+                    type="radio"
+                    name="garden-goal"
+                    value={choice.id}
+                    checked={preferences.goal === choice.id}
+                    onChange={() => change({ goal: choice.id === "existing" ? "existing" : "new" })}
+                    aria-labelledby={`garden-choice-${choice.id}`}
+                    aria-describedby={`garden-choice-help-${choice.id}`}
+                  />
+                  <span>
+                    <strong id={`garden-choice-${choice.id}`}>{choice.title}</strong>
+                    <span id={`garden-choice-help-${choice.id}`}>{choice.benefit}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            <div className="garden-actions">
+              <button
+                className="garden-primary"
+                type="button"
+                disabled={!ready}
+                onClick={() => visit("content")}
+              >
+                Continue <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </section>
+        )}
         <aside className="garden-landscape" aria-label="Your journey with Reverie">
           <p className="garden-motto">A little clarity. A calmer path.</p>
           <div className="garden-map">
@@ -128,37 +206,12 @@ export function GardenHome() {
           </p>
         </aside>
 
-        <section className="garden-work" aria-labelledby="garden-heading">
-          <div className="garden-work-top">
-            <p className="eyebrow">
-              Step {index + 1} of {GARDEN_STEPS.length}
-            </p>
-            <label className="garden-brief-toggle">
-              <input
-                type="checkbox"
-                checked={preferences.brief}
-                disabled={!ready}
-                onChange={(event) => change({ brief: event.target.checked })}
-                aria-describedby="garden-brief-help"
-              />
-              Keep it brief
-            </label>
-          </div>
-          <span id="garden-brief-help" className="sr-only">
-            Hide the longer lessons. Your preference is saved in this browser when storage is
-            available.
-          </span>
-          {issue && (
-            <p role="status" className="garden-storage-note">
-              {issue} You can keep exploring in this tab.
-            </p>
-          )}
-          <h1 ref={heading} id="garden-heading" tabIndex={-1}>
-            {isGoal ? "What are we working on?" : step.title}
-          </h1>
-          <p className="garden-intro">
-            {isGoal ? "I’m Reverie. We’ll take this one thoughtful step at a time." : step.intro}
-          </p>
+        <section
+          className="garden-work garden-step-body"
+          aria-label={isGoal ? "Planning your project" : undefined}
+          aria-labelledby={isGoal ? undefined : "garden-heading"}
+        >
+          {!isGoal && introduction}
           <div className="garden-formula-row">
             <dl className="garden-formula" aria-label="Your next small step">
               <div>
@@ -187,35 +240,18 @@ export function GardenHome() {
             </figure>
           </div>
           {isGoal && (
+            <p className="garden-scope-note">
+              {step.choices.find((choice) => choice.id === preferences.goal)?.tradeoff}
+            </p>
+          )}
+          {isGoal && (
             <Link to="/field-guide" className="garden-text-action garden-field-guide-link">
               <BookOpen size={18} aria-hidden="true" />
               New to this? Learn the words and try a practice trail.
             </Link>
           )}
 
-          {isGoal ? (
-            <fieldset className="garden-goals" disabled={!ready}>
-              <legend className="sr-only">Choose a starting point</legend>
-              {step.choices.map((choice) => (
-                <label key={choice.id} className="garden-goal">
-                  <input
-                    type="radio"
-                    name="garden-goal"
-                    value={choice.id}
-                    checked={preferences.goal === choice.id}
-                    onChange={() => change({ goal: choice.id === "existing" ? "existing" : "new" })}
-                  />
-                  <span>
-                    <strong>
-                      {choice.id === "existing" ? "An existing app or website" : "A new page"}
-                    </strong>
-                    <span>{choice.benefit}</span>
-                    <span className="garden-tradeoff">{choice.tradeoff}</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          ) : (
+          {!isGoal && (
             <div className="garden-task">
               <p className="garden-purpose">{step.purpose}</p>
               <ul>
@@ -227,7 +263,7 @@ export function GardenHome() {
                 <p className="garden-context">
                   {preferences.goal === "existing"
                     ? "Your starting point: an existing app or website. Keep its useful features as you explore."
-                    : "Your starting point: a new page. Make room for real content as you explore."}
+                    : "Your starting point: a new app or website. Make room for real content as you explore."}
                 </p>
               )}
               <details className="garden-options">
@@ -254,46 +290,43 @@ export function GardenHome() {
             {isGoal ? "Your live site stays unchanged while you plan." : step.evidenceNote}
           </p>
           {formula.scopeNote && <p className="garden-scope-note">{formula.scopeNote}</p>}
-          <div className="garden-actions">
-            {isGoal ? (
-              <button
-                className="garden-primary"
-                type="button"
-                disabled={!ready}
-                onClick={() => visit("content")}
-              >
-                Continue <ArrowRight size={18} aria-hidden="true" />
-              </button>
-            ) : formula.primaryGroup ? (
-              <Link
-                to="/"
-                search={stratosphereSearch(formula.primaryGroup)}
-                className="garden-primary"
-              >
-                {formula.primaryLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            ) : studio ? (
-              <Link to="/" search={{ view: "studio" }} className="garden-primary">
-                {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            ) : (
-              <Link
-                to={destinations[step.action as keyof typeof destinations]}
-                className="garden-primary"
-              >
-                {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            )}
-            {!isGoal && index < GARDEN_STEPS.length - 1 && (
-              <button
-                className="garden-text-action"
-                type="button"
-                onClick={() => visit(GARDEN_STEPS[index + 1]!.id)}
-              >
-                Visit next stop <ArrowRight size={16} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          {!isGoal && (
+            <div className="garden-actions">
+              {formula.primaryGroup ? (
+                <Link
+                  to="/"
+                  search={stratosphereSearch(formula.primaryGroup)}
+                  className="garden-primary"
+                >
+                  {formula.primaryLabel} <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              ) : studio ? (
+                <Link
+                  to="/"
+                  search={{ view: "studio", start: preferences.goal }}
+                  className="garden-primary"
+                >
+                  {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link
+                  to={destinations[step.action as keyof typeof destinations]}
+                  className="garden-primary"
+                >
+                  {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              )}
+              {index < GARDEN_STEPS.length - 1 && (
+                <button
+                  className="garden-text-action"
+                  type="button"
+                  onClick={() => visit(GARDEN_STEPS[index + 1]!.id)}
+                >
+                  Visit next stop <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          )}
           {formula.details && (
             <nav className="garden-detail-links" aria-label="Other craft details">
               <span>Then explore</span>

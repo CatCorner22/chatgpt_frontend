@@ -2,7 +2,7 @@ import { focusLocalStorage, focusSessionStorage } from "@/lib/browser-storage";
 import { DesignShareAction } from "@/components/DesignShareAction";
 import { LazyAuthoredPagePanel } from "@/components/LazyAuthoredPagePanel";
 import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
-import { EMPTY, migrate, snap, type State } from "@/lib/studio-state";
+import { EMPTY, isEmptyStudioDraft, migrate, snap, type State } from "@/lib/studio-state";
 import { ContentEditor } from "@/components/ContentEditor";
 import { StudioWelcome, StarterCollection } from "@/components/StudioWelcome";
 import { GardenHome } from "@/components/GardenHome";
@@ -18,6 +18,7 @@ import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
 import { createLocalDirections, buildLocalOptions } from "@/lib/local-design";
 import {
+  keepStudioCheckpoint,
   readStudioRecoveries,
   restoreStudioSave,
   studioHistoryNeedsRecovery,
@@ -32,7 +33,7 @@ import { WaitLine } from "@/components/WaitLine";
 import { ReviewAnswers } from "@/components/ReviewAnswers";
 import { designId } from "@/lib/launch";
 import { signDesignId } from "@/lib/signing.functions";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { saveProject, createShare, STUDIO_KEY } from "@/lib/projects";
 import { buildPack, downloadBlob, PackError, scopedTokensCss } from "@/lib/exportPack";
 import { useUser } from "@/hooks/useSession";
@@ -126,9 +127,9 @@ export const Route = createFileRoute("/")({
 });
 
 function FocusHome() {
-  const { view, panel, group } = Route.useSearch();
+  const { view, panel, group, start } = Route.useSearch();
   return view === "studio" ? (
-    <Studio workshop={panel === "stratosphere"} requestedGroup={group} />
+    <Studio workshop={panel === "stratosphere"} requestedGroup={group} gardenStart={start} />
   ) : (
     <GardenHome />
   );
@@ -158,7 +159,9 @@ const EXAMPLES = [
 function Studio({
   workshop = false,
   requestedGroup,
+  gardenStart,
 }: {
+  gardenStart?: Integration | undefined;
   workshop?: boolean;
   requestedGroup?: StratosphereGroupId | undefined;
 }) {
@@ -171,6 +174,8 @@ function Studio({
   const [recoveries, setRecoveries] = useState<{ key: string; raw: string }[]>([]);
   const [persistenceIssue, setPersistenceIssue] = useState("");
   const [handoffIssue, setHandoffIssue] = useState("");
+  const startingSeparateDraft = useRef(false);
+  const [gardenStartIssue, setGardenStartIssue] = useState("");
   const [saveAttempt, setSaveAttempt] = useState(0);
   const restored = useRef(false);
   const restore = useCallback(() => {
@@ -206,6 +211,7 @@ function Studio({
       // Recovered originals stay available on later visits, including after new work is saved.
       setRecoveries(readStudioRecoveries(focusLocalStorage, KEY));
       const prior = { ...result.state };
+      if (gardenStart && isEmptyStudioDraft(prior)) prior.integration = gardenStart;
       if (prior.tokens && prior.content && !prior.libraryId) prior.libraryId = crypto.randomUUID();
       try {
         focusLocalStorage.setItem(KEY, JSON.stringify(prior));
@@ -248,7 +254,7 @@ function Studio({
           "This browser is not allowing access to saved designs. Allow site storage, then try again.",
       });
     }
-  }, []);
+  }, [gardenStart]);
   useEffect(() => {
     if (restored.current) return;
     restored.current = true;
@@ -327,12 +333,13 @@ function Studio({
 
   const [ask, setAsk] = useState<null | "new" | "retake">(null);
   const dirty = hasUnsavedWork(s);
-  useLeaveGuard(dirty);
+  const choosingGardenDraft = !!gardenStart && s.integration !== gardenStart;
+  useLeaveGuard(dirty && (!choosingGardenDraft || !!persistenceIssue));
   useStudioNavigationGuard({ persistenceFailed: !!persistenceIssue, busy: saving });
-  const reset = (k: "new" | "retake") =>
+  const reset = (k: "new" | "retake", mode = EMPTY.integration) =>
     setS((o) =>
       k === "new"
-        ? { ...EMPTY, past: [...o.past, snap(o)].slice(-30) }
+        ? { ...EMPTY, integration: mode, ...record(o, snap(o)) }
         : {
             ...o,
             past: [...o.past, snap(o)].slice(-30),
@@ -378,10 +385,70 @@ function Studio({
         </main>
       </div>
     );
+  if (gardenStart && s.integration !== gardenStart) {
+    const nextProject =
+      gardenStart === "new" ? "a new app or website" : "an existing app or website";
+    const savedName = s.content?.brand || s.brief || "Untitled design";
+    const startSeparately = () => {
+      if (startingSeparateDraft.current) return;
+      startingSeparateDraft.current = true;
+      try {
+        const raw = JSON.stringify(s);
+        if (focusLocalStorage.getItem(KEY) !== raw) {
+          startingSeparateDraft.current = false;
+          setGardenStartIssue(
+            "Your saved draft changed in another tab. Resume saved work to open the latest version.",
+          );
+          return;
+        }
+        const copyKey = `${KEY}:recovery:${new Date().toISOString()}:${crypto.randomUUID()}`;
+        keepStudioCheckpoint(focusLocalStorage, copyKey, raw);
+        setRecoveries((copies) => [{ key: copyKey, raw }, ...copies]);
+        reset("new", gardenStart);
+      } catch {
+        startingSeparateDraft.current = false;
+        setGardenStartIssue(
+          "Focus couldn’t confirm a backup of your current draft. Resume your saved work or reload to see the latest copy.",
+        );
+      }
+    };
+    return (
+      <div className="min-h-screen">
+        <AppHeader />
+        <main id="main-content" className="mx-auto max-w-2xl px-6 py-12">
+          <h1 className="font-display text-3xl">You have a saved draft</h1>
+          <p className="mt-4 break-words">
+            Your studio has “{savedName.slice(0, 120)}”. You chose {nextProject} in the Garden.
+          </p>
+          <p className="mt-3 text-muted-foreground">
+            Keep working on this draft, or start another. Starting another keeps a backup in this
+            browser and adds an Undo step.
+          </p>
+          {gardenStartIssue && (
+            <p role="alert" className="mt-3 text-destructive">
+              {gardenStartIssue}
+            </p>
+          )}
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button onClick={startSeparately}>Start a separate draft</Button>
+            <Button variant="outline" asChild>
+              <Link to="/" search={{ view: "studio" }} reloadDocument>
+                Resume saved work
+              </Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen">
+      {gardenStart && <Navigate to="/" search={{ view: "studio" }} replace resetScroll={false} />}
       <AppHeader>
-        {(s.stage !== "brief" || (workshop && s.tokens)) && (
+        {(s.stage !== "brief" ||
+          (workshop && s.tokens) ||
+          s.past.length > 0 ||
+          s.future.length > 0) && (
           <>
             <div className="flex items-center gap-4">
               {workshop ? (
@@ -426,9 +493,11 @@ function Studio({
                   {saving ? "Saving…" : s.projectId ? "Save" : "Save to my account"}
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={() => requestReset("new")}>
-                New design
-              </Button>
+              {(s.stage !== "brief" || (workshop && s.tokens)) && (
+                <Button variant="ghost" size="sm" onClick={() => requestReset("new")}>
+                  New design
+                </Button>
+              )}
             </div>
           </>
         )}
@@ -468,8 +537,8 @@ function Studio({
                 Original saved data preserved ({recoveries.length})
               </summary>
               <p className="mt-3 text-sm text-muted-foreground">
-                A previous save could not be read. Its original data is retained in this browser and
-                can be downloaded for recovery. New work saves separately.
+                These earlier workspace copies are kept in this browser. You can download one for
+                recovery.
               </p>
               <div className="mt-3 flex flex-wrap gap-3">
                 {recoveries.map((copy, i) => (

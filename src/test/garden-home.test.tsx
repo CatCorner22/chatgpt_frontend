@@ -121,7 +121,7 @@ describe("Garden home", () => {
       step: "handoff",
       brief: false,
     });
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("What are we working on?");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Where do we start?");
   });
 
   it("keeps unsaved lesson choices on retry while preserving a newer goal from another tab", async () => {
@@ -153,7 +153,7 @@ describe("Garden home", () => {
     const clears = vi.spyOn(Storage.prototype, "clear");
     render(<GardenHome />);
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(
-      "What are we working on?",
+      "Where do we start?",
     );
     expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "false");
     expect(reads.mock.calls.every(([key]) => key === GARDEN_KEY)).toBe(true);
@@ -161,21 +161,50 @@ describe("Garden home", () => {
     expect(removes).not.toHaveBeenCalled();
     expect(clears).not.toHaveBeenCalled();
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
-    expect(screen.getByRole("radio", { name: /^An existing app or website/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Existing app or website/ })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).toBeChecked();
+  });
+
+  it("puts both starts and Continue before the map, and lets a returning visitor change paths", async () => {
+    seedProtectedRecords();
+    render(<GardenHome />);
+    const choices = await screen.findByRole("group", { name: "Choose a starting point" });
+    const map = screen.getByRole("navigation", { name: "Garden Path steps" });
+    const next = screen.getByRole("button", { name: "Continue" });
+    expect(choices.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(next.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const fresh = within(choices).getByRole("radio", { name: "New app or website" });
+    const existing = within(choices).getByRole("radio", { name: "Existing app or website" });
+    expect(fresh).toHaveAccessibleDescription(/first version/);
+    expect(existing).toHaveAccessibleDescription(/working features/);
+    fireEvent.click(fresh);
+    fireEvent.click(next);
+    expect(screen.getByRole("link", { name: "Work on the page content" })).toHaveAttribute(
+      "href",
+      "/?view=studio&start=new",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Change starting point" }));
+    expect(screen.getByRole("radio", { name: "New app or website" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "Existing app or website" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toMatchObject({
+      step: "content",
+      goal: "existing",
+    });
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
 
   it("remembers goal and navigation choices, focuses the new heading, and writes no completion evidence", async () => {
     seedProtectedRecords();
     const writes = vi.spyOn(Storage.prototype, "setItem");
     render(<GardenHome />);
-    fireEvent.click(await screen.findByRole("radio", { name: /^A new page/ }));
+    fireEvent.click(await screen.findByRole("radio", { name: /^New app or website/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus(),
     );
     visitStep("direction");
-    expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+    expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
     const navigation = screen.getByRole("navigation", { name: "Garden Path steps" });
     expect(within(navigation).getAllByRole("button")).toHaveLength(9);
     expect(GARDEN_STEPS.map((step) => step.id)).toEqual(
@@ -227,7 +256,7 @@ describe("Garden home", () => {
       render(<GardenHome />);
       const step = getGardenStep(stepId);
       expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(
-        stepId === "goal" ? "What are we working on?" : step.title,
+        stepId === "goal" ? "Where do we start?" : step.title,
       );
       expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
       expect(lessons().details).toHaveAttribute("open");
@@ -296,11 +325,11 @@ describe("Garden home", () => {
     });
     render(<GardenHome />);
     expect(await screen.findByRole("status")).toHaveTextContent(/could not be read/);
-    fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^New app or website/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus();
     visitStep("direction");
-    expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+    expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
     fireEvent.click(lessons().summary);
     expect(lessons().details).toHaveAttribute("open");
@@ -325,13 +354,13 @@ describe("Garden home", () => {
         vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
           throw new Error("Readback denied");
         });
-      fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
+      fireEvent.click(screen.getByRole("radio", { name: /^New app or website/ }));
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
       expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
       visitStep("direction");
-      expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+      expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
       visitStep("goal");
-      expect(screen.getByRole("radio", { name: /^A new page/ })).toBeChecked();
+      expect(screen.getByRole("radio", { name: /^New app or website/ })).toBeChecked();
       if (failure !== "denied readback") expect(readOriginal(GARDEN_KEY)).toBe(before);
     },
   );
@@ -345,9 +374,9 @@ describe("Garden home", () => {
       "/welcome",
     );
     const destinations: Record<Exclude<GardenStepId, "goal">, string> = {
-      content: "/?view=studio",
+      content: "/?view=studio&start=existing",
       plan: "/?view=studio&panel=stratosphere&group=composition",
-      direction: "/?view=studio",
+      direction: "/?view=studio&start=existing",
       craft: "/?view=studio&panel=stratosphere&group=palette",
       behavior: "/?view=studio&panel=stratosphere&group=form",
       responsive: "/quality",
@@ -368,7 +397,7 @@ describe("Garden home", () => {
     }
     expect([...offered]).toEqual(
       expect.arrayContaining([
-        "/?view=studio",
+        "/?view=studio&start=existing",
         "/?view=studio&panel=stratosphere&group=palette",
         "/quality",
         "/target",

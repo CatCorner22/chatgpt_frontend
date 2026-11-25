@@ -1,0 +1,118 @@
+/* Put the first decision before the map in reading and keyboard order. */
+.garden-layout.garden-entry-layout {
+  row-gap: 20px;
+}
+
+.garden-entry-layout > .garden-entry {
+  grid-column: 2;
+  grid-row: 1;
+  margin-top: 0;
+}
+
+.garden-entry-layout > .garden-landscape {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.garden-entry-layout > .garden-step-body {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.garden-goals.garden-entry-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  border: 0;
+}
+
+.garden-entry-choices .garden-goal {
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.garden-entry-choices .garden-goal:has(:checked) {
+  border-color: #315640;
+  background: #edf8f4;
+}
+
+.garden-entry-choices .garden-goal:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.garden-entry-choices .garden-goal strong {
+  font-size: 20px;
+}
+
+.garden-entry-choices .garden-goal span > span {
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.garden-entry .garden-actions {
+  margin-top: 16px;
+}
+
+.garden-step-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+
+@media (max-width: 800px) {
+  .garden-entry-layout > .garden-landscape {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .garden-goals.garden-entry-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .garden-page .studio-header-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 8px;
+    padding: 8px 16px 0;
+  }
+
+  .garden-page .studio-logo {
+    min-height: 44px;
+  }
+
+  .garden-page .brand-logo--focus {
+    width: 126px;
+  }
+
+  .garden-page .studio-navigation {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    gap: 0 4px;
+  }
+
+  .garden-layout.garden-entry-layout {
+    padding-top: 12px;
+  }
+
+  .garden-entry h1 {
+    margin-top: 8px;
+  }
+
+  .garden-entry .garden-intro {
+    margin-top: 8px;
+  }
+
+  .garden-entry-choices .garden-goal {
+    gap: 10px;
+    padding: 12px;
+  }
+}

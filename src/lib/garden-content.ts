@@ -62,16 +62,17 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
     actionLabel: "Open the design studio",
     choices: [
       {
-        id: "existing" satisfies GardenGoal,
-        title: "Improve an existing app",
-        benefit: "Build on the pages and features you already have.",
-        tradeoff: "Changes need a separate preview and a way to restore the earlier version.",
+        id: "new" satisfies GardenGoal,
+        title: "New app or website",
+        benefit: "Design your first version.",
+        tradeoff: "You’ll need content and a working build to test before launch.",
       },
       {
-        id: "new" satisfies GardenGoal,
-        title: "Begin something new",
-        benefit: "Choose the structure and visual direction from a fresh start.",
-        tradeoff: "Content, working features, and testing still need to be built.",
+        id: "existing" satisfies GardenGoal,
+        title: "Existing app or website",
+        benefit: "Build on your working features.",
+        tradeoff:
+          "Try changes in a separate preview and keep a way to restore the earlier version.",
       },
     ],
     lessons: [

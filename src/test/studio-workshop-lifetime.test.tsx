@@ -7,7 +7,11 @@ import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
 import { buildLocalOptions } from "@/lib/local-design";
 
 const operations = vi.hoisted(() => ({
-  search: { view: "studio", panel: "stratosphere" } as { view: "studio"; panel?: "stratosphere" },
+  search: { view: "studio", panel: "stratosphere" } as {
+    view: "studio";
+    panel?: "stratosphere";
+    start?: "new" | "existing";
+  },
   step: vi.fn(),
   directions: vi.fn(),
 }));
@@ -15,8 +19,19 @@ vi.mock("@tanstack/react-router", async (original) => ({
   ...(await original<typeof import("@tanstack/react-router")>()),
   createFileRoute: () => (options: unknown) => ({ options, useSearch: () => operations.search }),
   useBlocker: () => undefined,
-  Link: ({ to, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
-    <a href={to} {...props}>
+  Navigate: () => null,
+  Link: ({
+    to,
+    children,
+    search,
+    reloadDocument: _reload,
+    ...props
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & {
+    to: string;
+    search?: Record<string, string>;
+    reloadDocument?: boolean;
+  }) => (
+    <a href={to + (search ? `?${new URLSearchParams(search)}` : "")} {...props}>
       {children}
     </a>
   ),
@@ -157,6 +172,72 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllEnvs();
+});
+
+describe("Garden-directed Studio start", () => {
+  it("lets an untouched saved workspace adopt either project type without a recovery copy", async () => {
+    operations.search = { view: "studio", start: "existing" };
+    localStorage.setItem(key, JSON.stringify({ ...EMPTY, integration: "new" }));
+    render(<FocusHome />);
+    await screen.findByRole("button", { name: "Start fixture directions" });
+    const result = JSON.parse(localStorage.getItem(key)!);
+    expect(result.integration).toBe("existing");
+    expect(result.past).toEqual([]);
+    expect(screen.queryByText(/Original saved data preserved/)).toBeNull();
+  });
+
+  it.each(["brief", "history"] as const)(
+    "preserves %s work and offers an explicit separate draft",
+    async (kind) => {
+      const original = {
+        ...EMPTY,
+        integration: "new",
+        brief: kind === "brief" ? "Family studio appointments" : "",
+        future: kind === "history" ? [{ ...EMPTY, brief: "Restorable edits" }] : [],
+      };
+      operations.search = { view: "studio", start: "existing" };
+      localStorage.setItem(key, JSON.stringify(original));
+      const ui = render(<FocusHome />);
+      expect(await screen.findByRole("heading", { name: "You have a saved draft" })).toBeVisible();
+      expect(screen.getByRole("link", { name: "Resume saved work" })).toHaveAttribute(
+        "href",
+        "/?view=studio",
+      );
+      const previous = localStorage.getItem(key)!;
+      expect(JSON.parse(previous).integration).toBe("new");
+      fireEvent.click(screen.getByRole("button", { name: "Start a separate draft" }));
+      await screen.findByRole("button", { name: "Start fixture directions" });
+      const checkpoints = Object.keys(localStorage).filter((item) =>
+        item.startsWith(key + ":recovery:"),
+      );
+      expect(checkpoints).toHaveLength(1);
+      expect(localStorage.getItem(checkpoints[0]!)).toBe(previous);
+      expect(JSON.parse(localStorage.getItem(key)!)).toMatchObject({
+        integration: "existing",
+        brief: "",
+      });
+      operations.search = { view: "studio" };
+      ui.rerender(<FocusHome />);
+      fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+      expect(JSON.parse(localStorage.getItem(key)!)).toMatchObject({
+        integration: "new",
+        brief: original.brief,
+      });
+    },
+  );
+
+  it("keeps a newer draft from another tab when a separate start is requested", async () => {
+    operations.search = { view: "studio", start: "new" };
+    const before = { ...EMPTY, integration: "existing", brief: "Original brief" };
+    localStorage.setItem(key, JSON.stringify(before));
+    render(<FocusHome />);
+    const button = await screen.findByRole("button", { name: "Start a separate draft" });
+    const newer = JSON.stringify({ ...before, brief: "Changed in another tab" });
+    localStorage.setItem(key, newer);
+    fireEvent.click(button);
+    expect(screen.getByRole("alert")).toHaveTextContent(/changed in another tab/);
+    expect(localStorage.getItem(key)).toBe(newer);
+  });
 });
 
 describe("Studio workshop and question lifetime", () => {

@@ -3,6 +3,18 @@ import { parseGardenSearch, stratosphereSearch } from "@/lib/garden-navigation";
 import { STRATOSPHERE_GROUPS } from "@/lib/stratosphere";
 
 describe("Garden workshop navigation", () => {
+  it("carries only a supported project type into a plain Studio visit", () => {
+    for (const start of ["new", "existing"]) {
+      expect(parseGardenSearch({ view: "studio", start })).toEqual({ view: "studio", start });
+      expect(parseGardenSearch({ view: "studio", start, panel: "stratosphere" })).toEqual({
+        view: "studio",
+        panel: "stratosphere",
+      });
+      expect(parseGardenSearch({ start })).toEqual({});
+    }
+    expect(parseGardenSearch({ view: "studio", start: ["new"] })).toEqual({ view: "studio" });
+  });
+
   it("accepts exactly the groups in the existing workshop registry", () => {
     for (const { id } of STRATOSPHERE_GROUPS) {
       const search = stratosphereSearch(id);

@@ -67,6 +67,15 @@ export const EMPTY: State = {
   future: [],
 };
 export const snap = ({ past: _p, future: _f, cache: _c, ...rest }: State): Snap => rest;
+/** Only an untouched workspace may adopt a Garden start without asking. */
+export function isEmptyStudioDraft(state: State): boolean {
+  return (Object.keys(state) as (keyof State)[]).every(
+    (key) =>
+      Object.hasOwn(EMPTY, key) &&
+      (key === "integration" || JSON.stringify(state[key]) === JSON.stringify(EMPTY[key])),
+  );
+}
+
 // Older saves pass through the same correction step as AI output.
 export function migrate(raw: Partial<State>): State {
   assertRestorableStudioState(raw);

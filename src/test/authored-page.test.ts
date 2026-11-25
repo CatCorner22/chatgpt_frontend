@@ -309,6 +309,8 @@ describe("authored page export", () => {
 
   it.each([
     "https://example.com/book?x=1&y=2",
+    "https://Bookings.Example.org:443?slot=am&slot=pm",
+    "https://classes.example.org:8443/artist/O'Brien/book?time=am",
     "http://example.com/about",
     "mailto:hello@example.com",
     "tel:+14155550100",

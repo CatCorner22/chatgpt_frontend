@@ -8,7 +8,7 @@ export function actionDestination(value: unknown): string | null {
     [...raw].some(
       (character) => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127,
     ) ||
-    /[<>"'`\\]/.test(raw) ||
+    /[<>"`\\]/.test(raw) ||
     /%(?:0a|0d)/i.test(raw)
   )
     return null;
@@ -22,15 +22,28 @@ export function actionDestination(value: unknown): string | null {
   if (/^tel:/i.test(raw)) return /^tel:\+?[0-9][0-9().-]{2,39}$/.test(raw) ? raw : null;
   try {
     const url = new URL(raw);
-    return (url.protocol === "https:" || url.protocol === "http:") &&
-      url.hostname &&
-      !url.username &&
-      !url.password
-      ? url.href
-      : null;
+    if (
+      !["https:", "http:"].includes(url.protocol) ||
+      !url.hostname ||
+      url.username ||
+      url.password
+    )
+      return null;
+    // Keep the owner's spelling in exported attributes. Legacy shorthand still
+    // receives the absolute serialization used by earlier authored pages.
+    return /^https?:\/\/[^/?#]/i.test(raw) ? raw : url.href;
   } catch {
     return null;
   }
+}
+
+/** Earlier pages normalized web addresses and rejected literal apostrophes. */
+export function changesPreviousActionMarkup(value: unknown): boolean {
+  const action = actionDestination(value);
+  return (
+    !!action &&
+    (action.includes("'") || (/^https?:/i.test(action) && new URL(action).href !== action))
+  );
 }
 
 const SECRET_PARAMETERS = new Set([
@@ -49,9 +62,12 @@ const SECRET_PARAMETERS = new Set([
 ]);
 const SIGNED_LINK_PARAMETERS = new Set([
   ...SECRET_PARAMETERS,
-  "code",
   "signature",
   "sig",
+  "client_assertion",
+  "oauth_token",
+  "jwt",
+  "session_token",
   "x-amz-signature",
   "x-goog-signature",
   "x-amz-credential",
@@ -71,22 +87,50 @@ export function containsUrlCredentials(url: URL, secretParameters = SECRET_PARAM
   );
 }
 
-/** A guide may circulate independently of the page. Only include a public web destination. */
-export function websiteActionForHandoff(page: unknown): string | null {
-  if (!page || typeof page !== "object" || !("actionUrl" in page)) return null;
-  if (typeof page.actionUrl !== "string" || page.actionUrl.length > 2000) return null;
-  const href = actionDestination(page.actionUrl);
-  if (!href || !/^https?:\/\//.test(href)) return null;
+function publicWebAction(value: unknown) {
+  if (typeof value !== "string" || value.length > 2000) return null;
+  const href = actionDestination(value);
+  if (!href || !/^https?:\/\//i.test(href)) return null;
   const url = new URL(href);
   const host = url.hostname.toLowerCase().replace(/\.$/, "");
-  url.hostname = host;
+  // This is navigation data. Only reuse the Critic's host check; its network
+  // fetch port restrictions do not apply to a link a developer will render.
   if (
-    !safeUrl(url.href) ||
+    !safeUrl(`https://${host}/`) ||
     host.endsWith(".localhost") ||
     host === "home.arpa" ||
     host.endsWith(".home.arpa") ||
     containsUrlCredentials(url, SIGNED_LINK_PARAMETERS)
   )
     return null;
-  return href;
+  const params = [
+    ...url.searchParams,
+    ...new URLSearchParams(url.hash.slice(1)),
+    ...new URLSearchParams(url.hash.slice(1).split("?")[1] ?? ""),
+  ];
+  const has = (key: string) =>
+    params.some(([name, data]) => name.toLowerCase() === key && data.trim());
+  const hasCode = has("code");
+  if (
+    hasCode &&
+    (has("state") ||
+      has("client_id") ||
+      /(?:oauth|authorize|callback|signin|login)/i.test(url.pathname))
+  )
+    return null;
+  return { href, hasCode };
+}
+
+export function needsPublicCodeConfirmation(value: unknown): boolean {
+  return publicWebAction(value)?.hasCode === true;
+}
+
+/** Public promo codes and one-time login codes can use the same parameter name. */
+export function websiteActionForHandoff(page: unknown): string | null {
+  if (!page || typeof page !== "object" || !("actionUrl" in page)) return null;
+  const action = publicWebAction(page.actionUrl);
+  if (!action) return null;
+  if (action.hasCode && !("publicCodeUrl" in page && page.publicCodeUrl === page.actionUrl))
+    return null;
+  return action.href;
 }

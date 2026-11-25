@@ -22,7 +22,7 @@ import {
 import { usePageImage } from "@/hooks/usePageImage";
 import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
-import { websiteActionForHandoff } from "@/lib/action-destination";
+import { needsPublicCodeConfirmation, websiteActionForHandoff } from "@/lib/action-destination";
 import { CompositionComparison } from "@/components/CompositionComparison";
 import { ImageFramingControls } from "@/components/ImageFramingControls";
 import { compactImageFraming } from "@/lib/image-framing";
@@ -303,10 +303,36 @@ export function AuthoredPageEditor({
           id="page-action-url"
           value={settings.actionUrl}
           maxLength={2000}
-          onChange={(e) => onSettings({ ...settings, actionUrl: e.target.value })}
+          onChange={(e) =>
+            onSettings(
+              normalizePageSettings({
+                ...settings,
+                actionUrl: e.target.value,
+                publicCodeUrl: undefined,
+              }),
+            )
+          }
           placeholder="https://… or mailto:hello@…"
           aria-describedby="page-action-help"
         />
+        {needsPublicCodeConfirmation(settings.actionUrl) && (
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={settings.publicCodeUrl === settings.actionUrl}
+              onChange={(event) =>
+                onSettings(
+                  normalizePageSettings({
+                    ...settings,
+                    publicCodeUrl: event.target.checked ? settings.actionUrl : undefined,
+                  }),
+                )
+              }
+            />
+            This code is public, like a coupon. Include this link in my developer guides.
+          </label>
+        )}
         <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
           Use your actual booking page, contact address, or destination. Without a valid address,
           the page links to supplied feature details; when there are none, no main action is shown.

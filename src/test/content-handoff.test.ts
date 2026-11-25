@@ -291,7 +291,8 @@ describe("Target Content transfer", () => {
   });
 
   it("carries the selected design's exact public destination through the downloaded guides", async () => {
-    const href = "https://calendar.example.org/rooms?service=wheel&slot=am&slot=pm#classes";
+    const href =
+      "https://Calendar.example.org:8443/rooms/O'Brien?service=wheel&slot=am&slot=pm#classes";
     const saved = { ...entry, state: { ...entry.state, page: { actionUrl: href } } };
     const direct = prescription(entry.state.content, "Cursor", "new", saved.state.page, "website");
     const zip = await JSZip.loadAsync(await prepareTargetPack(draft, saved));
@@ -333,6 +334,28 @@ describe("Target Content transfer", () => {
     expect(markdown).not.toMatch(
       /private\.localhost|calendar\.example|studio@example|127\.0\.0\.1|synthetic/,
     );
+  });
+
+  it("keeps public-code confirmation bound to the exact link and excludes sign-in and signed links", async () => {
+    const href = "https://Bookings.example.org?code=SPRINGSALE&slot=morning";
+    const guide = (actionUrl: string, publicCodeUrl?: string) =>
+      prescription(editorLimitCopy, "Cursor", "new", { actionUrl, publicCodeUrl }, "website");
+    const markdown = await readPackDesign(guide(href, href), "Studio");
+    const blocks = [...markdown.matchAll(/^```json\n([\s\S]*?)^```$/gm)].map((m) =>
+      JSON.parse(m[1]!),
+    );
+    expect(blocks).toContainEqual({ format: "focus-primary-action-v1", href });
+    for (const [address, confirmation] of [
+      [href, undefined],
+      [href + "&day=2", href],
+      ...[
+        "https://service.example.org/oauth/callback?code=synthetic",
+        href + "&state=synthetic",
+        href + "&access_token=synthetic",
+      ].map((value) => [value, value]),
+    ]) {
+      expect(guide(address!, confirmation)).not.toContain("focus-primary-action-v1");
+    }
   });
 
   it("preserves the existing-project oversized-plan error", async () => {

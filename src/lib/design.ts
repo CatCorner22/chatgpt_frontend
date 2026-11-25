@@ -394,7 +394,7 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     "Own or local model":
       "If your model cannot accept the complete Vision in one request, provide the short summary followed by the relevant sections; review every result against the complete specification.",
     "Human developer":
-      "These are the design decisions for the build. Implement tokens.css as the single source of truth for color, type, spacing and radius; nothing else should be hardcoded.",
+      "These are the design decisions for the build. Read color, type, spacing and radius from tokens.css. Use the supplied content and primary destination from this guide.",
   }[tool];
   return `# Design Vision — new project
 

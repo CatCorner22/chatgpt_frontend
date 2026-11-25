@@ -225,6 +225,50 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     },
   );
 
+  it.each([false, true])(
+    "pasting the downloaded guide stops before changing files on any refused check (portable=%s)",
+    async (portable) => {
+      const f = await fixture(files, "", portable);
+      const target = join(f.project, files[0]!.path);
+      const original = await readFile(target, "utf8");
+      for (const filename of ["START-HERE.md", "AGENT-HANDOFF.md"]) {
+        const guide = await readFile(join(f.bundle, filename), "utf8");
+        const blocks = [...guide.matchAll(/```sh\n([\s\S]*?)\n```/g)].map((match) =>
+          match[1]!
+            .replaceAll("/absolute/path/to/isolated-project", f.project)
+            .replaceAll("/absolute/path/to/focus-source-trial", f.bundle),
+        );
+        const runBlock = (direction: "forward" | "rollback") => {
+          const block = blocks.find((cmd) =>
+            cmd.includes(`apply "${f.bundle}/${direction}.patch"`),
+          );
+          expect(block).toBeDefined();
+          return spawnSync("sh", ["-c", block!], {
+            cwd: f.bundle,
+            env: isolatedChildEnv(),
+            encoding: "utf8",
+            timeout: 15000,
+          });
+        };
+        await writeFile(target, original + "\n// Later local edit before application.\n");
+        const beforeRefusedApply = await snapshot(f.project);
+        expect(runBlock("forward").status).not.toBe(0);
+        expect(await snapshot(f.project)).toEqual(beforeRefusedApply);
+        await writeFile(target, original);
+        expect(runBlock("forward").status).toBe(0);
+        const applied = await readFile(target, "utf8");
+        await writeFile(target, applied + "\n// Later local edit before undo.\n");
+        const beforeRefusedUndo = await snapshot(f.project);
+        expect(runBlock("rollback").status).not.toBe(0);
+        expect(await snapshot(f.project)).toEqual(beforeRefusedUndo);
+        await writeFile(target, applied);
+        expect(runBlock("rollback").status).toBe(0);
+        expect(await readFile(target, "utf8")).toBe(original);
+      }
+    },
+    30000,
+  );
+
   it("accepts deeply nested supported paths and normalized uppercase palette values", async () => {
     const nested = files.map((file) => ({
       ...file,

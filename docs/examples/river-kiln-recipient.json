@@ -322,8 +322,8 @@
       ]
     }
   ],
-  "practiceZipSha256": "8dea838090b71c3723bc5c83ba84e04b63f88b859ebddcb383da5a14649f113c",
-  "proposalZipSha256": "6dfc2de41c9623f31b220da1beb2f170d456da7a684de196b44eacb86f4d2c69",
+  "practiceZipSha256": "2f231d01cf406baf4c47bdf67be34cb4fc6989db23ddc52f3c41203f34f21208",
+  "proposalZipSha256": "59a372056c26d060d5f0f0659fea76320c56e9770af8554ea1a062cc8550572e",
   "trial": {
     "version": 2,
     "typography": "portable",
@@ -491,5 +491,9 @@
     "existingIdenticalAssetRefused": true,
     "modifiedAssetUndoRefused": true,
     "unrelatedNeighborsPreserved": true
+  },
+  "rollback": {
+    "changedBookingSource": "Verification stopped before rollback; the edited file remained byte-identical.",
+    "unchangedBookingSource": "Rollback restored the booking task and preserved both later edits in other files."
   }
 }

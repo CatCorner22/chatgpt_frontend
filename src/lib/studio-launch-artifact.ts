@@ -1,3 +1,4 @@
+import { changesPreviousActionMarkup } from "./action-destination";
 import { usesNewGalleryTypeface } from "./authored-font-availability";
 import type { State } from "./studio-state";
 import {
@@ -27,6 +28,13 @@ export function buildStudioLaunchArtifact(state: LaunchState) {
     experience: state.purpose.experience,
     nav: state.nav,
     // Preserve prior revisions and exact legacy identities for unaffected renderer branches.
+    ...(isAuthoredPage &&
+    (changesPreviousActionMarkup(state.page.actionUrl) ||
+      (state.page.composition === "journal" &&
+        state.page.relatedStory?.title.trim() &&
+        changesPreviousActionMarkup(state.page.relatedStory.url)))
+      ? { authoredActionRevision: "action-url-v1" as const }
+      : {}),
     ...(authoredOutputRevision ? { authoredOutputRevision } : {}),
     ...(isAuthoredPage &&
     state.page.composition === "product" &&

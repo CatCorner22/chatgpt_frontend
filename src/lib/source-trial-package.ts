@@ -22,6 +22,23 @@ async function sha256(value: string) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// Recipients can paste the whole block into a POSIX shell. Every successful
+// check gates the next command, including the last check before a file write.
+function manualPatchCommands(direction: "forward" | "rollback") {
+  const project = '"/absolute/path/to/isolated-project"';
+  const patch = `"/absolute/path/to/focus-source-trial/${direction}.patch"`;
+  const before = direction === "forward" ? "before" : "after";
+  const after = direction === "forward" ? "after" : "before";
+  const verify = (phase: string) => `node verify.mjs ${phase} ${project}`;
+  return [
+    verify(before),
+    `git -C ${project} apply --check ${patch}`,
+    verify(before),
+    `git -C ${project} apply ${patch}`,
+    verify(after),
+  ].join(" &&\n");
+}
+
 const previewBoundary =
   "Before running a task, record its isolated project path, the test endpoint for every integration it uses, and the test account or made-up address. River Kiln uses the local practice service with a made-up reservation address. Stop if you cannot identify these details or the task can reach a production service. If a rendered preview is unavailable, mark browser and visitor checks as not-run. Only independently authorized isolated source/build checks may continue within their existing scope and permissions. Their results are not a completed trial and do not authorize additional edits or external effects.";
 
@@ -78,8 +95,7 @@ git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/foc
 5. Only after review and successful checks, the recipient may apply the patch manually to that isolated copy:
 
 \`\`\`sh
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/forward.patch"
-node verify.mjs after "/absolute/path/to/isolated-project"
+${manualPatchCommands("forward")}
 \`\`\`
 
 6. If the after check fails, stop; do not run the project or call the trial applied correctly. Have the actual changes reviewed. If it passes, identify and review the project's own build/type-check/test workflow before running any independently authorized checks in the isolated environment. Focus did not execute the supplied code. When a rendered preview is available, compare the same visitor tasks before and after, including keyboard use, error/retry, retained answers, narrow screens and zoom. Otherwise leave those checks not-run. Record the actual source identity and conditions with the results. Browser review is pending until performed on this project.
@@ -96,8 +112,7 @@ git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/foc
 If either touched file changed later, stop for selective review, even when Git could find matching patch context. Do not overwrite those later changes. Recheck after hashes immediately before a manual inverse application. The same point-in-time limitation applies.
 
 \`\`\`sh
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/rollback.patch"
-node verify.mjs before "/absolute/path/to/isolated-project"
+${manualPatchCommands("rollback")}
 \`\`\`
 
 Confirm unrelated work, including later edits, is unchanged by reversal. Confirm the original visitor tasks when a rendered preview is available; otherwise report those checks as not-run. This guide provides a procedure; it does not claim the customer has demonstrated rollback or completed a launch.
@@ -137,19 +152,14 @@ git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/foc
 4. A mismatch is a stop, not an invitation to adapt the patch. Do not use fuzzy, partial, three-way or whitespace-relaxed application. Recheck before hashes immediately before applying the exact forward patch, after any edits or review. Verification is point-in-time, not an atomic write guard; pause concurrent writers. Apply only if the user's existing instructions authorize this local trial:
 
 \`\`\`sh
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/forward.patch"
-node verify.mjs after "/absolute/path/to/isolated-project"
+${manualPatchCommands("forward")}
 \`\`\`
 
 5. Require both exact after hashes. Then perform only the reviewed, independently authorized build/type-check workflow in the isolated working copy. When a rendered preview is available, check each contract task and the owner's concrete tasks against baseline behavior, including invalid input, failure/retry, retained answers, keyboard/focus, responsive layout and zoom. Otherwise leave browser and visitor checks not-run. Stop on failure; do not silently expand the two-file patch to fix it. Keep customer-browser observations separate from static checks and any owned-fixture evidence.
 6. Rehearse reversal only when both touched files still match after hashes. Review the inverse, check applicability, reverify the after state immediately before applying, and confirm before hashes afterwards:
 
 \`\`\`sh
-node verify.mjs after "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/focus-source-trial/rollback.patch"
-node verify.mjs after "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/rollback.patch"
-node verify.mjs before "/absolute/path/to/isolated-project"
+${manualPatchCommands("rollback")}
 \`\`\`
 
 If either touched file has later edits, stop for selective review instead of restoring or resetting whole files. Unrelated work must remain unchanged. Do not automatically reapply after the rehearsal; report the current before/after state and follow the user's intended next step.
@@ -201,11 +211,7 @@ Use a new directory outside the checkout. The helper verifies the base, applies 
 From the extracted focus-source-trial folder, verify the two exact originals and absence of every new asset. Review the patch, run Git's applicability check and reverify immediately before application:
 
 \`\`\`sh
-node verify.mjs before "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/focus-source-trial/forward.patch"
-node verify.mjs before "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/forward.patch"
-node verify.mjs after "/absolute/path/to/isolated-project"
+${manualPatchCommands("forward")}
 \`\`\`
 
 Stop on a mismatch or collision, including a changed license or font. Keep the files and inspect them. Use a freshly reviewed baseline before preparing another trial. Verification is point-in-time; never bypass a refusal with fuzzy, partial, forced or three-way application.
@@ -219,11 +225,7 @@ Build from the isolated copy. Check the same task before and after, using keyboa
 Keep edits to other files. If either touched source or any owned font or license changed since the trial, stop for selective review. Verify the after state, review the inverse, check applicability and verify again immediately before reversal:
 
 \`\`\`sh
-node verify.mjs after "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply --check "/absolute/path/to/focus-source-trial/rollback.patch"
-node verify.mjs after "/absolute/path/to/isolated-project"
-git -C "/absolute/path/to/isolated-project" apply "/absolute/path/to/focus-source-trial/rollback.patch"
-node verify.mjs before "/absolute/path/to/isolated-project"
+${manualPatchCommands("rollback")}
 \`\`\`
 
 Confirm unrelated edits and the original task. Record which state you left in place. Do not reset the repository or erase the font directory. If the owner wants to share the applied version after a rehearsal, prepare a fresh copy of the reviewed baseline and repeat the checks there.

@@ -7,21 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { hasCloudBackend } from "@/lib/runtime-config";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Focus" },
-      { name: "description", content: "Sign in to save your design projects and Visions." },
-      { property: "og:title", content: "Sign in — Focus" },
-      {
-        property: "og:description",
-        content: "Save your design projects and Visions across devices.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Sign in — Focus",
+      description: "Sign in to save your design projects and Visions.",
+      ogDescription: "Save your design projects and Visions across devices.",
+    }),
   // Optional return path (used when an AI tool asks to connect to Focus).
   validateSearch: (s: Record<string, unknown>): { next?: string } =>
     typeof s["next"] === "string" ? { next: s["next"] } : {},

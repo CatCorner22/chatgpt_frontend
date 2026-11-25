@@ -6,6 +6,7 @@ import { DesignPreview } from "@/components/DesignPreview";
 import { AppHeader } from "@/components/AppHeader";
 import { normalizeTokens, tokensCss, type Content, type Tokens } from "@/lib/design";
 import { useDesignFonts } from "@/lib/useDesignFonts";
+import { socialHead } from "../-social-head";
 
 const getShare = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => {
@@ -52,16 +53,11 @@ export const Route = createFileRoute("/s/$id")({
     const d = loaderData
       ? `${loaderData.content.headline} · A design direction made with Focus.`
       : "A design shared from Focus.";
-    return {
-      meta: [
-        { title: t },
-        { name: "description", content: d },
-        { property: "og:title", content: t },
-        { property: "og:description", content: d },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
+    return socialHead({
+      title: t,
+      description: d,
+      card: "summary_large_image",
+    });
   },
   notFoundComponent: () => (
     <main className="mx-auto max-w-xl px-5 py-24 text-center">

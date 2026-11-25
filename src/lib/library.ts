@@ -1,5 +1,5 @@
 import { focusLocalStorage } from "@/lib/browser-storage";
-import { normalizeTokens, type Tokens, type Content } from "./design";
+import { normalizeTokens, questionCount, type Tokens, type Content } from "./design";
 import { assertRestorableStudioState, readStudioRecoveries } from "./studio-recovery";
 import { migrate as migrateStudioState, type State as StudioState } from "./studio-state";
 
@@ -210,7 +210,7 @@ export function undoLibraryChange(
 
 /** Plain "where you left off" wording for a saved design, honoring the short version. */
 export function resumeLabel(state: Record<string, unknown>): string {
-  const total = state["quick"] === true ? 3 : 8;
+  const total = questionCount(state["quick"] === true);
   const picks = Array.isArray(state["picks"]) ? state["picks"].length : 0;
   if (state["stage"] === "rx") return "Open its Vision";
   if (state["stage"] === "review" || picks >= total) return "Review its answers";
@@ -248,8 +248,10 @@ function nextVersions(prior: LibraryEntry | undefined, _at: string): LibraryVers
 export function withVersion(list: LibraryEntry[], state: LibraryState, at: string): LibraryEntry[] {
   const prior = list.find((e) => e.id === state.libraryId);
   const next = archiveDesign(list, state, at);
-  if (!prior || look(prior.state) === look(state)) return next;
-  const wordsOnly = look({ ...state, content: prior.state.content }) === look(prior.state);
+  if (!prior) return next;
+  const previousLook = look(prior.state);
+  if (previousLook === look(state)) return next;
+  const wordsOnly = look({ ...state, content: prior.state.content }) === previousLook;
   const elapsed = Date.parse(at) - Date.parse(prior.updated);
   // Keep the start of a typing burst rather than evicting useful versions per keystroke.
   if (

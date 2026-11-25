@@ -14,25 +14,16 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/useSession";
 import { listWatches, addWatch, checkWatch, changeWatch } from "@/lib/watchtower.functions";
 import { tagChange, scoreTimeline, changedFindings, parseFindings } from "@/lib/watchtower";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/watchtower")({
-  head: () => ({
-    meta: [
-      { title: "Site monitor — Focus" },
-      {
-        name: "description",
-        content:
-          "Weekly measured checks for your public websites and apps, with regression alerts and concrete fixes.",
-      },
-      { property: "og:title", content: "Site monitor — Focus" },
-      {
-        property: "og:description",
-        content: "Keep design improvements from drifting with weekly page checks.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Site monitor — Focus",
+      description:
+        "Weekly measured checks for your public websites and apps, with regression alerts and concrete fixes.",
+      ogDescription: "Keep design improvements from drifting with weekly page checks.",
+    }),
   component: Watchtower,
 });
 

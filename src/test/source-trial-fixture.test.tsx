@@ -16,6 +16,7 @@ import {
   type SourceTrialFile,
 } from "@/lib/source-trial";
 import type { BookingProps } from "./fixtures/source-trial/Booking";
+import { deferred } from "./deferred";
 
 const exec = promisify(execFile);
 const requireBuilt = createRequire(import.meta.url);
@@ -124,16 +125,6 @@ async function buildFixture(kind: "before" | "after" | "restored", files: Source
   };
 }
 
-function pendingRequest() {
-  let resolveRequest!: () => void;
-  let rejectRequest!: (error: Error) => void;
-  const promise = new Promise<void>((resolve, reject) => {
-    resolveRequest = resolve;
-    rejectRequest = reject;
-  });
-  return { promise, resolve: resolveRequest, reject: rejectRequest };
-}
-
 function installFixtureCss(css: string) {
   const style = document.createElement("style");
   style.dataset["ownedSourceTrial"] = "true";
@@ -222,8 +213,8 @@ describe("owned React/Vite source-trial proof", () => {
     "preserves invalid input, async failure, retry, and confirmed success in the real %s Vite-built component",
     async (kind) => {
       const { Component } = builds.find((build) => build.kind === kind)!;
-      const first = pendingRequest();
-      const retry = pendingRequest();
+      const first = deferred<void>();
+      const retry = deferred<void>();
       const requestBooking = vi
         .fn()
         .mockReturnValueOnce(first.promise)

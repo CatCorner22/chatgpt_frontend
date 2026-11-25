@@ -34,22 +34,16 @@ import {
   restoreLibraryBackup,
   MAX_LIBRARY_BACKUP_BYTES,
 } from "@/lib/transfer";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/library")({
-  head: () => ({
-    meta: [
-      { title: "Design library — Focus" },
-      {
-        name: "description",
-        content:
-          "Your browser's saved designs, organized into collections without replacing your work.",
-      },
-      { property: "og:title", content: "Design library — Focus" },
-      { property: "og:description", content: "Keep, organize and revisit your designs." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Design library — Focus",
+      description:
+        "Your browser's saved designs, organized into collections without replacing your work.",
+      ogDescription: "Keep, organize and revisit your designs.",
+    }),
   component: Library,
 });
 

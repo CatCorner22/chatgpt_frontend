@@ -1,21 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: "Terms of use — Focus" },
-      {
-        name: "description",
-        content:
-          "Terms for Focus designs, existing-site transfers, automated reviews and public badges.",
-      },
-      { property: "og:title", content: "Terms of use — Focus" },
-      { property: "og:description", content: "Responsibilities and limits when using Focus." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Terms of use — Focus",
+      description:
+        "Terms for Focus designs, existing-site transfers, automated reviews and public badges.",
+      ogDescription: "Responsibilities and limits when using Focus.",
+    }),
   component: Terms,
 });
 function Terms() {

@@ -9,25 +9,18 @@ import { analyzePage } from "@/lib/critic";
 import { normalizeTokens, type Content, type Tokens } from "@/lib/design";
 import { STUDIO_KEY } from "@/lib/projects";
 import { GENERIC_AI_PAGE, wrapPreview } from "@/lib/proof";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/proof")({
-  head: () => ({
-    meta: [
-      { title: "Proof — Focus vs. generic AI pages" },
-      {
-        name: "description",
-        content:
-          "The same site check measures a typical AI-generated landing page and a Focus design side by side. See exactly what changes.",
-      },
-      { property: "og:title", content: "Proof — Focus vs. generic AI pages" },
-      {
-        property: "og:description",
-        content: "Side-by-side measured comparison: generic AI landing page vs. a Focus Vision.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Proof — Focus vs. generic AI pages",
+      description:
+        "The same site check measures a typical AI-generated landing page and a Focus design side by side. See exactly what changes.",
+      ogDescription:
+        "Side-by-side measured comparison: generic AI landing page vs. a Focus Vision.",
+      card: "summary_large_image",
+    }),
   component: Proof,
 });
 

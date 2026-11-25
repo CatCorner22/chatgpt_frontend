@@ -1,15 +1,13 @@
-import { chromium } from "playwright-core";
-import { writeFile } from "node:fs/promises";
+import { useLoopbackSession } from "./fixtures/saved-studio.mjs";
+import { launchChromium } from "./browser-engine.mjs";
+import { mkdir, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 
 const target = process.env.FOCUS_TEST_URL || "http://localhost:3000";
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-  headless: true,
-  args: ["--no-sandbox"],
-});
+const browser = await launchChromium();
 try {
   const page = await browser.newPage();
+  await useLoopbackSession(page, target, "taste-fixture");
   const posts = [],
     errors = [];
   page.on("request", (request) => {
@@ -51,6 +49,7 @@ try {
     ],
     pageErrors: errors,
   };
+  await mkdir("artifacts", { recursive: true });
   await writeFile("artifacts/LOCAL-TASTE-BROWSER.json", JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result));
 } finally {

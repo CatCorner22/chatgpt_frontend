@@ -5,6 +5,7 @@ import { useHostedSession } from "@/components/HostedBoundary";
 import { readLibrarySnapshot, type LibraryEntry } from "@/lib/library";
 import { createLibraryBackup, restoreLibraryBackup } from "@/lib/transfer";
 import { HostedClientError, readOnlineLibrary, saveOnlineLibrary } from "@/lib/hosted-client";
+import { deferred } from "./deferred";
 
 vi.mock("@/components/HostedBoundary", () => ({ useHostedSession: vi.fn() }));
 vi.mock("@/lib/browser-storage", () => ({ focusLocalStorage: window.localStorage }));
@@ -39,13 +40,6 @@ const restored = {
   legacy: false,
   designCount: 1,
 };
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
 beforeEach(() => {
   vi.clearAllMocks();
   window.localStorage.clear();

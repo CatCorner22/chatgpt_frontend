@@ -1,5 +1,5 @@
 /** Rendered-page evidence runner. Deliberately lives outside the portable kit. */
-import { chromium } from "playwright-core";
+import { launchChromium } from "./browser-engine.mjs";
 import ts from "typescript";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
@@ -536,11 +536,7 @@ export async function runAudit(config) {
     if (config.file) server = await serveLocalFile(config.file);
     const targetUrl = server?.url ?? config.url;
     if (!targetUrl) throw new Error("Choose --url or --file.");
-    browser = await chromium.launch({
-      executablePath: config.executable || process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-      headless: true,
-      args: ["--no-sandbox"],
-    });
+    browser = await launchChromium(config.executable);
     const scenarios = [];
     for (const scenario of SCENARIOS) {
       const baseline = scenarios.find((entry) => entry.id === "tablet-768")?.observations;

@@ -1,13 +1,10 @@
+import { openSavedStudio } from "./fixtures/saved-studio.mjs";
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import JSZip from "jszip";
-const studioUrl = new URL(process.env.FOCUS_TEST_URL || "http://localhost:3000");
-studioUrl.searchParams.set("view", "studio");
-studioUrl.searchParams.delete("panel");
-studioUrl.hash = "";
-const url = studioUrl.href;
+const target = process.env.FOCUS_TEST_URL || "http://localhost:3000";
 const dir = "artifacts/authored-pages";
 await mkdir(dir, { recursive: true });
 const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
@@ -48,43 +45,13 @@ try {
   });
   page.setDefaultTimeout(20_000);
   page.on("pageerror", (e) => pageErrors.push(e.message));
-  const owner = "authored-browser-fixture";
-  const loopback = ["127.0.0.1", "localhost", "[::1]"].includes(studioUrl.hostname);
-  if (loopback) {
-    await page.route(new URL("/api/hosted/session", studioUrl).href, (route) =>
-      route.fulfill({
-        json: { mode: "hosted", user: { id: owner, email: null }, storageAvailable: false },
-      }),
-    );
-  }
-  await page.goto(url, { waitUntil: "networkidle" });
-  // Exercise the legacy-save migration in the local and simulated hosted editor.
-  await page.evaluate(
-    ({ tokens, content, loopback, owner }) => {
-      const save = JSON.stringify({
-        version: 2,
-        stage: "rx",
-        brief: "Example ceramics studio",
-        content,
-        tokens,
-        direction: "Garden Ledger",
-        libraryId: "authored-browser-fixture",
-        quick: true,
-        picks: [],
-        history: [],
-        directions: [],
-        stepIndex: 3,
-      });
-      localStorage.setItem("refraction:v1", save);
-      if (loopback)
-        localStorage.setItem(
-          `focus:owner:v1:${encodeURIComponent("sites:" + owner)}:refraction:v1`,
-          save,
-        );
-    },
-    { tokens: testTokens, content: exampleContent, loopback, owner },
-  );
-  await page.reload({ waitUntil: "networkidle" });
+  const url = await openSavedStudio(page, target, {
+    brief: "Example ceramics studio",
+    content: exampleContent,
+    tokens: testTokens,
+    direction: "Garden Ledger",
+    libraryId: "authored-browser-fixture",
+  });
   await page.getByRole("heading", { name: "See it. Use it. Take it with you." }).waitFor();
   await page.getByLabel("Where should the main action lead?").fill("https://example.com/studio");
   const compare = page.getByRole("button", { name: "Compare layouts with your content" });

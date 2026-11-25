@@ -1,22 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy policy — Focus" },
-      {
-        name: "description",
-        content:
-          "How Focus handles account details, design work, screenshots, shared links and visitor analytics.",
-      },
-      { property: "og:title", content: "Privacy policy — Focus" },
-      { property: "og:description", content: "Data handling for the Focus design studio." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Privacy policy — Focus",
+      description:
+        "How Focus handles account details, design work, screenshots, shared links and visitor analytics.",
+      ogDescription: "Data handling for the Focus design studio.",
+    }),
   component: Privacy,
 });
 function Privacy() {

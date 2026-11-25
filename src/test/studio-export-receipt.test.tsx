@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeTokens, type Content } from "@/lib/design";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { workHash } from "@/lib/ux";
+import { deferred } from "./deferred";
 
 const calls = vi.hoisted(() => ({
   search: { view: "studio" } as { view: "studio"; panel?: "stratosphere" },
@@ -143,13 +144,6 @@ function mount(state = fixture()) {
       rendered.rerender(<FocusHome />);
     },
   };
-}
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
 }
 async function startPack() {
   fireEvent.click(await screen.findByRole("button", { name: "Download existing-site pack" }));

@@ -1,27 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { listShowcase } from "@/lib/northstar.functions";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/showcase")({
   loader: () => listShowcase().catch(() => []),
-  head: () => ({
-    meta: [
-      { title: "Showcase — sites Crafted with Focus" },
-      {
-        name: "description",
-        content:
-          "Live sites that hold a passing Crafted with Focus badge, re-checked every week. Sites leave automatically if they stop passing.",
-      },
-      { property: "og:title", content: "Showcase — sites Crafted with Focus" },
-      {
-        property: "og:description",
-        content:
-          "Live sites built from a Focus design that keep passing their weekly measured check.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Showcase — sites Crafted with Focus",
+      description:
+        "Live sites that hold a passing Crafted with Focus badge, re-checked every week. Sites leave automatically if they stop passing.",
+      ogDescription:
+        "Live sites built from a Focus design that keep passing their weekly measured check.",
+    }),
   component: Showcase,
 });
 

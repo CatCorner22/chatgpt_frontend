@@ -19,6 +19,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { BrowserAuditPanel } from "@/components/BrowserAuditPanel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { downloadBlob } from "@/lib/download-blob";
 import { inertMarkup } from "@/lib/quality-markup";
 import { allRules } from "../../north-star-kit/data/rules";
 import { checkRegistry } from "../../north-star-kit/page-checks";
@@ -138,14 +139,7 @@ export function QualityWorkbench() {
       ],
       { type: "application/json" },
     );
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "north-star-receipt.json";
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    downloadBlob(blob, "north-star-receipt.json");
   };
   const copyRepairs = async () => {
     if (!plan) return;

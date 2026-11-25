@@ -6,6 +6,7 @@ import { EMPTY, type State } from "@/lib/studio-state";
 import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
 import { buildLocalOptions } from "@/lib/local-design";
 import { readLibrary } from "@/lib/library";
+import { deferred } from "./deferred";
 
 const operations = vi.hoisted(() => ({
   search: { view: "studio", panel: "stratosphere" } as {
@@ -150,15 +151,6 @@ function mount(state: State) {
       rendered.rerender(<FocusHome />);
     },
   };
-}
-function pending<T>() {
-  let resolve!: (value: T) => void;
-  let reject!: (reason: Error) => void;
-  const promise = new Promise<T>((done, fail) => {
-    resolve = done;
-    reject = fail;
-  });
-  return { promise, resolve, reject };
 }
 beforeEach(() => {
   vi.stubEnv("VITE_FOCUS_HOSTED", "false");
@@ -363,8 +355,8 @@ describe("Studio workshop and question lifetime", () => {
   it.each(["success", "rejection"] as const)(
     "accepts the final StrictMode request and ignores the abandoned request's %s",
     async (outcome) => {
-      const abandoned = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
-      const current = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+      const abandoned = deferred<{ options: ReturnType<typeof buildLocalOptions> }>();
+      const current = deferred<{ options: ReturnType<typeof buildLocalOptions> }>();
       operations.step.mockReturnValueOnce(abandoned.promise).mockReturnValueOnce(current.promise);
       const original = { ...makeState(), cache: {} };
       operations.search = { view: "studio" };
@@ -394,7 +386,7 @@ describe("Studio workshop and question lifetime", () => {
   );
 
   it("abandons pending options when Undo changes the same question's tokens before a cache exists", async () => {
-    const old = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    const old = deferred<{ options: ReturnType<typeof buildLocalOptions> }>();
     operations.step.mockReturnValueOnce(old.promise);
     const original = makeState();
     const app = mount(original);
@@ -417,7 +409,7 @@ describe("Studio workshop and question lifetime", () => {
   });
 
   it("leaves a cached destination usable when regeneration of another question is abandoned", async () => {
-    const job = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    const job = deferred<{ options: ReturnType<typeof buildLocalOptions> }>();
     operations.step.mockReturnValueOnce(job.promise);
     const original = makeState();
     operations.search = { view: "studio" };
@@ -488,7 +480,7 @@ describe("Studio workshop and question lifetime", () => {
   });
 
   it("ignores an abandoned question request after entering the workshop and changing the design", async () => {
-    const job = pending<{ options: ReturnType<typeof buildLocalOptions> }>();
+    const job = deferred<{ options: ReturnType<typeof buildLocalOptions> }>();
     operations.step.mockReturnValueOnce(job.promise);
     const original = makeState();
     operations.search = { view: "studio" };
@@ -503,7 +495,7 @@ describe("Studio workshop and question lifetime", () => {
   });
 
   it("does not let abandoned direction generation replace the saved brief after opening the workshop", async () => {
-    const job = pending<unknown>();
+    const job = deferred<unknown>();
     operations.directions.mockReturnValue(job.promise);
     operations.search = { view: "studio" };
     const original = makeState();

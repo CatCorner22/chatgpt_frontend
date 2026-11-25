@@ -1,14 +1,11 @@
-import { chromium } from "playwright-core";
-import { readFile, writeFile } from "node:fs/promises";
+import { openSavedStudio } from "./fixtures/saved-studio.mjs";
+import { launchChromium } from "./browser-engine.mjs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import JSZip from "jszip";
 
 const url = process.env.FOCUS_TEST_URL || "http://localhost:3000";
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-  headless: true,
-  args: ["--no-sandbox"],
-});
+const browser = await launchChromium();
 try {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 1000 },
@@ -16,7 +13,6 @@ try {
   });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(url, { waitUntil: "networkidle" });
   const dirs = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
   const tokens = dirs.find((direction) => direction.id === "graphite-precision").direction.tokens;
   const content = {
@@ -27,28 +23,13 @@ try {
     features: [{ title: "Process", body: "Test content." }],
     quote: "",
   };
-  await page.evaluate(
-    ({ tokens, content }) =>
-      localStorage.setItem(
-        "refraction:v1",
-        JSON.stringify({
-          version: 2,
-          stage: "rx",
-          brief: "Workshop test",
-          tokens,
-          content,
-          direction: "Graphite Precision",
-          libraryId: "editor-proof",
-          quick: true,
-          picks: [],
-          history: [],
-          directions: [],
-          stepIndex: 3,
-        }),
-      ),
-    { tokens, content },
-  );
-  await page.reload({ waitUntil: "networkidle" });
+  await openSavedStudio(page, url, {
+    brief: "Workshop test",
+    tokens,
+    content,
+    direction: "Graphite Precision",
+    libraryId: "editor-proof",
+  });
   const panel = page.locator(".authored-workspace");
   await panel.getByRole("button", { name: "Edit the page’s words" }).click();
   const name = panel.getByRole("textbox", { name: "Business or project name", exact: true });
@@ -56,11 +37,11 @@ try {
   const rect = await name.boundingBox();
   assert.ok(rect.y >= 0 && rect.y < 1000);
   await name.fill("Edited workshop");
+  const imageBytes = await name.screenshot();
   await panel.getByRole("radio", { name: /^Journal/ }).check();
   await panel.getByText("Add your own image", { exact: true }).click();
-  await panel
-    .getByLabel(/PNG, JPEG, or WebP/)
-    .setInputFiles("artifacts/authored-pages/showcase-desktop.png");
+  const upload = panel.getByLabel(/PNG, JPEG, or WebP/);
+  await upload.setInputFiles({ name: "test.png", mimeType: "image/png", buffer: imageBytes });
   await panel
     .getByText("Add an image description to include it in the preview and download.")
     .waitFor();
@@ -69,10 +50,10 @@ try {
     .frameLocator('iframe[title="Working page preview"]')
     .getByRole("img", { name: "Test-only screenshot fixture" });
   await image.waitFor();
-  await panel.getByLabel(/PNG, JPEG, or WebP/).setInputFiles({
+  await upload.setInputFiles({
     name: "incorrect.jpg",
     mimeType: "image/jpeg",
-    buffer: await readFile("artifacts/authored-pages/showcase-desktop.png"),
+    buffer: imageBytes,
   });
   await panel.getByRole("alert").filter({ hasText: "contents do not match" }).waitFor();
   const download = page.waitForEvent("download");
@@ -103,6 +84,7 @@ try {
     ],
     pageErrors: errors,
   };
+  await mkdir("artifacts", { recursive: true });
   await writeFile(
     "artifacts/REFERENCE-EDITOR-BROWSER.json",
     JSON.stringify(result, null, 2) + "\n",

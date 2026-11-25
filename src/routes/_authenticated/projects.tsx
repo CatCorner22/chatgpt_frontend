@@ -11,18 +11,14 @@ import { Label } from "@/components/ui/label";
 import { AppHeader } from "@/components/AppHeader";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { scheduleUndoable } from "@/lib/ux";
+import { socialHead } from "../-social-head";
 
 export const Route = createFileRoute("/_authenticated/projects")({
-  head: () => ({
-    meta: [
-      { title: "My projects — Focus" },
-      { name: "description", content: "Your saved designs and Visions." },
-      { property: "og:title", content: "My projects — Focus" },
-      { property: "og:description", content: "Your saved designs and Visions." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "My projects — Focus",
+      description: "Your saved designs and Visions.",
+    }),
   component: Projects,
 });
 

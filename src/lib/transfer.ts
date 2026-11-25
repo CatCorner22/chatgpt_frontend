@@ -103,16 +103,13 @@ export function pageInventory(html: string, url: string, sourceComplete = true):
   const limits = { links: 200, forms: 80, fields: 200, buttons: 200 };
   const truncated: NonNullable<Inventory["truncated"]> = sourceComplete ? [] : ["source"];
   for (const kind of ["links", "forms", "fields", "buttons"] as const) {
+    const maxLength = kind === "fields" ? 300 : kind === "buttons" ? 120 : 500;
     if (
       values[kind].length > limits[kind] ||
-      values[kind].some(
-        (value) => value.length > (kind === "fields" ? 300 : kind === "buttons" ? 120 : 500),
-      )
+      values[kind].some((value) => value.length > maxLength)
     )
       truncated.push(kind);
-    values[kind] = all(values[kind], limits[kind]).map((value) =>
-      value.slice(0, kind === "fields" ? 300 : kind === "buttons" ? 120 : 500),
-    );
+    values[kind] = all(values[kind], limits[kind]).map((value) => value.slice(0, maxLength));
   }
   return { url, ...values, completeness: truncated.length ? "partial" : "complete", truncated };
 }

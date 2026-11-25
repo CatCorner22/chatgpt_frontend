@@ -11,16 +11,12 @@ import { styleEvidence } from "@/lib/transfer";
 import { critiqueUrl } from "@/lib/critic.functions";
 import {
   EMPTY_LAUNCH,
-  TASKS,
-  addEvidence,
   designId,
   launchFingerprint,
-  markLaunched,
   readProgress,
-  upsertProgress,
   writeProgress,
-  type ReviewEvidence,
 } from "@/lib/launch";
+import { launchEvidenceFixture, legacyArtifact } from "./launch-evidence.fixture";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/progress">{children}</a>,
@@ -52,23 +48,12 @@ const state: State = {
   },
   purpose: { ...EMPTY.purpose, experience: "website" },
 };
-const oldArtifact = (s: State) => ({
-  content: s.content,
-  page: s.page,
-  experience: s.purpose.experience,
-  nav: s.nav,
-});
-const evidence: ReviewEvidence = {
-  kind: "page",
-  target: "https://example.com/",
-  at: "2026-11-18T00:00:00Z",
-  score: 100,
-  summary: "Owned test fixture: review of the earlier authored output.",
-  checks: [{ name: "phone", ok: true, detail: "Fixture check", fix: "" }],
-  prescription: [],
-  priorities: [],
-  repair: "",
-};
+const { reviewed, revisit, reviewedPage } = launchEvidenceFixture(
+  state.libraryId!,
+  "River",
+  tokens,
+  "Owned test fixture: review of the earlier authored output.",
+);
 type CritiqueResult = Awaited<ReturnType<typeof critiqueUrl>>;
 const successfulCritique: CritiqueResult = {
   host: "example.com",
@@ -93,9 +78,9 @@ const successfulCritique: CritiqueResult = {
     stamp: null,
   },
   review: { verdict: "Successful owned-fixture critique response", strengths: [], priorities: [] },
-  source: { url: evidence.target, excerpt: "Owned fixture content", content: state.content! },
+  source: { url: reviewedPage.target, excerpt: "Owned fixture content", content: state.content! },
   inventory: {
-    url: evidence.target,
+    url: reviewedPage.target,
     links: [],
     forms: [],
     fields: [],
@@ -104,25 +89,6 @@ const successfulCritique: CritiqueResult = {
     truncated: [],
   },
 };
-function reviewed(artifact: unknown = oldArtifact(state)) {
-  const records = upsertProgress(
-    [],
-    state.libraryId!,
-    "River",
-    tokens,
-    "2026-11-18T00:00:00Z",
-    artifact,
-  );
-  records[0]!.details = markLaunched(
-    {
-      ...addEvidence(EMPTY_LAUNCH, evidence),
-      url: evidence.target,
-      tasks: TASKS.map((task) => task.id),
-    },
-    "2026-11-18T00:00:00Z",
-  );
-  return records;
-}
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
@@ -132,22 +98,19 @@ describe("authored content-flow evidence boundary", () => {
   it("requires fresh launch evidence when the owner changes the published language", () => {
     const english = buildStudioLaunchArtifact(state);
     const japanese = { ...state, page: { ...state.page, language: "ja" as const } };
-    const records = upsertProgress(
+    const next = revisit(
       reviewed(english),
-      state.libraryId!,
-      "River",
-      tokens,
-      "2026-11-25T12:00:00Z",
       buildStudioLaunchArtifact(japanese),
+      "2026-11-25T12:00:00Z",
     );
-    expect(records[0]!.details).toEqual(EMPTY_LAUNCH);
+    expect(next.details).toEqual(EMPTY_LAUNCH);
     expect(workHash(japanese)).not.toBe(workHash(state));
   });
 
   it("requires a fresh review only for authored pages that gained an embedded font", () => {
     const newPair = normalizeTokens({ headingFont: "Outfit", bodyFont: "DM Sans" });
     const input = { ...state, tokens: newPair };
-    const before = { ...oldArtifact(input), authoredOutputRevision: "content-flow-v1" };
+    const before = { ...legacyArtifact(input), authoredOutputRevision: "content-flow-v1" };
     const after = buildStudioLaunchArtifact(input);
     expect(after).toEqual({ ...before, authoredFontRevision: "gallery-type-v1" });
     expect(launchFingerprint(newPair, before)).not.toEqual(launchFingerprint(newPair, after));
@@ -166,20 +129,13 @@ describe("authored content-flow evidence boundary", () => {
   });
 
   it("invalidates earlier output evidence for unchanged authored inputs with no visible features", () => {
-    const old = reviewed();
+    const old = reviewed(legacyArtifact(state));
     const current = buildStudioLaunchArtifact(state);
-    const records = upsertProgress(
-      old,
-      state.libraryId!,
-      "River",
-      tokens,
-      "2026-11-18T01:00:00Z",
-      current,
-    );
-    expect(records[0]!.details).toEqual(EMPTY_LAUNCH);
-    expect(records[0]!.completedAt).toBe(old[0]!.completedAt);
+    const next = revisit(old, current);
+    expect(next.details).toEqual(EMPTY_LAUNCH);
+    expect(next.completedAt).toBe(old[0]!.completedAt);
     expect(current).toHaveProperty("authoredOutputRevision", "content-flow-v1");
-    expect(records[0]!.fingerprint).not.toBe(old[0]!.fingerprint);
+    expect(next.fingerprint).not.toBe(old[0]!.fingerprint);
   });
 
   it("retains evidence for the same revised output without mutating stored state or saved-work identity", () => {
@@ -188,16 +144,9 @@ describe("authored content-flow evidence boundary", () => {
     const publicId = designId(tokens);
     const current = buildStudioLaunchArtifact(state);
     const previous = reviewed(current);
-    const next = upsertProgress(
-      previous,
-      state.libraryId!,
-      "River",
-      tokens,
-      "2026-11-18T01:00:00Z",
-      current,
-    );
-    expect(next[0]!.details).toEqual(previous[0]!.details);
-    expect(next[0]!.fingerprint).toBe(previous[0]!.fingerprint);
+    const next = revisit(previous, current);
+    expect(next.details).toEqual(previous[0]!.details);
+    expect(next.fingerprint).toBe(previous[0]!.fingerprint);
     expect(JSON.stringify(state)).toBe(before);
     expect(workHash(state)).toBe(work);
     expect(designId(tokens)).toBe(publicId);
@@ -212,16 +161,13 @@ describe("authored content-flow evidence boundary", () => {
     { ...state, content: { ...state.content!, features: [{ title: "", body: "A description" }] } },
   ])("keeps the exact legacy evidence artifact for unaffected work %#", (unaffected) => {
     const current = buildStudioLaunchArtifact(unaffected);
-    expect(current).toEqual(oldArtifact(unaffected));
-    expect(JSON.stringify(current)).toBe(JSON.stringify(oldArtifact(unaffected)));
+    expect(current).toEqual(legacyArtifact(unaffected));
+    expect(JSON.stringify(current)).toBe(JSON.stringify(legacyArtifact(unaffected)));
     expect(launchFingerprint(tokens, current)).toBe(
-      launchFingerprint(tokens, oldArtifact(unaffected)),
+      launchFingerprint(tokens, legacyArtifact(unaffected)),
     );
     const prior = reviewed(current);
-    expect(
-      upsertProgress(prior, state.libraryId!, "River", tokens, "2026-11-18T01:00:00Z", current)[0]!
-        .details,
-    ).toEqual(prior[0]!.details);
+    expect(revisit(prior, current).details).toEqual(prior[0]!.details);
   });
 
   it("shares the renderer's trimmed feature predicate without modifying its content", () => {
@@ -244,7 +190,7 @@ describe("authored content-flow evidence boundary", () => {
   });
 
   it("discards a pending earlier-output review when the runtime renderer identity changes", async () => {
-    writeProgress(reviewed());
+    writeProgress(reviewed(legacyArtifact(state)));
     let finish!: (value: CritiqueResult) => void;
     vi.mocked(critiqueUrl).mockImplementation(
       () =>
@@ -258,7 +204,7 @@ describe("authored content-flow evidence boundary", () => {
         title="River"
         tokens={tokens}
         tool="Human developer"
-        artifact={oldArtifact(state)}
+        artifact={legacyArtifact(state)}
       />,
     );
     expect(await screen.findByRole("button", { name: "Launch recorded" })).toBeDisabled();
@@ -278,7 +224,7 @@ describe("authored content-flow evidence boundary", () => {
       finish(successfulCritique);
     });
     expect(readProgress()[0]!.details).toEqual(EMPTY_LAUNCH);
-    expect(screen.queryByText(evidence.summary)).not.toBeInTheDocument();
+    expect(screen.queryByText(reviewedPage.summary)).not.toBeInTheDocument();
     expect(screen.queryByText(successfulCritique.review!.verdict)).not.toBeInTheDocument();
     expect(readProgress()[0]!.fingerprint).toBe(
       launchFingerprint(tokens, buildStudioLaunchArtifact(state)),
@@ -305,7 +251,7 @@ describe("authored content-flow evidence boundary", () => {
     expect(saved.details.status).toBe("reviewed");
     expect(saved.details.reviews).toHaveLength(2);
     expect(saved.details.reviews.at(-1)).toMatchObject({
-      target: evidence.target,
+      target: reviewedPage.target,
       summary: successfulCritique.review!.verdict,
       checks: [{ name: "phone", ok: true, detail: "Owned fixture check", fix: "" }],
     });

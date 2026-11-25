@@ -1,10 +1,10 @@
-import asyncio,json
+import asyncio,json,os
 from pathlib import Path
 from playwright.async_api import async_playwright
-D=Path('/tmp/browser/transfer'); payload=json.loads((D/'files.json').read_text()); files=payload['files']; t=payload['t']
+D=Path('/tmp/browser/transfer'); payload=json.loads((D/'files.json').read_text()); files=payload['files']
 async def main():
  async with async_playwright() as p:
-  browser=await p.chromium.launch(headless=True)
+  browser=await p.chromium.launch(headless=True, executable_path=os.getenv("CHROMIUM_PATH"))
   results=[]
   for w in [1280,768,390]:
    for kind in ['plain','tailwind4','legacy','fixed','portal','module','shadow','react19','react19-tailwind4']:
@@ -22,27 +22,46 @@ async def main():
      await page.get_by_role('heading',name='Customer booking').wait_for()
     if kind=='shadow':
      await page.locator('#portal').evaluate("e=>{const r=e.attachShadow({mode:'open'});r.innerHTML='<style>button{background:#991122;color:#fff}</style><button>Shadow action</button><output>0</output>';r.querySelector('button').onclick=()=>r.querySelector('output').textContent=String(Number(r.querySelector('output').textContent)+1)}")
-    inventory=await page.evaluate("() => [...document.querySelectorAll('a,form,input,button')].map(e=>[e.tagName,e.getAttribute('href'),e.getAttribute('action'),e.getAttribute('name'),e.getAttribute('type'),e.textContent])")
-    async def appearance():return await page.evaluate("""() => [...document.querySelectorAll('body,main,h1,.sample,#outside,#portal')].map(e=>{const s=getComputedStyle(e);return [s.backgroundColor,s.color,s.fontFamily,s.borderRadius]})""")
+    async def inventory():
+     return await page.evaluate("""() => [...document.querySelectorAll('a,form,input,button')].map(e =>
+       [e.tagName,e.getAttribute('href'),e.getAttribute('action'),e.getAttribute('name'),e.getAttribute('type'),e.textContent])""")
+    async def appearance():
+     return await page.evaluate("""() => Object.fromEntries(['body','main','h1','.sample','#outside','#portal'].map(selector => {
+       const s = getComputedStyle(document.querySelector(selector));
+       return [selector, [s.backgroundColor, s.color, s.fontFamily, s.borderRadius]];
+     }))""")
+    controls=await inventory()
     before=await appearance()
     async def task():
      await page.get_by_role('textbox',name='Email').fill('visitor@example.test');await page.get_by_role('button',name='Book',exact=True).click();assert await page.locator('p[role=status]').inner_text()=='Booked visitor@example.test'
      await page.get_by_role('button',name='Add item').click();await page.get_by_role('link',name='Details',exact=True).click()
      if kind=='shadow':await page.get_by_role('button',name='Shadow action').click()
     await task()
-    await page.add_style_tag(content=files['focus-tokens.css']);await page.add_style_tag(content=files['focus-bridge-legacy.css' if kind=='legacy' else 'focus-bridge.css'])
+    tokens=await page.add_style_tag(content=files['focus-tokens.css'])
+    bridge=await page.add_style_tag(content=files['focus-bridge-legacy.css' if kind=='legacy' else 'focus-bridge.css'])
     assert await appearance()==before,'install repainted customer'
-    await page.locator('main').evaluate("e=>e.setAttribute('data-focus-restyle','')")
-    after=await appearance();assert after[2][0]=='rgb(255, 255, 255)', (kind,w,after,t);assert after[0]==before[0] and after[1]==before[1] and after[5]==before[5],'scope leaked'
+    wrapper=page.locator('main')
+    await wrapper.evaluate("e=>e.setAttribute('data-focus-restyle','')")
+    assert await appearance()==before,'exposing namespaced values repainted customer'
+    if kind!='fixed':
+     await wrapper.evaluate("e=>e.setAttribute('data-focus-theme','semantic')")
+    after=await appearance()
+    for selector in ['body','main','h1','#outside','#portal']:
+     assert after[selector]==before[selector], (kind,w,selector,'unexpected style change')
+    if kind=='fixed':
+     assert after['.sample']==before['.sample'],'fixed-color control changed'
+    else:
+     assert after['.sample'][:2]==['rgb(22, 101, 52)','rgb(255, 255, 255)'], (kind,w,after['.sample'])
     await task();assert await page.locator('main output').inner_text()=='2'
-    if kind in ['tailwind4','legacy','portal','module','react19','react19-tailwind4']:assert after[4][0]=='rgb(22, 101, 52)',after[4]
-    if kind=='fixed':assert after[4][0]==before[4][0]
-    assert await page.evaluate("() => [...document.querySelectorAll('a,form,input,button')].map(e=>[e.tagName,e.getAttribute('href'),e.getAttribute('action'),e.getAttribute('name'),e.getAttribute('type'),e.textContent])")==inventory,'customer markup changed'
+    assert await inventory()==controls,'customer markup changed'
     if kind=='shadow':assert await page.locator('#portal button').evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(153, 17, 34)','shadow component unexpectedly repainted'
     await page.screenshot(path=str(D/f'{kind}-{w}-after.png'))
-    await page.locator('main').evaluate("e=>e.removeAttribute('data-focus-restyle')")
+    await wrapper.evaluate("e=>e.removeAttribute('data-focus-theme')")
+    assert await appearance()==before,'disabling semantic mapping did not restore customer styles'
+    await wrapper.evaluate("e=>e.removeAttribute('data-focus-restyle')")
     assert await appearance()==before,'rollback differs';await task();assert await page.locator('main output').inner_text()=='3'
-    await page.locator('style').nth(1).evaluate('e=>e.remove()');await page.locator('style').nth(1).evaluate('e=>e.remove()')
+    for sheet in [tokens,bridge]:
+     await sheet.evaluate('e=>e.remove()')
     assert await appearance()==before,'import removal differs'
     if kind=='shadow':assert await page.locator('#portal output').inner_text()=='3'
     if kind.startswith('react19'):assert await page.locator('[data-route]').inner_text()=='Details','React navigation state lost'

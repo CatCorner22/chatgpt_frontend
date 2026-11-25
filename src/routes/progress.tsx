@@ -10,24 +10,16 @@ import { parseDetails, weeklyTotals, TASKS, type ProgressRecord } from "@/lib/la
 import { listProgress } from "@/lib/launch.functions";
 import { horizonGuidance, readHorizonProgress } from "@/lib/horizon";
 import { hasCloudBackend } from "@/lib/runtime-config";
+import { socialHead } from "./-social-head";
 export const Route = createFileRoute("/progress")({
-  head: () => ({
-    meta: [
-      { title: "Horizon — project progress in Focus" },
-      {
-        name: "description",
-        content: "Your project progress, saved review records, and practical next steps.",
-      },
-      { property: "og:title", content: "Horizon — Focus" },
-      {
-        property: "og:description",
-        content:
-          "See the next step for each design, from a completed Vision to an owner-recorded launch.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Horizon — project progress in Focus",
+      description: "Your project progress, saved review records, and practical next steps.",
+      ogTitle: "Horizon — Focus",
+      ogDescription:
+        "See the next step for each design, from a completed Vision to an owner-recorded launch.",
+    }),
   component: Horizon,
 });
 export function Horizon() {

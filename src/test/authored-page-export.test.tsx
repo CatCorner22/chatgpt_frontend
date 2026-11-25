@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthoredPagePanel } from "@/components/AuthoredPagePanel";
 import { normalizeTokens } from "@/lib/design";
 import { DEFAULT_PAGE_SETTINGS, type PageSettings } from "@/lib/page-settings";
+import { deferred } from "./deferred";
 
 const calls = vi.hoisted(() => ({
   generate: vi.fn(),
@@ -60,13 +61,6 @@ const props = () => ({
   onContent: vi.fn(),
   onExport: vi.fn(),
 });
-function pending<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
 function startZip() {
   fireEvent.click(screen.getByRole("button", { name: "Download page ZIP" }));
 }
@@ -131,7 +125,7 @@ describe("authored page delivery lifetime", () => {
   it.each(["pending", "ready"])(
     "abandons a %s ZIP after a design edit is undone",
     async (stage) => {
-      const job = pending<Blob>();
+      const job = deferred<Blob>();
       if (stage === "pending") calls.generate.mockReturnValueOnce(job.promise);
       const current = props();
       const mounted = render(<AuthoredPagePanel {...current} />);
@@ -168,7 +162,7 @@ describe("authored page delivery lifetime", () => {
     render(<AuthoredPagePanel {...current} />);
     startZip();
     await screen.findByRole("button", { name: "I’ve saved the file" });
-    const job = pending<Blob>();
+    const job = deferred<Blob>();
     calls.generate.mockReturnValueOnce(job.promise);
     startZip();
     expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
@@ -232,7 +226,7 @@ describe("authored page delivery lifetime", () => {
   );
 
   it("discards a ZIP that finishes after the panel unmounts", async () => {
-    const job = pending<Blob>();
+    const job = deferred<Blob>();
     calls.generate.mockReturnValue(job.promise);
     const current = props();
     const mounted = render(<AuthoredPagePanel {...current} />);
@@ -247,7 +241,7 @@ describe("authored page delivery lifetime", () => {
   it.each(["tokens", "content", "settings", "projectState", "decisionRecord"])(
     "discards a pending ZIP after %s changes and permits a fresh retry",
     async (field) => {
-      const job = pending<Blob>();
+      const job = deferred<Blob>();
       calls.generate.mockReturnValueOnce(job.promise);
       const current = { ...props(), decisionRecord: '{"version":1}' };
       const mounted = render(<AuthoredPagePanel {...current} />);
@@ -282,7 +276,7 @@ describe("authored page delivery lifetime", () => {
   it.each(["locked", "changed"])(
     "does not deliver a pending ZIP after the owner session is %s",
     async (state) => {
-      const job = pending<Blob>();
+      const job = deferred<Blob>();
       calls.generate.mockReturnValue(job.promise);
       const current = props();
       render(<AuthoredPagePanel {...current} />);
@@ -328,7 +322,7 @@ describe("authored page delivery lifetime", () => {
 
 describe("delayed image ownership", () => {
   it("does not restore saved image bytes after the session locks during validation", async () => {
-    const validation = pending<string>();
+    const validation = deferred<string>();
     calls.validateImage.mockReturnValue(validation.promise);
     render(
       <AuthoredPagePanel
@@ -352,7 +346,7 @@ describe("delayed image ownership", () => {
   it.each(["locked", "changed"])(
     "does not attach image bytes validated after the owner session is %s",
     async (state) => {
-      const validation = pending<string>();
+      const validation = deferred<string>();
       calls.validateImage.mockReturnValue(validation.promise);
       const current = props();
       render(<AuthoredPagePanel {...current} />);
@@ -369,7 +363,7 @@ describe("delayed image ownership", () => {
   );
 
   it("does not attach an image to a replaced design even if a caller reuses the component", async () => {
-    const validation = pending<string>();
+    const validation = deferred<string>();
     calls.validateImage.mockReturnValue(validation.promise);
     const current = props();
     const mounted = render(<AuthoredPagePanel {...current} />);
@@ -386,7 +380,7 @@ describe("delayed image ownership", () => {
   });
 
   it("does not replace an image selection restored while an upload is pending", async () => {
-    const validation = pending<string>();
+    const validation = deferred<string>();
     calls.validateImage.mockReturnValueOnce(validation.promise);
     const current = props();
     const mounted = render(<AuthoredPagePanel {...current} />);
@@ -403,7 +397,7 @@ describe("delayed image ownership", () => {
   });
 
   it("does not revive an abandoned upload when the owner returns to its original image selection", async () => {
-    const validation = pending<string>();
+    const validation = deferred<string>();
     calls.validateImage.mockReturnValueOnce(validation.promise);
     const current = props();
     const mounted = render(<AuthoredPagePanel {...current} />);
@@ -531,7 +525,7 @@ describe("framing export consistency", () => {
     expect(delivered).toBe(preview);
   });
   it("discards an in-flight ZIP after only framing changes and exports the new crop on retry", async () => {
-    const job = pending<Blob>();
+    const job = deferred<Blob>();
     calls.generate.mockReturnValueOnce(job.promise);
     const current = { ...props(), settings };
     const { rerender } = render(<AuthoredPagePanel {...current} />);

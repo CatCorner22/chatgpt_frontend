@@ -1,3 +1,4 @@
+import { openSavedStudio } from "./fixtures/saved-studio.mjs";
 /** Actual existing-site ZIP applied to isolated customer fixtures, then completely undone. */
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import assert from "node:assert/strict";
@@ -159,38 +160,22 @@ try {
   // Download from the real Focus interaction, including switching to existing mode.
   const source = await browser.newPage({ acceptDownloads: true });
   source.on("pageerror", (error) => pageErrors.push(error.message));
-  await source.goto(target, { waitUntil: "networkidle" });
   const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
   const tokens = directions.find((d) => d.id === "garden-ledger").direction.tokens;
-  await source.evaluate(
-    (tokens) =>
-      localStorage.setItem(
-        "refraction:v1",
-        JSON.stringify({
-          version: 2,
-          stage: "rx",
-          brief: "An existing booking application",
-          content: {
-            brand: "Existing booking",
-            headline: "Keep customer work",
-            sub: "Synthetic transfer fixture",
-            cta: "Book",
-            features: [],
-            quote: "",
-          },
-          tokens,
-          direction: "Garden Ledger",
-          libraryId: "existing-transfer-fixture",
-          quick: true,
-          picks: [],
-          history: [],
-          directions: [],
-          stepIndex: 3,
-        }),
-      ),
+  await openSavedStudio(source, target, {
+    brief: "An existing booking application",
+    content: {
+      brand: "Existing booking",
+      headline: "Keep customer work",
+      sub: "Synthetic transfer fixture",
+      cta: "Book",
+      features: [],
+      quote: "",
+    },
     tokens,
-  );
-  await source.reload({ waitUntil: "networkidle" });
+    direction: "Garden Ledger",
+    libraryId: "existing-transfer-fixture",
+  });
   await source.getByRole("button", { name: /Design specification.*handoff tools/ }).click();
   await source.getByRole("radio", { name: /Restyle my existing site or app/ }).check();
   const download = source.waitForEvent("download");

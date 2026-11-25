@@ -32,6 +32,20 @@ npm run dev -- --host 127.0.0.1 --port 3000
 
 Open http://localhost:3000. The npm lockfile is authoritative; the original Bun lockfile is retained only as part of the supplied project history.
 
+## Finding your way through the code
+
+| When you're working on… | Start here |
+| --- | --- |
+| Studio navigation, project state and the active stage | [Studio route](src/routes/index.tsx) |
+| The Brief, Directions, Exam or Vision screen | [Studio stages](src/routes/-studio/) |
+| A design template, its visual tokens or its developer instructions | [Gallery](src/lib/gallery.ts) · [Design specification](src/lib/design.ts) |
+| A reusable interface component or its shadcn configuration | [UI components](src/components/ui/) · [Component aliases](components.json) |
+| The HTML and styles a website owner downloads | [Authored page renderer](src/lib/render-authored-page.ts) |
+| A developer handoff or reversible source change | [Pack builder](src/lib/exportPack.ts) · [Source trial](src/lib/source-trial.ts) |
+| Browser verification or the independent design checker | [Browser and handoff checks](scripts/) · [Portable North Star kit](north-star-kit/) |
+
+Tailwind scans the component folder when building the stylesheet. The shadcn alias also makes these components available to template authors and coding assistants. Before retiring a primitive, check both uses and confirm the removal with Blake. [Code review and template dependencies](docs/CODEBASE-REVIEW.md)
+
 ## What works without a backend
 
 - Match a brief against 49 authored design directions.

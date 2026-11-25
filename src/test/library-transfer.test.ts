@@ -1,28 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createHash, webcrypto } from "node:crypto";
+import { webcrypto } from "node:crypto";
 import * as transfer from "@/lib/transfer";
 import { LIBRARY_KEY, withVersion, type LibraryEntry } from "@/lib/library";
 import { normalizeTokens } from "@/lib/design";
 import { normalizePageSettings } from "@/lib/page-settings";
 import { migrate as migrateStudioState, type State as StudioState } from "@/lib/studio-state";
+import { pngAsset, stubImageDecode } from "./image-asset.fixture";
 
 const IMAGE_PREFIX = "focus:page-image:";
-const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6XD8AAAAASUVORK5CYII=",
-  "base64",
-);
-const image = (suffix = "") => {
-  const bytes = Buffer.concat([png, Buffer.from(suffix)]);
-  return {
-    id: createHash("sha256").update(bytes).digest("hex"),
-    src: `data:image/png;base64,${bytes.toString("base64")}`,
-  };
-};
-const current = image(),
-  prior = image("prior"),
-  undo = image("undo"),
-  redo = image("redo"),
-  unused = image("unused");
+const current = pngAsset(),
+  prior = pngAsset("prior"),
+  undo = pngAsset("undo"),
+  redo = pngAsset("redo"),
+  unused = pngAsset("unused");
 const entry = (id = "design-one"): LibraryEntry => ({
   id,
   title: "Clay House",
@@ -88,18 +78,7 @@ const sourceStore = () =>
 
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
-  vi.stubGlobal(
-    "Image",
-    class {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      naturalWidth = 1;
-      naturalHeight = 1;
-      set src(_value: string) {
-        queueMicrotask(() => this.onload?.());
-      }
-    },
-  );
+  stubImageDecode();
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -274,16 +253,7 @@ describe("library backup failure boundaries", () => {
   });
   it("rejects a raster that cannot decode before touching the existing library", async () => {
     const raw = await transfer.createLibraryBackup([entry()], sourceStore());
-    vi.stubGlobal(
-      "Image",
-      class {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        set src(_value: string) {
-          queueMicrotask(() => this.onerror?.());
-        }
-      },
-    );
+    stubImageDecode(() => false);
     const destination = memoryStore({ [LIBRARY_KEY]: '{"version":1,"entries":[]}' });
     await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow(/decoded/);
     expect([...destination.data]).toEqual([[LIBRARY_KEY, '{"version":1,"entries":[]}']]);
@@ -335,16 +305,7 @@ describe("library backup failure boundaries", () => {
 });
 
 it("refuses to export image bytes that cannot be decoded", async () => {
-  vi.stubGlobal(
-    "Image",
-    class {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      set src(_value: string) {
-        queueMicrotask(() => this.onerror?.());
-      }
-    },
-  );
+  stubImageDecode(() => false);
   await expect(transfer.createLibraryBackup([entry()], sourceStore())).rejects.toThrow(/decoded/);
 });
 

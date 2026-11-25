@@ -3,6 +3,7 @@ import { Check, X } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { getPublicBadge } from "@/lib/badge.functions";
 import { badgeLabel, BADGE_MIN_SCORE } from "@/lib/badge";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/badge/$id")({
   loader: async ({ params }) => {
@@ -17,17 +18,11 @@ export const Route = createFileRoute("/badge/$id")({
       : "Focus badge";
     const d =
       "Measured proof that this page was built from its Focus design and meets the quality bar, re-checked every week.";
-    return {
-      meta: [
-        { title: t },
-        { name: "description", content: d },
-        { property: "og:title", content: t },
-        { property: "og:description", content: d },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
-        { name: "robots", content: loaderData ? "index" : "noindex" },
-      ],
-    };
+    return socialHead({
+      title: t,
+      description: d,
+      robots: loaderData ? "index" : "noindex",
+    });
   },
   notFoundComponent: () => (
     <div className="paper min-h-screen">

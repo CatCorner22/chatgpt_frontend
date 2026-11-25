@@ -1,26 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { normalizeTokens, type Content } from "@/lib/design";
-import {
-  addEvidence,
-  designId,
-  EMPTY_LAUNCH,
-  launchFingerprint,
-  markLaunched,
-  TASKS,
-  upsertProgress,
-  type ReviewEvidence,
-} from "@/lib/launch";
+import { designId, EMPTY_LAUNCH, launchFingerprint } from "@/lib/launch";
 import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { workHash } from "@/lib/ux";
+import { launchEvidenceFixture, legacyArtifact } from "./launch-evidence.fixture";
 
 const tokens = normalizeTokens({
   headingFont: "Instrument Serif",
   bg: "#f7fbff",
   accent: "#245cd6",
 });
-const initialTime = "2026-11-18T00:00:00Z";
-const revisitTime = "2026-11-18T01:00:00Z";
 const projectId = "authored-product-details";
 const titleOnly = [{ title: "Class times", body: "" }];
 const state: State = {
@@ -44,44 +34,12 @@ const withFeatures = (features: Content["features"]): State => ({
   ...state,
   content: { ...state.content!, features },
 });
-const legacyArtifact = (input: State) => ({
-  content: input.content,
-  page: input.page,
-  experience: input.purpose.experience,
-  nav: input.nav,
-});
 const productArtifact = (input: State) => ({
   ...legacyArtifact(input),
   authoredOutputRevision: "product-details-v1",
 });
-const reviewedPage: ReviewEvidence = {
-  kind: "page",
-  target: "https://example.com/",
-  at: initialTime,
-  score: 100,
-  summary: "Owned fixture review of the earlier rendered page.",
-  checks: [{ name: "phone", ok: true, detail: "Fixture check", fix: "" }],
-  prescription: [],
-  priorities: [],
-  repair: "",
-};
 
-function reviewed(artifact: unknown) {
-  const records = upsertProgress([], projectId, "River Studio", tokens, initialTime, artifact);
-  records[0]!.details = markLaunched(
-    {
-      ...addEvidence(EMPTY_LAUNCH, reviewedPage),
-      url: reviewedPage.target,
-      tasks: TASKS.map((task) => task.id),
-    },
-    initialTime,
-  );
-  return records;
-}
-
-function revisit(previous: ReturnType<typeof reviewed>, artifact: unknown) {
-  return upsertProgress(previous, projectId, "River Studio", tokens, revisitTime, artifact)[0]!;
-}
+const { reviewed, revisit } = launchEvidenceFixture(projectId, "River Studio", tokens);
 
 describe("Product detail launch evidence", () => {
   it.each(["", " \n\t "])(

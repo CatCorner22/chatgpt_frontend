@@ -4,6 +4,7 @@ import { SourceTrialChoices } from "@/components/SourceTrialChoices";
 import { inspectBookingComparison } from "@/lib/booking-comparison";
 import { SourceTrialReturnPanel } from "@/components/SourceTrialReturnPanel";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { readFileBytes } from "@/lib/read-file-bytes";
 import { downloadBlob } from "@/lib/exportPack";
 import type { Tokens } from "@/lib/design";
 import type { TargetDraft } from "@/lib/target";
@@ -65,21 +66,6 @@ const propertyLabels: Record<string, string> = {
   "font-family": "Font family",
   "border-radius": "Corner radius",
 };
-
-async function fileBytes(file: File): Promise<ArrayBuffer> {
-  if (typeof file.arrayBuffer === "function") return file.arrayBuffer();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () =>
-      reader.result instanceof ArrayBuffer
-        ? resolve(reader.result)
-        : reject(new Error("The selected file could not be read."));
-    reader.onerror = () =>
-      reject(new Error("The selected file could not be read. Choose it again."));
-    reader.onabort = () => reject(new Error("The file read was cancelled."));
-    reader.readAsArrayBuffer(file);
-  });
-}
 
 export type SourceTrialPanelProps = {
   design: { id: string; tokens: Tokens };
@@ -223,7 +209,11 @@ export function SourceTrialPanel({
         throw new Error(
           `${inputLabels[kind]} must be nonempty and no larger than ${Math.round(limit / 1024)} KiB.`,
         );
-      const bytes = await fileBytes(file);
+      const bytes = await readFileBytes(file, {
+        failed: "The selected file could not be read. Choose it again.",
+        cancelled: "The file read was cancelled.",
+        invalidResult: "The selected file could not be read.",
+      });
       if (!current()) return;
       verify();
       if (bytes.byteLength !== file.size || bytes.byteLength > limit)

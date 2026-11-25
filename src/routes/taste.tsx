@@ -27,25 +27,18 @@ import { GALLERY } from "@/lib/gallery";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 import { downloadBlob } from "@/lib/exportPack";
 import { AI_SPENDING_ENABLED, AI_PAUSED_MESSAGE } from "@/lib/ai-policy";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/taste")({
-  head: () => ({
-    meta: [
-      { title: "Taste Portrait & Design Duel — Focus" },
-      {
-        name: "description",
-        content:
-          "Turn personal inspirations into a design language and compare your preferences one visual decision at a time.",
-      },
-      { property: "og:title", content: "Your design taste — Focus" },
-      {
-        property: "og:description",
-        content: "An explainable Taste Portrait and side-by-side Design Duels.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Taste Portrait & Design Duel — Focus",
+      description:
+        "Turn personal inspirations into a design language and compare your preferences one visual decision at a time.",
+      ogTitle: "Your design taste — Focus",
+      ogDescription: "An explainable Taste Portrait and side-by-side Design Duels.",
+      card: "summary_large_image",
+    }),
   component: Taste,
 });
 const CONTENT = {

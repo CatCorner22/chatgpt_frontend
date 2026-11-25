@@ -20,24 +20,15 @@ import { useDesignFonts } from "@/lib/useDesignFonts";
 import { useUser } from "@/hooks/useSession";
 import { mergeBuilds } from "@/lib/brandSync";
 import { fetchBuilds, pushBuilds, removeBuilds } from "@/lib/brandCloud";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/brands")({
-  head: () => ({
-    meta: [
-      { title: "Brands — Focus" },
-      {
-        name: "description",
-        content: "Keep every website and app for one brand together, sharing one look.",
-      },
-      { property: "og:title", content: "Brands — Focus" },
-      {
-        property: "og:description",
-        content: "Several website and app builds under one brand, linked by a shared look.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Brands — Focus",
+      description: "Keep every website and app for one brand together, sharing one look.",
+      ogDescription: "Several website and app builds under one brand, linked by a shared look.",
+    }),
   component: Brands,
 });
 

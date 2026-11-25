@@ -4,7 +4,7 @@ import { mkdtemp, rm, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright-core";
+import { launchChromium } from "../browser-engine.mjs";
 import { loadChecks, runAudit } from "../north-star-audit.mjs";
 import { parseArgs } from "./options.mjs";
 
@@ -15,11 +15,7 @@ test(
   { timeout: 30000 },
   async () => {
     const check = (await loadChecks()).find((entry) => entry.ruleId === "floor-text-contrast");
-    const browser = await chromium.launch({
-      executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-      headless: true,
-      args: ["--no-sandbox"],
-    });
+    const browser = await launchChromium();
     try {
       const page = await browser.newPage();
       await page.setContent(`<!doctype html><html><head><style>

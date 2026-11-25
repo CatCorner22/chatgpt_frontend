@@ -54,11 +54,9 @@ export function BookingObservationFields({
           Price you stated before submitting (USD)
           <input
             className={field}
-            type="number"
+            type="text"
             inputMode="decimal"
-            min={0}
-            max={1000000}
-            step="0.01"
+            maxLength={120}
             value={draft.statedDollars}
             onChange={(e) => change("statedDollars", e.target.value)}
           />
@@ -81,11 +79,9 @@ export function BookingObservationFields({
           Time until you finished or stopped (seconds)
           <input
             className={field}
-            type="number"
+            type="text"
             inputMode="numeric"
-            min={0}
-            max={86400}
-            step={1}
+            maxLength={120}
             value={draft.elapsedSeconds}
             onChange={(e) => change("elapsedSeconds", e.target.value)}
           />
@@ -109,11 +105,9 @@ export function BookingObservationFields({
           Saved reservations for this practice address
           <input
             className={field}
-            type="number"
+            type="text"
             inputMode="numeric"
-            min={0}
-            max={250}
-            step={1}
+            maxLength={120}
             value={draft.savedReservations}
             aria-describedby="booking-count-help"
             onChange={(e) => change("savedReservations", e.target.value)}

@@ -219,6 +219,17 @@ try {
   assert.ok(!updated.includes(first), updated);
   assert.doesNotMatch(updated, /[$€]/u);
   assert.deepEqual(await readRows(), [`${revised} · Text fits`, `${second} · Text fits`]);
+  const japanesePrice = "材料費込みで￥３，２００です。";
+  const arabicPrice = "تكلفة الحصة ٤٨ €";
+  await editor.getByLabel("Feature 1 description").fill(japanesePrice);
+  await editor.getByLabel("Feature 2 description").fill(arabicPrice);
+  await rendered.getByText(arabicPrice, { exact: true }).waitFor();
+  await check.click();
+  await status.filter({ hasText: revised }).waitFor();
+  assert.deepEqual(await readRows(), [
+    `${revised} · Price text fits: ${japanesePrice}`,
+    `${second} · Price text fits: ${arabicPrice}`,
+  ]);
   assert.deepEqual(errors, []);
   console.log(
     `${browserName} passed the 320 px comparison check, download parity, edit invalidation and price-free recheck.`,

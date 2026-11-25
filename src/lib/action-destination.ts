@@ -38,11 +38,15 @@ export function actionDestination(value: unknown): string | null {
 }
 
 /** Earlier pages normalized web addresses and rejected literal apostrophes. */
-export function changesPreviousActionMarkup(value: unknown): boolean {
+export function changesPreviousActionMarkup(value: unknown, compareOriginalInput = true): boolean {
+  if (typeof value !== "string") return false;
   const action = actionDestination(value);
+  if (!action) return false;
+  // Serializing a shorthand web address can turn a literal apostrophe into %27.
   return (
-    !!action &&
-    (action.includes("'") || (/^https?:/i.test(action) && new URL(action).href !== action))
+    (compareOriginalInput && value.includes("'")) ||
+    action.includes("'") ||
+    (/^https?:/i.test(action) && new URL(action).href !== action)
   );
 }
 

@@ -18,6 +18,7 @@ try {
   await response.body.cancel();
 
   for (const script of [
+    "browser-smoke.mjs",
     "test-protected-design-journey.mjs",
     "test-comparison-phone.mjs",
     "test-garden-journey.mjs",
@@ -25,6 +26,7 @@ try {
     "test-copy-ownership.mjs",
     "test-authored-pages.mjs",
     "test-existing-transfer.mjs",
+    "test-booking-rehearsal.mjs",
     "test-pilot-organizer.mjs",
   ]) {
     console.log(`\nRunning ${script} against ${url.origin}`);

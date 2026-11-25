@@ -30,7 +30,12 @@ import goodSample from "../../north-star-kit/fixtures/good.html?raw";
 import flawedSample from "../../north-star-kit/fixtures/flawed.html?raw";
 
 const MAX_SOURCE = 250_000;
-type Inspection = { findings: Finding[]; source: string; label: string };
+type Inspection = {
+  findings: Finding[];
+  source: string;
+  label: string;
+  origin: "editor" | "sample";
+};
 const ruleNames = new Map(allRules.map((rule) => [rule.id, rule.plain]));
 
 function inspectMarkup(source: string): Finding[] {
@@ -79,12 +84,17 @@ export function QualityWorkbench() {
     [inspection],
   );
   const fails = inspection?.findings.filter((finding) => finding.status === "fails") ?? [];
-  const stale = !!inspection && source !== inspection.source;
+  const stale =
+    inspection?.origin === "editor" && (source !== inspection.source || label !== inspection.label);
   const measured = [...(report?.measured ?? [])].sort(
     (a, b) => Number(b.status === "fails") - Number(a.status === "fails"),
   );
 
-  const inspect = (nextSource = source, nextLabel = label) => {
+  const inspect = (
+    nextSource = source,
+    nextLabel = label,
+    origin: Inspection["origin"] = "editor",
+  ) => {
     if (!nextSource.trim()) {
       setError("Paste your page’s HTML or choose one of the sample pages.");
       return;
@@ -102,7 +112,12 @@ export function QualityWorkbench() {
       return;
     }
     try {
-      setInspection({ findings: inspectMarkup(nextSource), source: nextSource, label: nextLabel });
+      setInspection({
+        findings: inspectMarkup(nextSource),
+        source: nextSource,
+        label: nextLabel,
+        origin,
+      });
       setError("");
       setTab("measured");
       requestAnimationFrame(() => resultsRef.current?.focus({ preventScroll: true }));
@@ -115,13 +130,16 @@ export function QualityWorkbench() {
   const sample = (kind: "good" | "flawed") => {
     const next = kind === "good" ? goodSample : flawedSample;
     const name = kind === "good" ? "Reference sample" : "Flawed sample";
-    hasPrivateMarkup.current = false;
+    if (hasPrivateMarkup.current) {
+      inspect(next, name, "sample");
+      return;
+    }
     setSource(next);
     setLabel(name);
     inspect(next, name);
   };
   const download = () => {
-    if (!report || !inspection || !plan) return;
+    if (!report || !inspection || !plan || stale) return;
     const blob = new Blob(
       [
         JSON.stringify(
@@ -142,7 +160,7 @@ export function QualityWorkbench() {
     downloadBlob(blob, "north-star-receipt.json");
   };
   const copyRepairs = async () => {
-    if (!plan) return;
+    if (!plan || stale) return;
     const text = [
       "Static markup repair list",
       "Recheck the rendered page after each fix; these results do not verify layout or interaction.",
@@ -345,11 +363,16 @@ export function QualityWorkbench() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {!!plan?.items.length && (
-                  <Button variant="outline" className="min-h-11" onClick={() => void copyRepairs()}>
+                  <Button
+                    variant="outline"
+                    className="min-h-11"
+                    disabled={stale}
+                    onClick={() => void copyRepairs()}
+                  >
                     <Clipboard aria-hidden /> Copy repairs
                   </Button>
                 )}
-                <Button variant="outline" className="min-h-11" onClick={download}>
+                <Button variant="outline" className="min-h-11" disabled={stale} onClick={download}>
                   <Download aria-hidden /> Download receipt
                 </Button>
               </div>
@@ -358,6 +381,18 @@ export function QualityWorkbench() {
               Inspection complete. {fails.length} findings. {report.couldNotMeasure.length} checks
               could not be measured.
             </p>
+            {inspection.origin === "sample" && (
+              <details className="mt-4 text-sm">
+                <summary className="cursor-pointer py-2">View HTML for {inspection.label}</summary>
+                <pre
+                  className="max-h-64 overflow-auto rounded-md bg-muted p-3"
+                  tabIndex={0}
+                  aria-label={inspection.label + " HTML"}
+                >
+                  {inspection.source}
+                </pre>
+              </details>
+            )}
             {stale && (
               <div
                 role="status"

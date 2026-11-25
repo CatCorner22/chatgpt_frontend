@@ -32,9 +32,9 @@ const qualitySchema = z
   .strict();
 // Keep unfinished numeric inputs across reloads. Only valid observed numbers enter an export.
 const bookingDraftSchema = bookingObservationSchema.extend({
-  statedDollars: z.string().max(32),
-  elapsedSeconds: z.string().max(32),
-  savedReservations: z.string().max(32),
+  statedDollars: z.string(),
+  elapsedSeconds: z.string(),
+  savedReservations: z.string(),
 });
 export type BookingDraft = z.infer<typeof bookingDraftSchema>;
 export function emptyBookingDraft(): BookingDraft {
@@ -49,21 +49,25 @@ export function emptyBookingDraft(): BookingDraft {
   };
 }
 function parseBookingDraft(draft: BookingDraft) {
-  const toNumber = (value: string) => {
+  const toNumber = (value: string, decimalPlaces: number) => {
     const text = value.trim();
     if (!text) return null;
-    return /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/.test(text) ? Number(text) : NaN;
+    if (text.length > 32 || !/^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/.test(text)) return NaN;
+    // Validate the entered units before converting: Number can round a fraction to a whole cent or count.
+    const fraction = text.split(".")[1] ?? "";
+    return /[1-9]/.test(fraction.slice(decimalPlaces)) ? NaN : Number(text);
   };
   return bookingObservationSchema.safeParse({
     ...draft,
-    statedDollars: toNumber(draft.statedDollars),
-    elapsedSeconds: toNumber(draft.elapsedSeconds),
-    savedReservations: toNumber(draft.savedReservations),
+    statedDollars: toNumber(draft.statedDollars, 2),
+    elapsedSeconds: toNumber(draft.elapsedSeconds, 0),
+    savedReservations: toNumber(draft.savedReservations, 0),
   });
 }
 const draftSchema = z
   .object({
     bookingObservation: bookingDraftSchema.optional(),
+    pausedBookingObservation: bookingDraftSchema.optional(),
     taskOutcome: z.enum(["completed", "blocked", "not-tested"]).nullable(),
     judgedOrigin: z.enum(["person", "generated", "unsure"]).nullable(),
     quality: qualitySchema,
@@ -239,14 +243,16 @@ export function parseReviewSession(text: string): ReviewSession {
     throw new Error("The saved answers do not match this packet.");
   for (const sample of session.packet.samples) {
     const draft = session.drafts[sample.id];
-    if (
-      draft?.bookingObservation &&
-      (sample.kind !== "interactive" ||
-        draft.taskOutcome === "not-tested" ||
-        session.packet.tasks.find((task) => task.id === sample.taskId)?.observationProtocol !==
-          bookingProtocol)
-    )
-      throw new Error("The saved booking observations do not match this interactive task.");
+    if (draft?.bookingObservation || draft?.pausedBookingObservation) {
+      const task = session.packet.tasks.find((task) => task.id === sample.taskId);
+      if (
+        sample.kind !== "interactive" ||
+        task?.observationProtocol !== bookingProtocol ||
+        (draft.bookingObservation && draft.taskOutcome === "not-tested") ||
+        (draft.pausedBookingObservation && draft.taskOutcome !== "not-tested")
+      )
+        throw new Error("The saved booking observations do not match this interactive task.");
+    }
     if (
       !draft ||
       (sample.kind === "image" &&

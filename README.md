@@ -125,6 +125,7 @@ Restart the preview after rebuilding so the Worker and its hashed assets come fr
 
 ```sh
 export FOCUS_TEST_URL=http://127.0.0.1:4173
+npm run test:browser
 npm run test:autosave
 node scripts/test-garden-journey.mjs
 node scripts/test-hosted-journey.mjs

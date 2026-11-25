@@ -206,6 +206,28 @@ describe("River Kiln observation handoff", () => {
     ).toContain("bookingObservation");
     expect(() => reviewAnswerBundle(session, true)).toThrow("at least one sample");
   });
+  it.each([
+    ["statedDollars", "48.0000000000000001"],
+    ["savedReservations", "1.0000000000000001"],
+    ["elapsedSeconds", "60.0000000000000001"],
+  ] as const)("requires exact units before converting %s into a scored number", (field, value) => {
+    const session = sessionWithBooking();
+    session.drafts["sample-a"]!.bookingObservation![field] = value;
+    expect(() => reviewAnswerBundle(session, true)).toThrow("at least one sample");
+    session.drafts["sample-a"]!.bookingObservation![field] = "1.000";
+    expect(reviewAnswerBundle(session, true).evaluations[0]!.bookingObservation?.[field]).toBe(1);
+  });
+  it("restores an overlong price for correction without losing another sample's export", () => {
+    const session = sessionWithBooking();
+    session.drafts["sample-b"] = fullDraft(true);
+    const overlong = "9".repeat(50);
+    session.drafts["sample-a"]!.bookingObservation!.statedDollars = overlong;
+    const restored = parseReviewSession(JSON.stringify(session));
+    expect(restored.drafts["sample-a"]!.bookingObservation!.statedDollars).toBe(overlong);
+    expect(reviewAnswerBundle(restored, true).evaluations.map((row) => row.sampleId)).toEqual([
+      "sample-b",
+    ]);
+  });
   it("rejects observations attached to a different task, an image, or an unattempted sample", () => {
     const session = sessionWithBooking();
     delete session.packet.tasks[0]!.observationProtocol;

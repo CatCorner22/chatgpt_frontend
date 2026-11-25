@@ -33,7 +33,8 @@ import {
 
 const fieldNames: Record<string, string> = {
   reviewerCode: "Reviewer code",
-  bookingObservation: "Check the price, seconds and booking count. A blank field means unmeasured.",
+  bookingObservation:
+    "Enter a price from $0 to $1,000,000 in whole cents, a whole number of seconds from 0 to 86,400 and a whole booking count from 0 to 250. Leave unmeasured values blank.",
   taskOutcome: "Task outcome",
   judgedOrigin: "Origin estimate",
   hierarchy: "Hierarchy",
@@ -690,9 +691,13 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
                               onChange={() =>
                                 updateDraft({
                                   taskOutcome: value,
-                                  ...(value === "not-tested"
-                                    ? { bookingObservation: undefined }
-                                    : {}),
+                                  bookingObservation:
+                                    value === "not-tested"
+                                      ? undefined
+                                      : (draft.bookingObservation ??
+                                        draft.pausedBookingObservation),
+                                  pausedBookingObservation:
+                                    value === "not-tested" ? draft.bookingObservation : undefined,
                                 })
                               }
                             />

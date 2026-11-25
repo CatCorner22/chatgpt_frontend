@@ -235,6 +235,24 @@ async function review(browser, live, packet, width) {
         await reviewer.getByLabel("4 of 7 for " + title).check();
       await reviewer.getByRole("radio", { name: "Unsure", exact: true }).check();
       await reviewer.getByLabel(/What stood out/).fill(testLabel);
+      if (index === 0) {
+        const price = reviewer.getByLabel(/Price you stated before submitting/);
+        await price.fill("48.0000000000000001");
+        await reviewer.getByRole("button", { name: "Save & next" }).click();
+        assert.equal(await price.count(), 1, "An imprecise price advanced to the next sample.");
+        await reviewer
+          .getByRole("alert")
+          .getByText(/whole cents/)
+          .waitFor();
+        await price.fill(".");
+        await reviewer.reload();
+        assert.equal(await price.inputValue(), ".");
+        await reviewer.getByRole("radio", { name: "Not tested", exact: true }).check();
+        await reviewer.reload();
+        await reviewer.getByRole("radio", { name: "Completed", exact: true }).check();
+        assert.equal(await price.inputValue(), ".");
+        await price.fill("48");
+      }
       await reviewer.getByRole("button", { name: index ? "Finish review" : "Save & next" }).click();
     }
     assert.deepEqual(treatments.sort(), ["compact", "compare"]);

@@ -8,6 +8,7 @@ assert.equal(origin.hostname, "127.0.0.1");
 assert.equal(origin.protocol, "http:");
 const owner = "garden-journey-browser";
 const id = "garden-journey-editorial";
+const otherId = "garden-journey-other";
 const [direction] = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
 const state = {
   version: 2,
@@ -60,7 +61,7 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await restrictToFixture(page, owner);
   await page.addInitScript(
-    ({ state, owner, origin }) => {
+    ({ state, otherId, owner, origin }) => {
       if (
         location.origin !== origin ||
         window.top !== window ||
@@ -68,11 +69,27 @@ try {
       )
         return;
       sessionStorage.setItem("fixture-initialized", "true");
+      const otherState = {
+        ...state,
+        libraryId: otherId,
+        content: { ...state.content, headline: "Another studio’s schedule" },
+      };
       for (const prefix of ["", "focus:owner:v1:" + encodeURIComponent("sites:" + owner) + ":"]) {
-        localStorage.setItem(prefix + "refraction:v1", JSON.stringify(state));
+        localStorage.setItem(prefix + "refraction:v1", JSON.stringify(otherState));
+        localStorage.setItem(
+          prefix + "refraction:library:v1",
+          JSON.stringify({
+            version: 1,
+            entries: [state, otherState].map((design) => ({
+              id: design.libraryId,
+              title: design.content.brand,
+              state: design,
+            })),
+          }),
+        );
       }
     },
-    { state, owner, origin: origin.origin },
+    { state, otherId, owner, origin: origin.origin },
   );
   const visit = (path) => page.goto(new URL(path, origin).href);
   const button = (name) => page.getByRole("button", { name, exact: true });
@@ -82,7 +99,8 @@ try {
     return readFile(await (await result).path());
   }
   await visit("/?view=studio");
-  await page.getByTitle("Working page preview").waitFor();
+  const studioPreview = page.frameLocator('iframe[title="Working page preview"]');
+  assert.equal(await studioPreview.locator("h1").innerText(), "Another studio’s schedule");
   await visit("/");
   const newProject = page.getByRole("radio", { name: "New app or website", exact: true });
   await newProject.waitFor();
@@ -109,7 +127,9 @@ try {
   await page.getByLabel("Project starting point").selectOption("new");
   await page.getByLabel("What should someone be able to do?").fill("Find class prices & times");
   await page.getByLabel("What needs to keep working?").fill("The class links");
-  await page.getByLabel("Brief for", { exact: true }).selectOption(id);
+  await page.getByLabel("Brief for", { exact: true }).selectOption({
+    label: "River Kiln — Classes on the river",
+  });
   await button("Copy my unassigned brief into this design").click();
   await button("3. Arrange the page").click();
   await page.getByLabel("Preferred approach").selectOption("scannable-sections");
@@ -121,7 +141,15 @@ try {
   await page.reload();
   await button("Open my journey brief").click();
   assert.equal(await page.getByLabel("Preferred approach").inputValue(), "scannable-sections");
-  await page.getByRole("link", { name: "Arrange the page", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Arrange the page", exact: true })
+    .or(button("Arrange the page"))
+    .press("Enter");
+  assert.equal(
+    await studioPreview.locator("h1").innerText(),
+    "Classes on the river",
+    "Arrange the page should open the design selected under Brief for.",
+  );
   await button("Apply Journal from my brief").click();
   await page.getByText("This website already uses Journal.").waitFor();
   await visit("/?view=studio");
@@ -222,6 +250,15 @@ try {
     guide.split("## Garden journey brief")[1].split("```json")[1].split("```")[0],
   );
   assert.deepEqual(included, portable);
+  await visit("/library");
+  const library = JSON.parse((await download("Back up library")).toString());
+  const other = library.entries.find((entry) => entry.id === otherId);
+  assert.equal(other.state.content.headline, "Another studio’s schedule");
+  assert.equal(other.state.page.composition, "studio");
+  assert.equal(
+    library.entries.find((entry) => entry.id === id).state.page.composition,
+    "comparison",
+  );
   const recipient = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const colleague = await recipient.newPage();
   colleague.setDefaultTimeout(15000);

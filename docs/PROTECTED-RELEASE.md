@@ -21,6 +21,8 @@ The Worker uses the compatibility date in [nitro.config.ts](../nitro.config.ts).
 | Can a colleague try a change and undo only that change?                        | The existing-site transfer downloads the current pack, rehearses a folder collision and exercises original tasks before and after undo. The colleague-kit check opens the linked ZIP, pastes both received guides in separate disposable projects, and compares all project files before and after refused writes and successful undo.                                                                         |
 | Do the comparison tools and delivered practice project still work?             | The independent kit and benchmark tests exercise the evidence and scoring logic. The private organizer downloads the study from the Worker. The portable pilot test extracts that ZIP and exercises masked tasks and scoring with synthetic responses. A separate designer-return fixture builds a kit from the frozen starter and rehearses the same protocol with a temporary software-generated submission. |
 
+The first-time browser walkthrough follows Reverie into Studio and checks the downloaded design and working page. The River Kiln rehearsal downloads a fresh project and proposal from Target, books a class before and after applying the proposal, then verifies booking again after rollback.
+
 The collision check follows the documented fresh-folder procedure. A colleague who extracts a ZIP with another tool controls that tool’s overwrite behavior. A matched designer submission, independent observations and permission for their use must come from the actual participants. [Participant study](RIVER-KILN-DESIGNER-STUDY.md)
 
 ## Approval and branch settings

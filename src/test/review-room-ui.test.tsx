@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StrictMode } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BlindReviewRoom } from "@/components/BlindReviewRoom";
-import { createReviewSession, REVIEW_ROOM_KEY } from "@/lib/review-room";
+import { createReviewSession, REVIEW_ROOM_KEY, reviewAnswerBundle } from "@/lib/review-room";
+import { bookingProtocol } from "../../north-star-kit/blind-test/reviewer";
 import { packetFixture } from "./review-room.fixture";
 
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Review workspace</header> }));
@@ -21,6 +22,53 @@ afterEach(() => {
 });
 
 describe("review room workflow", () => {
+  function openCompletedBooking() {
+    const packet = packetFixture();
+    packet.tasks[0]!.observationProtocol = bookingProtocol;
+    const review = createReviewSession(packet);
+    review.reviewerCode = "r-27";
+    review.drafts["sample-a"] = {
+      ...review.drafts["sample-a"]!,
+      taskOutcome: "completed",
+      judgedOrigin: "unsure",
+      quality: {
+        hierarchy: 4,
+        typography: 5,
+        composition: 4,
+        distinctiveness: 5,
+        interaction: 4,
+        content: 5,
+      },
+    };
+    localStorage.setItem(REVIEW_ROOM_KEY, JSON.stringify(review));
+    return render(<BlindReviewRoom />);
+  }
+  it("restores unfinished numeric text and keeps that sample out of the download", async () => {
+    const first = openCompletedBooking();
+    const price = await screen.findByLabelText(/Price you stated before submitting/);
+    fireEvent.change(price, { target: { value: "48" } });
+    fireEvent.change(price, { target: { value: "." } });
+    first.unmount();
+    render(<BlindReviewRoom />);
+    expect(await screen.findByLabelText(/Price you stated before submitting/)).toHaveValue(".");
+    expect(screen.getByRole("button", { name: /Download partial answers/ })).toBeDisabled();
+  });
+  it("keeps observations editable after switching a sample to Not tested and back", async () => {
+    const first = openCompletedBooking();
+    fireEvent.change(await screen.findByLabelText(/Price you stated before submitting/), {
+      target: { value: "47.50" },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: "Not tested" }));
+    const saved = JSON.parse(localStorage.getItem(REVIEW_ROOM_KEY)!);
+    expect(reviewAnswerBundle(saved, true).evaluations[0]).not.toHaveProperty("bookingObservation");
+    first.unmount();
+    render(<BlindReviewRoom />);
+    expect(await screen.findByRole("radio", { name: "Not tested" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "Completed" }));
+    expect(
+      (screen.getByLabelText(/Price you stated before submitting/) as HTMLInputElement).value,
+    ).toBe("47.50");
+  });
   it("retries the last edited answer on departure after browser storage recovers", async () => {
     const original = JSON.stringify(createReviewSession(packetFixture()));
     localStorage.setItem(REVIEW_ROOM_KEY, original);

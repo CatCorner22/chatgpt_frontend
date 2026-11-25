@@ -7,14 +7,16 @@ import { gardenJourneyKey, readGardenJourney } from "@/lib/garden-journey";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
 import { normalizeTokens } from "@/lib/design";
 import { LIBRARY_KEY } from "@/lib/library";
+import { takeLibraryOpenId } from "@/lib/library-open";
 import { PROGRESS_KEY } from "@/lib/launch";
 import { ONBOARDING_KEY } from "@/lib/onboarding";
 import { STUDIO_KEY } from "@/lib/projects";
 
+const navigate = vi.hoisted(() => vi.fn());
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus navigation</header> }));
 vi.mock("@tanstack/react-router", () => ({
   useBlocker: vi.fn(),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => navigate,
   Link: ({
     to,
     search,
@@ -22,6 +24,10 @@ vi.mock("@tanstack/react-router", () => ({
   }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: Record<string, string> }) => (
     <a
       href={to + (search && Object.keys(search).length ? `?${new URLSearchParams(search)}` : "")}
+      onClick={(event) => {
+        event.preventDefault();
+        navigate({ to, search });
+      }}
       {...props}
     />
   ),
@@ -171,6 +177,116 @@ describe("Garden home", () => {
     expect(localStorage.getItem(STUDIO_KEY)).toBe(untouched);
   });
 
+  it("distinguishes same-titled designs in the brief selector and resumes the selected copy", async () => {
+    const names = [
+      ["morning", "Classes", "Morning sessions"],
+      ["evening", "Classes", "Evening sessions"],
+      ["weekend", "Classes", "Evening sessions"],
+      ["news", "Seasonal news", "News from the studio"],
+    ] as const;
+    const entries = names.map(([id, title, headline]) => ({
+      id,
+      title,
+      state: {
+        libraryId: id,
+        tokens: normalizeTokens({}),
+        content: { brand: title, headline, sub: "", cta: "", quote: "", features: [] },
+      },
+    }));
+    localStorage.setItem(LIBRARY_KEY, JSON.stringify({ version: 1, entries }));
+    const view = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const choices = within(screen.getByLabelText("Brief for"));
+    expect(choices.getByRole("option", { name: "Seasonal news" })).toBeVisible();
+    expect(choices.getByRole("option", { name: /Morning sessions/ })).toBeVisible();
+    const evening = choices.getAllByRole("option", { name: /Evening sessions/ });
+    expect(evening).toHaveLength(2);
+    expect(evening[0]?.textContent).not.toBe(evening[1]?.textContent);
+    const selected = choices.getByRole("option", { name: /Evening sessions.*weekend/ });
+    fireEvent.change(screen.getByLabelText("Brief for"), {
+      target: { value: (selected as HTMLOptionElement).value },
+    });
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Weekend students" },
+    });
+    expect(readGardenJourney("weekend").brief?.audience).toBe("Weekend students");
+    expect(readGardenJourney("evening").brief).toBeNull();
+    view.unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Brief for")).toHaveValue("weekend");
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Weekend students");
+  });
+
+  it.each([
+    ["content", "Work on the page content", null],
+    ["direction", "Explore design directions", null],
+    ["plan", "Arrange the page", "composition"],
+    ["craft", "Explore color pairs", "palette"],
+    ["craft", "Font pairs", "fonts"],
+    ["craft", "Text size and emphasis", "hierarchy"],
+    ["craft", "Spacing", "spacing"],
+    ["craft", "Buttons and corners", "form"],
+    ["behavior", "Choose button appearance", "form"],
+  ] as const)(
+    "routes %s / %s to the open brief's design only while it is selected",
+    async (stop, name, group) => {
+      const id = "chosen-design";
+      localStorage.setItem(
+        LIBRARY_KEY,
+        JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              id,
+              title: "Design to review",
+              state: {
+                libraryId: id,
+                tokens: normalizeTokens({}),
+                content: {
+                  brand: "Guide",
+                  headline: "Seasonal activities",
+                  sub: "",
+                  cta: "",
+                  quote: "",
+                  features: [],
+                },
+              },
+            },
+          ],
+        }),
+      );
+      render(<GardenHome />);
+      fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+      visitStep(stop);
+      const design = screen.getByLabelText("Brief for");
+      const choose = (value: string) => fireEvent.change(design, { target: { value } });
+      function checkDestination(linked: boolean) {
+        const action = screen.queryByRole("link", { name }) ?? screen.getByRole("button", { name });
+        navigate.mockClear();
+        fireEvent.click(action);
+        const request = navigate.mock.calls[0]?.[0];
+        expect(request?.to).toBe("/");
+        expect(request.search).toEqual(
+          group
+            ? { view: "studio", panel: "stratosphere", group }
+            : linked
+              ? { view: "studio" }
+              : { view: "studio", start: "existing" },
+        );
+        expect(takeLibraryOpenId(request.state?.focusLibraryOpen)).toBe(linked ? id : null);
+      }
+      choose("");
+      checkDestination(false);
+      choose(id);
+      checkDestination(true);
+      fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+      checkDestination(false);
+      fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+      checkDestination(true);
+    },
+  );
+
   it("retries pending notes and preferences on exit without overwriting other Garden choices", async () => {
     const ui = render(<GardenHome />);
     fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
@@ -226,6 +342,22 @@ describe("Garden home", () => {
     visitStep("craft");
     expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({ ...newer, step: "craft" });
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
+  });
+
+  it("continues along the visible starting point when another tab saves the opposite one", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("radio", { name: "New app or website" }));
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
+    expect(screen.getByRole("radio", { name: "New app or website" })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("link", { name: "Work on the page content" })).toHaveAttribute(
+      "href",
+      "/?view=studio&start=new",
+    );
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toMatchObject({
+      goal: "existing",
+      step: "content",
+    });
   });
 
   it("updates lesson depth without overwriting another tab's saved stop or moving the visible stop", async () => {

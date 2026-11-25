@@ -364,6 +364,33 @@ describe("Target prepares a truthful trial handoff", () => {
     expect(zip.file("focus-restyle/focus-tokens.css")).toBeNull();
   });
 
+  it.each(["react", "lovable", "wordpress", "choose"] as const)(
+    "lets a recipient follow a new %s handoff from an empty starting point through rollback",
+    async (platform) => {
+      const draft = complete({
+        integration: "new",
+        platform,
+        page: "First booking page",
+        improvement: "Make available dates easy to find",
+        tasks: "Select a date",
+        backup: "Empty separate trial project",
+        rollback: "Restore the empty baseline and keep later work",
+      });
+      const zip = await JSZip.loadAsync(await prepareTargetPack(draft, entry));
+      const guide = await zip.file("DESIGN.md")!.async("string");
+      const plan = guide.split("## Target — prepared trial plan")[1]!;
+      const prompts = targetPrompts(draft, entry);
+      for (const prompt of prompts) expect(plan).toContain(prompt.text);
+      expect(plan).not.toMatch(
+        /inspect the repository|a duplicate or isolated branch|use a staging copy|its existing styling and test setup|record the original page|use the existing project tooling|rerun the original visitor tasks/i,
+      );
+      expect(prompts.find(({ id }) => id === "rollback")?.text).toMatch(
+        /compare.*saved.*baseline/i,
+      );
+      expect(prompts.find(({ id }) => id === "test")?.text).toContain(draft.tasks);
+    },
+  );
+
   it("keeps the existing pack safety validator in the preparation path", async () => {
     const unreadable = {
       ...entry,

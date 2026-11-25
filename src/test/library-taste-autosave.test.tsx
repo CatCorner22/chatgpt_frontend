@@ -100,6 +100,28 @@ it("protects a newer library title and retains typed text when an exit fails", a
   expect(JSON.parse(localStorage.getItem(LIBRARY_KEY)!).entries[0].title).toBe("Changed elsewhere");
 });
 
+it("keeps a failed copy out of My designs and lets the owner retry the copy", async () => {
+  seed();
+  render(<Library />);
+  const copy = await screen.findByRole("button", { name: "Make a copy" });
+  const setItem = Storage.prototype.setItem;
+  const unavailable = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+    this: Storage,
+    key,
+    value,
+  ) {
+    if (key !== LIBRARY_KEY) setItem.call(this, key, value);
+  });
+  fireEvent.click(copy);
+  expect(screen.queryByLabelText("Name for Copy of River")).not.toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(LIBRARY_KEY)!).entries).toHaveLength(1);
+
+  unavailable.mockRestore();
+  fireEvent.click(copy);
+  expect(screen.getByLabelText("Name for Copy of River")).toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(LIBRARY_KEY)!).entries).toHaveLength(2);
+});
+
 it.each([
   { label: "My designs", Page: Library, action: "Open its Vision" },
   { label: "Brands", Page: Brands, action: "Open" },

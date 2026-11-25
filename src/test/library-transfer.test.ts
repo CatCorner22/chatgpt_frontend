@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { webcrypto } from "node:crypto";
 import * as transfer from "@/lib/transfer";
 import { LIBRARY_KEY, withVersion, type LibraryEntry } from "@/lib/library";
+import { gardenJourneyKey, newGardenJourney } from "@/lib/garden-journey";
 import { normalizeTokens } from "@/lib/design";
 import { normalizePageSettings } from "@/lib/page-settings";
 import { migrate as migrateStudioState, type State as StudioState } from "@/lib/studio-state";
@@ -271,6 +272,57 @@ describe("library backup failure boundaries", () => {
     expect(destination.data.size).toBe(0);
     destination.setItem = original;
     expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(1);
+  });
+  it.each([
+    ["image", IMAGE_PREFIX + prior.id],
+    ["journey brief", gardenJourneyKey("design-one")],
+    ["library", LIBRARY_KEY],
+  ])("refuses a discarded %s write and restores the complete backup on retry", async (_, key) => {
+    const source = sourceStore();
+    const briefKey = gardenJourneyKey("design-one");
+    const brief = { ...newGardenJourney("design-one", "new"), audience: "Students" };
+    source.setItem(briefKey, JSON.stringify(brief));
+    const raw = await transfer.createLibraryBackup([entry()], source);
+    const destination = memoryStore({ [IMAGE_PREFIX + current.id]: current.src });
+    const set = destination.setItem;
+    destination.setItem = (k, v) => {
+      if (k !== key) set(k, v);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect([...destination.data]).toEqual([[IMAGE_PREFIX + current.id, current.src]]);
+    destination.setItem = set;
+    expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(1);
+    expect(JSON.parse(destination.getItem(briefKey)!)).toEqual(brief);
+    for (const asset of [current, prior, undo, redo])
+      expect(destination.getItem(IMAGE_PREFIX + asset.id)).toBe(asset.src);
+  });
+
+  it("keeps a library saved in another tab while the restore is writing its images", async () => {
+    const raw = await transfer.createLibraryBackup([entry()], sourceStore());
+    const destination = memoryStore();
+    const other = JSON.stringify({ version: 1, entries: [entry("other-tab")] });
+    const set = destination.setItem;
+    destination.setItem = (key, value) => {
+      set(key, value);
+      if (key === IMAGE_PREFIX + current.id) set(LIBRARY_KEY, other);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect(destination.getItem(LIBRARY_KEY)).toBe(other);
+    expect(destination.getItem(IMAGE_PREFIX + current.id)).toBe(current.src);
+  });
+
+  it("preserves images if the final library write cannot be read back safely", async () => {
+    const raw = await transfer.createLibraryBackup([entry()], sourceStore());
+    const destination = memoryStore();
+    const get = destination.getItem;
+    destination.getItem = (key) => {
+      if (key === LIBRARY_KEY && destination.data.has(key)) throw new Error("Read unavailable");
+      return get(key);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect(JSON.parse(destination.data.get(LIBRARY_KEY)!).entries).toHaveLength(1);
+    for (const asset of [current, prior, undo, redo])
+      expect(destination.getItem(IMAGE_PREFIX + asset.id)).toBe(asset.src);
   });
   it("does not overwrite conflicting image bytes and retains corrupt library bytes before recovery", async () => {
     const raw = await transfer.createLibraryBackup([entry()], sourceStore());

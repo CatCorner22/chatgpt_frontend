@@ -5,7 +5,7 @@ import { GardenBriefImport } from "@/components/GardenBriefImport";
 import { ArrowDownToLine, BookOpen } from "lucide-react";
 import { focusLocalStorage, focusSessionStorage, getBrowserOwnerId } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/download-blob";
-import { LIBRARY_KEY, inspectLibrary } from "@/lib/library";
+import { LIBRARY_KEY, inspectLibrary, type LibraryEntry } from "@/lib/library";
 import {
   JOURNEY_FIELDS,
   JOURNEY_NOTE_LIMIT,
@@ -26,7 +26,34 @@ function message(cause: unknown) {
     : "Browser storage is unavailable. Keep this tab open and download your edits.";
 }
 
-export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: GardenGoal }) {
+function briefDesignOptions(entries: LibraryEntry[]) {
+  const choices = entries.filter(({ id }) => id.length <= 200);
+  const headlinesByTitle = new Map<string, Map<string, number>>();
+  for (const { title, state } of choices) {
+    const counts = headlinesByTitle.get(title) ?? new Map<string, number>();
+    const headline = state.content.headline.trim();
+    counts.set(headline, (counts.get(headline) ?? 0) + 1);
+    headlinesByTitle.set(title, counts);
+  }
+  return choices.map(({ id, title, state }) => {
+    const counts = headlinesByTitle.get(title)!;
+    const headline = state.content.headline.trim();
+    const sameHeadline = counts.get(headline)!;
+    if (counts.size === 1 && sameHeadline === 1) return { id, title };
+    const label = [title, headline, sameHeadline > 1 || !headline ? id : ""].filter(Boolean);
+    return { id, title: label.join(" — ") };
+  });
+}
+
+export function GardenJourneyBrief({
+  step,
+  goal,
+  onOpenDesignChange,
+}: {
+  step: GardenStep;
+  goal: GardenGoal;
+  onOpenDesignChange: (id: string | null) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<GardenJourney | null>(null);
   const [designs, setDesigns] = useState<{ id: string; title: string }[]>([]);
@@ -57,6 +84,7 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
       setIssue(message(cause));
     }
     setDraft(next);
+    onOpenDesignChange(id);
     try {
       focusSessionStorage.setItem(JOURNEY_SCOPE_KEY, id ?? "");
     } catch {
@@ -70,9 +98,7 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
       let selected: string | null = null;
       try {
         const library = inspectLibrary(focusLocalStorage.getItem(LIBRARY_KEY));
-        choices = library.entries
-          .filter(({ id }) => id.length <= 200)
-          .map(({ id, title }) => ({ id, title }));
+        choices = briefDesignOptions(library.entries);
         setDesigns(choices);
         if (library.needsRecovery)
           setLibraryIssue("Some saved designs need recovery in My designs.");
@@ -82,6 +108,8 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
         setLibraryIssue("Your saved designs could not be listed in this browser.");
       }
       load(selected);
+    } else {
+      onOpenDesignChange(open ? null : (draft?.designId ?? null));
     }
     setOpen(!open);
   }

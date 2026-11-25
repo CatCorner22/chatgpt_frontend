@@ -137,6 +137,33 @@ describe("Target guided preparation", () => {
     expect(screen.getByText("Book two places")).toBeInTheDocument();
   });
 
+  it("keeps the included Garden brief when reselecting the current review step", async () => {
+    seed();
+    const brief = { ...newGardenJourney(entry.id, "existing"), task: "Book a class" };
+    writeGardenJourney(brief, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    fireEvent.click(screen.getByRole("button", { name: /4.*Prepare the handoff/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    await waitFor(() => expect(operations.download).toHaveBeenCalledOnce());
+    expect(operations.prepare).toHaveBeenCalledWith(expect.anything(), expect.anything(), brief);
+  });
+
+  it("cancels a pending ZIP when leaving review removes its Garden brief", async () => {
+    seed();
+    writeGardenJourney({ ...newGardenJourney(entry.id, "existing"), task: "Book a class" }, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    const finish = deferredPack();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("button", { name: "Include my Garden brief" })).toBeVisible();
+    await finish();
+    expect(operations.download).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Prepare and download trial ZIP" })).toBeEnabled();
+  });
+
   it("keeps the source tools closed until requested and clears them on step exit without losing the plan", async () => {
     seed();
     await openReview();
@@ -583,7 +610,7 @@ describe("Target guided preparation", () => {
     },
   );
 
-  it.each(["account", "locked session", "design"] as const)(
+  it.each(["account", "locked session", "design", "draft"] as const)(
     "warns when the %s changes during a prompt copy",
     async (change) => {
       seed();
@@ -599,7 +626,12 @@ describe("Target guided preparation", () => {
       try {
         await openReview();
         fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
-        if (change === "account") operations.owner.mockReturnValue("another-owner");
+        if (change === "draft")
+          localStorage.setItem(
+            TARGET_DRAFT_KEY,
+            JSON.stringify({ ...complete, page: "Updated appointment page" }),
+          );
+        else if (change === "account") operations.owner.mockReturnValue("another-owner");
         else if (change === "locked session")
           operations.owner.mockImplementation(() => {
             throw new Error("Session locked");
@@ -643,7 +675,7 @@ describe("Target guided preparation", () => {
         expect(
           screen.getByText(
             reason === "removed design"
-              ? /Reload designs and review the plan before copying/
+              ? /Reload designs and review the plan/
               : /Your session needs verification/,
           ),
         ).toBeInTheDocument();
@@ -659,6 +691,33 @@ describe("Target guided preparation", () => {
       }
     },
   );
+
+  it("reloads another tab's plan before copying the current trial instructions", async () => {
+    seed();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    try {
+      await openReview();
+      localStorage.setItem(
+        TARGET_DRAFT_KEY,
+        JSON.stringify({ ...complete, page: "Updated appointment page" }),
+      );
+      fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+      expect(writeText).not.toHaveBeenCalled();
+      expect(screen.getByText(/Saved Target answers changed in another tab/)).toBeVisible();
+      fireEvent.click(screen.getByRole("button", { name: "Reload saved answers" }));
+      for (let step = 0; step < 3; step++)
+        fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      expect(screen.queryByText(/Saved Target answers changed in another tab/)).toBeNull();
+      fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+      await screen.findByText("Copied");
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Updated appointment page"));
+    } finally {
+      if (previous) Object.defineProperty(navigator, "clipboard", previous);
+      else Reflect.deleteProperty(navigator, "clipboard");
+    }
+  });
 
   it("offers manual copy when the clipboard is unavailable without claiming preparation", async () => {
     seed();

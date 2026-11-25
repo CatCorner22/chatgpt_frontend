@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { focusLocalStorage } from "@/lib/browser-storage";
-import {
-  LIBRARY_KEY,
-  readLibrarySnapshot,
-  withVersion,
-  writeLibrary,
-  type LibraryState,
-} from "@/lib/library";
+import { readLibrarySnapshot, withVersion, writeLibrary, type LibraryState } from "@/lib/library";
 import { STUDIO_KEY } from "@/lib/projects";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { useDraftExitSave } from "./useDraftExitSave";
@@ -29,9 +23,7 @@ export function archiveStudioDraft(state: State) {
   if (!state.tokens || !state.content || !state.libraryId) return;
   const { entries, raw } = readLibrarySnapshot();
   const next = withVersion(entries, state as unknown as LibraryState, new Date().toISOString());
-  const written = writeLibrary(next, focusLocalStorage, raw);
-  if (focusLocalStorage.getItem(LIBRARY_KEY) !== written)
-    throw new Error("Library write was not retained");
+  writeLibrary(next, focusLocalStorage, raw);
 }
 
 export function useStudioDraft() {

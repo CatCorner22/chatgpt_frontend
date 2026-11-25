@@ -191,6 +191,11 @@ export function writeLibrary(
   if (storage.getItem(LIBRARY_KEY) !== raw)
     throw new Error("Your saved library changed. Try saving again; no designs were replaced.");
   storage.setItem(LIBRARY_KEY, next);
+  const retained = storage.getItem(LIBRARY_KEY);
+  if (retained !== next) {
+    if (retained !== raw) throw new LibraryChangedError();
+    throw new Error("The library change could not be saved in this browser.");
+  }
   return next;
 }
 

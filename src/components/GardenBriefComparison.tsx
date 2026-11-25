@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import type { GardenGoal } from "@/lib/garden-content";
-import { stratosphereSearch } from "@/lib/garden-navigation";
 import { inspectLibrary, LIBRARY_KEY, type LibraryEntry } from "@/lib/library";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { normalizePageSettings } from "@/lib/page-settings";
-import { requestLibraryOpen } from "@/lib/library-open";
+import { GardenStudioAction } from "./GardenStudioAction";
 import { OptionComparisonPreview } from "./OptionComparisonPreview";
 
 export function GardenBriefComparison({
@@ -35,7 +34,6 @@ export function GardenBriefComparison({
 }
 
 function SavedWebsiteComparison({ designId }: { designId: string }) {
-  const navigate = useNavigate();
   const [entry, setEntry] = useState<LibraryEntry | null>(null);
   const [issue, setIssue] = useState("");
   useEffect(() => {
@@ -72,26 +70,9 @@ function SavedWebsiteComparison({ designId }: { designId: string }) {
         tokens={entry.state.tokens}
         settings={settings}
       />
-      <button
-        type="button"
-        className="garden-text-action"
-        onClick={async () => {
-          try {
-            await navigate({
-              to: "/",
-              search: stratosphereSearch("composition"),
-              state: requestLibraryOpen(entry.id),
-            });
-          } catch {
-            setIssue(
-              "Open this saved website from My designs and choose Page layout in Stratosphere.",
-            );
-          }
-        }}
-      >
+      <GardenStudioAction designId={entry.id} group="composition" className="garden-text-action">
         Review and apply in Studio
-      </button>
-      {issue && <p role="alert">{issue}</p>}
+      </GardenStudioAction>
     </div>
   );
 }

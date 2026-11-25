@@ -3,12 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { GardenJourneyBrief } from "@/components/GardenJourneyBrief";
+import { GardenStudioAction } from "@/components/GardenStudioAction";
 import { GardenDecisionGuide } from "@/components/GardenDecisionGuide";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
-import { stratosphereSearch } from "@/lib/garden-navigation";
 import {
   GARDEN_DEFAULTS,
   readGardenPreferences,
@@ -35,6 +35,7 @@ const destinations = {
 export function GardenHome() {
   const [preferences, setPreferences] = useState<GardenPreferences>({ ...GARDEN_DEFAULTS });
   const [ready, setReady] = useState(false);
+  const [openBriefDesign, setOpenBriefDesign] = useState<string | null>(null);
   const [issue, setIssue] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const lessonSummary = useRef<HTMLElement>(null);
@@ -98,8 +99,12 @@ export function GardenHome() {
       Object.assign(preferenceBase.current, { [key]: base[key] });
     pendingPreferences.current = { ...pendingPreferences.current, ...patch };
     const next = { ...base, ...pendingPreferences.current };
-    // A change to a lesson should never move this tab because another tab moved.
-    setPreferences({ ...next, step: patch.step ?? preferences.step });
+    // Keep this tab on the route and starting point it shows while merging unrelated saved choices.
+    setPreferences({
+      ...next,
+      step: patch.step ?? preferences.step,
+      goal: patch.goal ?? preferences.goal,
+    });
     flushPreferences(latest);
   };
   const visit = (step: GardenStepId) => {
@@ -324,7 +329,11 @@ export function GardenHome() {
             </div>
           )}
 
-          <GardenJourneyBrief step={step} goal={preferences.goal} />
+          <GardenJourneyBrief
+            step={step}
+            goal={preferences.goal}
+            onOpenDesignChange={setOpenBriefDesign}
+          />
 
           <p className="garden-evidence">
             {isGoal ? "Your live site stays unchanged while you plan." : step.evidenceNote}
@@ -332,22 +341,17 @@ export function GardenHome() {
           {formula.scopeNote && <p className="garden-scope-note">{formula.scopeNote}</p>}
           {!isGoal && (
             <div className="garden-actions">
-              {formula.primaryGroup ? (
-                <Link
-                  to="/"
-                  search={stratosphereSearch(formula.primaryGroup)}
+              {formula.primaryGroup || studio ? (
+                <GardenStudioAction
+                  key={openBriefDesign ?? step.id}
+                  designId={openBriefDesign}
+                  group={formula.primaryGroup}
+                  start={preferences.goal}
                   className="garden-primary"
                 >
-                  {formula.primaryLabel} <ArrowRight size={18} aria-hidden="true" />
-                </Link>
-              ) : studio ? (
-                <Link
-                  to="/"
-                  search={{ view: "studio", start: preferences.goal }}
-                  className="garden-primary"
-                >
-                  {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
-                </Link>
+                  {formula.primaryLabel ?? step.actionLabel}{" "}
+                  <ArrowRight size={18} aria-hidden="true" />
+                </GardenStudioAction>
               ) : (
                 <Link
                   to={destinations[step.action as keyof typeof destinations]}
@@ -371,14 +375,14 @@ export function GardenHome() {
             <nav className="garden-detail-links" aria-label="Other craft details">
               <span>Then explore</span>
               {formula.details.map((detail) => (
-                <Link
+                <GardenStudioAction
                   key={detail.group}
-                  to="/"
-                  search={stratosphereSearch(detail.group)}
+                  designId={openBriefDesign}
+                  group={detail.group}
                   className="garden-text-action"
                 >
                   {detail.label}
-                </Link>
+                </GardenStudioAction>
               ))}
             </nav>
           )}

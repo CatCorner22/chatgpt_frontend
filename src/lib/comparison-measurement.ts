@@ -43,7 +43,7 @@ export function measureComparisonText(doc: Document): ComparisonMeasurement {
       // Quote whole author fields. Parsing money could truncate grouped, discounted or per-person prices.
       const priceText = parts
         .map((part) => part.textContent ?? "")
-        .filter((text) => /(?:\p{Sc}\s*\d|\d\s*\p{Sc})/u.test(text));
+        .filter((text) => /(?:\p{Sc}\s*\p{Nd}|\p{Nd}\s*\p{Sc})/u.test(text));
       return { name: heading?.textContent || "Unnamed option", fits, priceText };
     }),
   };

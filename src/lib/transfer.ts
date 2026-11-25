@@ -723,23 +723,38 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
   const written: [string, string][] = [];
   try {
     for (const [key, data] of [...pending, ...newBriefs]) {
-      store.setItem(key, data);
+      if (store.getItem(key) !== null) throw new Error("A backup item changed during restore.");
       written.push([key, data]);
+      store.setItem(key, data);
     }
-    if (added) store.setItem(LIBRARY_KEY, next);
+    // Confirm every dependency before committing designs that refer to it. An earlier
+    // write can be discarded, or another tab can change an item during the restore.
+    for (const [id, data] of assets)
+      if (store.getItem(IMAGE_STORAGE_PREFIX + id) !== data) throw new Error("Image unavailable.");
+    for (const [key, observed] of observedBriefs)
+      if (store.getItem(key) !== (newBriefs.get(key) ?? observed))
+        throw new Error("Journey brief changed.");
+    if (store.getItem(LIBRARY_KEY) !== before) throw new Error("Library changed.");
+    if (added) {
+      store.setItem(LIBRARY_KEY, next);
+      if (store.getItem(LIBRARY_KEY) !== next) throw new Error("Library write unconfirmed.");
+    }
   } catch {
-    let rollbackFailed = false;
-    for (const [key, data] of written.reverse()) {
-      try {
-        if (store.getItem(key) === data) store.removeItem(key);
-      } catch {
-        rollbackFailed = true;
+    try {
+      for (const [key, data] of written.reverse()) {
+        // A committed or concurrently changed library may already use these items.
+        if (store.getItem(LIBRARY_KEY) !== before) throw new Error("Library changed.");
+        if (store.getItem(key) !== data) continue;
+        store.removeItem(key);
+        if (store.getItem(key) === data) throw new Error("Removal unconfirmed.");
       }
+    } catch {
+      throw new Error(
+        "Focus could not confirm the restore or safely finish cleanup. Keep your backup, reopen My designs to check the saved copies, and retry.",
+      );
     }
     throw new Error(
-      rollbackFailed
-        ? "Browser storage stopped the restore. Existing designs were not replaced, but some unused backup items could not be removed. Keep your backup file and retry after freeing space."
-        : "There is not enough browser storage to restore this backup. No designs were replaced and new backup items were removed. Keep your backup file and retry after freeing space.",
+      "Focus could not confirm the complete restore in browser storage. Keep your backup, check the saved designs and available storage, and retry.",
     );
   }
   return {

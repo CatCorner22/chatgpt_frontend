@@ -56,6 +56,8 @@ const PLATFORM_LABELS = {
 const fieldClass =
   "mt-2 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base leading-relaxed shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+class TargetDraftChangedError extends Error {}
+
 export function Target() {
   const [draft, setDraft] = useState<TargetDraft>({ ...EMPTY_TARGET_DRAFT });
   const [entries, setEntries] = useState<LibraryEntry[]>([]);
@@ -67,6 +69,7 @@ export function Target() {
   const [unsaved, setUnsaved] = useState(false);
   const latestDraft = useRef({ value: EMPTY_TARGET_DRAFT, pending: false });
   const [saveError, setSaveError] = useState("");
+  const [draftChanged, setDraftChanged] = useState(false);
   const [issues, setIssues] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [prepared, setPrepared] = useState(false);
@@ -93,6 +96,12 @@ export function Target() {
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const errorSummary = useRef<HTMLDivElement>(null);
   const moveToStep = (nextStep: TargetStep) => {
+    if (nextStep === step) return;
+    // Leaving review clears the optional brief and ends the download it was attached to.
+    generation.current++;
+    setBusy(false);
+    setPrepared(false);
+    setStatus("");
     sourceEpoch.current++;
     setSourceOpen(false);
     setStep(nextStep);
@@ -190,7 +199,12 @@ export function Target() {
   const capturePreparationContext = () => {
     if (!selected || allIssues.length)
       throw new Error("Complete the trial plan and choose a saved design before preparing files.");
-    const owner = getBrowserOwnerId();
+    let owner: string | null;
+    try {
+      owner = getBrowserOwnerId();
+    } catch {
+      throw new Error("Your session needs verification. Reload before preparing the handoff.");
+    }
     const entrySnapshot = JSON.stringify(selected);
     const expectedDraft = savedRaw.current;
     const expectedRevision = revision.current;
@@ -221,7 +235,7 @@ export function Target() {
           "Your session or saved answers could not be rechecked. Keep this tab open and retry after access is restored.",
         );
       if (savedRaw.current !== expectedDraft || currentDraft.raw !== expectedDraft)
-        throw new Error(
+        throw new TargetDraftChangedError(
           "Saved Target answers changed in another tab. Reload the saved answers or keep a copy of your current answers before retrying.",
         );
     };
@@ -285,6 +299,9 @@ export function Target() {
     setUnsaved(false);
     damagedRaw.current = null;
     setDraftIssue(null);
+    setDraftChanged(false);
+    setCopied("");
+    setCopyStatus("");
     setSaveError("");
     setPendingRestore(null);
     setBusy(false);
@@ -315,60 +332,34 @@ export function Target() {
   };
   const copyPrompt = async (id: string, text: string) => {
     if (!mounted.current || copyPending.current) return;
-    let owner: string | null;
-    try {
-      owner = getBrowserOwnerId();
-    } catch {
-      setCopied("");
-      setCopyStatus("Your session needs verification. Reload before copying a prompt.");
-      return;
-    }
     copyPending.current = true;
     const current = revision.current;
-    const expectedPreparation = preparationKey;
-    const expectedEntry = JSON.stringify(selected);
-    const contextMatches = () => {
-      try {
-        const library = readTargetLibrary();
-        return (
-          getBrowserOwnerId() === owner &&
-          latestPreparation.current === expectedPreparation &&
-          library.issue !== "unavailable" &&
-          !!selected &&
-          JSON.stringify(library.entries.find((entry) => entry.id === selected.id)) ===
-            expectedEntry
-        );
-      } catch {
-        return false;
-      }
-    };
     setCopied("");
     setCopying(id);
     setCopyStatus("Copying prompt… You can also select the prompt text and copy it manually.");
+    let clipboardWritten = false;
     try {
-      if (!contextMatches()) {
-        setCopyStatus(
-          "The selected design changed or could not be checked. Reload designs and review the plan before copying.",
-        );
+      const verify = capturePreparationContext();
+      try {
+        await navigator.clipboard.writeText(text);
+        clipboardWritten = true;
+      } catch {
+        if (mounted.current && revision.current === current)
+          setCopyStatus(
+            "Could not copy automatically. Select the prompt text below and copy it yourself.",
+          );
         return;
       }
-      await navigator.clipboard.writeText(text);
-      if (mounted.current && revision.current === current) {
-        if (!contextMatches()) {
-          setCopyStatus(
-            "Your account or selected design changed or could not be checked. Do not use the copied prompt. Reload designs and review the plan before copying again.",
-          );
-          return;
-        }
-        setCopied(id);
-        setCopyStatus("Prompt copied. Paste it into your own developer tool when you are ready.");
-      }
-    } catch {
-      if (mounted.current && revision.current === current) {
-        setCopied("");
-        setCopyStatus(
-          "Could not copy automatically. Select the prompt text below and copy it yourself.",
-        );
+      if (!mounted.current) return;
+      verify();
+      setCopied(id);
+      setCopyStatus("Prompt copied. Paste it into your own developer tool when you are ready.");
+    } catch (cause) {
+      if (mounted.current) {
+        if (cause instanceof TargetDraftChangedError) setDraftChanged(true);
+        const message =
+          cause instanceof Error ? cause.message : "Review the plan before copying again.";
+        setCopyStatus(clipboardWritten ? `Do not use the copied prompt. ${message}` : message);
       }
     } finally {
       copyPending.current = false;
@@ -416,6 +407,7 @@ export function Target() {
       );
     } catch (cause) {
       if (mounted.current && generation.current === job) {
+        if (cause instanceof TargetDraftChangedError) setDraftChanged(true);
         setIssues([
           cause instanceof Error
             ? cause.message
@@ -953,6 +945,11 @@ export function Target() {
                       {!draftIssue && !saveError && (
                         <Button variant="outline" onClick={() => downloadAnswers()}>
                           Download these answers
+                        </Button>
+                      )}
+                      {draftChanged && !draftIssue && !saveError && (
+                        <Button variant="outline" onClick={reloadDraft}>
+                          Reload saved answers
                         </Button>
                       )}
                       {busy && (

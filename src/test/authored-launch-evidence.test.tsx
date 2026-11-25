@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LaunchPanel } from "@/components/LaunchPanel";
 import { getAuthoredFeatures } from "@/lib/authored-content";
+import { buildAuthoredPage } from "@/lib/authored-page";
 import { buildStudioLaunchArtifact } from "@/lib/studio-launch-artifact";
 import { normalizeTokens, type Content } from "@/lib/design";
 import { EMPTY, type State } from "@/lib/studio-state";
@@ -95,6 +96,74 @@ beforeEach(() => {
 });
 
 describe("authored content-flow evidence boundary", () => {
+  const relatedStory = {
+    title: "Explore Georgia O’Keeffe in The Met collection",
+    url: "https://www.metmuseum.org/art/collection/search?q=O'Keeffe",
+    placement: "after-article" as const,
+    imageId: null,
+    imageAlt: "",
+  };
+
+  it.each(["studio", "editorial", "product", "showcase", "journal"] as const)(
+    "requires fresh launch evidence when %s starts publishing a previously omitted related link",
+    (composition) => {
+      const input = { ...state, page: { ...state.page, composition, relatedStory } };
+      const page = buildAuthoredPage(tokens, input.content!, input.page);
+      for (const html of [page.html, page.files["index.html"]!]) {
+        const link = new DOMParser()
+          .parseFromString(html, "text/html")
+          .querySelector(".related-story a");
+        expect(link?.textContent).toBe(relatedStory.title);
+        expect(link?.getAttribute("href")).toBe(relatedStory.url);
+      }
+      const prior = reviewed({
+        ...legacyArtifact(input),
+        authoredOutputRevision: "content-flow-v1",
+      });
+      expect(revisit(prior, buildStudioLaunchArtifact(input)).details).toEqual(EMPTY_LAUNCH);
+    },
+  );
+
+  it.each([
+    ["studio", { ...relatedStory, title: " " }],
+    [
+      "editorial",
+      { ...relatedStory, url: "https://www.metmuseum.org/art/collection/search/55736" },
+    ],
+    ["comparison", relatedStory],
+  ] as const)(
+    "retains the review when %s never changed its delivered related link",
+    (composition, story) => {
+      const input = { ...state, page: { ...state.page, composition, relatedStory: story } };
+      const prior = reviewed({
+        ...legacyArtifact(input),
+        authoredOutputRevision: "content-flow-v1",
+      });
+      expect(revisit(prior, buildStudioLaunchArtifact(input)).details).toEqual(prior[0]!.details);
+    },
+  );
+
+  it.each(["editorial", "comparison"] as const)(
+    "keeps launch evidence tied to the first working shorthand address in %s",
+    (composition) => {
+      const actionUrl = "https:www.metmuseum.org/art/collection/search?q=O'Keeffe";
+      const input = { ...state, page: { ...state.page, composition, actionUrl } };
+      const page = buildAuthoredPage(tokens, input.content!, input.page);
+      const link = new DOMParser()
+        .parseFromString(page.html, "text/html")
+        .querySelector(".hero .action");
+      expect(link?.getAttribute("href")).toBe(
+        "https://www.metmuseum.org/art/collection/search?q=O%27Keeffe",
+      );
+      const prior = reviewed({
+        ...legacyArtifact(input),
+        authoredOutputRevision: "content-flow-v1",
+      });
+      const next = revisit(prior, buildStudioLaunchArtifact(input));
+      expect(next.details).toEqual(composition === "editorial" ? EMPTY_LAUNCH : prior[0]!.details);
+    },
+  );
+
   it("requires fresh launch evidence when the owner changes the published language", () => {
     const english = buildStudioLaunchArtifact(state);
     const japanese = { ...state, page: { ...state.page, language: "ja" as const } };

@@ -10,11 +10,13 @@ const help = `North Star benchmark organizer
 
   node scripts/north-star-benchmark.mjs init organizer.json
   node scripts/north-star-benchmark.mjs init-pilot organizer.json
+  node scripts/north-star-benchmark.mjs init-booking-pair organizer.json
   node scripts/north-star-benchmark.mjs packet organizer.json reviewer.json [--order order.json]
   node scripts/north-star-benchmark.mjs score organizer.json report.json answers-a.json [answers-b.json ...]
 
 init   Write a draft containing six task briefs and no invented pages or reviewers.
 init-pilot Start a matched one-shot, Focus and expert comparison for booking and editorial tasks.
+init-booking-pair Start a two-page River Kiln review comparing the original and its redesign.
 packet Validate organizer data and export a separate neutral reviewer packet.
        Without --order, shuffle sample IDs using system randomness. For a fixed
        counterbalancing plan, supply a JSON array containing each sample ID once.
@@ -70,9 +72,9 @@ async function main(args) {
     return;
   }
   const [command, ...paths] = args;
-  if (!["init", "init-pilot", "packet", "score"].includes(command))
+  if (!["init", "init-pilot", "init-booking-pair", "packet", "score"].includes(command))
     throw new Error(`Unknown command: ${command}. Use --help.`);
-  const init = command === "init" || command === "init-pilot";
+  const init = command.startsWith("init");
   if (init && paths.length !== 1) throw new Error("init needs exactly one output file.");
   if (
     command === "packet" &&
@@ -87,8 +89,11 @@ async function main(args) {
   try {
     if (init) {
       const plan =
-        command === "init-pilot"
-          ? runtime.createPilotPlan(randomUUID())
+        command !== "init"
+          ? runtime.createPilotPlan(
+              randomUUID(),
+              command === "init-booking-pair" ? "booking-pair-v1" : "matched-three-v1",
+            )
           : runtime.createBenchmarkPlan();
       const path = await save(paths[0], plan);
       process.stdout.write(
@@ -97,7 +102,7 @@ async function main(args) {
       return;
     }
     const raw = await json(paths[0]);
-    const pilot = raw?.protocol === "matched-three-v1";
+    const pilot = raw?.protocol === "matched-three-v1" || raw?.protocol === "booking-pair-v1";
     const manifest = (pilot ? runtime.pilotManifestSchema : runtime.benchmarkManifestSchema).parse(
       raw,
     );

@@ -3,7 +3,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { BlindReviewRoom } from "@/components/BlindReviewRoom";
 import { createReviewSession, parseReviewerPacket, REVIEW_ROOM_KEY } from "@/lib/review-room";
 import { downloadBlob } from "@/lib/download-blob";
-import { createPilotPlan, type PilotManifest } from "../../north-star-kit/blind-test/pilot";
+import {
+  createPilotPlan,
+  createPilotPacket,
+  scorePilot,
+  type PilotManifest,
+} from "../../north-star-kit/blind-test/pilot";
+import {
+  blindEvaluationBundleSchema,
+  type BookingObservation,
+} from "../../north-star-kit/blind-test/reviewer";
 import { packetFixture } from "./review-room.fixture";
 
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Review workspace</header> }));
@@ -124,5 +133,115 @@ describe("private three-way pilot organizer", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/without embedded credentials/);
     await act(async () => finish(JSON.stringify(manifest())));
     expect(screen.queryByText(/3 of 3 submissions/)).toBeNull();
+  });
+});
+
+describe("original and Focus booking pilot", () => {
+  function pair(): PilotManifest {
+    const old = manifest();
+    const [original, guided] = old.samples;
+    return {
+      ...createPilotPlan("pair-01", "booking-pair-v1"),
+      samples: [{ ...original!, group: "original", work: null }, guided!],
+    };
+  }
+  it("pairs only observations that the same reviewer recorded on both pages; missing time and expert data stay unknown", () => {
+    const pilot = pair();
+    const packet = createPilotPacket(
+      pilot,
+      pilot.samples.map((s) => s.id),
+    );
+    expect(JSON.stringify(packet)).not.toMatch(/"original"|organizer-secret|artifactSha256/);
+    const baseline: BookingObservation = {
+      firstResponse: "blocked",
+      firstClass: "glaze",
+      statedDollars: 56,
+      elapsedSeconds: 90,
+      recovery: "blocked",
+      helpUsed: true,
+      savedReservations: 2,
+    };
+    const guided: BookingObservation = {
+      firstResponse: "lost-confirmation",
+      firstClass: "wheel",
+      statedDollars: 48,
+      elapsedSeconds: null,
+      recovery: "recovered",
+      helpUsed: false,
+      savedReservations: 1,
+    };
+    const rows = blindEvaluationBundleSchema.parse(answers(pilot)).evaluations;
+    const report = scorePilot(pilot, [
+      { ...rows[0]!, bookingObservation: baseline },
+      { ...rows[1]!, bookingObservation: guided },
+      { ...rows[0]!, reviewerCode: "unpaired", bookingObservation: baseline },
+    ]);
+    const task = report.tasks[0]!;
+    expect(task.matchedReviewers).toBe(1);
+    expect(report.humanEquivalence).toBe("inconclusive");
+    expect(task.bookingObservations?.duplicateReservations).toMatchObject({
+      original: 1,
+      guided: 0,
+      expert: null,
+      reviewers: 1,
+    });
+    expect(task.bookingObservations?.firstChoiceCorrect).toMatchObject({
+      original: 0,
+      guided: 1,
+      expert: null,
+    });
+    expect(task.bookingObservations?.encounteredPlannedLossFirst).toMatchObject({
+      original: 0,
+      guided: 1,
+    });
+    expect(task.bookingObservations?.firstSubmissionConfirmed).toMatchObject({
+      original: 0,
+      guided: 0,
+    });
+    expect(task.bookingObservations?.priceCorrect).toMatchObject({ original: 0, guided: 1 });
+    expect(task.bookingObservations?.elapsedSeconds).toMatchObject({
+      original: null,
+      guided: null,
+      reviewers: 0,
+    });
+    expect(task.bookingObservations?.helpUsed).toMatchObject({ original: 1, guided: 0 });
+    expect(task.bookingObservations?.recovered).toMatchObject({ original: 0, guided: 1 });
+    expect(task.bookingObservations?.oneReservation).toMatchObject({ original: 0, guided: 1 });
+    expect(report.submissions[0]!.artifactSha256).toBe(pilot.samples[0]!.artifactSha256);
+    expect(JSON.stringify(report)).not.toMatch(/Organizer-only|organizer-secret/);
+    expect(() =>
+      scorePilot(pilot, [{ ...rows[0]!, taskOutcome: "not-tested", bookingObservation: baseline }]),
+    ).toThrow(/attempted interactive/);
+    const generic = manifest();
+    delete generic.tasks[0]!.observationProtocol;
+    const oldRows = blindEvaluationBundleSchema.parse(answers(generic)).evaluations;
+    expect(scorePilot(generic, oldRows).tasks[0]!.bookingObservations).toBeUndefined();
+    expect(() => scorePilot(generic, [{ ...oldRows[0]!, bookingObservation: baseline }])).toThrow(
+      /attempted interactive/,
+    );
+  });
+  it("guides a newcomer to a pair with two interactive submissions and hides editor time for the original", async () => {
+    await enter();
+    fireEvent.click(
+      screen.getByRole("button", { name: /compare original and redesigned booking/i }),
+    );
+    await screen.findByText(/1 task · 0 of 2 submissions/);
+    fireEvent.click(screen.getByText("Add a real submission"));
+    expect(screen.getByLabelText("Source")).toHaveValue("original");
+    expect(screen.queryByLabelText("Tools used")).toBeNull();
+    expect(screen.queryByRole("option", { name: "Image" })).toBeNull();
+    fireEvent.change(screen.getByLabelText("Source"), { target: { value: "guided" } });
+    expect(screen.getByLabelText("Tools used")).toBeRequired();
+    expect(screen.getByRole("button", { name: /download shuffled/i })).toBeDisabled();
+  });
+  it("refuses unmapped sources, reused outputs and images for a real booking comparison", () => {
+    const pilot = pair();
+    pilot.samples[0]!.group = "expert";
+    expect(() => createPilotPacket(pilot, [])).toThrow(/build sources/);
+    pilot.samples[0]!.group = "original";
+    pilot.samples[1]!.artifactSha256 = pilot.samples[0]!.artifactSha256;
+    expect(() => createPilotPacket(pilot, [])).toThrow(/distinct outputs/);
+    pilot.samples[0]!.kind = "image";
+    expect(() => createPilotPacket(pilot, [])).toThrow(/interactive pages/);
   });
 });

@@ -3,11 +3,13 @@ import {
   createPilotPacket,
   createPilotPlan,
   pilotManifestSchema,
+  pilotGroups,
   scorePilot,
   type PilotManifest,
 } from "../../north-star-kit/blind-test/pilot";
 import {
   blindEvaluationBundleSchema,
+  bookingProtocol,
   qualityDimensions,
   type BlindEvaluation,
 } from "../../north-star-kit/blind-test/reviewer";
@@ -25,6 +27,7 @@ import { Button } from "@/components/ui/button";
 const control =
   "block w-full min-w-0 min-h-11 mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm";
 const groups = {
+  original: "Original page",
   "one-shot": "One-shot build",
   guided: "Focus-guided build",
   expert: "Independent expert build",
@@ -56,7 +59,7 @@ function checkManifest(value: unknown) {
   const result = pilotManifestSchema.safeParse(value);
   if (!result.success)
     throw new Error(
-      "Choose a private matched-three organizer file with valid tasks, submissions, and file fingerprints.",
+      "Choose a valid private organizer file with tasks, submissions and file fingerprints.",
     );
   if (result.data.samples.some((sample) => !safeReviewUrl(sample.assetRef)))
     throw new Error("Every sample needs an HTTP or HTTPS address without embedded credentials.");
@@ -72,13 +75,19 @@ function SubmissionFields({
   save: (data: FormData) => Promise<boolean>;
   busy: boolean;
 }) {
-  const [group, setGroup] = useState<Sample["group"]>("one-shot");
+  const sources = pilotGroups(manifest.protocol);
+  const first = sources[0]!;
+  const [taskId, setTaskId] = useState(manifest.tasks[0]!.id);
+  const selected = manifest.tasks.find((task) => task.id === taskId) ?? manifest.tasks[0]!;
+  const interactive = selected.observationProtocol === bookingProtocol;
+  const [group, setGroup] = useState<Sample["group"]>(first);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     if (await save(new FormData(form))) {
       form.reset();
-      setGroup("one-shot");
+      setGroup(first);
+      setTaskId(manifest.tasks[0]!.id);
     }
   }
   return (
@@ -89,7 +98,12 @@ function SubmissionFields({
           <legend className="sr-only">Submission details</legend>
           <label>
             Task
-            <select name="task" className={control}>
+            <select
+              name="task"
+              className={control}
+              value={selected.id}
+              onChange={(e) => setTaskId(e.target.value)}
+            >
               {manifest.tasks.map((task) => (
                 <option key={task.id} value={task.id}>
                   {task.title}
@@ -105,9 +119,9 @@ function SubmissionFields({
               value={group}
               onChange={(e) => setGroup(e.target.value as Sample["group"])}
             >
-              {Object.entries(groups).map(([id, name]) => (
+              {sources.map((id) => (
                 <option key={id} value={id}>
-                  {name}
+                  {groups[id]}
                 </option>
               ))}
             </select>
@@ -118,9 +132,9 @@ function SubmissionFields({
           </label>
           <label>
             Sample format
-            <select name="kind" className={control}>
+            <select key={String(interactive)} name="kind" className={control}>
               <option value="interactive">Interactive page</option>
-              <option value="image">Image</option>
+              {!interactive && <option value="image">Image</option>}
             </select>
           </label>
           <label>
@@ -131,36 +145,40 @@ function SubmissionFields({
             Source and permission
             <input name="provenance" required maxLength={4000} className={control} />
           </label>
-          <label>
-            Tools used
-            <input name="tools" required maxLength={2000} className={control} />
-          </label>
-          <label>
-            Time spent in minutes
-            <input
-              name="minutes"
-              type="number"
-              min={0}
-              max={1000000}
-              step="any"
-              required
-              className={control}
-            />
-          </label>
-          <label>
-            Revision passes
-            <input
-              key={group}
-              name="passes"
-              type="number"
-              min={0}
-              max={10000}
-              defaultValue={group === "one-shot" ? 0 : undefined}
-              readOnly={group === "one-shot"}
-              required
-              className={control}
-            />
-          </label>
+          {group !== "original" && (
+            <>
+              <label>
+                Tools used
+                <input name="tools" required maxLength={2000} className={control} />
+              </label>
+              <label>
+                Time spent in minutes
+                <input
+                  name="minutes"
+                  type="number"
+                  min={0}
+                  max={1000000}
+                  step="any"
+                  required
+                  className={control}
+                />
+              </label>
+              <label>
+                Revision passes
+                <input
+                  key={group}
+                  name="passes"
+                  type="number"
+                  min={0}
+                  max={10000}
+                  defaultValue={group === "one-shot" ? 0 : undefined}
+                  readOnly={group === "one-shot"}
+                  required
+                  className={control}
+                />
+              </label>
+            </>
+          )}
           <p className="self-end text-muted-foreground">
             Use the same brief and asset bundle for every submission to a task. Focus fingerprints
             the files locally.
@@ -185,6 +203,11 @@ function SubmissionFields({
 }
 
 function Findings({ pilot, report }: { pilot: PilotManifest; report: Report }) {
+  const pair = pilot.protocol === "booking-pair-v1";
+  const columns = pair
+    ? (["original", "guided"] as const)
+    : (["oneShot", "guided", "expert"] as const);
+  const labels = { original: "Original", oneShot: "One-shot", guided: "Focus", expert: "Expert" };
   return (
     <section className="mt-6 space-y-3" aria-label="Matched findings">
       <h2 className="font-display text-2xl">Matched findings</h2>
@@ -195,22 +218,25 @@ function Findings({ pilot, report }: { pilot: PilotManifest; report: Report }) {
       {report.tasks.map((task) => (
         <details key={task.taskId} className="border-t border-border py-3">
           <summary className="cursor-pointer font-medium">
-            {pilot.tasks.find((item) => item.id === task.taskId)?.title} · {task.completeTriples}{" "}
-            matched {task.completeTriples === 1 ? "reviewer" : "reviewers"}
+            {pilot.tasks.find((item) => item.id === task.taskId)?.title} · {task.matchedReviewers}{" "}
+            matched {task.matchedReviewers === 1 ? "reviewer" : "reviewers"}
           </summary>
-          {task.completeTriples ? (
+          {task.matchedReviewers ? (
             <div className="mt-3 overflow-auto">
               <table className="w-full text-left text-sm">
                 <caption className="text-left text-muted-foreground">
-                  Mean ratings out of 7. Task completion is the share reporting success.
+                  Craft ratings use a seven-point scale. Each observation includes only reviewers
+                  who supplied that measure for every treatment.
                 </caption>
                 <thead>
                   <tr>
-                    {["Measure", "Matched reviewers", "One-shot", "Focus", "Expert"].map((col) => (
-                      <th key={col} scope="col" className="p-2">
-                        {col}
-                      </th>
-                    ))}
+                    {["Measure", "Matched reviewers", ...columns.map((key) => labels[key])].map(
+                      (col) => (
+                        <th key={col} scope="col" className="p-2">
+                          {col}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -220,20 +246,73 @@ function Findings({ pilot, report }: { pilot: PilotManifest; report: Report }) {
                       measure: task.quality[id]!,
                       percent: false,
                     })),
-                    { title: "Task completion", measure: task.taskCompletion, percent: true },
+                    {
+                      title: "Self-reported task completion",
+                      measure: task.taskCompletion,
+                      percent: true,
+                    },
+                    ...(task.bookingObservations
+                      ? [
+                          {
+                            title: "Confirmation visible on first submission",
+                            measure: task.bookingObservations.firstSubmissionConfirmed,
+                            percent: true,
+                          },
+                          {
+                            title: "First submission reached planned confirmation loss",
+                            measure: task.bookingObservations.encounteredPlannedLossFirst,
+                            percent: true,
+                          },
+                          {
+                            title: "First submission chose the lower price",
+                            measure: task.bookingObservations.firstChoiceCorrect,
+                            percent: true,
+                          },
+                          {
+                            title: "Price stated correctly",
+                            measure: task.bookingObservations.priceCorrect,
+                            percent: true,
+                          },
+                          {
+                            title: "Received help",
+                            measure: task.bookingObservations.helpUsed,
+                            percent: true,
+                          },
+                          {
+                            title: "Time until finished or stopped (seconds)",
+                            measure: task.bookingObservations.elapsedSeconds,
+                            percent: false,
+                          },
+                          {
+                            title: "Recovered after a lost confirmation",
+                            measure: task.bookingObservations.recovered,
+                            percent: true,
+                          },
+                          {
+                            title: "Exactly one saved reservation",
+                            measure: task.bookingObservations.oneReservation,
+                            percent: true,
+                          },
+                          {
+                            title: "More than one saved reservation",
+                            measure: task.bookingObservations.duplicateReservations,
+                            percent: true,
+                          },
+                        ]
+                      : []),
                   ].map(({ title, measure, percent }) => (
                     <tr key={title}>
                       <th scope="row" className="p-2">
                         {title}
                       </th>
                       <td className="p-2">{measure.reviewers}</td>
-                      {(["oneShot", "guided", "expert"] as const).map((key) => (
+                      {columns.map((key) => (
                         <td key={key} className="p-2">
-                          {measure[key] === null
+                          {measure[key] == null
                             ? "Unmeasured"
                             : percent
-                              ? `${(measure[key] * 100).toFixed(0)}%`
-                              : measure[key].toFixed(2)}
+                              ? `${(measure[key]! * 100).toFixed(0)}%`
+                              : measure[key]!.toFixed(2)}
                         </td>
                       ))}
                     </tr>
@@ -243,8 +322,8 @@ function Findings({ pilot, report }: { pilot: PilotManifest; report: Report }) {
             </div>
           ) : (
             <p className="mt-3 text-sm">
-              A reviewer must finish all three samples for this task to contribute a matched
-              comparison.
+              A reviewer must finish {pair ? "both samples" : "all three samples"} for this task to
+              contribute a matched comparison.
             </p>
           )}
         </details>
@@ -307,9 +386,9 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
       if (current()) setBusy(false);
     }
   }
-  function begin() {
+  function begin(protocol: PilotManifest["protocol"]) {
     void run(async () => {
-      setPilot(createPilotPlan(crypto.randomUUID()));
+      setPilot(createPilotPlan(crypto.randomUUID(), protocol));
       setReport(null);
       return "Private draft created. Add the real submissions, then download a copy.";
     });
@@ -349,11 +428,14 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         provenance: text("provenance"),
         inputsSha256,
         artifactSha256,
-        work: {
-          tools: text("tools"),
-          minutes: Number(text("minutes")),
-          revisionPasses: Number(text("passes")),
-        },
+        work:
+          text("group") === "original"
+            ? null
+            : {
+                tools: text("tools"),
+                minutes: Number(text("minutes")),
+                revisionPasses: Number(text("passes")),
+              },
       };
       const next = checkManifest({ ...pilot, samples: [...pilot.samples, sample] });
       if (current()) {
@@ -395,6 +477,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
       return "Results calculated from the selected answer files.";
     });
   }
+  const sourceCount = pilot ? pilotGroups(pilot.protocol).length : 0;
   return (
     <main id="main-content" className="mx-auto max-w-4xl space-y-5 px-4 py-10 sm:px-8">
       <Button
@@ -410,9 +493,14 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         Download the private draft before leaving and keep it with the organizer.
       </p>
       {!pilot && (
-        <Button disabled={busy} onClick={begin}>
-          Start booking and editorial pilot
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button disabled={busy} onClick={() => begin("booking-pair-v1")}>
+            Compare original and redesigned booking
+          </Button>
+          <Button variant="outline" disabled={busy} onClick={() => begin("matched-three-v1")}>
+            Start booking and editorial pilot
+          </Button>
+        </div>
       )}
       <label className="block text-sm">
         Open private organizer file · JSON, up to 2 MB
@@ -431,11 +519,14 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
           <h2 className="font-display text-2xl">{pilot.title}</h2>
           <p>
             {pilot.tasks.length} {pilot.tasks.length === 1 ? "task" : "tasks"} ·{" "}
-            {pilot.samples.length} of {pilot.tasks.length * 3} submissions recorded.
+            {pilot.samples.length} of {pilot.tasks.length * sourceCount} submissions recorded.
           </p>
           <p className="text-sm text-muted-foreground">
-            Collect a one-shot build, a Focus-guided build, and an independent expert build for each
-            task. Check that the reviewer-facing names and pages conceal their source.
+            {pilot.protocol === "booking-pair-v1"
+              ? "Supply the original booking page and its Focus redesign, both using the same classes, prices and lost-confirmation scenario."
+              : "Collect a one-shot build, a Focus-guided build and a permissioned, independently made expert build for each task."}{" "}
+            Use neutral sample links. Shuffle a separate packet for each reviewer to vary which
+            version they see first.
           </p>
           {pilot.samples.length > 0 && (
             <details className="border-y border-border py-3">
@@ -465,7 +556,12 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
               </ul>
             </details>
           )}
-          <SubmissionFields key={pilot.id} manifest={pilot} save={record} busy={busy} />
+          <SubmissionFields
+            key={pilot.id + pilot.protocol}
+            manifest={pilot}
+            save={record}
+            busy={busy}
+          />
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
@@ -480,7 +576,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
               Download private draft
             </Button>
             <Button
-              disabled={busy || pilot.samples.length !== pilot.tasks.length * 3}
+              disabled={busy || pilot.samples.length !== pilot.tasks.length * sourceCount}
               onClick={packet}
             >
               Download shuffled reviewer packet

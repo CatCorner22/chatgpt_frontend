@@ -205,3 +205,38 @@ test("a three-way pilot masks sources and compares matches on each task with exp
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("the booking pair command writes a masked, answerable original/redesign task without an expert", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "focus-booking-pair-"));
+  try {
+    const organizer = join(dir, "research.json"),
+      packet = join(dir, "reader.json");
+    await run("init-booking-pair", organizer);
+    const plan = JSON.parse(await readFile(organizer, "utf8"));
+    assert.equal(plan.protocol, "booking-pair-v1");
+    assert.equal(plan.tasks.length, 1);
+    assert.equal(plan.tasks[0].observationProtocol, "river-kiln-lost-confirmation-v1");
+    plan.samples = ["original", "guided"].map((group, i) => ({
+      id: `sample-${i}`,
+      taskId: plan.tasks[0].id,
+      assetRef: `https://samples.test/${i}`,
+      kind: "interactive",
+      group,
+      creatorCode: "same-team",
+      provenance: "Private test fixture",
+      artifactSha256: String(i).repeat(64),
+      inputsSha256: "a".repeat(64),
+      work: i ? { tools: "fixture", minutes: 30, revisionPasses: 1 } : null,
+    }));
+    await save(organizer, plan);
+    await run("packet", organizer, packet);
+    const masked = JSON.parse(await readFile(packet, "utf8"));
+    assert.equal(masked.samples.length, 2);
+    assert.doesNotMatch(
+      JSON.stringify(masked),
+      /"original"|"guided"|same-team|Private test fixture|Sha256/i,
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

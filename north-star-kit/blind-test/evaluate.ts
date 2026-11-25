@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   benchmarkManifestSchema,
+  bookingProtocol,
   blindEvaluationSchema,
   qualityDimensionIds,
   type BenchmarkManifest,
@@ -24,12 +25,15 @@ const mean = (values: number[]) =>
   values.length ? values.reduce((total, value) => total + value, 0) / values.length : null;
 
 export function collectReviewAnswers(
-  material: { id: string; samples: { id: string; kind: "image" | "interactive" }[] },
+  material: Pick<BenchmarkManifest, "tasks" | "id"> & {
+    samples: { id: string; taskId: string; kind: "image" | "interactive" }[];
+  },
   data: BlindEvaluation[],
 ) {
   const evaluations = z.array(blindEvaluationSchema).parse(data);
   const samples = new Map(material.samples.map((sample) => [sample.id, sample]));
   const byReviewer = new Map<string, Map<string, BlindEvaluation>>();
+  const tasks = new Map(material.tasks.map((task) => [task.id, task]));
   for (const evaluation of evaluations) {
     if (evaluation.benchmarkId !== material.id)
       throw new Error("An evaluation belongs to a different benchmark.");
@@ -40,6 +44,13 @@ export function collectReviewAnswers(
       (evaluation.taskOutcome !== "not-tested" || evaluation.quality.interaction !== null)
     )
       throw new Error("An image cannot provide observed task or interaction evidence.");
+    if (
+      evaluation.bookingObservation &&
+      (sample.kind !== "interactive" ||
+        evaluation.taskOutcome === "not-tested" ||
+        tasks.get(sample.taskId)?.observationProtocol !== bookingProtocol)
+    )
+      throw new Error("Booking observations require an attempted interactive River Kiln task.");
     const reviewer = byReviewer.get(evaluation.reviewerCode) ?? new Map<string, BlindEvaluation>();
     if (reviewer.has(evaluation.sampleId))
       throw new Error(

@@ -4,7 +4,8 @@ export function createBookingService() {
   const requests = new Map();
 
   return async (req, res, next) => {
-    if (req.url !== "/api/practice-bookings") return next();
+    const countRequest = req.url === "/api/practice-booking-count";
+    if (!countRequest && req.url !== "/api/practice-bookings") return next();
     const reply = (status, value) => {
       res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
       res.end(JSON.stringify(value));
@@ -38,7 +39,18 @@ export function createBookingService() {
     if (
       typeof email !== "string" ||
       email.length > 100 ||
-      !/^[a-z\d.+_-]+@example\.test$/i.test(email) ||
+      !/^[a-z\d.+_-]+@example\.test$/i.test(email)
+    )
+      return reply(422, { message: "Enter the made-up address ending in @example.test." });
+
+    if (countRequest) {
+      let count = 0;
+      for (const identity of reservations.keys()) {
+        if (identity.endsWith("/" + email.toLowerCase())) count++;
+      }
+      return reply(200, { reservations: count });
+    }
+    if (
       !["wheel", "glaze"].includes(session) ||
       typeof key !== "string" ||
       !/^[\da-f-]{36}$/i.test(key) ||

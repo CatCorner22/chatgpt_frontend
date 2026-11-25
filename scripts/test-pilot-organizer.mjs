@@ -117,9 +117,38 @@ try {
     await page.getByRole("button", { name: "Open private organizer workspace" }).count(),
     0,
   );
+  await page.getByLabel("Your reviewer code").fill("observer-fixture");
+  await page.getByRole("radio", { name: "Completed", exact: true }).check();
+  await page.getByLabel("First submission result").selectOption("lost-confirmation");
+  await page.getByLabel("Class you first submitted").selectOption("wheel");
+  await page.getByLabel(/Price you stated before submitting/).fill("48");
+  await page.getByLabel("Did someone help you?").selectOption("no");
+  await page.getByLabel(/Time until you finished or stopped/).fill("72");
+  await page.getByLabel("What happened after the lost confirmation?").selectOption("recovered");
+  await page.getByLabel("Saved reservations for this practice address").fill("1");
+  await page.reload();
+  assert.equal(await page.getByLabel(/Price you stated before submitting/).inputValue(), "48");
+  for (const { title } of packet.dimensions) await page.getByLabel(`4 of 7 for ${title}`).check();
+  await page.getByRole("radio", { name: "Unsure" }).check();
+  const observed = await download("Download partial answers (1 of 3)");
+  assert.deepEqual(observed.evaluations[0].bookingObservation, {
+    firstClass: "wheel",
+    firstResponse: "lost-confirmation",
+    statedDollars: 48,
+    elapsedSeconds: 72,
+    helpUsed: false,
+    recovery: "recovered",
+    savedReservations: 1,
+  });
+  await page.getByRole("radio", { name: "Not tested" }).check();
+  assert.equal(await page.getByRole("group", { name: "Your booking observations" }).count(), 0);
+  assert.equal(
+    "bookingObservation" in (await download("Download partial answers (1 of 3)")).evaluations[0],
+    false,
+  );
   assert.deepEqual(errors, []);
   console.log(
-    "Organizer UI passed local draft, real file fingerprints, masked packet, fixture answers, matched report, and participant isolation.",
+    "Organizer UI passed local draft, real file fingerprints, masked packet, fixture answers, matched report, local observation recovery/export, and participant isolation.",
   );
 } finally {
   await browser.close();

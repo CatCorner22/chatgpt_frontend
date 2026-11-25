@@ -10,6 +10,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { BookingObservationFields } from "./BookingObservationFields";
+import { bookingProtocol } from "../../north-star-kit/blind-test/reviewer";
 import { PilotOrganizer } from "@/components/PilotOrganizer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -30,6 +32,7 @@ import {
 
 const fieldNames: Record<string, string> = {
   reviewerCode: "Reviewer code",
+  bookingObservation: "Check the price, seconds and booking count. A blank field means unmeasured.",
   taskOutcome: "Task outcome",
   judgedOrigin: "Origin estimate",
   hierarchy: "Hierarchy",
@@ -555,7 +558,14 @@ export function BlindReviewRoom() {
                               name="task-outcome"
                               value={value}
                               checked={draft.taskOutcome === value}
-                              onChange={() => updateDraft({ taskOutcome: value })}
+                              onChange={() =>
+                                updateDraft({
+                                  taskOutcome: value,
+                                  ...(value === "not-tested"
+                                    ? { bookingObservation: undefined }
+                                    : {}),
+                                })
+                              }
                             />
                             {label}
                           </label>
@@ -563,6 +573,14 @@ export function BlindReviewRoom() {
                       </div>
                     )}
                   </fieldset>
+                  {sample.kind === "interactive" &&
+                    task.observationProtocol === bookingProtocol &&
+                    (draft.taskOutcome === "completed" || draft.taskOutcome === "blocked") && (
+                      <BookingObservationFields
+                        draft={draft.bookingObservation}
+                        onChange={(bookingObservation) => updateDraft({ bookingObservation })}
+                      />
+                    )}
                   <div className="mt-8 border-t border-border pt-6">
                     <h3 className="font-display text-xl">How well does it work?</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

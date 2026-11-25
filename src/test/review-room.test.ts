@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { packetFixture } from "./review-room.fixture";
-import { blindEvaluationBundleSchema } from "../../north-star-kit/blind-test/reviewer";
+import {
+  blindEvaluationBundleSchema,
+  bookingProtocol,
+} from "../../north-star-kit/blind-test/reviewer";
 import {
   createReviewSession,
+  emptyBookingDraft,
   missingReviewAnswers,
   parseReviewerPacket,
   parseReviewSession,
@@ -150,5 +154,67 @@ describe("complete and explicitly partial answer export", () => {
     expect(bundle.evaluations.map((item) => item.sampleId)).toEqual(session.order);
     expect(bundle.evaluations[0]?.quality.interaction).toBeNull();
     expect(bundle.evaluations[0]?.taskOutcome).toBe("not-tested");
+  });
+});
+
+describe("River Kiln observation handoff", () => {
+  function sessionWithBooking() {
+    const packet = packetFixture();
+    packet.tasks[0]!.observationProtocol = bookingProtocol;
+    const session = createReviewSession(packet);
+    session.reviewerCode = "participant-4";
+    session.drafts["sample-a"] = {
+      ...fullDraft(),
+      bookingObservation: {
+        ...emptyBookingDraft(),
+        firstClass: "wheel",
+        statedDollars: "48.00",
+        elapsedSeconds: "65",
+        helpUsed: false,
+        recovery: "recovered",
+        savedReservations: "",
+      },
+    };
+    return session;
+  }
+  it("restores only what was observed, preserving zero counts and unknown counts as distinct", () => {
+    const session = parseReviewSession(JSON.stringify(sessionWithBooking()));
+    const observation = reviewAnswerBundle(session, true).evaluations[0]!.bookingObservation;
+    expect(observation).toEqual({
+      firstResponse: null,
+      firstClass: "wheel",
+      statedDollars: 48,
+      elapsedSeconds: 65,
+      helpUsed: false,
+      recovery: "recovered",
+      savedReservations: null,
+    });
+    session.drafts["sample-a"]!.bookingObservation!.savedReservations = "0";
+    expect(
+      reviewAnswerBundle(session, true).evaluations[0]!.bookingObservation?.savedReservations,
+    ).toBe(0);
+  });
+  it("keeps unfinished or invalid numbers editable and excludes them from a submitted answer", () => {
+    const session = sessionWithBooking();
+    session.drafts["sample-a"]!.bookingObservation!.statedDollars = "0x30";
+    expect(
+      parseReviewSession(JSON.stringify(session)).drafts["sample-a"]!.bookingObservation
+        ?.statedDollars,
+    ).toBe("0x30");
+    expect(
+      missingReviewAnswers(session.drafts["sample-a"]!, session.packet.samples[0]!, "r"),
+    ).toContain("bookingObservation");
+    expect(() => reviewAnswerBundle(session, true)).toThrow("at least one sample");
+  });
+  it("rejects observations attached to a different task, an image, or an unattempted sample", () => {
+    const session = sessionWithBooking();
+    delete session.packet.tasks[0]!.observationProtocol;
+    expect(() => parseReviewSession(JSON.stringify(session))).toThrow("do not match");
+    session.packet.tasks[0]!.observationProtocol = bookingProtocol;
+    session.drafts["sample-a"]!.taskOutcome = "not-tested";
+    expect(() => reviewAnswerBundle(session, true)).toThrow("do not match");
+    session.drafts["sample-a"]!.taskOutcome = "completed";
+    session.drafts["sample-b"]!.bookingObservation = emptyBookingDraft();
+    expect(() => reviewAnswerBundle(session, true)).toThrow("do not match");
   });
 });

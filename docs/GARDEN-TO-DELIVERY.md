@@ -2,9 +2,18 @@
 
 ## Start in the Garden
 
-Open a Garden stop and write a journey brief. Record who will use the page, what they need to accomplish, what happens today, and what must keep working. Attach the brief to a saved design. Each stop lets you record an approach and its consequences. The learning preference stays in this browser. The brief travels through its own JSON download, My designs backups, and the saved library’s online copy. If two incoming copies of a design have different briefs, restore preserves both.
+Open a Garden stop and write a journey brief. Record who will use the page, what they need to accomplish, what happens today, and what must keep working. Attach the brief to a saved design. Each stop lets you record an approach and its consequences. Turn off **Keep it brief** for Reverie’s longer lessons, examples and tradeoffs. Turn it on again whenever you want the next action. Focus remembers the choice in this browser when storage is available. The brief travels through its own JSON download, My designs backups, and the saved library’s online copy. If two incoming copies of a design have different briefs, restore preserves both.
 
 In Vision or Stratosphere, compare compositions with your own material at phone and desktop sizes. Selecting a composition changes the authored page and supports Studio Undo. The editable website ZIP and standalone HTML use the same renderer. The related-reading editor supports a second image, an actual destination, credit text and separate phone framing. In Vision, open **Study a two-image editorial example** to find a self-contained Hokusai library sample made with Open Access images from The Metropolitan Museum of Art.
+
+## Let visitors compare two offers
+
+For a new website, put each offer’s name and description under **Make the words yours** in Studio. Include the real price, time or other detail visitors need. Save the design, then open **Arrange the page** on the Garden Path and select that design under **Brief for**.
+
+1. Choose **Show options together before choosing** in the approach menu. Use **Preview my options together** to see your own offers with the design’s colors and fonts.
+2. Choose **Review and apply in Studio**, then **Apply Comparison from my brief**. Each description stays beside its offer and the main link follows the options. **Undo** restores your previous layout.
+3. Choose **Check at 320 px** to see which offer text fits a narrow browser viewport. Review any clipped text in the phone preview. Changing the rendered page clears the result.
+4. Download the working HTML or the editable page ZIP. Open it, compare both offers and follow the real action to check the visitor’s next step.
 
 ## Practice the existing-app handoff
 

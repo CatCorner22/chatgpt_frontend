@@ -168,14 +168,17 @@ export function writeGardenJourney(
 export function gardenSuggestedComposition(brief: GardenJourney | null) {
   if (brief?.goal !== "new") return null;
   const plan = brief.decisions["plan"]?.choice;
+  const layouts = {
+    "guided-sequence": "product",
+    "scannable-sections": "journal",
+    "compare-options": "comparison",
+  } as const;
   const layout =
-    plan === "guided-sequence" ? "product" : plan === "scannable-sections" ? "journal" : null;
+    plan && Object.hasOwn(layouts, plan) ? layouts[plan as keyof typeof layouts] : null;
   const approach = GARDEN_STEPS.find((step) => step.id === "plan")?.choices.find(
     (item) => item.id === plan,
   );
-  return layout && approach
-    ? { layout: layout as "product" | "journal", approach: approach.title }
-    : null;
+  return layout && approach ? { layout, approach: approach.title } : null;
 }
 
 export const MAX_JOURNEY_FILE_BYTES = 128 * 1024;

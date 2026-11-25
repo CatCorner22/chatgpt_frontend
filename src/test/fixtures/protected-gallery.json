@@ -1,0 +1,1521 @@
+[
+  {
+    "id": "summertime-sadness",
+    "name": "Summertime Sadness",
+    "group": "Made for you",
+    "mood": "Faded Americana, film grain, cherry-red lipstick on cream.",
+    "tokens": {
+      "bg": "#f3e9dc",
+      "surface": "#fbf5ec",
+      "ink": "#2b1d1f",
+      "muted": "#6b5052",
+      "accent": "#9e1b32",
+      "accentInk": "#ffffff",
+      "headingFont": "Playfair Display",
+      "bodyFont": "Literata",
+      "headingCase": "normal",
+      "scale": 1.333,
+      "radius": 2,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "outline",
+      "texture": "grain"
+    },
+    "copySha256": "2064646bb59604f3c8c7f86456d17f370c3cec43e62e33b1a0f3d67329d53e98"
+  },
+  {
+    "id": "unconquerable",
+    "name": "Unconquerable",
+    "group": "Made for you",
+    "mood": "Carved stone, iron and bronze; quiet, absolute resolve.",
+    "tokens": {
+      "bg": "#121110",
+      "surface": "#1c1a18",
+      "ink": "#ece6da",
+      "muted": "#a89f91",
+      "accent": "#b08d57",
+      "accentInk": "#121110",
+      "headingFont": "Cinzel",
+      "bodyFont": "Literata",
+      "headingCase": "uppercase",
+      "scale": 1.414,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "copySha256": "a10adadc50f09f947b1f68bfe1d971833918f7c37356b720ff767d8467024c06"
+  },
+  {
+    "id": "straight-from-the-block",
+    "name": "Straight From the Block",
+    "group": "Made for you",
+    "mood": "Concrete, newsprint, warning-yellow; loud because it has to be.",
+    "tokens": {
+      "bg": "#d9d6cf",
+      "surface": "#efede8",
+      "ink": "#111111",
+      "muted": "#3f3d39",
+      "accent": "#f2c200",
+      "accentInk": "#111111",
+      "headingFont": "Bebas Neue",
+      "bodyFont": "Work Sans",
+      "headingCase": "uppercase",
+      "scale": 1.5,
+      "radius": 0,
+      "density": "compact",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "copySha256": "a0c0aa7fbf162533a970fde47b7c6bb2955510f673581f1b8717ed11df976fed"
+  },
+  {
+    "id": "velvet-and-ink",
+    "name": "Velvet & Ink",
+    "group": "Made for you",
+    "mood": "Black velvet, oxblood and candlelight; romantic, never cheesy.",
+    "tokens": {
+      "bg": "#0e0b0d",
+      "surface": "#1a1418",
+      "ink": "#efe6e9",
+      "muted": "#b3a3a9",
+      "accent": "#8c1c2b",
+      "accentInk": "#ffffff",
+      "headingFont": "Pirata One",
+      "bodyFont": "Karla",
+      "headingCase": "normal",
+      "scale": 1.333,
+      "radius": 4,
+      "density": "balanced",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "copySha256": "d972c84babc65f8d4a63cd8b42b6aa54f10316f4ef1906df882f7774a0a572ec"
+  },
+  {
+    "id": "plush",
+    "name": "Plush",
+    "group": "Made for you",
+    "mood": "Honey, cream and soft corners; a hug you can scroll.",
+    "tokens": {
+      "bg": "#fbf4e8",
+      "surface": "#ffffff",
+      "ink": "#3a2e28",
+      "muted": "#6e5f55",
+      "accent": "#f0b35a",
+      "accentInk": "#2a1d12",
+      "headingFont": "Fredoka",
+      "bodyFont": "Figtree",
+      "headingCase": "normal",
+      "scale": 1.2,
+      "radius": 24,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "pill",
+      "texture": "none"
+    },
+    "copySha256": "9637b4ac1c7cbb794363ee99590cdb8c08cdc04ad94ac9b974b60c1779056416"
+  },
+  {
+    "id": "purr-and-paper",
+    "name": "Purr & Paper",
+    "group": "Made for you",
+    "mood": "Cream pages, forest green and soft ginger; a warm cat-filled reading nook.",
+    "tokens": {
+      "bg": "#f8f1e4",
+      "surface": "#fffcf6",
+      "ink": "#263d30",
+      "muted": "#596253",
+      "accent": "#315d44",
+      "accentInk": "#fffdf7",
+      "accent2": "#d68a54",
+      "headingFont": "Fraunces",
+      "bodyFont": "Karla",
+      "headingCase": "normal",
+      "scale": 1.25,
+      "radius": 20,
+      "density": "airy",
+      "heroLayout": "split",
+      "buttonStyle": "pill",
+      "texture": "none"
+    },
+    "copySha256": "09249c99f789f73eda31fef48187afe778896d33fc848cb85d8e76d9bae58f4a"
+  },
+  {
+    "id": "velvet-afterglow",
+    "name": "Velvet Afterglow",
+    "group": "Made for you",
+    "mood": "Dusty rose, warm ivory and deep cherry; vintage cinema after the lights go down.",
+    "tokens": {
+      "bg": "#f2dfd2",
+      "surface": "#fff5e9",
+      "ink": "#401d29",
+      "muted": "#70434d",
+      "accent": "#8c2340",
+      "accentInk": "#fff7ec",
+      "headingFont": "DM Serif Display",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.414,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "outline",
+      "texture": "grain"
+    },
+    "copySha256": "4d3ba8f0d8493e0e2c8d54a6bb0107ac47e39f160114bd20514cf83c3d83ddcc"
+  },
+  {
+    "id": "midnight-muse",
+    "name": "Midnight Muse",
+    "group": "Made for you",
+    "mood": "Ink-purple, parchment and antique gold; intelligent, gothic and quietly mysterious.",
+    "tokens": {
+      "bg": "#14131d",
+      "surface": "#22202d",
+      "ink": "#f3ebdc",
+      "muted": "#b9afca",
+      "accent": "#d7b77e",
+      "accentInk": "#211c25",
+      "accent2": "#a08eb7",
+      "headingFont": "Cinzel",
+      "bodyFont": "Literata",
+      "headingCase": "uppercase",
+      "scale": 1.333,
+      "radius": 2,
+      "density": "compact",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "copySha256": "50a3e120bf1525ee039a96f6e881f4906b6a06b7f5bad12d0a01a3aabf5c06d1"
+  },
+  {
+    "id": "wildflower-hour",
+    "name": "Wildflower Hour",
+    "group": "Made for you",
+    "mood": "Sage, linen and deep leaf green; peaceful, open and close to the seasons.",
+    "tokens": {
+      "bg": "#f0f2e7",
+      "surface": "#fcfbf4",
+      "ink": "#2d4337",
+      "muted": "#58654c",
+      "accent": "#446c42",
+      "accentInk": "#ffffff",
+      "headingFont": "Newsreader",
+      "bodyFont": "Public Sans",
+      "headingCase": "normal",
+      "scale": 1.2,
+      "radius": 10,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "copySha256": "5375e578831b8a3effa52d580107eac7bd365552f6a05596c4baf02a0dabceba"
+  },
+  {
+    "id": "cocoa-atelier",
+    "name": "Cocoa Atelier",
+    "group": "Made for you",
+    "mood": "Espresso, caramel and satin cream; warm, assured and quietly luxurious.",
+    "tokens": {
+      "bg": "#2a1c19",
+      "surface": "#3c2923",
+      "ink": "#f8e8d6",
+      "muted": "#d5baa2",
+      "accent": "#edbf92",
+      "accentInk": "#33211b",
+      "headingFont": "Libre Caslon Text",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.333,
+      "radius": 6,
+      "density": "balanced",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "copySha256": "85abf3c8faedc1649700709581d9a2fd7de685b044606b3542d9683ebe1f79aa"
+  },
+  {
+    "id": "moonlit-mischief",
+    "name": "Moonlit Mischief",
+    "group": "Made for you",
+    "mood": "Lavender dusk, inky plum and little stars; clever, positive and delightfully curious.",
+    "tokens": {
+      "bg": "#efeaf7",
+      "surface": "#fff9f0",
+      "ink": "#352a4c",
+      "muted": "#625572",
+      "accent": "#5d3b81",
+      "accentInk": "#ffffff",
+      "accent2": "#cb8959",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "Space Grotesk",
+      "headingCase": "normal",
+      "scale": 1.5,
+      "radius": 28,
+      "density": "compact",
+      "heroLayout": "poster",
+      "buttonStyle": "pill",
+      "texture": "stars"
+    },
+    "copySha256": "7a588920886adf559964b90f0dba91135a74efced65a0e9bab4309b283eca3f2"
+  },
+  {
+    "id": "graphite-precision",
+    "name": "Graphite Precision",
+    "group": "Light and calm",
+    "mood": "Exact, quiet, engineered. Black, white, and a faint grid of lines.",
+    "tokens": {
+      "bg": "#fafafa",
+      "surface": "#ffffff",
+      "ink": "#0f0f0f",
+      "muted": "#565656",
+      "accent": "#0f0f0f",
+      "accentInk": "#fafafa",
+      "headingFont": "Instrument Sans",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 8,
+      "density": "balanced",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "ring",
+      "touch": "none",
+      "atmosphere": "line-grid",
+      "buttonFinish": "gloss"
+    },
+    "runtimeTokenOverrides": {
+      "buttonFinish": "gloss"
+    },
+    "copySha256": "35c63c9c7a4da8715b4ed993f9e62bc279228666439caea0f83831cb80067462"
+  },
+  {
+    "id": "soft-daylight",
+    "name": "Soft Daylight",
+    "group": "Light and calm",
+    "mood": "Bright, airy, unhurried. Boxes float on soft shadows in clear light.",
+    "tokens": {
+      "bg": "#f8fafd",
+      "surface": "#ffffff",
+      "ink": "#13161a",
+      "muted": "#595d61",
+      "accent": "#006edc",
+      "accentInk": "#fafcff",
+      "headingFont": "Manrope",
+      "bodyFont": "Manrope",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 999,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "float",
+      "touch": "none",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "radius": 28
+    },
+    "copySha256": "9a970792ce1e3e76788f8578421ce5c1e8f0d7d4029bef1fb47cd330d0358b34"
+  },
+  {
+    "id": "clinical-calm",
+    "name": "Clinical Calm",
+    "group": "Light and calm",
+    "mood": "Clean, reassuring, plainly spoken. Nothing to worry about here.",
+    "tokens": {
+      "bg": "#f4fcfb",
+      "surface": "#ffffff",
+      "ink": "#091514",
+      "muted": "#4e5c5b",
+      "accent": "#005f5f",
+      "accentInk": "#f8fdfd",
+      "headingFont": "Public Sans",
+      "bodyFont": "Public Sans",
+      "headingCase": "normal",
+      "scale": 1.28,
+      "radius": 10,
+      "density": "airy",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "ring",
+      "touch": "none",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "d5d60107a39cc90b9563ca55fa9da009d0001766b0464bf68f057bc4c428b8e8"
+  },
+  {
+    "id": "quiet-luxury",
+    "name": "Quiet Luxury",
+    "group": "Light and calm",
+    "mood": "Nearly nothing, perfectly placed. Thin letters with small feet, wide margins, no lines.",
+    "tokens": {
+      "bg": "#fcfaf7",
+      "surface": "#ffffff",
+      "ink": "#1c1813",
+      "muted": "#635e58",
+      "accent": "#fcfaf7",
+      "accentInk": "#1c1813",
+      "headingFont": "Fraunces",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 0,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "outline",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "flat",
+      "touch": "none",
+      "atmosphere": "plain",
+      "buttonFinish": "outline"
+    },
+    "copySha256": "2ba9f6e4962ad1995c3b0fcf720169b35840c0aa75d14c3bb1543280be709c63"
+  },
+  {
+    "id": "cobalt-wash",
+    "name": "Cobalt Wash",
+    "group": "Light and calm",
+    "mood": "The whole page breathes one color. Fresh, modern, unmistakable.",
+    "tokens": {
+      "bg": "#ecf3ff",
+      "surface": "#f9fbff",
+      "ink": "#09101b",
+      "muted": "#4f5766",
+      "accent": "#1256d8",
+      "accentInk": "#fafcff",
+      "headingFont": "Manrope",
+      "bodyFont": "Manrope",
+      "headingCase": "normal",
+      "scale": 1.34,
+      "radius": 14,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "soft-shadow",
+      "touch": "marker",
+      "atmosphere": "plain",
+      "buttonFinish": "gloss"
+    },
+    "runtimeTokenOverrides": {
+      "buttonFinish": "gloss"
+    },
+    "copySha256": "8a28bcdc02a4ceb654194a4e22c1556a3743a0582b30cd871345b8779909a7e4"
+  },
+  {
+    "id": "sunlit-studio",
+    "name": "Sunlit Studio",
+    "group": "Light and calm",
+    "mood": "Morning light in a workshop: golden, open, optimistic.",
+    "tokens": {
+      "bg": "#fdfaf3",
+      "surface": "#ffffff",
+      "ink": "#151006",
+      "muted": "#5d574a",
+      "accent": "#efbd24",
+      "accentInk": "#130f06",
+      "headingFont": "Outfit",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.32,
+      "radius": 20,
+      "density": "airy",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "float",
+      "touch": "color-band",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "19eb45f4bafc56eac7f77ed183ee356d53c9ce54627a3f62542b3840e44194a6"
+  },
+  {
+    "id": "quiet-orbit",
+    "name": "Quiet Orbit",
+    "group": "Light and calm",
+    "mood": "A bright, still morning in space: a near-white page with a cool tint, one calm indigo, a few faint stars, and soft round shapes. Smooth and modern.",
+    "tokens": {
+      "bg": "#f8faff",
+      "surface": "#ffffff",
+      "ink": "#0f131b",
+      "muted": "#555a64",
+      "accent": "#3f50ad",
+      "accentInk": "#fafcff",
+      "headingFont": "Manrope",
+      "bodyFont": "Inter",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 20,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "stars"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "ring",
+      "touch": "none",
+      "atmosphere": "stars",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "f7eae810383bffea17d89882d3f732d3e2860814529ce8db6c789c3af568cc02"
+  },
+  {
+    "id": "steady-steps",
+    "name": "Steady Steps",
+    "group": "Light and calm",
+    "mood": "A soft mint page with a calm green-teal, friendly round letters, clear buttons, and plenty of room. Encouraging and easy to return to every day.",
+    "tokens": {
+      "bg": "#e0f9f1",
+      "surface": "#f2fefa",
+      "ink": "#161004",
+      "muted": "#5f5747",
+      "accent": "#006453",
+      "accentInk": "#f8fdfb",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.3,
+      "radius": 16,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "soft-shadow",
+      "touch": "big-numerals",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "49253ad76a56f2394590e8ca4402f3ca09b4af3cee37149716e4d814f341edcc"
+  },
+  {
+    "id": "field-manual",
+    "name": "Field Manual",
+    "group": "Light and calm",
+    "mood": "A printed manual: a paper-white page, black ink, one olive green, typewriter-style capital headings, thin lines, and numbered parts. Orderly and plain-spoken.",
+    "tokens": {
+      "bg": "#fafaf6",
+      "surface": "#ffffff",
+      "ink": "#0b0c06",
+      "muted": "#53534b",
+      "accent": "#3f4e22",
+      "accentInk": "#fbfcf9",
+      "headingFont": "JetBrains Mono",
+      "bodyFont": "Public Sans",
+      "headingCase": "uppercase",
+      "scale": 1.24,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "big-numerals",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "850122153d518dfdb4de0f8159e821fbd397d6198b48c55287e06d5be7c54c40"
+  },
+  {
+    "id": "ink-and-seal",
+    "name": "Ink and Seal",
+    "group": "Light and calm",
+    "mood": "Warm paper, soft black ink, and a few small orange-red marks, like the seal on a letter. Wide empty margins, thin lines, square corners. Nothing shines and nothing moves.",
+    "tokens": {
+      "bg": "#fefaf1",
+      "surface": "#ffffff",
+      "ink": "#181205",
+      "muted": "#615949",
+      "accent": "#181205",
+      "accentInk": "#fefaf1",
+      "headingFont": "Instrument Sans",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.2,
+      "radius": 0,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "none",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "5264434bc26638f04e4153d4ec88b29569302528f91a2f450d2fc2bbf417f78b"
+  },
+  {
+    "id": "unbleached-indigo",
+    "name": "Unbleached and Indigo",
+    "group": "Light and calm",
+    "mood": "Unbleached cloth and deep blue dye. Words and picture stand side by side on the first screen, areas are set apart by a change of tone in place of lines, and the blue marks what a visitor can press.",
+    "tokens": {
+      "bg": "#fffaec",
+      "surface": "#ffffff",
+      "ink": "#181000",
+      "muted": "#61573b",
+      "accent": "#1b4a76",
+      "accentInk": "#f9fcff",
+      "headingFont": "DM Sans",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.24,
+      "radius": 2,
+      "density": "airy",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "tonal",
+      "touch": "none",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "1ae177ed8f8dc54c85406273d9dcf89573a43a41e8861d5df3978420cf78990e"
+  },
+  {
+    "id": "plain-label",
+    "name": "Plain Ground",
+    "group": "Light and calm",
+    "mood": "A near-white ground, plain letters, a black button, and one dark green for small marks and links. No emblem, no badge, no decoration: the goods do the talking.",
+    "tokens": {
+      "bg": "#fcf9f7",
+      "surface": "#ffffff",
+      "ink": "#120e0b",
+      "muted": "#5a5551",
+      "accent": "#120e0b",
+      "accentInk": "#fcf9f7",
+      "headingFont": "Public Sans",
+      "bodyFont": "Public Sans",
+      "headingCase": "normal",
+      "scale": 1.24,
+      "radius": 0,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "flat",
+      "touch": "none",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "61b2466a1da1b69f2d63e9611e5c1499a103cd1a601282c532d4631f4064d62f"
+  },
+  {
+    "id": "midnight-aurora",
+    "name": "Midnight Aurora",
+    "group": "Dark and dramatic",
+    "mood": "A deep night sky with soft colored light behind frosted, see-through boxes. Luminous and calm.",
+    "tokens": {
+      "bg": "#060a13",
+      "surface": "#0e121d",
+      "ink": "#ecf1fd",
+      "muted": "#a7aebb",
+      "accent": "#679cff",
+      "accentInk": "#0b0f18",
+      "headingFont": "Manrope",
+      "bodyFont": "Manrope",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 12,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "glass",
+      "touch": "none",
+      "atmosphere": "aurora",
+      "buttonFinish": "glow"
+    },
+    "runtimeTokenOverrides": {
+      "card": "glass",
+      "buttonFinish": "glow"
+    },
+    "copySha256": "562f7f4982eec166ca369f2daf2503a24d383addcc9ef9512fbd8482ced84c98"
+  },
+  {
+    "id": "ember-noir",
+    "name": "Ember Noir",
+    "group": "Dark and dramatic",
+    "mood": "Charcoal and firelight. Warm, confident, a little theatrical.",
+    "tokens": {
+      "bg": "#130e09",
+      "surface": "#1c1612",
+      "ink": "#ede6e2",
+      "muted": "#aca49e",
+      "accent": "#ffb169",
+      "accentInk": "#160d07",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 10,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "tonal",
+      "touch": "marker",
+      "atmosphere": "spotlight",
+      "buttonFinish": "gloss"
+    },
+    "runtimeTokenOverrides": {
+      "buttonFinish": "gloss"
+    },
+    "copySha256": "c30153fa26e20f7ee3cb5d4a1a0c893a4743d0fc50298374de9b10e82cd6fa41"
+  },
+  {
+    "id": "evening-formal",
+    "name": "Evening Formal",
+    "group": "Dark and dramatic",
+    "mood": "Candlelight and engraved invitations. Dark, slow, elegant.",
+    "tokens": {
+      "bg": "#140e16",
+      "surface": "#1d171f",
+      "ink": "#e9e2eb",
+      "muted": "#a8a0aa",
+      "accent": "#140e16",
+      "accentInk": "#e5bf6d",
+      "headingFont": "Playfair Display",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 4,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "outline",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "tonal",
+      "touch": "none",
+      "atmosphere": "spotlight",
+      "buttonFinish": "outline"
+    },
+    "copySha256": "a908faab517a109f129e22e0515c2cd8038f55e5af8c405e1d7f7488f2c5999d"
+  },
+  {
+    "id": "control-room",
+    "name": "Control Room",
+    "group": "Dark and dramatic",
+    "mood": "An instrument panel: dense, exact, numbers first.",
+    "tokens": {
+      "bg": "#050b11",
+      "surface": "#0d141a",
+      "ink": "#e9f1f8",
+      "muted": "#a5aeb6",
+      "accent": "#36dcec",
+      "accentInk": "#051214",
+      "headingFont": "Space Grotesk",
+      "bodyFont": "Manrope",
+      "headingCase": "normal",
+      "scale": 1.2,
+      "radius": 3,
+      "density": "compact",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "none",
+      "atmosphere": "dot-grid",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "788d3e01e0e3c83873e29eb435e927928b5c48b709e962deee98a47f2c347c5c"
+  },
+  {
+    "id": "vector-horizon",
+    "name": "Vector Horizon",
+    "group": "Dark and dramatic",
+    "mood": "A flight deck at night: thin lines, a faint grid, capital letters, and one electric color. Precise and forward-looking.",
+    "tokens": {
+      "bg": "#010a16",
+      "surface": "#05131f",
+      "ink": "#e8f4ff",
+      "muted": "#a0b1c1",
+      "accent": "#00ddef",
+      "accentInk": "#051214",
+      "headingFont": "Space Grotesk",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 2,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "outline-type",
+      "atmosphere": "line-grid",
+      "buttonFinish": "glow"
+    },
+    "runtimeTokenOverrides": {
+      "buttonFinish": "glow"
+    },
+    "copySha256": "a1ab615b22a3dcaf084073f58e071b76ab4a60e4f6e4748d71a84e6acee8588a"
+  },
+  {
+    "id": "galactic-goth",
+    "name": "Galactic Goth",
+    "group": "Dark and dramatic",
+    "mood": "Deep space in velvet: a violet-black sky full of stars, frosted boxes, royal purple, and one deep red. Dramatic and elegant.",
+    "tokens": {
+      "bg": "#0d0615",
+      "surface": "#160e1f",
+      "ink": "#f5eeff",
+      "muted": "#b3a9c0",
+      "accent": "#ba86ff",
+      "accentInk": "#110d17",
+      "headingFont": "Playfair Display",
+      "bodyFont": "Manrope",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 14,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "stars"
+    },
+    "extras": {
+      "accent2": "#ff6f7a",
+      "finish": "glass",
+      "touch": "none",
+      "atmosphere": "stars",
+      "buttonFinish": "glow"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#ff6f7a",
+      "card": "glass",
+      "buttonFinish": "glow"
+    },
+    "copySha256": "ce10688f65a5eef6d506d519a3e1a269eb72bda2787d9300532c8cdb73a2225b"
+  },
+  {
+    "id": "marquee-deco",
+    "name": "Marquee Deco",
+    "group": "Dark and dramatic",
+    "mood": "A theater front from the 1920s: black and gold, even capital letters, square corners, and a light from above.",
+    "tokens": {
+      "bg": "#0d0905",
+      "surface": "#15120c",
+      "ink": "#f5f1eb",
+      "muted": "#b2aea6",
+      "accent": "#0d0905",
+      "accentInk": "#e7bf57",
+      "headingFont": "Outfit",
+      "bodyFont": "DM Sans",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 0,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "outline",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "color-band",
+      "atmosphere": "spotlight",
+      "buttonFinish": "outline"
+    },
+    "copySha256": "82282746c8f3064c7ad5cbe8595529798423bf6cb882b35bb3568a42b3f694fd"
+  },
+  {
+    "id": "vegas-modern",
+    "name": "Vegas Modern",
+    "group": "Dark and dramatic",
+    "mood": "A new resort at night: a black page, warm gold, glass boxes, a single light from above, and large confident letters. Sleek and impressive.",
+    "tokens": {
+      "bg": "#0b0705",
+      "surface": "#14100c",
+      "ink": "#f9f4f0",
+      "muted": "#b6b0ab",
+      "accent": "#eebb58",
+      "accentInk": "#140f06",
+      "headingFont": "Manrope",
+      "bodyFont": "Inter",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 10,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "glass",
+      "touch": "none",
+      "atmosphere": "spotlight",
+      "buttonFinish": "gloss"
+    },
+    "runtimeTokenOverrides": {
+      "card": "glass",
+      "buttonFinish": "gloss"
+    },
+    "copySha256": "01e8e605009927f3c0e89af499791ba4eb75bd6780a3ea5585b6a48fe4454038"
+  },
+  {
+    "id": "long-conversation",
+    "name": "Long Conversation",
+    "group": "Dark and dramatic",
+    "mood": "A dark studio late at night: warm amber light, a deep red, sturdy plain letters, and plenty of room to read. Curious and unhurried.",
+    "tokens": {
+      "bg": "#0e0603",
+      "surface": "#170e09",
+      "ink": "#fef3ed",
+      "muted": "#bbaea7",
+      "accent": "#feb354",
+      "accentInk": "#150e06",
+      "headingFont": "Manrope",
+      "bodyFont": "Inter",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 6,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": "#ffaaa3",
+      "finish": "ring",
+      "touch": "none",
+      "atmosphere": "spotlight",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#ffaaa3"
+    },
+    "copySha256": "62fb67278893837213f1f6af107a7db7b7596ccce39d3a5abb4aeae8505c3d38"
+  },
+  {
+    "id": "before-dawn",
+    "name": "Before Dawn",
+    "group": "Dark and dramatic",
+    "mood": "The road at five in the morning: a near-black page, one hard orange like a safety vest, heavy capital letters, and square edges. Stripped down and relentless.",
+    "tokens": {
+      "bg": "#07080b",
+      "surface": "#0e1113",
+      "ink": "#f3f5f8",
+      "muted": "#aeb1b5",
+      "accent": "#ffae81",
+      "accentInk": "#170d08",
+      "headingFont": "Space Grotesk",
+      "bodyFont": "Inter",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "big-numerals",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "8a9bcf4fc459e66e2a23ccbd42935a89aebf7b598a28096cc42878f772e4f90a"
+  },
+  {
+    "id": "paper-and-ink",
+    "name": "Paper and Ink",
+    "group": "Warm and nostalgic",
+    "mood": "A well-edited magazine: paper grain, ink, and one red pencil.",
+    "tokens": {
+      "bg": "#fefaf1",
+      "surface": "#ffffff",
+      "ink": "#171105",
+      "muted": "#605848",
+      "accent": "#171105",
+      "accentInk": "#fefaf1",
+      "headingFont": "Newsreader",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.34,
+      "radius": 2,
+      "density": "airy",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "marker",
+      "atmosphere": "grain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "28757ff37a73224282bfca16736778371c26422467edfb46555c99f7f2a5533d"
+  },
+  {
+    "id": "garden-ledger",
+    "name": "Garden Ledger",
+    "group": "Warm and nostalgic",
+    "mood": "A seed catalog: deep green, sturdy letters with small feet, orderly lists.",
+    "tokens": {
+      "bg": "#f5fdf6",
+      "surface": "#ffffff",
+      "ink": "#08140a",
+      "muted": "#4d5c50",
+      "accent": "#005729",
+      "accentInk": "#f9fdfa",
+      "headingFont": "Literata",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.3,
+      "radius": 6,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "big-numerals",
+      "atmosphere": "grain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "41ba792bfa7ff9a4215d750457d881fcf0b3b998b02947c60b7cff2502fa1b61"
+  },
+  {
+    "id": "frontier-gazette",
+    "name": "Frontier Gazette",
+    "group": "Warm and nostalgic",
+    "mood": "A small-town newspaper and a wanted poster: sun-faded paper, heavy capital letters, rust red, and denim blue.",
+    "tokens": {
+      "bg": "#fff9f1",
+      "surface": "#ffffff",
+      "ink": "#1b0e00",
+      "muted": "#6c532b",
+      "accent": "#992e01",
+      "accentInk": "#fffbf9",
+      "headingFont": "Playfair Display",
+      "bodyFont": "Literata",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": "#005c94",
+      "finish": "borders",
+      "touch": "corner-tag",
+      "atmosphere": "grain",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#005c94"
+    },
+    "copySha256": "ee1fdf0aaa077ab22c2d784d1973c774f356598b40970b4ec9b54c3aee7dbb74"
+  },
+  {
+    "id": "motel-neon",
+    "name": "Motel Neon",
+    "group": "Warm and nostalgic",
+    "mood": "Night on an old California highway: a near-black blue page, a warm rose pink like a lit sign, tall elegant letters, and a faint film grain. Wistful and cinematic.",
+    "tokens": {
+      "bg": "#050617",
+      "surface": "#0c0f21",
+      "ink": "#f2f5ff",
+      "muted": "#aab0c9",
+      "accent": "#ff9eaa",
+      "accentInk": "#170c0d",
+      "headingFont": "Playfair Display",
+      "bodyFont": "Newsreader",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 3,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": "#00d4f6",
+      "finish": "ring",
+      "touch": "none",
+      "atmosphere": "grain",
+      "buttonFinish": "glow"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#00d4f6",
+      "buttonFinish": "glow"
+    },
+    "copySha256": "8aa69cfa1aeace6d2eae70c55c916126e6ad8f835dcd95443eb6da54db815f36"
+  },
+  {
+    "id": "malibu-sunset",
+    "name": "Malibu Sunset",
+    "group": "Warm and nostalgic",
+    "mood": "The Pacific coast at the end of the day: pale sand, a coral sun, a touch of ocean teal, and easy round letters. Sunlit and unhurried.",
+    "tokens": {
+      "bg": "#fff9f2",
+      "surface": "#ffffff",
+      "ink": "#1e0f00",
+      "muted": "#685641",
+      "accent": "#a32600",
+      "accentInk": "#fffbf9",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 14,
+      "density": "airy",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": "#00686d",
+      "finish": "soft-shadow",
+      "touch": "color-band",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#00686d"
+    },
+    "copySha256": "9a7b4ac9896052fd1047f7ba94b47f3f1738958c34a98acb4406eb54a11063ac"
+  },
+  {
+    "id": "miami-beach-deco",
+    "name": "Miami Beach Deco",
+    "group": "Warm and nostalgic",
+    "mood": "A sun-warmed hotel front from the 1930s: cream walls, soft coral, a line of sea green, capital letters with air between them, and clean thin lines. Warm and relaxed, with a quiet nod to Art Deco.",
+    "tokens": {
+      "bg": "#fff9f1",
+      "surface": "#ffffff",
+      "ink": "#1c1002",
+      "muted": "#665744",
+      "accent": "#fff9f1",
+      "accentInk": "#8c2e26",
+      "headingFont": "Outfit",
+      "bodyFont": "DM Sans",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 22,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "outline",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": "#006150",
+      "finish": "borders",
+      "touch": "none",
+      "atmosphere": "plain",
+      "buttonFinish": "outline"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#006150"
+    },
+    "copySha256": "86ae96488e988530e36613f33fcad805753129f5c83a6887fb113892c4849b45"
+  },
+  {
+    "id": "smoky-mountain-autumn",
+    "name": "Smoky Mountain Autumn",
+    "group": "Warm and nostalgic",
+    "mood": "The ridges in October: a warm parchment page, burnt orange leaves, deep evergreen, bookish letters, and a soft morning haze. Calm and rooted.",
+    "tokens": {
+      "bg": "#fff9f2",
+      "surface": "#ffffff",
+      "ink": "#1d0d00",
+      "muted": "#68543d",
+      "accent": "#883500",
+      "accentInk": "#fffbf9",
+      "headingFont": "Newsreader",
+      "bodyFont": "Literata",
+      "headingCase": "normal",
+      "scale": 1.36,
+      "radius": 6,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": "#006336",
+      "finish": "tonal",
+      "touch": "marker",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#006336"
+    },
+    "copySha256": "9cb8d249146be0004dc8cb31f5d8d9b85592b08edc73ea4c1deeb6f321917d31"
+  },
+  {
+    "id": "childhood-nostalgia",
+    "name": "Childhood Nostalgia",
+    "group": "Warm and nostalgic",
+    "mood": "A small-town living room in the 1980s, remembered kindly: wood-brown, harvest gold, a soft lamp-lit page, friendly letters, and a little grain like an old photograph. Warm and safe.",
+    "tokens": {
+      "bg": "#fff9f3",
+      "surface": "#ffffff",
+      "ink": "#1e0c00",
+      "muted": "#6e5135",
+      "accent": "#773a00",
+      "accentInk": "#fffbf9",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "Newsreader",
+      "headingCase": "normal",
+      "scale": 1.3,
+      "radius": 8,
+      "density": "airy",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": "#5f4a00",
+      "finish": "tonal",
+      "touch": "none",
+      "atmosphere": "grain",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#5f4a00"
+    },
+    "copySha256": "e74d67e2e40b9f408c9634ba06956744f2699a4beec6607b9f5bdcac640a72e8"
+  },
+  {
+    "id": "mountain-rhinestone",
+    "name": "Mountain Rhinestone",
+    "group": "Warm and nostalgic",
+    "mood": "A big-hearted stage in the hills: warm cream, a bright rose pink, a butterfly yellow, round generous shapes, and elegant letters. Joyful and kind.",
+    "tokens": {
+      "bg": "#fff9f6",
+      "surface": "#ffffff",
+      "ink": "#200d06",
+      "muted": "#6b544a",
+      "accent": "#a30660",
+      "accentInk": "#fffafc",
+      "headingFont": "Playfair Display",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 999,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": "#6c5900",
+      "finish": "soft-shadow",
+      "touch": "marker",
+      "atmosphere": "spotlight",
+      "buttonFinish": "gloss"
+    },
+    "runtimeTokenOverrides": {
+      "radius": 28,
+      "accent2": "#6c5900",
+      "buttonFinish": "gloss"
+    },
+    "copySha256": "7dbb5650b58ebbe52689a0430f63d63c93a9e16c05b1579d764d95b00af04ac3"
+  },
+  {
+    "id": "blue-hour-chapel",
+    "name": "Blue Hour Chapel",
+    "group": "Warm and nostalgic",
+    "mood": "An old photograph of a summer that is over: sun-faded cream, dusty blue, a faded red, tall elegant letters, and soft grain. Glamorous and sad at once.",
+    "tokens": {
+      "bg": "#fff9f0",
+      "surface": "#ffffff",
+      "ink": "#1c1304",
+      "muted": "#655a48",
+      "accent": "#fff9f0",
+      "accentInk": "#295171",
+      "headingFont": "Playfair Display",
+      "bodyFont": "Newsreader",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 2,
+      "density": "airy",
+      "heroLayout": "stacked",
+      "buttonStyle": "outline",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": "#6e3d3d",
+      "finish": "flat",
+      "touch": "none",
+      "atmosphere": "grain",
+      "buttonFinish": "outline"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#6e3d3d"
+    },
+    "copySha256": "4d27786c3234d58db82714755564e9c7c4b7223b64b9352678664d081301d25b"
+  },
+  {
+    "id": "woody-creek-winter",
+    "name": "Woody Creek Winter",
+    "group": "Warm and nostalgic",
+    "mood": "A writer’s kitchen table in the Rockies: a snow-white page, weathered wood brown, a red like a typewriter ribbon, and typewriter-style headings. Personal and a little unruly.",
+    "tokens": {
+      "bg": "#fff9f4",
+      "surface": "#ffffff",
+      "ink": "#140b04",
+      "muted": "#5e5248",
+      "accent": "#a20519",
+      "accentInk": "#fffbfa",
+      "headingFont": "JetBrains Mono",
+      "bodyFont": "Literata",
+      "headingCase": "normal",
+      "scale": 1.3,
+      "radius": 2,
+      "density": "balanced",
+      "heroLayout": "editorial",
+      "buttonStyle": "solid",
+      "texture": "grain"
+    },
+    "extras": {
+      "accent2": "#7f4400",
+      "finish": "borders",
+      "touch": "marker",
+      "atmosphere": "grain",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#7f4400"
+    },
+    "copySha256": "663c24a8cc2edbb21caafb32d5d9ee041ad458f22f5fbb34976389e4b673e3e9"
+  },
+  {
+    "id": "poster-block",
+    "name": "Poster Block",
+    "group": "Bold and playful",
+    "mood": "A printed poster: one loud color, heavy letters, square corners.",
+    "tokens": {
+      "bg": "#fff9f0",
+      "surface": "#ffffff",
+      "ink": "#160d01",
+      "muted": "#5f5443",
+      "accent": "#de3f25",
+      "accentInk": "#120706",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "Instrument Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "none"
+    },
+    "extras": {
+      "accent2": null,
+      "finish": "borders",
+      "touch": "outline-type",
+      "atmosphere": "plain",
+      "buttonFinish": "flat"
+    },
+    "copySha256": "d4c0c267f7edb658339c98ad247401036ec89679c16bd7e11e4c8c352086932d"
+  },
+  {
+    "id": "sticker-pop",
+    "name": "Sticker Pop",
+    "group": "Bold and playful",
+    "mood": "Cheerful and tactile: thick outlines, solid sticker-like shadows, two bright colors.",
+    "tokens": {
+      "bg": "#f4fdf7",
+      "surface": "#ffffff",
+      "ink": "#05120a",
+      "muted": "#4b5b50",
+      "accent": "#6cbd2e",
+      "accentInk": "#0c1109",
+      "headingFont": "Outfit",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.3,
+      "radius": 999,
+      "density": "balanced",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": "#60a7ff",
+      "finish": "hard-shadow",
+      "touch": "corner-tag",
+      "atmosphere": "dot-grid",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "radius": 28,
+      "accent2": "#60a7ff"
+    },
+    "copySha256": "b8c967a7cb96013fd34fc04763a0fa9b135b96f8e05b2b5889f3fe131d502df7"
+  },
+  {
+    "id": "ocean-drive",
+    "name": "Ocean Drive",
+    "group": "Bold and playful",
+    "mood": "A 1980s beach city: pale pastel walls, a deep flamingo pink, a touch of turquoise, and thin clean letters. Breezy and stylish.",
+    "tokens": {
+      "bg": "#fff8fb",
+      "surface": "#ffffff",
+      "ink": "#1e1017",
+      "muted": "#68565e",
+      "accent": "#a50060",
+      "accentInk": "#fffafc",
+      "headingFont": "Outfit",
+      "bodyFont": "DM Sans",
+      "headingCase": "normal",
+      "scale": 1.42,
+      "radius": 18,
+      "density": "balanced",
+      "heroLayout": "split",
+      "buttonStyle": "solid",
+      "texture": "glow"
+    },
+    "extras": {
+      "accent2": "#006969",
+      "finish": "soft-shadow",
+      "touch": "color-band",
+      "atmosphere": "horizon",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#006969"
+    },
+    "copySha256": "2ddf41fda68ecf33ac35ba10909f4234b55c542e5182f9e47a2c9ab74c20dc17"
+  },
+  {
+    "id": "mall-sunset",
+    "name": "Mall Sunset",
+    "group": "Bold and playful",
+    "mood": "A 1980s dream of the future: a violet night, hot magenta and cyan, a grid of lines, and wide capital letters. Playful and unreal.",
+    "tokens": {
+      "bg": "#0b0418",
+      "surface": "#140a22",
+      "ink": "#f7f3ff",
+      "muted": "#b5abca",
+      "accent": "#ff90e9",
+      "accentInk": "#150c13",
+      "headingFont": "Space Grotesk",
+      "bodyFont": "Space Grotesk",
+      "headingCase": "uppercase",
+      "scale": 1.3,
+      "radius": 0,
+      "density": "balanced",
+      "heroLayout": "stacked",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": "#00d7e0",
+      "finish": "hard-shadow",
+      "touch": "corner-tag",
+      "atmosphere": "line-grid",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#00d7e0"
+    },
+    "copySha256": "ebb3cd779990bb8a19df3c4cfd7250f3c85bee146a4d25d9f39433f495d606b2"
+  },
+  {
+    "id": "desert-fever",
+    "name": "Desert Fever",
+    "group": "Bold and playful",
+    "mood": "A road trip through the desert that went wrong in an interesting way: bleached sand, acid orange, a sour green, very large heavy headings, and boxes like stickers. Loud and a little unhinged.",
+    "tokens": {
+      "bg": "#fffaee",
+      "surface": "#ffffff",
+      "ink": "#120900",
+      "muted": "#635024",
+      "accent": "#8d3700",
+      "accentInk": "#fffbf9",
+      "headingFont": "Bricolage Grotesque",
+      "bodyFont": "Space Grotesk",
+      "headingCase": "normal",
+      "scale": 1.5,
+      "radius": 4,
+      "density": "balanced",
+      "heroLayout": "poster",
+      "buttonStyle": "solid",
+      "texture": "grid"
+    },
+    "extras": {
+      "accent2": "#316400",
+      "finish": "hard-shadow",
+      "touch": "corner-tag",
+      "atmosphere": "dot-grid",
+      "buttonFinish": "flat"
+    },
+    "runtimeTokenOverrides": {
+      "accent2": "#316400"
+    },
+    "copySha256": "9f710eb31859cad8cfe5e2462c7a518674ba8807984731d46667e94412a0cd65"
+  }
+]

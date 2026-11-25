@@ -37,7 +37,7 @@ async function score(paths: string[]) {
   const organizer = pilotManifestSchema.safeParse(
     (await readJson(new URL("./private/organizer-template.json", import.meta.url))).data,
   );
-  if (!organizer.success || organizer.data.protocol !== "booking-pair-v1")
+  if (!organizer.success || organizer.data.protocol === "matched-three-v1")
     throw new Error("Open the scoring tool from the original River Kiln study kit.");
 
   const answers = [];
@@ -59,7 +59,8 @@ async function score(paths: string[]) {
     answers.push(...bundle.data.evaluations);
   }
   const report = scorePilot(organizer.data, answers);
-  const preferences = { original: 0, guided: 0, noPreference: 0, couldNotCompare: 0 };
+  const comparisonGroup = organizer.data.protocol === "booking-designer-v1" ? "expert" : "original";
+  const preferences = { [comparisonGroup]: 0, guided: 0, noPreference: 0, couldNotCompare: 0 };
   const voters = new Set<string>();
   for (const ballot of ballots) {
     if (voters.has(ballot.reviewerCode))
@@ -80,15 +81,16 @@ async function score(paths: string[]) {
     const choice = ballot.choice;
     if (choice.kind === "sample") {
       const group = organizer.data.samples.find((sample) => sample.id === choice.sampleId)?.group;
-      if (group !== "original" && group !== "guided")
+      if (group !== comparisonGroup && group !== "guided")
         throw new Error("The preference names an unknown sample.");
-      preferences[group]++;
+      preferences[group] = (preferences[group] ?? 0) + 1;
     } else if (choice.kind === "no-preference") preferences.noPreference++;
     else preferences.couldNotCompare++;
   }
   const output = new URL("./private/results-" + randomUUID() + ".json", import.meta.url);
   const eligible = report.counts.completeReviewers;
-  const result = ballots.length
+  const reportPreference = ballots.length > 0 || comparisonGroup === "expert";
+  const result = reportPreference
     ? {
         ...report,
         secondaryPreference: {
@@ -105,6 +107,7 @@ async function score(paths: string[]) {
   const measures = report.tasks[0]?.bookingObservations;
   if (measures) {
     const rows = [
+      ["Completed the task (self-report)", report.tasks[0]!.taskCompletion, true],
       ["Chose the lower price first", measures.firstChoiceCorrect, true],
       ["Stated the correct price", measures.priceCorrect, true],
       ["Needed help", measures.helpUsed, true],
@@ -119,7 +122,7 @@ async function score(paths: string[]) {
           n == null ? "Unmeasured" : percent ? Math.round(n * 100) + "%" : Number(n.toFixed(1));
         return {
           observation,
-          original: display(measure.original),
+          [comparisonGroup]: display(measure[comparisonGroup]),
           Focus: display(measure.guided),
           pairs: measure.reviewers,
         };
@@ -127,7 +130,7 @@ async function score(paths: string[]) {
     );
   }
   console.log(report.statement);
-  if (ballots.length) {
+  if (reportPreference) {
     console.log(
       "Optional preference after primary export: " +
         ballots.length +

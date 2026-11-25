@@ -1,0 +1,66 @@
+[
+  {
+    "path": "brand/cat-handoff.png",
+    "sha256": "db41773de934cc10b4b10ea718da81ea45eae5e50e664edeeec8615d93e30f57"
+  },
+  {
+    "path": "brand/cat-icon.png",
+    "sha256": "cf01c41ed9456d005b75bdd1828d056afd3afd3c9170d9859deef0370bf04495"
+  },
+  {
+    "path": "brand/cat-library.png",
+    "sha256": "8d5df93203354b014fadd6c094be80c09d4c5c24e69c2505465cce27cb7d27df"
+  },
+  {
+    "path": "brand/cat-touch.png",
+    "sha256": "26c71d4fdca368a789afd742ece2f2147f829922d51c084acf4ec4114e510c19"
+  },
+  {
+    "path": "brand/focus-aim.png",
+    "sha256": "9ee1d30fc2fd3b72ccdd210a651e14f7c1c6421e93c925bbe0a0873779860742"
+  },
+  {
+    "path": "brand/garden-river.png",
+    "sha256": "c09c50caffcd1d7770b375a94ab6c5414676ffd394b061f85161b8036edec026"
+  },
+  {
+    "path": "brand/garden-river.webp",
+    "sha256": "09c1ae9e9c72fa74e0d02bb99e7d595653b9716e1c7c0b564cd1c89c2aef6c8b"
+  },
+  {
+    "path": "brand/horizon-next.png",
+    "sha256": "5f2ed9eef56181303ff3de4cf2e612b4bf8f770f4269dac2c58b68ced16246dc"
+  },
+  {
+    "path": "brand/reverie-kite.png",
+    "sha256": "7c57fa31fdab3c657cdb0eab6674842a764983dda95e771a7e9061e0186fdcfa"
+  },
+  {
+    "path": "brand/reverie-kite.webp",
+    "sha256": "02ebe2b91b39de6c6138b786c58aab848512514d4b019353860e400badddad71"
+  },
+  {
+    "path": "brand/reverie-map-guide.png",
+    "sha256": "0df63e706908356769b5f6c18c28b799208cf8d8098a0199625b596098905995"
+  },
+  {
+    "path": "brand/reverie-map-guide.webp",
+    "sha256": "7ed8757e2da9dfdab1e0f29f01082d236d30aaa7d17111b2ed5479bfe44aaf02"
+  },
+  {
+    "path": "brand/reverie-stratosphere.png",
+    "sha256": "3bc765378182f4899bd5acfd80cc402b9282c20222ef6020d7e1593c5095fc2c"
+  },
+  {
+    "path": "brand/target-prepare.png",
+    "sha256": "70110ed909682ab017bb331b815636f36f9b9e4776898456a9918790fa6f9529"
+  },
+  {
+    "path": "brand/telescope-explore.png",
+    "sha256": "3de16a98119edbe1a1543e2093bfbbb8c692afaf73d967d548e9e95878c9dc3d"
+  },
+  {
+    "path": "brand/vision-imagine.png",
+    "sha256": "16ebe5765a1673d521d2dc85315e099482c254dfa83bb74e3607ef1ad2984a8c"
+  }
+]

@@ -271,3 +271,31 @@ describe("original and Focus booking pilot", () => {
     expect(() => scorePilot(expertPilot, [])).toThrow(/production records/);
   });
 });
+
+describe("independent River Kiln designer comparison", () => {
+  it("offers the neutral builder download and requires a different creator and two real outputs", async () => {
+    await enter();
+    expect(screen.getByRole("link", { name: /download the designer brief/i })).toHaveAttribute(
+      "download",
+      "river-kiln-builder.zip",
+    );
+    const pilot = createPilotPlan("test-designer", "booking-designer-v1");
+    const [, guided, expert] = manifest().samples;
+    pilot.samples.push({ ...guided!, work: null });
+    expect(() => createPilotPacket(pilot, [])).toThrow(/one submission from each/);
+    pilot.samples.push(expert!);
+    const packet = createPilotPacket(
+      pilot,
+      pilot.samples.map((s) => s.id),
+    );
+    expect(packet.samples).toHaveLength(2);
+    expect(JSON.stringify(packet)).not.toMatch(/"expert"|"guided"|organizer-secret|Sha256/);
+    expect(scorePilot(pilot, []).tasks[0]!.quality["hierarchy"]).toMatchObject({
+      guided: null,
+      expert: null,
+      reviewers: 0,
+    });
+    pilot.samples[1]!.creatorCode = pilot.samples[0]!.creatorCode;
+    expect(() => createPilotPacket(pilot, [])).toThrow(/independent expert/);
+  });
+});

@@ -4,17 +4,24 @@ import {
   gardenSuggestedComposition,
   readGardenJourney,
 } from "@/lib/garden-journey";
+import { OptionComparisonPreview } from "./OptionComparisonPreview";
+import type { Content, Tokens } from "@/lib/design";
+import type { PageSettings } from "@/lib/page-settings";
 import { PAGE_COMPOSITIONS, type PageComposition } from "@/lib/page-compositions";
 
 type Suggestion = NonNullable<ReturnType<typeof gardenSuggestedComposition>>;
 
 export function GardenLayoutSuggestion({
   designId,
-  current,
+  tokens,
+  content,
+  settings,
   onApply,
 }: {
   designId: string;
-  current: PageComposition;
+  tokens: Tokens;
+  content: Content;
+  settings: PageSettings;
   onApply: (id: PageComposition) => void;
 }) {
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
@@ -44,7 +51,10 @@ export function GardenLayoutSuggestion({
           <p>
             Your Garden brief favors “{suggestion.approach}”. {layout.description}
           </p>
-          {current === layout.id ? (
+          {layout.id === "comparison" && (
+            <OptionComparisonPreview tokens={tokens} content={content} settings={settings} />
+          )}
+          {settings.composition === layout.id ? (
             <p>This website already uses {layout.title}.</p>
           ) : (
             <button

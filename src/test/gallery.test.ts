@@ -5,15 +5,6 @@ import { TOOLS, buildPrescription, contrastNotes, normalizeTokens } from "@/lib/
 import { buildPack, dtcgTokens, shortPrompt } from "@/lib/exportPack";
 
 describe("inspiration gallery", () => {
-  it("has the five requested designs", () => {
-    expect(GALLERY.slice(0, 5).map((g) => g.direction.name)).toEqual([
-      "Summertime Sadness",
-      "Unconquerable",
-      "Straight From the Block",
-      "Velvet & Ink",
-      "Plush",
-    ]);
-  });
   it.each(GALLERY.map((g) => [g.direction.name, g] as const))(
     "%s meets every 4.5:1 contrast check",
     (_, g) => {

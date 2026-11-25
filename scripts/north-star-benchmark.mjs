@@ -102,7 +102,9 @@ async function main(args) {
       return;
     }
     const raw = await json(paths[0]);
-    const pilot = raw?.protocol === "matched-three-v1" || raw?.protocol === "booking-pair-v1";
+    const pilot = ["matched-three-v1", "booking-pair-v1", "booking-designer-v1"].includes(
+      raw?.protocol,
+    );
     const manifest = (pilot ? runtime.pilotManifestSchema : runtime.benchmarkManifestSchema).parse(
       raw,
     );

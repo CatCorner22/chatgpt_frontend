@@ -223,6 +223,44 @@ describe("Target prepares a truthful trial handoff", () => {
     expect(localStorage.getItem(LIBRARY_KEY)).toBe(raw);
   });
 
+  it("carries the applied Comparison into new website guides and keeps existing-project controls", async () => {
+    const website = {
+      ...entry,
+      state: {
+        ...entry.state,
+        page: { composition: "comparison" },
+        purpose: { experience: "website" },
+        content: {
+          ...content,
+          features: [
+            { title: "Early class", body: "9 am · $29" },
+            { title: "Evening class", body: "7 pm · $34" },
+          ],
+        },
+      },
+    };
+    const next = complete({ integration: "new" });
+    const zip = await JSZip.loadAsync(await prepareTargetPack(next, website));
+    const guide = await zip.file("DESIGN.md")!.async("string");
+    expect(guide).toContain("Selected website layout: **Comparison**");
+    expect(guide).toContain("7 pm · $34");
+    expect(guide).toContain("use a single navigation link after the list");
+    expect(guide).not.toMatch(
+      /Main action visible on a 390x700 screen|one clear action per card|navigation and one action on the end side|First screen arrangement:/,
+    );
+    expect(
+      targetPrompts(next, website).find((prompt) => prompt.id === "implement")?.text,
+    ).toContain("Show the options together before the primary action");
+    const existing = complete({ integration: "existing" });
+    const restyle = await JSZip.loadAsync(await prepareTargetPack(existing, website));
+    const styleGuide = await restyle.file("focus-restyle/DESIGN.md")!.async("string");
+    expect(styleGuide).not.toContain("7 pm · $34");
+    expect(styleGuide).not.toContain("Selected website layout: **Comparison**");
+    expect(
+      targetPrompts(existing, website).find((prompt) => prompt.id === "implement")?.text,
+    ).toContain("Keep every existing word, image, route, link destination, control");
+  });
+
   it("places the included restyle folder where the reminder and styles can be opened", async () => {
     const draft = complete();
     const zip = await JSZip.loadAsync(await prepareTargetPack(draft, entry));

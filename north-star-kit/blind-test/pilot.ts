@@ -10,9 +10,12 @@ import {
 
 const groups = ["one-shot", "guided", "expert"] as const;
 const pair = ["original", "guided"] as const;
+const designerPair = ["guided", "expert"] as const;
 type Group = (typeof groups)[number] | "original";
-type Protocol = "matched-three-v1" | "booking-pair-v1";
+const protocols = ["matched-three-v1", "booking-pair-v1", "booking-designer-v1"] as const;
+type Protocol = (typeof protocols)[number];
 export function pilotGroups(protocol: Protocol): readonly Group[] {
+  if (protocol === "booking-designer-v1") return designerPair;
   return protocol === "booking-pair-v1" ? pair : groups;
 }
 
@@ -36,7 +39,7 @@ const pilotSample = organizerSampleSchema.extend({
 
 export const pilotManifestSchema = z
   .object({
-    protocol: z.enum(["matched-three-v1", "booking-pair-v1"]),
+    protocol: z.enum(protocols),
     id: z.string().trim().min(1).max(120),
     title: z.string().trim().min(1).max(200),
     tasks: z.array(benchmarkTaskSchema).min(1).max(26),
@@ -53,7 +56,7 @@ export const pilotManifestSchema = z
     if (pilot.samples.some((sample) => !tasks.has(sample.taskId)))
       ctx.addIssue({ code: "custom", message: "Every sample needs a task in this pilot." });
     if (
-      pilot.protocol === "booking-pair-v1" &&
+      pilot.protocol !== "matched-three-v1" &&
       (pilot.tasks.length !== 1 || pilot.tasks[0]?.observationProtocol !== bookingProtocol)
     )
       ctx.addIssue({
@@ -64,7 +67,7 @@ export const pilotManifestSchema = z
       pilot.samples.some(
         (s) =>
           !pilotGroups(pilot.protocol).includes(s.group) ||
-          (pilot.protocol === "matched-three-v1" && !s.work),
+          ((pilot.protocol === "matched-three-v1" || s.group === "expert") && !s.work),
       )
     )
       ctx.addIssue({
@@ -85,7 +88,9 @@ export function createPilotPlan(
     protocol,
     id,
     title:
-      protocol === "booking-pair-v1" ? "River Kiln booking review" : "Booking and editorial review",
+      protocol === "matched-three-v1"
+        ? "Booking and editorial review"
+        : "River Kiln booking review",
     tasks: [
       {
         ...tasks[0]!,
@@ -103,7 +108,7 @@ export function createPilotPlan(
         task: "Identify the central claim, then use the article to find the specified related story.",
         successCriterion: "The reader identifies the claim and opens the intended related story.",
       },
-    ].slice(0, protocol === "booking-pair-v1" ? 1 : 2),
+    ].slice(0, protocol === "matched-three-v1" ? 2 : 1),
     samples: [],
   });
 }
@@ -282,6 +287,8 @@ export function scorePilot(input: PilotManifest, data: BlindEvaluation[]) {
     statement:
       pilot.protocol === "booking-pair-v1"
         ? "Original and redesigned results describe the submitted pages and people who reviewed both. Missing observations are unmeasured. A human-expert comparison requires a separate matched pilot."
-        : "Matched ratings describe these submitted builds. Positive rating gain favors the guided build over one-shot. A positive rating gap favors the expert. Missing observations are unmeasured. Human equivalence requires a separate confirmatory study.",
+        : pilot.protocol === "booking-designer-v1"
+          ? "These paired observations describe the guided and independent designer pages for this task. Each measure counts reviewers who supplied it on both pages. Human equivalence remains unmeasured by this exploratory pilot."
+          : "Matched ratings describe these submitted builds. Positive rating gain favors the guided build over one-shot. A positive rating gap favors the expert. Missing observations are unmeasured. Human equivalence requires a separate confirmatory study.",
   };
 }

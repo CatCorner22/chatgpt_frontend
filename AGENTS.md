@@ -31,6 +31,13 @@ use the editor.
 
 <!-- LOVABLE:END -->
 
+## Protected Focus experience
+
+- Keep Reverie, her approved artwork and introduction, and the Garden Path as the first experience for both new and existing projects. Preserve the map, keyboard-accessible stops and return to the saved stop.
+- Keep both ways to learn. “Keep it brief” hides the longer explanations. People can turn them back on, and Focus remembers the preference across visits when browser storage is available. A reading preference must never change project decisions, completion evidence or export contents.
+- Preserve every gallery design and its identity, including Blake’s Originals and Smoky Mountain Autumn. Its warm ground, typography and artwork belong to that design. The no-beige principle governs Focus itself. Create a new design or edit a personal copy when exploring a variation.
+- Preserve preview before application, intentional export, refusal on collisions or unexpected edits, and selective recovery. Exercise the actual downloaded files before release. Ask Blake before removing existing work, replacing a protected original, or weakening any of these safeguards. See [the protected release checks](docs/PROTECTED-RELEASE.md).
+
 ## Focus architecture (formerly Refraction)
 
 - Use `npm run lint` as a maintained-source gate. Keep local `.agent` evidence and generated output outside formatting; generated Supabase files retain semantic lint checks. Do not edit generated files or broaden rule exclusions to make a new failure disappear. See `docs/LINT-GATE-RELEASE.md`.

@@ -240,7 +240,7 @@ export function Vision({ s, update, ask }: StudioStageProps) {
               aria-label="Design token checks"
             >
               <div className="flex items-center gap-3">
-                <HelpTip tip="These checks measure the selected design tokens. They do not verify a rendered page, keyboard operation, or usability.">
+                <HelpTip tip="Color ratios use your chosen colors. Line length has a reading guideline and button height is estimated. Check actual sizes and keyboard behavior on your page.">
                   <div tabIndex={0} className="flex gap-1" aria-label={`Level ${g.level + 1} of 3`}>
                     {[0, 1, 2].map((i) => (
                       <span

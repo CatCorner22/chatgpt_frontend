@@ -50,15 +50,26 @@ try {
   }
   await page.goto(new URL("/review-room", origin).href);
   await page.getByRole("button", { name: "Open private organizer workspace" }).click();
-  const [study] = await Promise.all([
-    page.waitForEvent("download"),
-    page.getByRole("link", { name: "Download the ready-to-run study" }).click(),
-  ]);
-  assert.equal(study.suggestedFilename(), "river-kiln-booking-pilot.zip");
-  assert.deepEqual(
-    await readFile(await study.path()),
-    await readFile("public/examples/river-kiln-booking-pilot.zip"),
-  );
+  for (const [label, filename, path] of [
+    [
+      "Download the ready-to-run study",
+      "river-kiln-booking-pilot.zip",
+      "public/examples/river-kiln-booking-pilot.zip",
+    ],
+    [
+      "Download the designer brief and starter",
+      "river-kiln-builder.zip",
+      "docs/examples/river-kiln-builder.zip",
+    ],
+    ["Download organizer guide", "organizer-guide.md", "docs/RIVER-KILN-DESIGNER-STUDY.md"],
+  ]) {
+    const [file] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByRole("link", { name: label, exact: true }).click(),
+    ]);
+    assert.equal(file.suggestedFilename(), filename);
+    assert.equal(digest(await readFile(await file.path())), digest(await readFile(path)), filename);
+  }
   await page.getByRole("button", { name: "Start booking and editorial pilot" }).click();
   const empty = await download("Download private draft");
   assert.equal(empty.samples.length, 0);

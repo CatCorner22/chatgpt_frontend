@@ -277,7 +277,9 @@ export function StratospherePanel({
             <GardenLayoutSuggestion
               key={state.libraryId}
               designId={state.libraryId}
-              current={state.page.composition}
+              tokens={state.tokens!}
+              content={state.content!}
+              settings={state.page}
               onApply={choose}
             />
           )}

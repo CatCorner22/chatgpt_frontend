@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useDraftExitSave } from "@/hooks/useDraftExitSave";
+import { GardenBriefComparison } from "./GardenBriefComparison";
 import { GardenBriefImport } from "@/components/GardenBriefImport";
 import { ArrowDownToLine, BookOpen } from "lucide-react";
 import { focusLocalStorage, focusSessionStorage, getBrowserOwnerId } from "@/lib/browser-storage";
@@ -233,6 +234,9 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
               </label>
               {current.choice && (
                 <p>{step.choices.find((item) => item.id === current.choice)?.tradeoff}</p>
+              )}
+              {step.id === "plan" && current.choice === "compare-options" && (
+                <GardenBriefComparison goal={draft.goal} designId={draft.designId} />
               )}
               <label>
                 {JOURNEY_STOPS[step.id].question}

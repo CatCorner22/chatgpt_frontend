@@ -1,3 +1,4 @@
+import { COMPARISON_HANDOFF, usesOptionComparison } from "./page-compositions";
 import { z } from "zod";
 import { handoffAnswer as answer, SECRET_URL_MESSAGE } from "./handoff-field";
 import { gardenJourneyJson, type GardenJourney } from "./garden-journey";
@@ -213,6 +214,10 @@ const HANDOFF_BOUNDARY =
 export function targetPrompts(draft: TargetDraft, entry: LibraryEntry): TargetPrompt[] {
   if (targetStepIssues(draft, 3, [entry]).length) return [];
   const existing = draft.integration === "existing";
+  const comparison =
+    !existing &&
+    (entry.state["purpose"] as { experience?: string } | undefined)?.experience !== "app" &&
+    usesOptionComparison(entry.state["page"]);
   const selectedDesign = existing ? literal(entry.title, 120) : "the saved Vision in DESIGN.md";
   const scope = `Selected saved design: ${selectedDesign}. Page or screen: ${literal(draft.page, TARGET_LIMITS.page)}. Desired visible improvement: ${literal(draft.improvement, TARGET_LIMITS.improvement)}.`;
   const preserve = existing
@@ -230,7 +235,8 @@ export function targetPrompts(draft: TargetDraft, entry: LibraryEntry): TargetPr
       text: `Continue only after the inspection and isolated preview have been agreed with the owner. ${scope}\n\n${preserve}\n\n${
         existing
           ? `${EXISTING_PACK_PLACEMENT} Stop on a marker collision. Load focus-tokens.css and only one compatible bridge. Apply data-focus-restyle to one existing page wrapper, never html or body. This exposes scoped values only. Review actual foreground/background pairs before any separate data-focus-theme="semantic" opt-in; leave incompatible or fixed-color components unchanged. Make the smallest scoped styling patch and show its exact diff.`
-          : "Build only the first agreed page in the empty separate project using the supplied token values. Show the exact files created and the differences from the saved starting point. Keep missing real integrations clearly labelled instead of simulating successful actions."
+          : "Build only the first agreed page in the empty separate project using the supplied token values. Show the exact files created and the differences from the saved starting point. Keep missing real integrations clearly labelled instead of simulating successful actions." +
+            (comparison ? " " + COMPARISON_HANDOFF : "")
       }\n\nUse the existing project tooling; do not upgrade packages or alter production settings. Keep the change in the isolated preview. Report what changed, what stayed unchanged and anything that could not be applied. Stop for review before expanding the scope.`,
     },
     {

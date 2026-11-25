@@ -28,7 +28,7 @@ export type GalleryDraft = Omit<GalleryItem, "direction"> & {
   direction: Omit<Direction, "tokens"> & { tokens: unknown };
 };
 
-const raw: GalleryDraft[] = [
+export const MADE_FOR_YOU_DRAFTS: readonly GalleryDraft[] = [
   {
     id: "summertime-sadness",
     inspiration: "Lana Del Rey",
@@ -284,7 +284,9 @@ function normalizeGalleryItem(item: GalleryDraft): GalleryItem {
   };
 }
 
-const made = raw.map((item) => normalizeGalleryItem({ ...item, group: MADE_FOR_YOU }));
+const made = MADE_FOR_YOU_DRAFTS.map((item) =>
+  normalizeGalleryItem({ ...item, group: MADE_FOR_YOU }),
+);
 
 // Blake's 38 original Directions, extracted from DESIGN-DIRECTIONS.md (engine output, Advise contrast).
 export const ORIGINALS = originals.map(normalizeGalleryItem);

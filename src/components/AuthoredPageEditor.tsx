@@ -23,6 +23,7 @@ import { usePageImage } from "@/hooks/usePageImage";
 import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
 import { needsPublicCodeConfirmation, websiteActionForHandoff } from "@/lib/action-destination";
+import { ComparisonPhoneCheck } from "@/components/ComparisonPhoneCheck";
 import { CompositionComparison } from "@/components/CompositionComparison";
 import { ImageFramingControls } from "@/components/ImageFramingControls";
 import { compactImageFraming } from "@/lib/image-framing";
@@ -646,6 +647,9 @@ export function AuthoredPageEditor({
               className={`authored-frame${previewSize === "fit" ? "" : ` is-${previewSize}`}`}
             />
           </div>
+          {settings.composition === "comparison" && (
+            <ComparisonPhoneCheck key={built.html} html={built.html} />
+          )}
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             Fit uses the available space. The fixed 1024 px and 320 px previews may scroll sideways
             inside the canvas. Section links work here. Test contact and booking destinations in the

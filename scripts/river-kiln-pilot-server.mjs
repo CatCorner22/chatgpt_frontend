@@ -93,8 +93,13 @@ async function listen(pages, bookingService) {
         .end(request.method === "HEAD" ? undefined : bytes);
     };
     try {
-      if (bookingService) await bookingService(request, response, serveFile);
-      else serveFile();
+      if (bookingService) {
+        response.setHeader(
+          "Content-Security-Policy",
+          "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+        );
+        await bookingService(request, response, serveFile);
+      } else serveFile();
     } catch {
       if (!response.headersSent) response.writeHead(500);
       response.end();
@@ -120,9 +125,10 @@ export async function startPilot(directory) {
   );
   const organizer = JSON.parse(required(files, "private/organizer-template.json"));
   const packet = JSON.parse(required(files, "private/packet-template.json"));
-  const groups = ["original", "guided"];
+  const groups =
+    organizer.protocol === "booking-designer-v1" ? ["guided", "expert"] : ["original", "guided"];
   if (
-    organizer.protocol !== "booking-pair-v1" ||
+    !["booking-pair-v1", "booking-designer-v1"].includes(organizer.protocol) ||
     organizer.id !== packet.benchmarkId ||
     organizer.samples?.length !== 2 ||
     packet.samples?.length !== 2 ||

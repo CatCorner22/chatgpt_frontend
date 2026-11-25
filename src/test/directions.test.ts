@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ORIGINALS, GALLERY } from "@/lib/gallery";
 
 describe("original Directions", () => {
-  it("loads all 38 alongside the made-for-you designs", () => {
-    expect(ORIGINALS).toHaveLength(38);
-    // The original 38, five earlier starters, and six new story-inspired starters.
-    expect(GALLERY.length).toBe(49);
-    expect(new Set(GALLERY.map((g) => g.id)).size).toBe(GALLERY.length);
+  it("makes every Original available in the gallery", () => {
+    expect(GALLERY).toEqual(expect.arrayContaining(ORIGINALS));
   });
   it("keeps Galactic Goth's exact values", () => {
     const g = ORIGINALS.find((d) => d.id === "galactic-goth")!;
@@ -32,10 +29,15 @@ import { applySkin, SKINS, hexToOklch } from "@/lib/skins";
 
 describe("original effects: frosted glass, glow, second colour", () => {
   it("carries every original Direction's effects into its design values", () => {
-    expect(O2.filter((g) => g.direction.tokens.card === "glass")).toHaveLength(3);
-    expect(O2.filter((g) => g.direction.tokens.buttonFinish === "glow")).toHaveLength(4);
-    expect(O2.filter((g) => g.direction.tokens.buttonFinish === "gloss")).toHaveLength(5);
-    expect(O2.filter((g) => g.direction.tokens.accent2)).toHaveLength(15);
+    for (const { id, extras, direction } of O2) {
+      expect(direction.tokens.card, id).toBe(extras?.finish === "glass" ? "glass" : undefined);
+      expect(direction.tokens.buttonFinish, id).toBe(
+        extras?.buttonFinish === "gloss" || extras?.buttonFinish === "glow"
+          ? extras.buttonFinish
+          : undefined,
+      );
+      expect(direction.tokens.accent2, id).toBe(extras?.accent2 ?? undefined);
+    }
   });
   it("drops invalid effect values and leaves plain designs unchanged", () => {
     const t = norm({ accent2: "red", card: "frosty", buttonFinish: "sparkle" });

@@ -21,6 +21,8 @@ import {
   secureReviewIndex,
   shuffleReviewOrder,
 } from "@/lib/review-room";
+import builderBrief from "../../docs/examples/river-kiln-builder.zip?url";
+import organizerGuide from "../../docs/RIVER-KILN-DESIGNER-STUDY.md?url";
 import { downloadBlob } from "@/lib/download-blob";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
@@ -151,7 +153,7 @@ function SubmissionFields({
             Source and permission
             <input name="provenance" required maxLength={4000} className={control} />
           </label>
-          {manifest.protocol === "booking-pair-v1" && group === "guided" && (
+          {manifest.protocol !== "matched-three-v1" && group === "guided" && (
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -162,7 +164,7 @@ function SubmissionFields({
               Build time and revision counts are unavailable
             </label>
           )}
-          {group !== "original" && !(manifest.protocol === "booking-pair-v1" && unknownWork) && (
+          {group !== "original" && !(group === "guided" && unknownWork) && (
             <>
               <label>
                 Tools used
@@ -220,10 +222,13 @@ function SubmissionFields({
 }
 
 function Findings({ pilot, report }: { pilot: PilotManifest; report: Report }) {
-  const pair = pilot.protocol === "booking-pair-v1";
-  const columns = pair
-    ? (["original", "guided"] as const)
-    : (["oneShot", "guided", "expert"] as const);
+  const pair = pilot.protocol !== "matched-three-v1";
+  const columns =
+    pilot.protocol === "booking-designer-v1"
+      ? (["guided", "expert"] as const)
+      : pair
+        ? (["original", "guided"] as const)
+        : (["oneShot", "guided", "expert"] as const);
   const labels = { original: "Original", oneShot: "One-shot", guided: "Focus", expert: "Expert" };
   return (
     <section className="mt-6 space-y-3" aria-label="Matched findings">
@@ -454,8 +459,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         inputsSha256,
         artifactSha256,
         work:
-          text("group") === "original" ||
-          (pilot.protocol === "booking-pair-v1" && data.has("unknownWork"))
+          text("group") === "original" || (text("group") === "guided" && data.has("unknownWork"))
             ? null
             : {
                 tools: text("tools"),
@@ -534,6 +538,32 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
           </Button>
         </section>
       )}
+      {!pilot && (
+        <section
+          aria-labelledby="designer-study-title"
+          className="space-y-3 border-y border-border py-4"
+        >
+          <h2 id="designer-study-title" className="font-display text-xl">
+            Compare with an independent designer
+          </h2>
+          <p className="max-w-2xl text-sm">
+            Give the designer this working River Kiln starter. The organizer guide explains how to
+            pair their returned build with the Focus version and run a blinded session.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" asChild>
+              <a href={builderBrief} download="river-kiln-builder.zip">
+                Download the designer brief and starter
+              </a>
+            </Button>
+            <Button variant="ghost" asChild>
+              <a href={organizerGuide} download="organizer-guide.md">
+                Download organizer guide
+              </a>
+            </Button>
+          </div>
+        </section>
+      )}
       <p className="max-w-2xl text-muted-foreground">
         Prepare masked reviewer packets and compare returned answers. Work stays in this tab.
         Download the private draft before leaving and keep it with the organizer.
@@ -570,7 +600,9 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
           <p className="text-sm text-muted-foreground">
             {pilot.protocol === "booking-pair-v1"
               ? "Supply the original booking page and its Focus redesign, both using the same classes, prices and lost-confirmation scenario."
-              : "Collect a one-shot build, a Focus-guided build and a permissioned, independently made expert build for each task."}{" "}
+              : pilot.protocol === "booking-designer-v1"
+                ? "The Focus and independent designer pages use the same River Kiln starter and service."
+                : "Collect a one-shot build, a Focus-guided build and a permissioned, independently made expert build for each task."}{" "}
             Use neutral sample links. Shuffle a separate packet for each reviewer to vary which
             version they see first.
           </p>

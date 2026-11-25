@@ -4,7 +4,6 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   copyFile,
-  cp,
   mkdir,
   mkdtemp,
   readFile,
@@ -18,9 +17,18 @@ import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import JSZip from "jszip";
 import { rolldown } from "rolldown";
+import { readDesignerReturn } from "./benchmark/river-kiln-return.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = join(repo, "artifacts/booking-pilot");
+const [mode, ...args] = process.argv.slice(2);
+const designer = mode === "--designer" || mode === "--prepare-designer";
+assert(
+  mode === undefined ||
+    (mode === "--prepare-designer" && args.length === 0) ||
+    (mode === "--designer" && args.length === 3),
+  "Use no arguments, --prepare-designer, or --designer <dist> <submission.json> <new-study.zip>.",
+);
 const work = await mkdtemp(join(tmpdir(), "focus-booking-pilot-"));
 const kit = join(work, "kit");
 const app = join(work, "river-kiln");
@@ -89,7 +97,30 @@ async function pathInKit(relative, bytes) {
   await writeFile(path, bytes, { flag: "wx" });
 }
 
-try {
+async function freezeBuilderInputs(task, contract) {
+  const materials = join(repo, "examples/river-kiln-study");
+  await copyFile(join(materials, "BUILDER-BRIEF.md"), join(app, "START-HERE.md"));
+  await copyFile(join(materials, "submission.json"), join(app, "submission.json"));
+  for (const name of ["package.json", "package-lock.json"]) {
+    const path = join(app, name);
+    const data = JSON.parse(await readFile(path, "utf8"));
+    data.name = "river-kiln";
+    if (data.packages) data.packages[""].name = data.name;
+    await writeFile(path, json(data));
+  }
+  await writeFile(join(app, "task.json"), json(task));
+  await mkdir(join(app, "type"));
+  for (const asset of contract.assets) {
+    const name = asset.path.split("/").at(-1);
+    const bytes = await readFile(join(proposal, "assets", name));
+    assert.equal(hash(bytes), asset.sha256);
+    await writeFile(join(app, "type", name), bytes);
+  }
+  // Freeze this exact working tree for both builders before applying any proposal.
+  return archive(await collect(app));
+}
+
+async function build() {
   await mkdir(kit);
   const sourceBytes = await readFile(join(repo, "docs/examples/river-kiln-colleague-kit.zip"));
   const source = await JSZip.loadAsync(sourceBytes, { checkCRC32: true });
@@ -105,6 +136,25 @@ try {
   assert.equal(contract.typography, "portable");
   assert.equal(contract.bookingLayout, "compare");
 
+  const runtimePath = join(work, "benchmark.mjs");
+  await compile("scripts/benchmark/runtime.ts", runtimePath);
+  const { createPilotPlan, createPilotPacket, pilotManifestSchema } = await import(
+    pathToFileURL(runtimePath).href
+  );
+  const pilot = createPilotPlan("draft", designer ? "booking-designer-v1" : "booking-pair-v1");
+  pilot.tasks[0].brief =
+    "For each page, use a different made-up address ending in @example.test. Under Practice conditions, select Lose the first confirmation. Start timing after this setup and stop when you finish or decide to stop.";
+  const frozen = designer
+    ? await freezeBuilderInputs(pilot.tasks[0], contract)
+    : await archive(
+        new Map([
+          ["river-kiln.zip", original],
+          ["task.json", json(pilot.tasks[0])],
+        ]),
+      );
+  const returned =
+    mode === "--designer" ? await readDesignerReturn(args[0], args[1], hash(frozen)) : null;
+
   const verify = (stage) => run(process.execPath, [join(proposal, "verify.mjs"), stage, app], app);
   run("git", ["init", "--quiet"], app);
   verify("before");
@@ -119,23 +169,14 @@ try {
   }
   await pathInKit("licenses/zod.txt", await readFile(join(repo, "node_modules/zod/LICENSE")));
 
-  const runtimePath = join(work, "benchmark.mjs");
-  await compile("scripts/benchmark/runtime.ts", runtimePath);
-  const { createPilotPlan, createPilotPacket, pilotManifestSchema } = await import(
-    pathToFileURL(runtimePath).href
-  );
-  const pilot = createPilotPlan("draft", "booking-pair-v1");
-  pilot.tasks[0].brief =
-    "For each page, use a different made-up address ending in @example.test. Under Practice conditions, select Lose the first confirmation. Start timing after this setup and stop when you finish or decide to stop.";
-  const frozen = await archive(
-    new Map([
-      ["river-kiln.zip", original],
-      ["task.json", json(pilot.tasks[0])],
-    ]),
-  );
   await pathInKit("private/frozen-inputs.zip", frozen);
   const artifactHashes = [];
-  for (const group of ["original", "guided"]) {
+  const sources = designer
+    ? returned
+      ? ["guided", "expert"]
+      : ["guided"]
+    : ["original", "guided"];
+  for (const group of sources) {
     if (group === "guided") {
       verify("before");
       const patch = join(proposal, "forward.patch");
@@ -143,16 +184,21 @@ try {
       run("git", ["apply", patch], app);
       verify("after");
     }
-    run("npm", ["run", "build"], app);
-    verify(group === "guided" ? "after" : "before");
-    const tree = await collect(join(app, "dist"));
+    let tree;
+    if (group === "expert") {
+      tree = returned.files;
+    } else {
+      run("npm", ["run", "build"], app);
+      verify(group === "guided" ? "after" : "before");
+      tree = await collect(join(app, "dist"));
+    }
     assert(tree.has("index.html"));
     if (group === "guided") {
       const hashes = new Set([...tree.values()].map(hash));
       for (const asset of contract.assets)
         assert(hashes.has(asset.sha256), "Built output lacks licensed asset " + asset.path);
     }
-    await cp(join(app, "dist"), join(kit, "samples", group), { recursive: true });
+    for (const [name, data] of tree) await pathInKit("samples/" + group + "/" + name, data);
     tree.set("booking-service.mjs", service);
     const artifact = await archive(tree);
     const artifactSha256 = hash(artifact);
@@ -165,16 +211,38 @@ try {
       group,
       kind: "interactive",
       assetRef: "http://127.0.0.1:1/" + id,
-      creatorCode: group === "original" ? "river-kiln-fixture" : "focus-source-trial",
+      creatorCode:
+        group === "expert"
+          ? returned.receipt.creatorCode
+          : group === "original"
+            ? "river-kiln-fixture"
+            : "focus-source-trial",
       provenance:
         group === "original"
           ? "Owned Focus River Kiln sample from the archived recipient delivery. The stored submission contains the Vite build and unchanged local service."
-          : "Owned Focus River Kiln sample after applying the verified source proposal. The stored submission contains the Vite build and unchanged local service. Original authoring time and revision count are unmeasured.",
+          : group === "expert"
+            ? returned.receipt.provenance
+            : "Owned Focus River Kiln sample after applying the verified source proposal. The stored submission contains the Vite build and unchanged local service. Original authoring time and revision count are unmeasured.",
       inputsSha256: hash(frozen),
       artifactSha256,
-      work: null,
+      work: group === "expert" ? returned.receipt.work : null,
     });
   }
+  if (mode === "--prepare-designer") {
+    pilot.id = "river-kiln-draft-" + hash(frozen).slice(0, 24);
+    const directory = join(output, "designer");
+    await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, "river-kiln-builder.zip"), frozen);
+    await copyFile(
+      join(kit, "private/submissions/guided.zip"),
+      join(directory, "private-focus-build.zip"),
+    );
+    await writeFile(join(directory, "private-draft.json"), json(pilotManifestSchema.parse(pilot)));
+    console.log("Builder ZIP:", join(directory, "river-kiln-builder.zip"), hash(frozen));
+    console.log("One frozen Focus build. Independent designer submission pending.");
+    return;
+  }
+  if (returned) await pathInKit("private/designer-submission.json", json(returned.receipt));
   run(
     process.execPath,
     [join(repo, "scripts/build-pilot-reviewer.mjs"), join(kit, "reviewer")],
@@ -207,7 +275,10 @@ try {
     }),
   );
   await copyFile(join(repo, "scripts/river-kiln-pilot-server.mjs"), join(kit, "start.mjs"));
-  await copyFile(join(repo, "docs/RIVER-KILN-PILOT.md"), join(kit, "START-HERE.md"));
+  await copyFile(
+    join(repo, designer ? "docs/RIVER-KILN-DESIGNER-STUDY.md" : "docs/RIVER-KILN-PILOT.md"),
+    join(kit, "START-HERE.md"),
+  );
 
   const all = await collect(kit);
   const manifest = [...all].map(([path, data]) => hash(data) + "  " + path).join("\n") + "\n";
@@ -217,11 +288,18 @@ try {
   for (const [path, expected] of all)
     assert.deepEqual(await finalZip.file(path).async("nodebuffer"), Buffer.from(expected));
   await mkdir(output, { recursive: true });
-  const path = join(output, "river-kiln-pilot.zip");
-  const staging = path + "." + process.pid;
-  await writeFile(staging, bytes, { flag: "wx" });
-  await rename(staging, path);
+  const path = designer ? resolve(args[2]) : join(output, "river-kiln-pilot.zip");
+  if (designer) await writeFile(path, bytes, { flag: "wx" });
+  else {
+    const staging = path + "." + process.pid;
+    await writeFile(staging, bytes, { flag: "wx" });
+    await rename(staging, path);
+  }
   console.log("Ready:", path, bytes.length, "bytes", hash(bytes), "study", organizer.id);
+}
+
+try {
+  await build();
 } finally {
   await rm(work, { recursive: true, force: true });
 }

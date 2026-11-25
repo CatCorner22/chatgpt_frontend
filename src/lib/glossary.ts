@@ -42,7 +42,7 @@ export const GLOSSARY = {
   },
   checks: {
     plain: "quality checks",
-    def: "Measurements of your design — text readability, button size, line length — each passing or failing a known rule.",
+    def: "Focus calculates contrast from your colors and gives guidance on type and size. Open a rendered page to check how the text and buttons actually fit.",
   },
 } as const;
 export type Term = keyof typeof GLOSSARY;

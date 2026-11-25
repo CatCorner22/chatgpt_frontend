@@ -9,6 +9,7 @@ import "./composition-comparison.css";
 const tasks = [
   { id: "read", title: "Read a story", pair: ["editorial", "journal"] },
   { id: "decide", title: "Understand an offer", pair: ["studio", "product"] },
+  { id: "compare", title: "Compare options before choosing", pair: ["product", "comparison"] },
   { id: "look", title: "Explore visual work", pair: ["showcase", "studio"] },
 ] as const;
 
@@ -33,6 +34,8 @@ function describeLayout(id: PageComposition, content: Content, options: PageOpti
       return features.some(hasAuthoredFeatureDescription)
         ? "The offer leads into expandable details. Readers can open the points they want to investigate."
         : "The offer leads the page. Add descriptions to your details to let readers expand them.";
+    case "comparison":
+      return "The offers in What you offer appear together. Visitors can read each description before following the main action.";
     case "showcase":
       return hasImage
         ? "Your image opens the page before the headline. It gives the work space and puts the words farther down."
@@ -101,6 +104,7 @@ function OpenComparison({
 }: Props) {
   const [taskId, setTaskId] = useState<Task["id"]>(() => {
     if (options.composition === "journal" || options.composition === "editorial") return "read";
+    if (options.composition === "comparison") return "compare";
     if (options.composition === "showcase") return "look";
     return "decide";
   });

@@ -51,18 +51,29 @@ describe.each(PAGE_COMPOSITIONS)("Japanese authored $id", ({ id: composition }) 
     expect(standalone.querySelector(".skip")?.textContent).toBe("本文へスキップ");
     expect(standalone.querySelector(".hero")?.getAttribute("aria-label")).toBe("はじめに");
     expect(standalone.querySelector(".hero-sub")?.textContent).toBe(copy.sub);
-    expect(standalone.querySelector(".hero .action")?.getAttribute("href")).toBe(actionUrl);
-    expect(standalone.querySelector(".hero .action span")?.textContent).toBe(copy.cta);
+    const primary = standalone.querySelector(
+      composition === "comparison" ? ".option-comparison > .action" : ".hero .action",
+    );
+    expect(primary?.getAttribute("href")).toBe(actionUrl);
+    expect(primary?.querySelector("span")?.textContent).toBe(copy.cta);
     expect(standalone.querySelector(".owner-image")?.getAttribute("alt")).toBe(image.alt);
     expect(standalone.querySelector("figcaption")?.textContent).toBe(image.credit);
     expect(standalone.querySelector("#feature-1 h3")?.textContent).toBe("詳細 1");
-    expect(standalone.querySelector("#details-title")?.textContent).toBe("詳しい内容");
-    expect(standalone.querySelector(".section-number")?.textContent).toBe("02 / 詳細");
+    if (composition === "comparison") {
+      expect(standalone.querySelector("#details-title")?.textContent).toBe("選択肢を比較");
+      expect(standalone.querySelector(".option-list li p")?.textContent).toBe(
+        copy.features[0]!.body,
+      );
+      expect(primary?.previousElementSibling?.className).toBe("option-list");
+    } else {
+      expect(standalone.querySelector("#details-title")?.textContent).toBe("詳しい内容");
+      expect(standalone.querySelector(".section-number")?.textContent).toBe("02 / 詳細");
+      expect(standalone.querySelector(".closing")?.getAttribute("aria-label")).toBe("次のステップ");
+    }
     expect(standalone.querySelector(".quote-section")?.getAttribute("aria-label")).toBe("引用");
     expect(standalone.querySelector("blockquote")?.textContent).toBe(copy.quote);
     expect(standalone.querySelector(".related-story .eyebrow")?.textContent).toBe("関連記事");
     expect(standalone.querySelector(".related-story a")?.textContent).toBe("次のお話 & Notes");
-    expect(standalone.querySelector(".closing")?.getAttribute("aria-label")).toBe("次のステップ");
     expect(standalone.querySelector(".footer-link")?.textContent).toBe("ページの先頭へ ↑");
 
     if (composition === "journal") {

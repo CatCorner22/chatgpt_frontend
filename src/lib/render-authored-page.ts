@@ -49,6 +49,7 @@ const PAGE_LABELS = {
     introduction: "Introduction",
     explorePage: "Explore this page",
     contents: "On this page",
+    compareOptions: "Compare options",
     details: "Details",
     closerLook: "A closer look.",
     quotation: "Supplied quotation",
@@ -66,6 +67,7 @@ const PAGE_LABELS = {
     introduction: "はじめに",
     explorePage: "このページの目次",
     contents: "目次",
+    compareOptions: "選択肢を比較",
     details: "詳細",
     closerLook: "詳しい内容",
     quotation: "引用",
@@ -140,6 +142,7 @@ export function renderAuthoredPage(
   html: string;
   css: string;
   files: Record<string, string>;
+  comparisonSection?: string;
   readiness: PageReadiness[];
 } {
   const readiness: PageReadiness[] = [];
@@ -157,6 +160,7 @@ export function renderAuthoredPage(
     studio: "split",
     editorial: "editorial",
     product: "stacked",
+    comparison: "stacked",
     showcase: "poster",
     journal: "editorial",
   }[composition];
@@ -231,6 +235,7 @@ export function renderAuthoredPage(
     composition === "product" &&
     features.some((feature) => !hasAuthoredFeatureDescription(feature));
   const hasDetails = features.length > 0;
+  const compareOptions = composition === "comparison";
   const hasHeroAction = !!action || hasDetails;
   if (!action)
     readiness.push({
@@ -511,27 +516,42 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   a:focus-visible, summary:focus-visible { outline-color: Highlight; }
   .original-art { forced-color-adjust: auto; }
 }
-${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
+${
+  compareOptions
+    ? `
+.comparison .hero { padding-block: calc(2.5rem * var(--space)); }
+.comparison .hero-sub { margin-block-start: 1rem; }
+.comparison .visual { margin-block: 2rem; }
+.option-comparison { padding-block: calc(2rem * var(--space)); border-block-start: 1px solid var(--muted); }
+.option-list { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.option-list li { min-inline-size: 0; padding: clamp(1rem, 3vw, 2rem); border-block-start: 3px solid var(--accent); border-radius: var(--radius); background: var(--surface); color: var(--surface-ink); break-inside: avoid; }
+.option-list p { margin-block-start: .75rem; color: var(--surface-muted); white-space: pre-line; font-variant-numeric: tabular-nums; }
+.option-comparison .action { margin-block-start: 1.5rem; }
+@media (forced-colors: active) { .option-list li { border: 1px solid CanvasText; } }
+`
+    : ""
+}${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
 
   const actionLink = (className = "action") =>
     `<a class="${className}" href="${escape(action ?? "#details")}"><span>${escape(actionLabel)}</span><svg class="action-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a>`;
   const visual =
-    !image && (composition === "showcase" || composition === "journal")
+    !image && (composition === "showcase" || composition === "journal" || compareOptions)
       ? ""
       : `<figure class="visual">${
           image
             ? `<img class="owner-image" src="${escape(image.src)}" alt="${escape(image.alt)}" width="1200" height="900" decoding="async">`
             : ornament(composition)
         }${image && text(options.image?.credit) ? `<figcaption class="visual-caption"><bdi>${escape(text(options.image?.credit))}</bdi></figcaption>` : ""}</figure>`;
-  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
+  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" && !compareOptions ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction && !(compareOptions && hasDetails) ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
   const featureLinks = features
     .map(
       (feature, index) =>
         `<a href="#feature-${index + 1}"><span class="feature-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><span>${escape(text(feature.title) || `${labels.detail} ${index + 1}`)}</span></a>`,
     )
     .join("\n");
-  const hero =
-    composition === "editorial"
+  const hero = compareOptions
+    ? `<section class="hero" aria-label="${labels.introduction}">${intro}</section>`
+    : composition === "editorial"
       ? `<section class="hero" aria-label="${labels.introduction}"><p class="eyebrow">01 / ${labels.introduction}</p>${intro}${visual}</section>`
       : composition === "showcase"
         ? `<section class="hero" aria-label="${labels.introduction}">${visual}${intro}</section>${features.length ? `<nav class="feature-index" aria-label="${labels.explorePage}">${featureLinks}</nav>` : ""}`
@@ -542,6 +562,8 @@ ${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
     .map((feature, index) => {
       const number = String(index + 1).padStart(2, "0");
       const heading = text(feature.title) || `${labels.detail} ${index + 1}`;
+      if (compareOptions)
+        return `<li id="feature-${index + 1}"><h3>${escape(heading)}</h3>${text(feature.body) ? `<p>${escape(feature.body)}</p>` : ""}</li>`;
       if (composition === "product") {
         if (!hasAuthoredFeatureDescription(feature))
           return `<section id="feature-${index + 1}" class="feature-disclosure" aria-labelledby="feature-${index + 1}-title"><div class="feature-static-heading"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3></div></section>`;
@@ -550,9 +572,15 @@ ${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
       return `<section id="feature-${index + 1}" class="feature-row" tabindex="-1" aria-labelledby="feature-${index + 1}-title"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</section>`;
     })
     .join("\n");
-  const details = hasDetails
-    ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / ${labels.details}</span><h2 id="details-title">${labels.closerLook}</h2></div><div class="feature-list">${rows}</div></section>`
-    : "";
+  const comparisonSection =
+    compareOptions && hasDetails
+      ? `<section id="details" class="option-comparison" aria-labelledby="details-title"><h2 id="details-title">${labels.compareOptions}</h2><ul class="option-list" role="list">${rows}</ul>${action ? actionLink() : ""}</section>`
+      : "";
+  const details =
+    comparisonSection ||
+    (hasDetails
+      ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / ${labels.details}</span><h2 id="details-title">${labels.closerLook}</h2></div><div class="feature-list">${rows}</div></section>`
+      : "");
   const quoteSection = quote
     ? `<section class="quote-section surface" aria-label="${labels.quotation}"><blockquote><p>${escape(quote)}</p></blockquote></section>`
     : "";
@@ -561,11 +589,11 @@ ${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
     : "";
   const relatedAfterIntro = story?.placement === "after-intro";
   const closing =
-    action && (hasDetails || quote) && !(storyReady && !relatedAfterIntro)
+    !compareOptions && action && (hasDetails || quote) && !(storyReady && !relatedAfterIntro)
       ? `<section class="closing" aria-label="${labels.nextStep}"><h2>${escape(actionLabel)}</h2>${actionLink()}</section>`
       : "";
   const navigation = hasHeroAction
-    ? `<nav class="site-nav" aria-label="${labels.mainNav}">${hasDetails ? `<a href="#details">${labels.exploreDetails}</a>` : ""}${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
+    ? `<nav class="site-nav" aria-label="${labels.mainNav}">${hasDetails ? `<a href="#details">${labels.exploreDetails}</a>` : ""}${action && !(compareOptions && hasDetails) ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
     : "";
   const html = `<!doctype html>
 <html lang="${language}">
@@ -582,7 +610,7 @@ ${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
   <a class="skip" href="#main">${labels.skip}</a>
   <div class="site-shell">
     <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a>${navigation}</header>
-    <main id="main" tabindex="-1">${hero}${relatedAfterIntro ? related : ""}${details}${quoteSection}${relatedAfterIntro ? "" : related}${closing}</main>
+    <main id="main" tabindex="-1">${hero}${relatedAfterIntro ? related : ""}${details}${compareOptions ? visual : ""}${quoteSection}${relatedAfterIntro ? "" : related}${closing}</main>
     <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">${labels.top}</a></footer>
   </div>
 </body>
@@ -641,7 +669,7 @@ included. ${
         : "No action is shown because no valid destination or feature details were supplied."
   }
 
-Composition: ${composition}${language === "ja" ? "\nPage language: Japanese (ja). Keep the html lang attribute and navigation labels in the language of the published page." : ""}
+Composition: ${composition}${compareOptions ? "\nThe comparison lists each supplied offer with its description before the primary link. Check each name, time and total against the owner’s copy." : ""}${language === "ja" ? "\nPage language: Japanese (ja). Keep the html lang attribute and navigation labels in the language of the published page." : ""}
 Earlier hero arrangement: ${t.heroLayout}${hasProductDisclosures ? "\n\nTo keep a paper or PDF copy, open the browser’s Print preview. Check that every\ndescription appears in order. If one is missing in your browser, open its\nsection on the page and print again." : ""}
 
 REVIEW BEFORE PUBLISHING
@@ -653,6 +681,7 @@ phone and desktop. Automated checks do not establish overall usability or craft.
   return {
     html,
     css,
+    ...(comparisonSection ? { comparisonSection } : {}),
     files: {
       "index.html": sourceHtml,
       "styles.css": css,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { record, undo, redo, UNDO_LIMIT, isDesignStep } from "@/lib/undo";
 import {
   duplicateDesign,
@@ -6,6 +6,8 @@ import {
   restoreVersion,
   withVersion,
   parseLibrary,
+  readLibrary,
+  writeLibrary,
   resumeLabel,
   VERSION_LIMIT,
   type LibraryState,
@@ -14,6 +16,8 @@ import { normalizeTokens } from "@/lib/design";
 import { afterAnswer } from "@/lib/design";
 import { EMPTY, migrate, snap } from "@/lib/studio-state";
 import { badgePasses, BADGE_MIN_SCORE } from "@/lib/badge";
+import { readPageImage } from "@/lib/page-settings";
+import { pngAsset } from "./image-asset.fixture";
 
 const content = { brand: "Kiln", headline: "h", sub: "s", cta: "c", features: [], quote: "" };
 const st = (accent: string, id = "a") =>
@@ -60,6 +64,7 @@ describe("undo across questions", () => {
 });
 
 describe("saved design copies and versions", () => {
+  afterEach(() => localStorage.clear());
   it("keeps the pre-edit words through a typing burst, then records a new editing session", () => {
     const initial = st("#aa0000");
     let list = withVersion([], initial, "2026-11-18T13:00:00.000Z");
@@ -136,18 +141,50 @@ describe("saved design copies and versions", () => {
     );
   });
   it.each(["new", "legacy"] as const)(
-    "keeps Undo, Redo and autosave in the %s copy after reopening",
+    "keeps words, image bytes, history and autosave with the %s copy after reopening",
     (kind) => {
+      const images = [pngAsset("before"), pngAsset("current"), pngAsset("later")] as const;
+      for (const image of images) localStorage.setItem(`focus:page-image:${image.id}`, image.src);
       const first = {
         ...EMPTY,
         ...st("#aa0000"),
+        stage: "rx" as const,
         libraryId: "source",
         projectId: "source-project",
         savedHash: "source-receipt",
+        page: {
+          ...EMPTY.page,
+          actionUrl: "https://kiln.example/book",
+          imageId: images[0].id,
+          imageAlt: "A cup before firing",
+          imageCredit: "Kiln studio",
+        },
       };
-      const latest = { ...first, content: { ...content, headline: "Latest" } };
-      const later = { ...first, content: { ...content, headline: "Later" } };
-      const list = withVersion([], { ...latest, past: [snap(first)], future: [snap(later)] }, "1");
+      const latest = {
+        ...first,
+        content: { ...content, headline: "Latest" },
+        page: { ...first.page, imageId: images[1].id, imageAlt: "A fired cup" },
+      };
+      const later = {
+        ...first,
+        content: { ...content, headline: "Later" },
+        page: {
+          ...first.page,
+          imageId: images[2].id,
+          imageAlt: "A cup with a blue glaze",
+          imageFraming: { fit: "contain", position: "left", narrowPosition: "top" } as const,
+        },
+      };
+      const list = withVersion(
+        withVersion([], first, "1"),
+        {
+          ...latest,
+          past: [snap(first)],
+          future: [snap(later)],
+        },
+        "2",
+      );
+      const sourceBeforeCopy = structuredClone(list[0]!);
       const copies = duplicateDesign(list, "source", "copy", "2");
       const copy = copies[1]!;
       if (kind === "legacy") {
@@ -161,11 +198,21 @@ describe("saved design copies and versions", () => {
         for (const timeline of [copy.state["past"], copy.state["future"]])
           expect(timeline).toMatchObject([{ libraryId: "copy", projectId: null, savedHash: null }]);
       }
-      const saved = parseLibrary(JSON.stringify({ version: 1, entries: copies }));
+      writeLibrary(copies);
+      const saved = readLibrary();
       const opened = openLibraryDesign(saved[1]!);
-      for (const [move, headline] of [
-        [undo, "h"],
-        [redo, "Later"],
+      expect(opened).toMatchObject({
+        libraryId: "copy",
+        projectId: null,
+        savedHash: null,
+        content: latest.content,
+        page: latest.page,
+        tokens: latest.tokens,
+      });
+      expect(readPageImage(opened.page.imageId)).toBe(images[1].src);
+      for (const [move, original, image] of [
+        [undo, first, images[0]],
+        [redo, later, images[2]],
       ] as const) {
         const step = move(opened, snap(opened))!;
         const next = { ...opened, ...step.state, ...step.t };
@@ -173,11 +220,23 @@ describe("saved design copies and versions", () => {
           libraryId: "copy",
           projectId: null,
           savedHash: null,
-          content: { headline },
+          content: original.content,
+          page: original.page,
+          tokens: original.tokens,
         });
-        const archived = withVersion(saved, next as LibraryState, "3");
-        expect(archived[0]).toEqual(saved[0]);
-        expect(archived[1]!.state.content.headline).toBe(headline);
+        expect(readPageImage(next.page.imageId)).toBe(image.src);
+        writeLibrary(withVersion(saved, next as LibraryState, "3"));
+        const [source, copy] = readLibrary();
+        expect(source).toEqual(sourceBeforeCopy);
+        expect(copy!.state.content).toEqual(original.content);
+        expect(copy!.state["page"]).toEqual(original.page);
+        expect(copy!.versions!.at(-1)!.state).toMatchObject({
+          libraryId: "copy",
+          projectId: null,
+          savedHash: null,
+          page: latest.page,
+          content: latest.content,
+        });
       }
     },
   );

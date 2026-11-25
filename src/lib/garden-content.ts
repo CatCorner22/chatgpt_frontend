@@ -168,7 +168,7 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
     purpose: "Plan the reading order, grouping, and routes through your content.",
     essentials: [
       "Group related details and give each section a useful heading.",
-      "If visitors choose between options, decide which details they need to compare first.",
+      "To compare offers, open your journey brief and choose “Show options together before choosing”.",
     ],
     action: "studio",
     actionLabel: "Explore page structure",

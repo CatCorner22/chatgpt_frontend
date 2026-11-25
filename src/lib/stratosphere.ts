@@ -105,6 +105,7 @@ const layoutFor: Record<PageComposition, Tokens["heroLayout"]> = {
   studio: "split",
   editorial: "editorial",
   product: "stacked",
+  comparison: "stacked",
   showcase: "poster",
   journal: "editorial",
 };

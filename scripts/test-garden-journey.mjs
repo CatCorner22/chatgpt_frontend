@@ -19,14 +19,23 @@ const state = {
   direction: direction.direction.name,
   tokens: direction.direction.tokens,
   content: {
-    brand: "River studio",
+    brand: "River Kiln",
     headline: "Classes on the river",
     sub: "Read about our weekend classes.",
     cta: "View classes",
     quote: "",
-    features: [{ title: "Local classes", body: "Wheel classes meet on Saturday." }],
+
+    features: [
+      { title: "Wheel basics", body: "10 am · $48 including materials" },
+      { title: "Glaze studio", body: "2 pm · $56 including materials" },
+    ],
   },
-  page: { composition: "studio", actionUrl: "", imageId: null, imageAlt: "" },
+  page: {
+    composition: "studio",
+    actionUrl: "https://example.test/classes",
+    imageId: null,
+    imageAlt: "",
+  },
 };
 async function restrictToFixture(page, sessionOwner) {
   await page.route("**/*", async (route) => {
@@ -105,7 +114,7 @@ try {
   await button("3. Arrange the page").click();
   await page.getByLabel("Preferred approach").selectOption("scannable-sections");
   await page.getByLabel("What must the visitor see before they decide?").fill("Price and duration");
-  const portable = JSON.parse((await download("Download journey brief")).toString());
+  let portable = JSON.parse((await download("Download journey brief")).toString());
   assert.equal(portable.brief.designId, id);
   assert.equal(portable.brief.task, "Find class prices & times");
   assert.equal(portable.stops[0].status, "needs-project-check");
@@ -119,6 +128,76 @@ try {
   const html = (await download("Download working HTML")).toString();
   assert.match(html, /class="journal"/);
   assert.match(html, /Classes on the river/);
+  await visit("/");
+  await button("Open my journey brief").click();
+  await page.getByLabel("Preferred approach").selectOption("compare-options");
+  portable = JSON.parse((await download("Download journey brief")).toString());
+  assert.equal(portable.authoredWebsiteLayoutSuggestion.layout, "comparison");
+  await button("Preview my options together").click();
+  const preview = page.frameLocator('iframe[title="Your option comparison preview"]');
+  const expectedOptions = state.content.features.map(({ title, body }) => [title, body]);
+  async function readOptions(scope) {
+    const rows = scope.locator(".option-list li");
+    await rows.last().waitFor();
+    return rows.evaluateAll((items) =>
+      items.map((item) => [
+        item.querySelector("h3").textContent,
+        item.querySelector("p").textContent,
+      ]),
+    );
+  }
+  assert.deepEqual(await readOptions(preview), expectedOptions);
+  const section = await preview.locator(".option-comparison").evaluate((node) => node.outerHTML);
+  await button("Review and apply in Studio").click();
+  const currentPage = page.frameLocator('iframe[title="Working page preview"]');
+  await currentPage.locator("body.journal").waitFor();
+  const originalStyle = await currentPage.locator("body").evaluate((node) => {
+    const css = getComputedStyle(node);
+    return [
+      css.fontFamily,
+      css.backgroundColor,
+      getComputedStyle(node.querySelector("h1")).fontFamily,
+    ];
+  });
+  await button("Apply Comparison from my brief").click();
+  await currentPage.locator("body.comparison").waitFor();
+  assert.deepEqual(await readOptions(currentPage), expectedOptions);
+  assert.equal(
+    await currentPage.locator(".option-comparison").evaluate((node) => node.outerHTML),
+    section,
+  );
+  assert.deepEqual(
+    await currentPage.locator("body").evaluate((node) => {
+      const css = getComputedStyle(node);
+      return [
+        css.fontFamily,
+        css.backgroundColor,
+        getComputedStyle(node.querySelector("h1")).fontFamily,
+      ];
+    }),
+    originalStyle,
+  );
+  await page.getByTitle("Undo the last step (Ctrl+Z)").click();
+  await currentPage.locator("body.journal").waitFor();
+  await page.getByTitle("Redo (Ctrl+Shift+Z)").click();
+  await currentPage.locator("body.comparison").waitFor();
+  await visit("/?view=studio");
+  const workingHtml = (await download("Download working HTML")).toString();
+  const editable = await JSZip.loadAsync(await download("Download page ZIP"));
+  const editableHtml = await editable.file("index.html").async("string");
+  for (const delivered of [workingHtml, editableHtml]) {
+    const outputSection = await page.evaluate(
+      (html) =>
+        new DOMParser().parseFromString(html, "text/html").querySelector(".option-comparison")
+          .outerHTML,
+      delivered,
+    );
+    assert.equal(outputSection, section);
+  }
+  assert.equal(
+    JSON.parse(await editable.file("focus-project.json").async("string")).studio.page.composition,
+    "comparison",
+  );
   await visit("/target");
   await page.getByLabel("Which saved Vision should guide this?").selectOption(id);
   await page.getByRole("radio", { name: /Start a separate new project/ }).check();
@@ -135,6 +214,10 @@ try {
   await button("Include my Garden brief").click();
   const pack = await JSZip.loadAsync(await download("Prepare and download trial ZIP"));
   const guide = await pack.file("DESIGN.md").async("string");
+  assert.match(guide, /Selected website layout: \*\*Comparison\*\*/);
+  for (const { title, body } of state.content.features) {
+    assert.ok(guide.includes(title) && guide.includes(body));
+  }
   const included = JSON.parse(
     guide.split("## Garden journey brief")[1].split("```json")[1].split("```")[0],
   );
@@ -160,7 +243,7 @@ try {
   await colleague.reload();
   await colleague.getByRole("button", { name: "Open my journey brief" }).click();
   await colleague.getByRole("button", { name: "3. Arrange the page" }).click();
-  assert.equal(await colleague.getByLabel("Preferred approach").inputValue(), "scannable-sections");
+  assert.equal(await colleague.getByLabel("Preferred approach").inputValue(), "compare-options");
   // A second tab may update the current draft while its owner is choosing a Garden start.
   await colleague.goto(new URL("/?view=studio", origin).href);
   await colleague.locator("#brief").fill("A returning owner's first brief");
@@ -190,7 +273,7 @@ try {
   assert.deepEqual(errors, []);
   console.log(
     browserName +
-      " passed the Garden handoff: assign, reload, apply Journal, export HTML and decode the identical brief from the Target ZIP.",
+      " passed the Garden handoff, including a themed offer preview, Apply, Undo, Redo and matching content in the working HTML, editable ZIP and Target guide.",
   );
 } finally {
   await browser.close();

@@ -63,6 +63,38 @@ describe("authored page export", () => {
     },
   );
 
+  it("shows each option with all its own details before the destination in both authored formats", () => {
+    const features = [
+      { title: "Wheel <basics>", body: "10 am · $48\nIncludes tools & firing." },
+      { title: "釉薬のクラス", body: "2 pm · $56" },
+      { title: "Open studio", body: "" },
+    ];
+    const built = buildAuthoredPage(
+      tokens,
+      { ...content, features },
+      { ...options, composition: "comparison", language: "ja" },
+    );
+    for (const html of [built.html, built.files["index.html"]!]) {
+      const doc = parse(html);
+      const section = doc.querySelector(".option-comparison")!;
+      expect(section.querySelector("h2")?.textContent).toBe("選択肢を比較");
+      expect(
+        [...section.querySelectorAll("li")].map((row) => ({
+          title: row.querySelector("h3")?.textContent,
+          body: row.querySelector("p")?.textContent ?? "",
+        })),
+      ).toEqual(features);
+      expect(section.querySelector("basics, details, input, button")).toBeNull();
+      expect(section.lastElementChild?.getAttribute("href")).toBe(options.actionUrl);
+      expect(doc.querySelector("a[href^='https']")?.parentElement).toBe(section);
+    }
+    const withoutDestination = parse(
+      buildAuthoredPage(tokens, content, { ...options, composition: "comparison", actionUrl: "" })
+        .html,
+    );
+    expect(withoutDestination.querySelector(".option-comparison a")).toBeNull();
+  });
+
   it("keeps a contained image centered regardless of dormant anchors or viewport", () => {
     const result = buildAuthoredPage(tokens, content, {
       ...options,

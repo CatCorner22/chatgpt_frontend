@@ -392,10 +392,16 @@ function ChecksList({ t }: { t: Tokens }) {
         {measuredChecks(t).map((n) => (
           <li key={n.name} className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground">
-              {n.name} {CHECK_CARD[n.name] && <WhyPopover cardId={CHECK_CARD[n.name]!} />}
+              {n.name} <small>({n.basis})</small>{" "}
+              {CHECK_CARD[n.name] && <WhyPopover cardId={CHECK_CARD[n.name]!} />}
             </span>
-            <span className={n.ok ? "" : "text-destructive"}>
-              {n.value} {n.ok ? "✓" : "✗"}
+            <span className={n.ok === false ? "text-destructive" : ""}>
+              {n.value}{" "}
+              {n.ok === null || n.basis === "Layout estimate"
+                ? "· verify on page"
+                : n.ok
+                  ? "✓"
+                  : "✗"}
             </span>
           </li>
         ))}

@@ -95,9 +95,11 @@ export function fluidSizes(t: Tokens) {
   });
 }
 
-export function techniquesMarkdown(t: Tokens) {
+export function techniquesMarkdown(t: Tokens, comparison = false) {
   return `## Modern techniques (use all)
-${TECHNIQUES.map((x) => `- **${x.name}:** ${x.use} Floor: ${x.floor}`).join("\n")}
+${TECHNIQUES.filter((item) => !(comparison && item.id === "dvh"))
+  .map((x) => `- **${x.name}:** ${x.use} Floor: ${x.floor}`)
+  .join("\n")}
 
 Fluid heading sizes from your size ratio:
 ${fluidSizes(t)

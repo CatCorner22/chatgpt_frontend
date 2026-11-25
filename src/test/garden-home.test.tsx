@@ -5,6 +5,7 @@ import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-con
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
 import { gardenJourneyKey, readGardenJourney } from "@/lib/garden-journey";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
+import { normalizeTokens } from "@/lib/design";
 import { LIBRARY_KEY } from "@/lib/library";
 import { PROGRESS_KEY } from "@/lib/launch";
 import { ONBOARDING_KEY } from "@/lib/onboarding";
@@ -13,6 +14,7 @@ import { STUDIO_KEY } from "@/lib/projects";
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus navigation</header> }));
 vi.mock("@tanstack/react-router", () => ({
   useBlocker: vi.fn(),
+  useNavigate: () => vi.fn(),
   Link: ({
     to,
     search,
@@ -97,6 +99,76 @@ describe("Garden home", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("saved in another tab");
     expect(readGardenJourney(null).brief?.task).toBe("Edited elsewhere");
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
+  });
+
+  it("previews only the selected website's current offers and handles its removal without changing Studio", async () => {
+    const id = "class-site";
+    const saveWebsite = (price: string) =>
+      localStorage.setItem(
+        LIBRARY_KEY,
+        JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              id,
+              title: "Clay classes",
+              state: {
+                libraryId: id,
+                tokens: normalizeTokens({}),
+                integration: "new",
+                content: {
+                  brand: "Clay classes",
+                  headline: "Join us",
+                  sub: "",
+                  cta: "Ask",
+                  quote: "",
+                  features: [
+                    { title: "Wheel basics", body: price },
+                    { title: "Glaze studio", body: "$56 at 2 pm" },
+                  ],
+                },
+              },
+            },
+          ],
+        }),
+      );
+    saveWebsite("$48 at 10 am");
+    const untouched = "separate existing Studio draft";
+    localStorage.setItem(STUDIO_KEY, untouched);
+    localStorage.setItem(
+      GARDEN_KEY,
+      JSON.stringify({ ...GARDEN_DEFAULTS, step: "plan", goal: "new" }),
+    );
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "compare-options" },
+    });
+    expect(screen.getByText(/Choose a saved website under/)).toBeVisible();
+    fireEvent.change(screen.getByLabelText("Brief for"), { target: { value: id } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copy my unassigned brief into this design" }),
+    );
+    const trigger = await screen.findByRole("button", { name: "Preview my options together" });
+    expect(screen.queryByTitle("Your option comparison preview")).toBeNull();
+    fireEvent.click(trigger);
+    expect(await screen.findByTitle("Your option comparison preview")).toHaveAttribute(
+      "srcdoc",
+      expect.stringContaining("$48 at 10 am"),
+    );
+    saveWebsite("$52 at 11 am");
+    fireEvent(window, new StorageEvent("storage", { key: LIBRARY_KEY }));
+    await waitFor(() =>
+      expect(screen.getByTitle("Your option comparison preview")).toHaveAttribute(
+        "srcdoc",
+        expect.stringContaining("$52 at 11 am"),
+      ),
+    );
+    localStorage.removeItem(LIBRARY_KEY);
+    fireEvent(window, new StorageEvent("storage", { key: LIBRARY_KEY }));
+    expect(screen.queryByTitle("Your option comparison preview")).toBeNull();
+    expect(screen.getByText(/saved website could not be read/)).toBeVisible();
+    expect(localStorage.getItem(STUDIO_KEY)).toBe(untouched);
   });
 
   it("retries pending notes and preferences on exit without overwriting other Garden choices", async () => {

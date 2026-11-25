@@ -308,10 +308,17 @@ try {
   assert.equal(packet.samples.length, 2);
   const organizer = JSON.parse(await readFile(live.organizerPath, "utf8"));
   assert.equal(organizer.id, packet.benchmarkId);
-  assert.deepEqual(organizer.samples.map((s) => s.group).sort(), ["guided", "original"]);
+  const comparisonGroup = organizer.protocol === "booking-designer-v1" ? "expert" : "original";
+  assert.deepEqual(
+    organizer.samples.map((s) => s.group).sort(),
+    [comparisonGroup, "guided"].sort(),
+  );
   for (const s of packet.samples) {
     assert.deepEqual(Object.keys(s).sort(), ["assetRef", "id", "kind", "label", "taskId"]);
-    assert.doesNotMatch([s.id, s.label, s.assetRef].join(" "), /original|guided|redesign|control/i);
+    assert.doesNotMatch(
+      [s.id, s.label, s.assetRef].join(" "),
+      /original|guided|expert|redesign|control/i,
+    );
     assert.equal(new URL(s.assetRef).hostname, "127.0.0.1");
   }
   for (const url of [live.reviewerUrl, ...packet.samples.map((s) => s.assetRef)]) {
@@ -356,7 +363,12 @@ try {
   const results = await privateResults();
   assert.equal(results.length, 1);
   const scoreFile = JSON.parse(await readFile(join(kit, "private", results[0]), "utf8"));
-  assert.deepEqual(scoreFile, findings);
+  if (comparisonGroup === "expert") {
+    const { secondaryPreference, ...primary } = scoreFile;
+    assert.deepEqual(primary, findings);
+    assert.equal(secondaryPreference.ballots, 0);
+    assert.equal(secondaryPreference.unanswered, 2);
+  } else assert.deepEqual(scoreFile, findings);
   const withPreferences = [...ballots, ...answers];
   await scoreAtHome(withPreferences);
   const combinedResults = await privateResults();
@@ -372,7 +384,7 @@ try {
       ballots: 2,
       eligibleReviewers: 2,
       unanswered: 0,
-      original: Number(preferredGroup === "original"),
+      [comparisonGroup]: Number(preferredGroup === comparisonGroup),
       guided: Number(preferredGroup === "guided"),
       noPreference: 1,
       couldNotCompare: 0,
@@ -405,7 +417,7 @@ try {
     eligibleReviewers: 2,
     ballots: 1,
     unanswered: 1,
-    original: 0,
+    [comparisonGroup]: 0,
     guided: 0,
     noPreference: 1,
     couldNotCompare: 0,

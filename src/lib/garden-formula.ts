@@ -25,7 +25,7 @@ export const GARDEN_FORMULA: Record<GardenStepId, GardenFormula> = {
   },
   plan: {
     do: "Plan the reading order around the visitor’s main task.",
-    changes: "An available composition choice changes the authored website’s structure.",
+    changes: "Preview your website’s offers together, then apply the layout in Studio.",
     check: "Can someone find the offer, essential details, and next action in that order?",
     primaryGroup: "composition",
     primaryLabel: "Arrange the page",

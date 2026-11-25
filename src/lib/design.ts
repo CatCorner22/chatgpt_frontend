@@ -5,6 +5,7 @@ import { techniquesMarkdown } from "./techniques";
 // Shared, browser-safe design model: tokens, steps, contrast, prescription.
 import { CARDS, PAGE_ELEMENTS, cardMarkdown } from "./knowledge";
 import { websiteActionForHandoff } from "./action-destination";
+import { COMPARISON_HANDOFF, usesOptionComparison } from "./page-compositions";
 import { contentHandoffMarkdown } from "./content-handoff";
 export const HEADING_FONTS = [
   "Fraunces",
@@ -294,6 +295,19 @@ export function effectsMarkdown(t: Tokens) {
   return lines.length ? lines.join("\n") + "\n" : "";
 }
 
+export type DesignSettingCheck = {
+  name: string;
+  value: string;
+  ok: boolean | null;
+  grade: string;
+  basis?:
+    | "Reading guideline"
+    | "Layout estimate"
+    | "Type scale guideline"
+    | "Case guideline"
+    | "Calculated color ratio";
+};
+
 export function buildPrescription(o: {
   authoredPage?: unknown;
   brief: string;
@@ -302,7 +316,7 @@ export function buildPrescription(o: {
   tokens: Tokens;
   picks: Pick[];
   tool: (typeof TOOLS)[number];
-  checks?: { name: string; value: string; ok: boolean; grade: string }[];
+  checks?: DesignSettingCheck[];
   nav?: string | undefined;
   experience?: Experience | undefined;
   integration?: Integration | undefined;
@@ -396,6 +410,10 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     "Human developer":
       "These are the design decisions for the build. Read color, type, spacing and radius from tokens.css. Use the supplied content and primary destination from this guide.",
   }[tool];
+  const comparison = o.experience !== "app" && usesOptionComparison(o.authoredPage);
+  const elements = comparison
+    ? ["heading", "body-text", "link", ...(o.content.quote.trim() ? ["quote"] : [])]
+    : PAGE_ELEMENTS;
   return `# Design Vision — new project
 
 You are building the frontend for: ${c(o.brief, 1200)}
@@ -416,18 +434,18 @@ ${tokensCss(t)}
 ${o.picks.map((p) => `- **${c(p.step, 80)}:** ${c(p.label, 160)}${p.reason ? ` — because ${c(p.reason, 500)}` : ""}`).join("\n") || "- (Direction taken as-is)"}
 
 ## Layout and shape
-- First screen arrangement: **${t.heroLayout}**.
+${comparison ? `- Selected website layout: **Comparison**. ${COMPARISON_HANDOFF}` : `- First screen arrangement: **${t.heroLayout}**.`}
 - Spacing density: **${t.density}** (multiply all gaps by --space-unit).
 - Corners: ${t.radius}px everywhere; nested corners use outer radius minus padding.
-- Buttons: **${t.buttonStyle}** style; one primary action per screen, in the accent color.
+${comparison ? `- Style the primary link with the **${t.buttonStyle}** treatment and selected accent.` : `- Buttons: **${t.buttonStyle}** style; one primary action per screen, in the accent color.`}
 - Headings: ${t.headingFont}, ${t.headingCase === "uppercase" ? "uppercase with +0.04em tracking" : "sentence case with slightly tight tracking (-0.01em)"}; text-wrap: balance.
 - Finishing touch: **${t.texture}**${t.texture === "none" ? " — no gradients, glows, or decorative effects" : " — use it once, on the first screen only"}.
 ${effectsMarkdown(t)}
-${navMarkdown(o.nav)}
+${comparison ? "## Navigation\nKeep the brand link and an in-page link to the comparison. Place the destination link after the options." : navMarkdown(o.nav)}
 
 ${appRules(o.experience)}
 
-${techniquesMarkdown(t)}
+${techniquesMarkdown(t, comparison)}
 
 ## Craft rules (always)
 - Body text 16px minimum, line length 60–75 characters, line height 1.5–1.65.
@@ -462,16 +480,17 @@ ${techniquesMarkdown(t)}
 - Use real photos of the business, its people, place and work; if none exist yet, leave a clearly marked placeholder box with a caption saying what photo belongs there.
 - No stock handshakes, laptops-on-desks, 3D blobs or AI-generated people.
 
-## Contrast checks (measured)
+## Contrast ratios calculated from the selected colors
 ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(meets 4.5:1)" : "(BELOW 4.5:1 — darken or lighten before shipping)"}`).join("\n")}
 
 ## Element spec cards (only elements this page uses)
-${PAGE_ELEMENTS.map((id) => CARDS.find((c) => c.id === id))
+${elements
+  .map((id) => CARDS.find((c) => c.id === id))
   .filter((c) => !!c)
   .map((c) => cardMarkdown(c))
   .join("\n\n")}
 
-${o.checks ? `## Measured checks\n${o.checks.map((check) => `- ${c(check.name, 200)}: ${c(check.value, 500)} ${check.ok ? "(holds)" : "(DOES NOT HOLD — fix before shipping)"} [evidence ${c(check.grade, 80)}]`).join("\n")}\n` : ""}
+${o.checks ? `## Design setting checks\nThese checks use design settings. Verify text wrapping, control size and contrast on the finished page.\n${o.checks.map((check) => `- ${c(check.name, 200)}: ${c(check.value, 500)} (${c(check.basis || "Design setting", 80)}; ${check.ok === null || check.basis === "Layout estimate" ? "verify in rendered page" : check.ok ? "within guideline" : "review this setting"}) [guideline evidence ${c(check.grade, 80)}]`).join("\n")}\n` : ""}
 ${contentHandoffMarkdown(o.content, o.experience === "app" ? null : websiteActionForHandoff(o.authoredPage))}
 
 ## Before you report done

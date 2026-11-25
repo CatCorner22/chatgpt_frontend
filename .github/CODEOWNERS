@@ -42,6 +42,7 @@
 /.github/                                        @CatCorner22
 /package.json                                    @CatCorner22
 /package-lock.json                               @CatCorner22
+/nitro.config.ts                                 @CatCorner22
 /vitest.config.ts                                @CatCorner22
 /src/test/                                       @CatCorner22
 /scripts/                                        @CatCorner22

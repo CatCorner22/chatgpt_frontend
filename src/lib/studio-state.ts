@@ -11,8 +11,10 @@ import type { Purpose } from "./engine";
 import { NAV_PATTERNS, type NavId } from "./nav";
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, type PageSettings } from "./page-settings";
 import { assertRestorableStudioState } from "./studio-recovery";
+import type { ExamOptionDraft } from "./exam-option-draft";
 
-type Opt = { label: string; why: string; tokens: Tokens };
+// Preview choices live with their question's options. The cache is browser-workspace only.
+type Opt = { label: string; why: string; tokens: Tokens; draft?: ExamOptionDraft };
 export type State = {
   stage: "brief" | "directions" | "exam" | "review" | "rx";
   brief: string;

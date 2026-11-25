@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:autosave": "node scripts/test-autosave-navigation.mjs",
     "audit:browser": "node scripts/north-star-audit.mjs",
     "test:audit": "node --test scripts/audit/*.test.mjs",
     "test:authored": "node scripts/test-authored-pages.mjs",

@@ -223,9 +223,10 @@ function PreparationPrivacy() {
       <p>
         Telescope reads selected HTML, ZIP and receipt files locally in the open tab. It does not
         execute customer code, fetch its resources, upload the files or save them in browser
-        storage. Leaving or reloading removes the session. Downloaded receipts and task plans
-        include filenames, observations and the task descriptions you entered; those copies remain
-        under their holders' control.
+        storage. Leaving or reloading clears the inspection. The visitor task and edited expected
+        outcomes you type are saved separately in this browser. Choose Clear this session in
+        Telescope to remove the saved plan. Downloaded receipts and task plans can contain
+        filenames, observations and your task descriptions.
       </p>
     </section>
   );

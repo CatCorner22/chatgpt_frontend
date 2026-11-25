@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GardenBriefImport } from "@/components/GardenBriefImport";
 import { ArrowDownToLine, BookOpen } from "lucide-react";
 import { focusLocalStorage, focusSessionStorage, getBrowserOwnerId } from "@/lib/browser-storage";
@@ -25,22 +25,6 @@ function message(cause: unknown) {
     : "Browser storage is unavailable. Keep this tab open and download your edits.";
 }
 
-function UnsavedJourneyGuard() {
-  useBlocker({
-    enableBeforeUnload: true,
-    shouldBlockFn: () => {
-      try {
-        return !window.confirm(
-          "Leave the Garden and discard the edits that could not be saved? You can download a copy first.",
-        );
-      } catch {
-        return true;
-      }
-    },
-  });
-  return null;
-}
-
 export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: GardenGoal }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<GardenJourney | null>(null);
@@ -52,7 +36,9 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
   const [canCopy, setCanCopy] = useState(false);
   const [status, setStatus] = useState("");
   const raw = useRef<string | null>(null);
+  const pending = useRef<GardenJourney | null>(null);
   function load(id: string | null) {
+    pending.current = null;
     setUnsaved(false);
     setIssue("");
     setStatus("");
@@ -99,19 +85,30 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
     setOpen(!open);
   }
 
-  function change(next: GardenJourney) {
-    setDraft(next);
-    setStatus("");
+  function saveDraft() {
+    const next = pending.current;
+    if (!next) return true;
     try {
       raw.current = writeGardenJourney(next, raw.current);
+      pending.current = null;
       setUnsaved(false);
       setSaved(true);
       setCanCopy(false);
       setIssue("");
+      return true;
     } catch (cause) {
       setUnsaved(true);
       setIssue(message(cause));
+      return false;
     }
+  }
+  useDraftExitSave(saveDraft);
+
+  function change(next: GardenJourney) {
+    pending.current = next;
+    setDraft(next);
+    setStatus("");
+    saveDraft();
   }
 
   function download() {
@@ -138,7 +135,6 @@ export function GardenJourneyBrief({ step, goal }: { step: GardenStep; goal: Gar
 
   return (
     <section className="garden-journey" aria-label="Your journey brief">
-      {unsaved && <UnsavedJourneyGuard />}
       <button type="button" className="garden-text-action" aria-expanded={open} onClick={toggle}>
         <BookOpen size={17} aria-hidden="true" />
         {open ? "Close my journey brief" : "Open my journey brief"}

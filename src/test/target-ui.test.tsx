@@ -421,7 +421,10 @@ describe("Target guided preparation", () => {
       enableBeforeUnload: boolean;
     };
     expect(guard.shouldBlockFn()).toBe(true);
-    expect(guard.enableBeforeUnload).toBe(true);
+    expect(guard.enableBeforeUnload).toBe(false);
+    const leaving = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, leaving);
+    expect(leaving.defaultPrevented).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "Download original for recovery" }));
     expect(operations.download).toHaveBeenCalledWith(expect.any(Blob), "target-draft-recovery.txt");
   });
@@ -490,6 +493,35 @@ describe("Target guided preparation", () => {
     );
     expect(localStorage.getItem(TARGET_DRAFT_KEY)).toBe(other);
   });
+
+  it.each(["pagehide", "route"] as const)(
+    "retries the latest Target edit on %s and restores it on return",
+    async (departure) => {
+      seed();
+      const ui = render(<Target />);
+      const select = await screen.findByLabelText("Where is the project built?");
+      const writes = vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+        throw new Error("Temporarily full");
+      });
+      fireEvent.change(select, { target: { value: "lovable" } });
+      expect(screen.getByRole("alert")).toHaveTextContent(/could not be confirmed as saved/);
+      if (departure === "pagehide") fireEvent(window, new Event("pagehide"));
+      else {
+        const guard = operations.blocker.mock.lastCall![0] as { shouldBlockFn: () => boolean };
+        act(() => expect(guard.shouldBlockFn()).toBe(false));
+      }
+      expect(screen.getByText("Answers saved in this browser")).toBeVisible();
+      expect(JSON.parse(localStorage.getItem(TARGET_DRAFT_KEY)!).platform).toBe("lovable");
+      writes.mockClear();
+      fireEvent(window, new Event("pagehide"));
+      expect(writes).not.toHaveBeenCalled();
+      ui.unmount();
+      render(<Target />);
+      expect(await screen.findByLabelText("Where is the project built?")).toHaveValue("lovable");
+      expect(operations.prepare).not.toHaveBeenCalled();
+      expect(operations.download).not.toHaveBeenCalled();
+    },
+  );
 
   it("reports failed autosaves without losing the current answers or reporting them saved", async () => {
     seed();

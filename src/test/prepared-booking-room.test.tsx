@@ -46,6 +46,9 @@ describe("prepared local booking review", () => {
       expect(sessionStorage.getItem(REVIEW_ROOM_KEY)).toContain('"taskOutcome":"blocked"'),
     );
     expect(localStorage.getItem(REVIEW_ROOM_KEY)).toBeNull();
+    const close = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, close);
+    expect(close.defaultPrevented).toBe(true);
     initial.unmount();
     render(<PreparedBookingRoom />);
     expect(await screen.findByRole("radio", { name: "Blocked" })).toBeChecked();

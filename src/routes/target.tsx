@@ -12,6 +12,7 @@ import { downloadBlob } from "@/lib/exportPack";
 import { GardenJourneySummary } from "@/components/GardenJourneySummary";
 import { readGardenJourney, type GardenJourney } from "@/lib/garden-journey";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import type { LibraryEntry } from "@/lib/library";
 import {
   EMPTY_TARGET_DRAFT,
@@ -63,7 +64,8 @@ export function Target() {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<TargetStep>(0);
   const [furthest, setFurthest] = useState(0);
-  const [savedContent, setSavedContent] = useState("");
+  const [unsaved, setUnsaved] = useState(false);
+  const latestDraft = useRef({ value: EMPTY_TARGET_DRAFT, pending: false });
   const [saveError, setSaveError] = useState("");
   const [issues, setIssues] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -90,7 +92,6 @@ export function Target() {
   const generation = useRef(0);
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const errorSummary = useRef<HTMLDivElement>(null);
-  const content = JSON.stringify(draft);
   const moveToStep = (nextStep: TargetStep) => {
     sourceEpoch.current++;
     setSourceOpen(false);
@@ -98,12 +99,6 @@ export function Target() {
     setAttachedJourney(null);
     setJourneyMessage("");
   };
-  const unsaved = ready && content !== savedContent;
-  const blocker = useBlocker({
-    shouldBlockFn: () => unsaved,
-    enableBeforeUnload: unsaved,
-    withResolver: true,
-  });
   const invalidatePendingWork = useCallback(() => {
     generation.current++;
     revision.current++;
@@ -128,7 +123,8 @@ export function Target() {
     const snapshot = readTargetDraft();
     const initial = snapshot.draft ?? { ...EMPTY_TARGET_DRAFT };
     setDraft(initial);
-    setSavedContent(JSON.stringify(initial));
+    latestDraft.current = { value: initial, pending: false };
+    setUnsaved(false);
     savedRaw.current = snapshot.raw;
     damagedRaw.current = snapshot.issue === "invalid" ? snapshot.raw : null;
     setDraftIssue(snapshot.issue);
@@ -140,20 +136,28 @@ export function Target() {
   }, [loadLibrary, invalidatePendingWork]);
 
   const saveDraft = useCallback(() => {
-    if (!ready || draftIssue) return;
+    if (!latestDraft.current.pending) return true;
+    if (!ready || draftIssue) return false;
     try {
-      savedRaw.current = writeTargetDraft(draft, savedRaw.current);
-      setSavedContent(JSON.stringify(draft));
+      savedRaw.current = writeTargetDraft(latestDraft.current.value, savedRaw.current);
+      latestDraft.current.pending = false;
+      setUnsaved(false);
       setSaveError("");
+      return true;
     } catch (cause) {
+      setUnsaved(true);
       setSaveError(
         cause instanceof Error ? cause.message : "Your answers could not be saved in this browser.",
       );
+      return false;
     }
-  }, [draft, draftIssue, ready]);
-  useEffect(() => {
-    if (unsaved && !draftIssue) saveDraft();
-  }, [unsaved, draftIssue, saveDraft]);
+  }, [draftIssue, ready]);
+  useDraftExitSave(saveDraft, { handlesRouter: true });
+  const blocker = useBlocker({
+    shouldBlockFn: () => !saveDraft(),
+    enableBeforeUnload: false,
+    withResolver: true,
+  });
   useEffect(() => {
     if (ready) stepHeading.current?.focus();
   }, [step, ready]);
@@ -161,10 +165,14 @@ export function Target() {
     if (issues.length) errorSummary.current?.focus();
   }, [issues]);
 
-  const change = <K extends keyof TargetDraft>(key: K, value: TargetDraft[K]) => {
+  const change = (patch: Partial<TargetDraft>) => {
     revision.current++;
     generation.current++;
-    setDraft((current) => ({ ...current, [key]: value }));
+    const next = { ...latestDraft.current.value, ...patch };
+    latestDraft.current = { value: next, pending: true };
+    setDraft(next);
+    setUnsaved(true);
+    saveDraft();
     setBusy(false);
     setPrepared(false);
     setStatus("");
@@ -273,7 +281,8 @@ export function Target() {
     setJourneyMessage("");
     setDraft(restored);
     savedRaw.current = snapshot.raw;
-    setSavedContent(JSON.stringify(restored));
+    latestDraft.current = { value: restored, pending: false };
+    setUnsaved(false);
     damagedRaw.current = null;
     setDraftIssue(null);
     setSaveError("");
@@ -568,7 +577,7 @@ export function Target() {
                         id="target-design"
                         value={draft.designId}
                         className={fieldClass}
-                        onChange={(event) => change("designId", event.target.value)}
+                        onChange={(event) => change({ designId: event.target.value })}
                         required
                       >
                         <option value="">Choose a saved design</option>
@@ -633,7 +642,7 @@ export function Target() {
                             name="target-integration"
                             checked={draft.integration === value}
                             value={value}
-                            onChange={() => change("integration", value)}
+                            onChange={() => change({ integration: value })}
                             className="mt-1"
                           />
                           <span>
@@ -652,7 +661,7 @@ export function Target() {
                         className={fieldClass}
                         value={draft.platform}
                         onChange={(event) =>
-                          change("platform", event.target.value as TargetDraft["platform"])
+                          change({ platform: event.target.value as TargetDraft["platform"] })
                         }
                       >
                         {Object.entries(PLATFORM_LABELS).map(([value, label]) => (
@@ -695,8 +704,11 @@ export function Target() {
                               throw new Error(
                                 "This brief has no answers to add to the empty fields.",
                               );
-                            if (copyGoal) change("improvement", brief.task);
-                            if (copyPreserve) change("tasks", brief.preserve);
+                            if (copyGoal || copyPreserve)
+                              change({
+                                ...(copyGoal ? { improvement: brief.task } : {}),
+                                ...(copyPreserve ? { tasks: brief.preserve } : {}),
+                              });
                             setJourneyMessage(
                               "Garden answers added. Review them here before continuing.",
                             );
@@ -726,7 +738,7 @@ export function Target() {
                         className="mt-2"
                         value={draft.page}
                         maxLength={TARGET_LIMITS.page}
-                        onChange={(event) => change("page", event.target.value)}
+                        onChange={(event) => change({ page: event.target.value })}
                         placeholder="For example: the appointment booking page"
                         required
                       />
@@ -741,7 +753,7 @@ export function Target() {
                         rows={3}
                         value={draft.improvement}
                         maxLength={TARGET_LIMITS.improvement}
-                        onChange={(event) => change("improvement", event.target.value)}
+                        onChange={(event) => change({ improvement: event.target.value })}
                         placeholder="For example: make the available times easier to scan without changing how booking works."
                         required
                       />
@@ -756,7 +768,7 @@ export function Target() {
                         rows={4}
                         value={draft.tasks}
                         maxLength={TARGET_LIMITS.tasks}
-                        onChange={(event) => change("tasks", event.target.value)}
+                        onChange={(event) => change({ tasks: event.target.value })}
                         placeholder="List the important journeys, such as choosing a time, correcting an error and receiving a booking confirmation."
                         required
                       />
@@ -786,7 +798,7 @@ export function Target() {
                         rows={3}
                         value={draft.backup}
                         maxLength={TARGET_LIMITS.backup}
-                        onChange={(event) => change("backup", event.target.value)}
+                        onChange={(event) => change({ backup: event.target.value })}
                         required
                       />
                       <p className="mt-2 text-sm text-muted-foreground">
@@ -805,7 +817,7 @@ export function Target() {
                         rows={3}
                         value={draft.preview}
                         maxLength={TARGET_LIMITS.preview}
-                        onChange={(event) => change("preview", event.target.value)}
+                        onChange={(event) => change({ preview: event.target.value })}
                         placeholder="Name the separate branch or copy and the local or staging preview. Use test data and sandbox services."
                         required
                       />
@@ -825,7 +837,7 @@ export function Target() {
                         rows={3}
                         value={draft.rollback}
                         maxLength={TARGET_LIMITS.rollback}
-                        onChange={(event) => change("rollback", event.target.value)}
+                        onChange={(event) => change({ rollback: event.target.value })}
                         placeholder="For example: remove only the trial stylesheet imports and restore only the styling changes from the protected revision."
                         required
                       />

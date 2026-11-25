@@ -10,6 +10,7 @@ import { parseGardenSearch } from "@/lib/garden-navigation";
 import type { StratosphereGroupId } from "@/lib/stratosphere";
 import { StratospherePanel, StratosphereStart } from "@/components/StratospherePanel";
 import { readGardenPreferences } from "@/lib/garden-preferences";
+import { archiveStudioDraft, useStudioDraft } from "@/hooks/useStudioDraft";
 import { useStudioNavigationGuard } from "@/hooks/useStudioNavigationGuard";
 import { useExportReceipt } from "@/hooks/useExportReceipt";
 import { ExportReceipt } from "@/components/ExportReceipt";
@@ -54,15 +55,15 @@ import {
 } from "@/lib/ux";
 import { toast } from "sonner";
 import { DesignPreview, PreviewFrame } from "@/components/DesignPreview";
-import { NUDGES, applyNudges, type Nudge } from "@/lib/refine";
+import { NUDGES, applyNudges } from "@/lib/refine";
+import { readExamOptionDraft, type ExamOptionDraft } from "@/lib/exam-option-draft";
 import { TASTE_KEY, parseTaste, rememberTaste, tasteText } from "@/lib/taste";
 import { readProfile, profileText } from "@/lib/portrait";
+import { takeLibraryOpenId } from "@/lib/library-open";
 import {
-  archiveDesign,
-  withVersion,
   readLibrary,
+  readLibrarySnapshot,
   resumeLabel,
-  writeLibrary,
   type LibraryEntry,
   type LibraryState,
 } from "@/lib/library";
@@ -138,6 +139,16 @@ function FocusHome() {
 // Library backups and reopening a design retain its bounded Undo/Redo timeline.
 // archiveDesign removes generated option caches before writing this state.
 const libState = (state: State) => state as unknown as LibraryState;
+
+function hasLocalOnlyDraft(state: State): boolean {
+  if (!state.tokens || !state.content || !state.libraryId) return !isEmptyStudioDraft(state);
+  // Generated options are intentionally omitted from library copies. Only a choice the
+  // user has actually edited carries draft metadata.
+  return Object.values(state.cache).some((options) =>
+    options.some((option) => readExamOptionDraft(option.draft)),
+  );
+}
+
 const purposeText = (p: Purpose) =>
   [
     p.audience && `audience: ${p.audience}`,
@@ -165,23 +176,33 @@ function Studio({
   workshop?: boolean;
   requestedGroup?: StratosphereGroupId | undefined;
 }) {
-  const [s, setS] = useState<State>(EMPTY);
+  const {
+    state: s,
+    setState: setS,
+    restoreState,
+    flush,
+    issue: persistenceIssue,
+  } = useStudioDraft();
   const [loaded, setLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<{
     raw: string | null;
     message: string;
   } | null>(null);
   const [recoveries, setRecoveries] = useState<{ key: string; raw: string }[]>([]);
-  const [persistenceIssue, setPersistenceIssue] = useState("");
   const [handoffIssue, setHandoffIssue] = useState("");
   const startingSeparateDraft = useRef(false);
   const [gardenStartIssue, setGardenStartIssue] = useState("");
-  const [saveAttempt, setSaveAttempt] = useState(0);
   const restored = useRef(false);
+  const keepDraftCopy = useCallback((raw: string) => {
+    const copyKey = `${KEY}:recovery:${new Date().toISOString()}:${crypto.randomUUID()}`;
+    keepStudioCheckpoint(focusLocalStorage, copyKey, raw);
+    setRecoveries((copies) => [{ key: copyKey, raw }, ...copies]);
+  }, []);
   const restore = useCallback(() => {
     setRecoveryError(null);
     setHandoffIssue("");
     try {
+      const original = focusLocalStorage.getItem(KEY);
       const result = restoreStudioSave(
         focusLocalStorage,
         KEY,
@@ -209,12 +230,13 @@ function Studio({
         return;
       }
       // Recovered originals stay available on later visits, including after new work is saved.
-      setRecoveries(readStudioRecoveries(focusLocalStorage, KEY));
+      const savedCopies = readStudioRecoveries(focusLocalStorage, KEY);
+      setRecoveries(savedCopies);
       const prior = { ...result.state };
       if (gardenStart && isEmptyStudioDraft(prior)) prior.integration = gardenStart;
       if (prior.tokens && prior.content && !prior.libraryId) prior.libraryId = crypto.randomUUID();
       try {
-        focusLocalStorage.setItem(KEY, JSON.stringify(prior));
+        restoreState(prior, original);
       } catch {
         setRecoveryError({
           raw: focusLocalStorage.getItem(KEY),
@@ -223,19 +245,34 @@ function Studio({
         });
         return;
       }
-      setS(prior);
       // A failed archive or pending hand-off must not disable autosave for a valid current design.
       try {
-        const pending = focusSessionStorage.getItem("refraction:pending-rescue");
-        if (pending) {
-          const next = migrate(JSON.parse(pending));
+        const libraryId = takeLibraryOpenId(window.history.state?.focusLibraryOpen);
+        const pending = libraryId ? null : focusSessionStorage.getItem("refraction:pending-rescue");
+        if (libraryId || pending) {
+          let next: State;
+          if (libraryId) {
+            const library = readLibrarySnapshot();
+            const selected = library.entries.find((entry) => entry.id === libraryId);
+            if (!selected || library.needsRecovery) throw new Error("Saved design needs review.");
+            next = migrate({ ...selected.state, libraryId });
+          } else {
+            next = migrate(JSON.parse(pending!));
+          }
           if (next.tokens && !next.libraryId) next.libraryId = crypto.randomUUID();
-          if (prior.tokens && prior.content && prior.libraryId)
-            writeLibrary(withVersion(readLibrary(), libState(prior), new Date().toISOString()));
-          focusLocalStorage.setItem(KEY, JSON.stringify(next));
-          setS(next);
-          focusSessionStorage.removeItem("refraction:pending-rescue");
-          if (prior.tokens)
+          const previousDraft = JSON.stringify(prior);
+          const needsCopy = hasLocalOnlyDraft(prior) && JSON.stringify(next) !== previousDraft;
+          const originalDraft = original ?? previousDraft;
+          if (
+            needsCopy &&
+            !result.recoveryKey &&
+            !savedCopies.some((copy) => copy.raw === originalDraft)
+          )
+            keepDraftCopy(originalDraft);
+          archiveStudioDraft(prior);
+          restoreState(next, previousDraft);
+          if (pending) focusSessionStorage.removeItem("refraction:pending-rescue");
+          if (prior.tokens || needsCopy)
             toast("Opened redesign", {
               duration: 15000,
               action: { label: "Undo", onClick: () => setS(prior) },
@@ -243,7 +280,7 @@ function Studio({
         }
       } catch {
         setHandoffIssue(
-          "The incoming redesign could not be opened safely. Its hand-off data has been kept; your current design remains available.",
+          "The selected design could not be opened safely. Your current work is still available. Return to its source and try opening the design again.",
         );
       }
       setLoaded(true);
@@ -254,32 +291,12 @@ function Studio({
           "This browser is not allowing access to saved designs. Allow site storage, then try again.",
       });
     }
-  }, [gardenStart]);
+  }, [gardenStart, restoreState, setS, keepDraftCopy]);
   useEffect(() => {
     if (restored.current) return;
     restored.current = true;
     restore();
   }, [restore]);
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      focusLocalStorage.setItem(KEY, JSON.stringify(s));
-    } catch {
-      setPersistenceIssue(
-        "Your latest changes could not be saved in this browser. Keep this tab open, download your current work below, or free some browser storage and retry.",
-      );
-      return;
-    }
-    try {
-      if (s.tokens && s.content && s.libraryId)
-        writeLibrary(withVersion(readLibrary(), libState(s), new Date().toISOString()));
-      setPersistenceIssue("");
-    } catch {
-      setPersistenceIssue(
-        "Your current design is saved for refresh, but My designs could not be updated. Download your work before switching designs, or free some browser storage and retry.",
-      );
-    }
-  }, [s, loaded, saveAttempt]);
   // Every design step (answer, question change, stage) is recorded so Undo works across questions and reloads.
   const update = (p: Partial<State>) =>
     setS((o) => {
@@ -290,14 +307,20 @@ function Studio({
       }
       return n;
     });
-  const stepBack = (dir: "undo" | "redo") =>
-    setS((o) => {
-      const r = (dir === "undo" ? undoStep : redoStep)({ past: o.past, future: o.future }, snap(o));
-      if (!r) return o;
-      toast(dir === "undo" ? "Undid the last step" : "Redid the step", { duration: 2500 });
-      // Options contain complete token snapshots; a restored design needs fresh options.
-      return { ...o, ...r.state, cache: {}, ...r.t };
-    });
+  const stepBack = useCallback(
+    (dir: "undo" | "redo") =>
+      setS((o) => {
+        const r = (dir === "undo" ? undoStep : redoStep)(
+          { past: o.past, future: o.future },
+          snap(o),
+        );
+        if (!r) return o;
+        toast(dir === "undo" ? "Undid the last step" : "Redid the step", { duration: 2500 });
+        // Options contain complete token snapshots; a restored design needs fresh options.
+        return { ...o, ...r.state, cache: {}, ...r.t };
+      }),
+    [setS],
+  );
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target) || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z")
@@ -307,7 +330,7 @@ function Studio({
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, []);
+  }, [stepBack]);
   const user = useUser();
   const [saving, setSaving] = useState(false);
   const save = async () => {
@@ -333,9 +356,8 @@ function Studio({
 
   const [ask, setAsk] = useState<null | "new" | "retake">(null);
   const dirty = hasUnsavedWork(s);
-  const choosingGardenDraft = !!gardenStart && s.integration !== gardenStart;
-  useLeaveGuard(dirty && (!choosingGardenDraft || !!persistenceIssue));
-  useStudioNavigationGuard({ persistenceFailed: !!persistenceIssue, busy: saving });
+  useLeaveGuard(saving);
+  useStudioNavigationGuard({ flush, busy: saving });
   const reset = (k: "new" | "retake", mode = EMPTY.integration) =>
     setS((o) =>
       k === "new"
@@ -401,9 +423,7 @@ function Studio({
           );
           return;
         }
-        const copyKey = `${KEY}:recovery:${new Date().toISOString()}:${crypto.randomUUID()}`;
-        keepStudioCheckpoint(focusLocalStorage, copyKey, raw);
-        setRecoveries((copies) => [{ key: copyKey, raw }, ...copies]);
+        keepDraftCopy(raw);
         reset("new", gardenStart);
       } catch {
         startingSeparateDraft.current = false;
@@ -463,7 +483,7 @@ function Studio({
                   </span>
                 </HelpTip>
               )}
-              {dirty && <span className="eyebrow">Not saved</span>}
+              {dirty && !persistenceIssue && <span className="eyebrow">Browser draft</span>}
             </div>
             <div className="flex flex-wrap items-center gap-1">
               <>
@@ -520,7 +540,7 @@ function Studio({
                 >
                   Download current work
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setSaveAttempt((n) => n + 1)}>
+                <Button variant="outline" size="sm" onClick={flush}>
                   Retry saving
                 </Button>
               </div>
@@ -851,12 +871,7 @@ function Exam({ s, update }: P) {
   const step = STEPS[s.stepIndex]!;
   const run = useServerFn(proposeStep);
   const cached = s.cache[step.id];
-  const [sel, setSelRaw] = useState(0);
-  const [tw, setTw] = useState<Nudge[]>([]);
-  const setSel = (i: number) => {
-    setSelRaw(i);
-    setTw([]);
-  };
+  const hasOptions = !!cached;
   const [taste, setTaste] = useState("");
   useEffect(() => {
     setTaste(
@@ -865,7 +880,6 @@ function Exam({ s, update }: P) {
         .join("; "),
     );
   }, []);
-  const [reason, setReason] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const req = useRef(0);
@@ -920,26 +934,45 @@ function Exam({ s, update }: P) {
     }
   };
   useEffect(() => {
-    setSel(0);
-    setReason("");
     setErr("");
-    if (!cached) void load();
+    if (!hasOptions) void load();
     else setBusy(false);
     const requests = req;
     return () => {
       requests.current++;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionContext, cached]);
+  }, [optionContext, hasOptions]);
 
   const ranked = cached
     ? rankOptions(
         s.purpose,
-        cached.map((o) => ({ ...o, tokens: s.fix ? fixContrast(o.tokens) : o.tokens })),
+        cached.map((o) => ({
+          ...o,
+          draft: readExamOptionDraft(o.draft),
+          tokens: s.fix ? fixContrast(o.tokens) : o.tokens,
+        })),
       )
     : null;
   const opts = ranked?.list ?? null;
-  const base0 = opts?.[sel]?.tokens;
+  const sel = Math.max(0, opts?.findIndex((option) => option.draft !== undefined) ?? -1);
+  const selected = opts?.[sel];
+  const reason = selected?.draft?.reason ?? "";
+  const tw = selected?.draft?.nudges ?? [];
+  function saveDraft(position: number, draft: ExamOptionDraft) {
+    const sourceIndex = opts?.[position]?.i;
+    if (!cached || sourceIndex === undefined) return;
+    update({
+      cache: {
+        ...s.cache,
+        [step.id]: cached.map(({ draft: _previous, ...option }, index) =>
+          index === sourceIndex ? { ...option, draft } : option,
+        ),
+      },
+    });
+  }
+  const setSel = (i: number) => saveDraft(i, { reason, nudges: [] });
+  const base0 = selected?.tokens;
   const shown = base0 ? (tw.length ? applyNudges(base0, tw) : base0) : s.tokens!;
   useDesignFonts([s.tokens, ...(opts ?? []).map((o) => o.tokens)]);
 
@@ -948,6 +981,7 @@ function Exam({ s, update }: P) {
     const changed = !!o && JSON.stringify(o.tokens) !== JSON.stringify(s.tokens);
     // A change invalidates cached options for later Lenses and flags the ones that depend on it.
     const cache = { ...s.cache };
+    if (cached) cache[step.id] = cached.map(({ draft: _previous, ...option }) => option);
     if (changed) STEPS.slice(next).forEach((x) => delete cache[x.id]);
     const before = s; // full snapshot for Undo
     const recheck = changed
@@ -983,7 +1017,6 @@ function Exam({ s, update }: P) {
       cache: {},
     });
   };
-  const sel0 = opts?.[sel];
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1088,13 +1121,17 @@ function Exam({ s, update }: P) {
                   key={n.id}
                   size="sm"
                   variant="outline"
-                  onClick={() => setTw((x) => [...x, n.id].slice(-6))}
+                  onClick={() => saveDraft(sel, { reason, nudges: [...tw, n.id].slice(-6) })}
                 >
                   {n.label}
                 </Button>
               ))}
               {tw.length > 0 && (
-                <Button size="sm" variant="ghost" onClick={() => setTw([])}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => saveDraft(sel, { reason, nudges: [] })}
+                >
                   Reset
                 </Button>
               )}
@@ -1107,7 +1144,7 @@ function Exam({ s, update }: P) {
             )}
             <Input
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => saveDraft(sel, { reason: e.target.value, nudges: tw })}
               maxLength={140}
               placeholder="What do you like about it? (optional)"
             />
@@ -1122,13 +1159,13 @@ function Exam({ s, update }: P) {
                 className="flex-1"
                 onClick={() =>
                   commit(
-                    sel0
+                    selected
                       ? {
-                          ...sel0,
+                          ...selected,
                           tokens: shown,
                           label: tw.length
-                            ? `${sel0.label}, ${tw.map((n) => n.toLowerCase()).join(", ")}`
-                            : sel0.label,
+                            ? `${selected.label}, ${tw.map((n) => n.toLowerCase()).join(", ")}`
+                            : selected.label,
                         }
                       : null,
                   )

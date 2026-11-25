@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useBlocker,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -17,6 +18,7 @@ import { uiFontLicenses } from "../lib/ui-font-licenses";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
+import { flushRouterDrafts } from "@/hooks/useDraftExitSave";
 import { HostedBoundary } from "@/components/HostedBoundary";
 
 function NotFoundComponent() {
@@ -130,6 +132,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  useBlocker({
+    enableBeforeUnload: false,
+    shouldBlockFn: () => {
+      if (flushRouterDrafts()) return false;
+      try {
+        return !window.confirm("Some work is still only in this tab. Leave anyway?");
+      } catch {
+        return true;
+      }
+    },
+  });
   useEffect(() => {
     if (!hasCloudBackend()) return;
     const { data } = supabase.auth.onAuthStateChange((event) => {

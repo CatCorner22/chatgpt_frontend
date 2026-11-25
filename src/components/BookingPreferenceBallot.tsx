@@ -3,6 +3,7 @@ import {
   bookingPreferenceSchema,
   type BookingPreference,
 } from "../../north-star-kit/blind-test/booking-preference";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { downloadBlob } from "@/lib/download-blob";
 import type { ReviewSession } from "@/lib/review-room";
 import { Button } from "./ui/button";
@@ -18,6 +19,8 @@ export function BookingPreferenceBallot({ session, primaryJson }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const active = useRef(false);
+  const downloadedChoice = useRef<number | null>(null);
+  useDraftExitSave(() => selectedIndex === null || downloadedChoice.current === selectedIndex);
   useEffect(() => {
     active.current = true;
     return () => {
@@ -57,6 +60,7 @@ export function BookingPreferenceBallot({ session, primaryJson }: Props) {
         new Blob([JSON.stringify(ballot, null, 2)], { type: "application/json" }),
         "review-preference.json",
       );
+      downloadedChoice.current = selectedIndex;
       setMessage("Return the preference file with the matching answers file.");
     } catch {
       if (active.current)

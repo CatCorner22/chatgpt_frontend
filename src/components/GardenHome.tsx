@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { GardenJourneyBrief } from "@/components/GardenJourneyBrief";
 import { GardenDecisionGuide } from "@/components/GardenDecisionGuide";
 import { focusLocalStorage } from "@/lib/browser-storage";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
 import { stratosphereSearch } from "@/lib/garden-navigation";
@@ -14,6 +15,8 @@ import {
   writeGardenPreferences,
   type GardenPreferences,
 } from "@/lib/garden-preferences";
+
+type PreferencePatch = Partial<Omit<GardenPreferences, "version">>;
 
 const stops = [60, 34, 64, 34, 64, 34, 64, 34, 60].map((left, index) => ({
   left: `${left}%`,
@@ -36,7 +39,8 @@ export function GardenHome() {
   const heading = useRef<HTMLHeadingElement>(null);
   const lessonSummary = useRef<HTMLElement>(null);
   const focusOnStep = useRef(false);
-  const pendingPreferences = useRef<Partial<Omit<GardenPreferences, "version">>>({});
+  const pendingPreferences = useRef<PreferencePatch>({});
+  const preferenceBase = useRef<PreferencePatch>({});
   useEffect(() => {
     const restored = readGardenPreferences(focusLocalStorage);
     setPreferences(restored.value);
@@ -50,17 +54,53 @@ export function GardenHome() {
     }
   }, [preferences.step]);
 
-  const change = (patch: Partial<Omit<GardenPreferences, "version">>) => {
-    if (!ready) return;
-    const pending = { ...pendingPreferences.current, ...patch };
-    const latest = readGardenPreferences(focusLocalStorage);
-    const next = { ...(latest.issue ? preferences : latest.value), ...pending };
-    // Preserve other tabs' saved fields without moving this tab merely because
-    // the user toggled a lesson. An explicit path selection owns its new stop.
-    setPreferences({ ...next, step: patch.step ?? preferences.step });
-    const saveIssue = writeGardenPreferences(focusLocalStorage, next);
-    pendingPreferences.current = saveIssue ? pending : {};
+  function flushPreferences(snapshot?: ReturnType<typeof readGardenPreferences>) {
+    const pending = pendingPreferences.current;
+    const keys = Object.keys(pending) as (keyof PreferencePatch)[];
+    if (!keys.length) return true;
+    const latest = snapshot ?? readGardenPreferences(focusLocalStorage);
+    if (latest.issue) {
+      setIssue(
+        "Garden preferences could not be confirmed as saved. Your choices remain in this tab.",
+      );
+      return false;
+    }
+    // Only retry fields that still match their original value or this edit.
+    if (
+      keys.some(
+        (key) =>
+          latest.value[key] !== preferenceBase.current[key] && latest.value[key] !== pending[key],
+      )
+    ) {
+      setIssue(
+        "Another tab changed a Garden choice. Revisit that choice here or reload to use the saved version.",
+      );
+      return false;
+    }
+    const saveIssue = keys.every((key) => latest.value[key] === pending[key])
+      ? ""
+      : writeGardenPreferences(focusLocalStorage, { ...latest.value, ...pending });
+    if (!saveIssue) {
+      pendingPreferences.current = {};
+      preferenceBase.current = {};
+    }
     setIssue(saveIssue);
+    return !saveIssue;
+  }
+
+  useDraftExitSave(() => flushPreferences());
+
+  const change = (patch: PreferencePatch) => {
+    if (!ready) return;
+    const latest = readGardenPreferences(focusLocalStorage);
+    const base = latest.issue ? preferences : latest.value;
+    for (const key of Object.keys(patch) as (keyof PreferencePatch)[])
+      Object.assign(preferenceBase.current, { [key]: base[key] });
+    pendingPreferences.current = { ...pendingPreferences.current, ...patch };
+    const next = { ...base, ...pendingPreferences.current };
+    // A change to a lesson should never move this tab because another tab moved.
+    setPreferences({ ...next, step: patch.step ?? preferences.step });
+    flushPreferences(latest);
   };
   const visit = (step: GardenStepId) => {
     focusOnStep.current = step !== preferences.step;

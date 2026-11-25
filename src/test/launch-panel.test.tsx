@@ -143,6 +143,40 @@ describe("launch readiness explanations", () => {
       <LaunchPanel id="readiness" title="Customer site" tokens={tokens} tool="Human developer" />,
     );
 
+  it("retains the focused address on departure without reviewing a page or confirming launch", async () => {
+    seed();
+    const view = panel();
+    const address = await screen.findByLabelText("Built page address");
+    fireEvent.change(address, { target: { value: "https://new.example/booking" } });
+    act(() => window.dispatchEvent(new Event("pagehide")));
+    view.unmount();
+    panel();
+    expect(await screen.findByLabelText("Built page address")).toHaveValue(
+      "https://new.example/booking",
+    );
+    const details = readProgress()[0]!.details;
+    expect(details.tasks).toEqual([]);
+    expect(details.launchedAt).toBeNull();
+    expect(details.reviews).toEqual([evidence]);
+  });
+
+  it("preserves another tab’s newer address and allows recovery of the text in this tab", async () => {
+    seed();
+    panel();
+    const address = await screen.findByLabelText("Built page address");
+    fireEvent.change(address, { target: { value: "https://here.example/" } });
+    const records = readProgress();
+    records[0]!.details.url = "https://elsewhere.example/";
+    writeProgress(records);
+    const unload = new Event("beforeunload", { cancelable: true });
+    act(() => {
+      window.dispatchEvent(unload);
+    });
+    expect(unload.defaultPrevented).toBe(true);
+    expect(readProgress()[0]!.details.url).toBe("https://elsewhere.example/");
+    expect(address).toHaveValue("https://here.example/");
+  });
+
   it("explains the unresolved findings instead of allowing task confirmations to override them", async () => {
     seed({ ...evidence, checks: [{ ...evidence.checks[0]!, ok: false }] });
     panel();

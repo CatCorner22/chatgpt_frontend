@@ -1,5 +1,6 @@
 import { focusLocalStorage, focusSessionStorage } from "@/lib/browser-storage";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import {
   ArrowLeft,
   ArrowRight,
@@ -66,6 +67,11 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
   const taskHeading = useRef<HTMLHeadingElement>(null);
   const restored = useRef(false);
   const fileRead = useRef(0);
+  const currentSession = useRef<ReviewSession | null>(null);
+  const dirty = useRef(false);
+  const savedRaw = useRef<string | null | undefined>(undefined);
+  // A successful write can be followed by a failed readback. Remember only our own attempt.
+  const attemptedRaw = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     return () => {
@@ -78,6 +84,7 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
     restored.current = true;
     try {
       const saved = storage.getItem(REVIEW_ROOM_KEY);
+      savedRaw.current = saved;
       if (saved) {
         const previous = parseReviewSession(saved);
         // A restarted pilot may reuse this loopback origin with fresh sample
@@ -87,6 +94,7 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
           (previous.reviewerCode.trim() &&
             JSON.stringify(previous.packet) === JSON.stringify(preparedPacket))
         ) {
+          currentSession.current = previous;
           setSession(previous);
           setStatus("Your saved answers and sample order have been restored.");
         }
@@ -103,21 +111,60 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
     setHydrated(true);
   }, [preparedPacket, storage]);
 
-  useEffect(() => {
-    if (!hydrated || !session) return;
+  const flush = useCallback(() => {
+    if (!dirty.current || !currentSession.current) return true;
     try {
-      storage.setItem(REVIEW_ROOM_KEY, JSON.stringify(session));
+      const next = JSON.stringify(currentSession.current);
+      const current = storage.getItem(REVIEW_ROOM_KEY);
+      if (current === attemptedRaw.current) savedRaw.current = current;
+      if (current !== next) {
+        if (current !== (savedRaw.current ?? null)) {
+          setSaveError(
+            "Another tab changed or cleared this review. Keep this tab open to copy your notes or download completed answers.",
+          );
+          return false;
+        }
+        attemptedRaw.current = next;
+        storage.setItem(REVIEW_ROOM_KEY, next);
+        if (storage.getItem(REVIEW_ROOM_KEY) !== next) throw new Error("Unconfirmed write");
+      }
+      savedRaw.current = next;
+      attemptedRaw.current = undefined;
+      dirty.current = false;
       setSaveError("");
+      return true;
     } catch {
       setSaveError(
         "This browser could not save your latest answers. Keep this page open and download completed answers before leaving.",
       );
+      return false;
     }
-  }, [session, hydrated, storage]);
+  }, [storage]);
+  useDraftExitSave(() => {
+    if (!flush()) return false;
+    // Prepared reviews belong to a single participant tab. A browser close can discard
+    // its sessionStorage even after a verified write. Keep the explicit download step.
+    const current = currentSession.current;
+    if (!preparedPacket || primaryExport || !current) return true;
+    return !Object.values(current.drafts).some(
+      (answer) =>
+        answer.taskOutcome ||
+        answer.judgedOrigin ||
+        answer.note ||
+        Object.values(answer.quality).some((rating) => rating !== null),
+    );
+  });
+
+  function editSession(next: ReviewSession) {
+    currentSession.current = next;
+    dirty.current = true;
+    setSession(next);
+    flush();
+  }
 
   const begin = (packet: ReviewerPacket, reviewerCode = "") => {
     try {
-      setSession({ ...createReviewSession(packet), reviewerCode });
+      editSession({ ...createReviewSession(packet), reviewerCode });
       setPrimaryExport("");
       setPendingPacket(null);
       setError("");
@@ -161,13 +208,12 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
 
   const updateDraft = (patch: Partial<ReviewDraft>) => {
     setPrimaryExport("");
-    setSession((current) => {
-      if (!current) return current;
-      const id = current.order[current.currentIndex]!;
-      return {
-        ...current,
-        drafts: { ...current.drafts, [id]: { ...current.drafts[id]!, ...patch } },
-      };
+    const current = currentSession.current;
+    if (!current) return;
+    const id = current.order[current.currentIndex]!;
+    editSession({
+      ...current,
+      drafts: { ...current.drafts, [id]: { ...current.drafts[id]!, ...patch } },
     });
     setMissing([]);
     setStatus("");
@@ -195,17 +241,13 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
         return;
       }
     }
-    setSession((current) =>
-      current
-        ? {
-            ...current,
-            currentIndex: Math.max(
-              0,
-              Math.min(current.order.length - 1, current.currentIndex + direction),
-            ),
-          }
-        : null,
-    );
+    editSession({
+      ...session,
+      currentIndex: Math.max(
+        0,
+        Math.min(session.order.length - 1, session.currentIndex + direction),
+      ),
+    });
     setMissing([]);
     setStatus("");
     requestAnimationFrame(() => {
@@ -244,7 +286,20 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
     fileRead.current++;
     setPendingPacket(null);
     try {
+      const current = storage.getItem(REVIEW_ROOM_KEY);
+      if (current !== null && current !== savedRaw.current && current !== attemptedRaw.current) {
+        setError(
+          "Another tab changed this review. Reload to see the latest copy before clearing it.",
+        );
+        setResetOpen(false);
+        return;
+      }
       storage.removeItem(REVIEW_ROOM_KEY);
+      if (storage.getItem(REVIEW_ROOM_KEY) !== null) throw new Error("Clear was not confirmed");
+      savedRaw.current = null;
+      attemptedRaw.current = undefined;
+      dirty.current = false;
+      currentSession.current = null;
       setSession(null);
       setPrimaryExport("");
       setSummary(false);
@@ -281,6 +336,9 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
           className="mt-5 rounded-lg border border-destructive/40 bg-card p-4 text-sm"
         >
           {saveError}
+          <button type="button" className="ml-2 min-h-11 underline" onClick={flush}>
+            Retry saving answers
+          </button>
         </div>
       )}
       {status && (
@@ -494,7 +552,7 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
                     placeholder="e.g. reviewer-07"
                     onChange={(event) => {
                       setPrimaryExport("");
-                      setSession({ ...session, reviewerCode: event.target.value });
+                      editSession({ ...session, reviewerCode: event.target.value });
                       setMissing([]);
                     }}
                   />
@@ -791,7 +849,11 @@ export function ReviewWorkspace({ preparedPacket, header, renderOrganizer }: Rev
               aria-label="Save and export review"
             >
               <div className="max-w-lg text-sm leading-relaxed text-muted-foreground">
-                <p>Answers and sample order are saved in this browser as you work.</p>
+                <p>
+                  {preparedPacket
+                    ? "Your answers and sample order are saved in this tab. Download your answers before closing it."
+                    : "Answers and sample order are saved in this browser as you work."}
+                </p>
                 <p className="mt-1">
                   Downloads include completed samples only. Nothing is sent automatically.
                 </p>

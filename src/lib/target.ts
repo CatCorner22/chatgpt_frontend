@@ -124,6 +124,9 @@ export function writeTargetDraft(
       "Your Target answers could not be saved because browser storage is unavailable. Keep this tab open or download your prepared plan.",
     );
   }
+  const raw = JSON.stringify(parsed.data);
+  // A previous write may have landed even if its confirmation read failed.
+  if (current === raw) return raw;
   if (current !== expectedRaw)
     throw new Error(
       "Saved Target answers changed in another tab. Reload them before saving; your current answers have not been applied.",
@@ -132,7 +135,6 @@ export function writeTargetDraft(
     throw new Error(
       "The saved Target draft is unreadable and has not been replaced. Keep your current answers in this tab while you recover the original.",
     );
-  const raw = JSON.stringify(parsed.data);
   try {
     storage.setItem(TARGET_DRAFT_KEY, raw);
     if (storage.getItem(TARGET_DRAFT_KEY) !== raw) throw new Error("Write was not retained");

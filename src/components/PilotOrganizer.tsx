@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import {
   createPilotPacket,
   createPilotPlan,
@@ -69,10 +70,12 @@ function checkManifest(value: unknown) {
 function SubmissionFields({
   manifest,
   save,
+  onDraftChange,
   busy,
 }: {
   manifest: PilotManifest;
   save: (data: FormData) => Promise<boolean>;
+  onDraftChange: (changed: boolean) => void;
   busy: boolean;
 }) {
   const sources = pilotGroups(manifest.protocol);
@@ -87,6 +90,7 @@ function SubmissionFields({
     const form = event.currentTarget;
     if (await save(new FormData(form))) {
       form.reset();
+      onDraftChange(false);
       setGroup(first);
       setUnknownWork(false);
       setTaskId(manifest.tasks[0]!.id);
@@ -95,7 +99,7 @@ function SubmissionFields({
   return (
     <details className="my-5 border-y border-border py-3">
       <summary className="cursor-pointer py-2 font-medium">Add a real submission</summary>
-      <form onSubmit={(event) => void submit(event)}>
+      <form onChange={() => onDraftChange(true)} onSubmit={(event) => void submit(event)}>
         <fieldset disabled={busy} className="mt-3 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
           <legend className="sr-only">Submission details</legend>
           <label>
@@ -357,9 +361,17 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
     "leave" | { remove: string } | { replace: PilotManifest } | null
   >(null);
   const generation = useRef(0);
+  const pendingFields = useRef(false);
+  const [formVersion, setFormVersion] = useState(0);
+  const hasPrivateWork = () => edited || pendingFields.current;
+  // Private source mappings and unsubmitted fields intentionally exist only in memory.
+  useDraftExitSave(() => !hasPrivateWork() && !busy);
+
   function confirm() {
     if (pending === "leave") onClose();
     else if (pending && "replace" in pending) {
+      pendingFields.current = false;
+      setFormVersion((version) => version + 1);
       setPilot(pending.replace);
       setReport(null);
       setEdited(false);
@@ -411,7 +423,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
       void run(async (current) => {
         const next = checkManifest(await readJson(file));
         if (current()) {
-          if (edited) {
+          if (hasPrivateWork()) {
             setPending({ replace: next });
             return "";
           }
@@ -497,7 +509,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
       <Button
         variant="outline"
         disabled={busy}
-        onClick={() => (edited ? setPending("leave") : onClose())}
+        onClick={() => (hasPrivateWork() ? setPending("leave") : onClose())}
       >
         Return to reviewer room
       </Button>
@@ -591,9 +603,12 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
             </details>
           )}
           <SubmissionFields
-            key={pilot.id + pilot.protocol}
+            key={pilot.id + pilot.protocol + formVersion}
             manifest={pilot}
             save={record}
+            onDraftChange={(changed) => {
+              pendingFields.current = changed;
+            }}
             busy={busy}
           />
           <div className="flex flex-wrap gap-3">
@@ -667,7 +682,7 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         }
         body={
           pending === "leave" || (pending && "replace" in pending)
-            ? "Keep a downloaded copy of your recorded changes before continuing."
+            ? "Record any unfinished submission and keep a downloaded copy of your private draft before continuing."
             : "This removes the submission from the open draft. A replacement gets its own sample ID so earlier answers cannot count toward it."
         }
         confirmLabel={

@@ -2,7 +2,7 @@ import { focusLocalStorage } from "@/lib/browser-storage";
 import { TASTE_KEY, parseTaste, styleSoFar } from "@/lib/taste";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Download, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
@@ -17,11 +17,12 @@ import {
   duelPair,
   preferenceTokens,
   profileText,
-  readProfile,
+  parseProfile,
   voteLabel,
   type TasteProfile,
   type DuelVote,
 } from "@/lib/portrait";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GALLERY } from "@/lib/gallery";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 import { downloadBlob } from "@/lib/exportPack";
@@ -68,23 +69,64 @@ function Taste() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [round, setRound] = useState(0);
-  const [reason, setReason] = useState("");
+  const [saveIssue, setSaveIssue] = useState("");
+  const pending = useRef<TasteProfile | null>(null);
+  const snapshot = useRef<string | null | undefined>(undefined);
+  const latest = useRef<TasteProfile>(EMPTY_PROFILE);
+  const mounted = useRef(false);
   useEffect(() => {
-    const prior = readProfile();
-    setP(prior);
-    setRound(prior.votes.length);
-    setLoaded(true);
-  }, []);
-  const persist = (next: TasteProfile) => {
+    mounted.current = true;
     try {
-      focusLocalStorage.setItem(PORTRAIT_KEY, JSON.stringify(next));
+      const raw = focusLocalStorage.getItem(PORTRAIT_KEY);
+      if (raw !== null && JSON.parse(raw)?.version !== 1) throw new Error();
+      const prior = parseProfile(raw);
+      snapshot.current = raw;
+      latest.current = prior;
+      setP(prior);
+      const resumed = DUELS.findIndex((duel) => duel.id === prior.draftReasons?.at(-1)?.id);
+      setRound(resumed < 0 ? prior.votes.length : resumed);
+      setLoaded(true);
+    } catch {
+      setSaveIssue(
+        "Your saved taste profile could not be opened. Reload after checking browser storage.",
+      );
+    }
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  function persist(next: TasteProfile) {
+    try {
+      const value = JSON.stringify(next);
+      const raw = focusLocalStorage.getItem(PORTRAIT_KEY);
+      if (raw !== value) {
+        if (snapshot.current === undefined || raw !== snapshot.current) {
+          setSaveIssue("Your taste profile changed elsewhere. Copy your edits before reloading.");
+          return false;
+        }
+        focusLocalStorage.setItem(PORTRAIT_KEY, value);
+        if (focusLocalStorage.getItem(PORTRAIT_KEY) !== value) throw new Error();
+      }
+      snapshot.current = value;
+      latest.current = next;
+      pending.current = null;
       setP(next);
+      setSaveIssue("");
       return true;
     } catch {
-      toast.error("Could not remember your taste. Download it before leaving.");
+      setSaveIssue(
+        "Focus couldn’t save your latest taste edits. Keep this page open, check browser storage and try saving again.",
+      );
       return false;
     }
-  };
+  }
+  function edit(next: TasteProfile) {
+    pending.current = next;
+    latest.current = next;
+    setP(next);
+  }
+  const flush = () => pending.current === null || persist(pending.current);
+  useDraftExitSave(flush);
   const generate = async () => {
     if (!AI_SPENDING_ENABLED) {
       setErr(AI_PAUSED_MESSAGE);
@@ -94,8 +136,8 @@ function Taste() {
     setErr("");
     try {
       const portrait = await run({ data: { inspiration: p.inspiration, avoid: p.avoid } });
-      const next = { ...p, portrait };
-      setP(next);
+      if (!mounted.current) return;
+      const next = { ...latest.current, portrait };
       if (persist(next)) toast.success("Taste Portrait saved in this browser");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not create your portrait.");
@@ -105,12 +147,17 @@ function Taste() {
   };
   const base = BASE ? preferenceTokens(p, BASE) : null;
   const duel = DUELS[round];
+  const reason =
+    p.draftReasons?.find((draft) => draft.id === duel?.id)?.text ??
+    p.votes.find((vote) => vote.id === duel?.id)?.reason ??
+    "";
   const pair = base && duel ? duelPair(base, duel.id) : null;
   useDesignFonts([base, ...(pair ?? [])]);
   const vote = (choice: DuelVote["choice"]) => {
     if (!duel) return;
     const next = {
       ...p,
+      draftReasons: p.draftReasons?.filter((draft) => draft.id !== duel.id) ?? [],
       votes: [
         ...p.votes.filter((v) => v.id !== duel.id),
         { id: duel.id, choice, reason: reason.trim() },
@@ -118,20 +165,26 @@ function Taste() {
     };
     if (persist(next)) {
       setRound(round + 1);
-      setReason("");
     }
   };
   const reset = () => {
     const before = p;
-    if (persist({ ...p, votes: [] })) {
+    if (persist({ ...p, votes: [], draftReasons: [] })) {
       setRound(0);
-      setReason("");
       toast("Comparisons reset", {
         duration: 8000,
         action: {
           label: "Undo",
           onClick: () => {
-            if (persist(before)) setRound(before.votes.length);
+            if (
+              mounted.current &&
+              persist({
+                ...latest.current,
+                votes: before.votes,
+                draftReasons: before.draftReasons ?? [],
+              })
+            )
+              setRound(before.votes.length);
           },
         },
       });
@@ -143,6 +196,11 @@ function Taste() {
       <main className="mx-auto max-w-6xl px-5 py-10 md:px-10">
         <p className="eyebrow">My taste</p>
         <h1 className="mt-3 font-display text-5xl">Find out which looks you like best</h1>
+        {saveIssue && (
+          <p role="alert" className="mt-4 text-sm text-destructive">
+            {saveIssue}
+          </p>
+        )}
         <StyleSoFar />
         <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_1.2fr]">
           <section aria-labelledby="portrait-title">
@@ -159,7 +217,7 @@ function Taste() {
               maxLength={2000}
               disabled={busy || !loaded}
               value={p.inspiration}
-              onChange={(e) => setP({ ...p, inspiration: e.target.value })}
+              onChange={(e) => edit({ ...latest.current, inspiration: e.target.value })}
               placeholder="Music, places, objects, films, textures…"
             />
             <label htmlFor="avoid" className="mt-4 block text-sm font-medium">
@@ -170,9 +228,9 @@ function Taste() {
               className="mt-2"
               rows={2}
               maxLength={500}
-              disabled={busy}
+              disabled={busy || !loaded}
               value={p.avoid}
-              onChange={(e) => setP({ ...p, avoid: e.target.value })}
+              onChange={(e) => edit({ ...latest.current, avoid: e.target.value })}
               placeholder="Bland beige, loud gradients, crowded screens…"
             />
             <Button
@@ -283,7 +341,16 @@ function Taste() {
                 maxLength={300}
                 className="mt-2 max-w-xl"
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                disabled={!loaded}
+                onChange={(event) => {
+                  const draftReasons = (latest.current.draftReasons ?? []).filter(
+                    (draft) => draft.id !== duel.id,
+                  );
+                  edit({
+                    ...latest.current,
+                    draftReasons: [...draftReasons, { id: duel.id, text: event.target.value }],
+                  });
+                }}
               />
               <div className="mt-4 flex gap-3">
                 <Button
@@ -291,7 +358,6 @@ function Taste() {
                   disabled={round === 0}
                   onClick={() => {
                     setRound(round - 1);
-                    setReason(p.votes.find((v) => v.id === DUELS[round - 1]?.id)?.reason ?? "");
                   }}
                 >
                   <ArrowLeft />
@@ -350,7 +416,13 @@ function Taste() {
 // "Your style so far": built only from this browser's completed choices; passed-badge choices rank first.
 function StyleSoFar() {
   const [rows, setRows] = useState<ReturnType<typeof styleSoFar>>([]);
-  useEffect(() => setRows(styleSoFar(parseTaste(focusLocalStorage.getItem(TASTE_KEY)))), []);
+  useEffect(() => {
+    try {
+      setRows(styleSoFar(parseTaste(focusLocalStorage.getItem(TASTE_KEY))));
+    } catch {
+      // Optional suggestions require readable local storage.
+    }
+  }, []);
   if (!rows.length) return null;
   return (
     <section

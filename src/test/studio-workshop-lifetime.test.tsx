@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
 import { buildLocalOptions } from "@/lib/local-design";
+import { readLibrary } from "@/lib/library";
 
 const operations = vi.hoisted(() => ({
   search: { view: "studio", panel: "stratosphere" } as {
@@ -239,6 +240,122 @@ describe("Garden-directed Studio start", () => {
     fireEvent.click(button);
     expect(screen.getByRole("alert")).toHaveTextContent(/changed in another tab/);
     expect(localStorage.getItem(key)).toBe(newer);
+  });
+});
+
+describe("Incoming Studio handoff with a brief in progress", () => {
+  afterEach(() => vi.restoreAllMocks());
+  const pendingKey = "refraction:pending-rescue";
+  const previous = { ...EMPTY, brief: "Keep the venue’s wheelchair entrance in the redesign." };
+
+  it("keeps the original draft bytes available after the replacement and a reload", async () => {
+    const original = JSON.stringify(previous, null, 2);
+    localStorage.setItem(key, original);
+    const replacement = { ...makeState(), brief: "Open this design instead" };
+    sessionStorage.setItem(pendingKey, JSON.stringify(replacement));
+    const page = render(<FocusHome />);
+    await screen.findByText(/Original saved data preserved/);
+    expect(saved().brief).toBe(replacement.brief);
+    expect(sessionStorage.getItem(pendingKey)).toBeNull();
+    const copyKey = Object.keys(localStorage).find((name) => name.startsWith(key + ":recovery:"));
+    expect(localStorage.getItem(copyKey!)).toBe(original);
+    page.unmount();
+    render(<FocusHome />);
+    await screen.findByRole("button", { name: "Download preserved data 1" });
+    expect(localStorage.getItem(copyKey!)).toBe(original);
+  });
+
+  it.each([true, false])(
+    "checkpoints a complete design only for user-edited options (draft = %s)",
+    async (hasDraft) => {
+      const original = makeState();
+      if (hasDraft) {
+        original.cache["density"]![1]!.draft = {
+          reason: "Make prices easier to compare.",
+          nudges: ["quieter"],
+        };
+      }
+      const raw = JSON.stringify(original);
+      localStorage.setItem(key, raw);
+      sessionStorage.setItem(
+        pendingKey,
+        JSON.stringify({ ...EMPTY, brief: "A different workshop" }),
+      );
+      render(<FocusHome />);
+      await waitFor(() => expect(saved().brief).toBe("A different workshop"));
+      const copies = Object.keys(localStorage).filter((name) =>
+        name.startsWith(key + ":recovery:"),
+      );
+      expect(copies).toHaveLength(hasDraft ? 1 : 0);
+      if (hasDraft) expect(localStorage.getItem(copies[0]!)).toBe(raw);
+    },
+  );
+
+  it("keeps the current brief open and the incoming handoff pending if its backup fails", async () => {
+    const raw = JSON.stringify(previous);
+    localStorage.setItem(key, raw);
+    const incoming = JSON.stringify(makeState());
+    sessionStorage.setItem(pendingKey, incoming);
+    const write = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      name,
+      value,
+    ) {
+      if (name.startsWith(key + ":recovery:")) throw new DOMException("Full", "QuotaExceededError");
+      write.call(this, name, value);
+    });
+    render(<FocusHome />);
+    await screen.findByRole("alert");
+    expect(localStorage.getItem(key)).toBe(raw);
+    expect(sessionStorage.getItem(pendingKey)).toBe(incoming);
+    expect(Object.keys(localStorage).some((name) => name.startsWith(key + ":recovery:"))).toBe(
+      false,
+    );
+  });
+});
+
+describe("Question preview drafts", () => {
+  it("restores the chosen preview, nudges and unconfirmed words after a return visit", async () => {
+    operations.search = { view: "studio" };
+    const state = makeState();
+    const app = mount(state);
+    const input = await screen.findByPlaceholderText("What do you like about it? (optional)");
+    fireEvent.keyDown(window, { key: "2" });
+    fireEvent.click(screen.getByRole("button", { name: "Warmer" }));
+    fireEvent.change(input, { target: { value: "Keep the shelves easy to scan." } });
+    expect(saved().tokens).toEqual(state.tokens);
+    expect(saved().picks).toEqual([]);
+    expect(saved().past).toEqual([]);
+    expect(readLibrary().find((design) => design.id === state.libraryId)?.state["cache"]).toEqual(
+      {},
+    );
+    expect(operations.step).not.toHaveBeenCalled();
+
+    app.unmount();
+    render(<FocusHome />);
+    expect(await screen.findByDisplayValue("Keep the shelves easy to scan.")).toBeVisible();
+    expect(screen.getByText(/Option 2, nudged: warmer/)).toBeVisible();
+    expect(operations.step).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Choose 2" }));
+    await waitFor(() => expect(saved().picks[0]?.reason).toBe("Keep the shelves easy to scan."));
+    expect(saved().picks[0]?.label).toContain("warmer");
+    expect(saved().cache["density"]?.every((option) => !option.draft)).toBe(true);
+  });
+
+  it("discards invalid preview metadata without discarding the underlying options", async () => {
+    operations.search = { view: "studio" };
+    const state = makeState();
+    state.cache["density"]![1]!.draft = {
+      reason: "Untrusted option metadata",
+      nudges: ["bad value"],
+    } as unknown as NonNullable<State["cache"][string][number]["draft"]>;
+    mount(state);
+    expect(await screen.findByPlaceholderText("What do you like about it? (optional)")).toHaveValue(
+      "",
+    );
+    expect(screen.getByRole("button", { name: "Choose 1" })).toBeVisible();
+    expect(operations.step).not.toHaveBeenCalled();
   });
 });
 

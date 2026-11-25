@@ -99,6 +99,52 @@ describe("Garden home", () => {
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
 
+  it("retries pending notes and preferences on exit without overwriting other Garden choices", async () => {
+    const ui = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Storage full");
+    });
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Compare two class times" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    write.mockRestore();
+    localStorage.setItem(GARDEN_KEY, JSON.stringify({ ...GARDEN_DEFAULTS, goal: "new" }));
+    fireEvent(window, new Event("pagehide"));
+    expect(readGardenJourney(null).brief?.task).toBe("Compare two class times");
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({
+      ...GARDEN_DEFAULTS,
+      goal: "new",
+      brief: false,
+    });
+    const cleanWrites = vi.spyOn(Storage.prototype, "setItem");
+    fireEvent(window, new Event("pagehide"));
+    expect(cleanWrites).not.toHaveBeenCalled();
+    ui.unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("What should someone be able to do?")).toHaveValue(
+      "Compare two class times",
+    );
+  });
+
+  it("refuses to autosave a stale pending stop over another tab on exit", async () => {
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+      throw new Error("Storage full");
+    });
+    visitStep("content");
+    const newer = JSON.stringify({ ...GARDEN_DEFAULTS, step: "direction" });
+    localStorage.setItem(GARDEN_KEY, newer);
+    const leaving = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, leaving);
+    expect(leaving.defaultPrevented).toBe(true);
+    expect(screen.getByRole("status")).toHaveTextContent("Another tab changed");
+    expect(localStorage.getItem(GARDEN_KEY)).toBe(newer);
+  });
+
   it("preserves newer lesson and goal choices when an older tab moves to another stop", async () => {
     localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
     render(<GardenHome />);

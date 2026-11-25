@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import {
   ArrowRight,
   Check,
@@ -66,6 +67,8 @@ export function QualityWorkbench() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState("measured");
   const resultsRef = useRef<HTMLElement>(null);
+  const hasPrivateMarkup = useRef(false);
+  useDraftExitSave(() => !hasPrivateMarkup.current);
   const report = useMemo(
     () => (inspection ? receipt(inspection.findings, allRules) : null),
     [inspection],
@@ -111,6 +114,7 @@ export function QualityWorkbench() {
   const sample = (kind: "good" | "flawed") => {
     const next = kind === "good" ? goodSample : flawedSample;
     const name = kind === "good" ? "Reference sample" : "Flawed sample";
+    hasPrivateMarkup.current = false;
     setSource(next);
     setLabel(name);
     inspect(next, name);
@@ -223,6 +227,7 @@ export function QualityWorkbench() {
                 id="quality-source"
                 value={source}
                 onChange={(event) => {
+                  hasPrivateMarkup.current = event.target.value.length > 0;
                   setSource(event.target.value);
                   setLabel("Your page");
                   setError("");
@@ -261,6 +266,7 @@ export function QualityWorkbench() {
                   variant="ghost"
                   className="min-h-12"
                   onClick={() => {
+                    hasPrivateMarkup.current = false;
                     setSource("");
                     setInspection(null);
                     setLabel("Your page");

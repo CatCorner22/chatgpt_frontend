@@ -79,6 +79,22 @@ async function enter() {
   return screen.getByLabelText(/open private organizer file/i);
 }
 describe("private three-way pilot organizer", () => {
+  it("protects an unrecorded private submission on Back or close without persisting it", async () => {
+    await enter();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Compare original and redesigned booking" }),
+    );
+    const creator = await screen.findByLabelText("Creator code");
+    fireEvent.change(creator, { target: { value: "private-creator" } });
+    const close = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, close);
+    expect(close.defaultPrevented).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Return to reviewer room" }));
+    expect(screen.getByText("Leave this private draft?")).toBeVisible();
+    expect(localStorage.length).toBe(0);
+    expect(sessionStorage.length).toBe(0);
+    expect(downloadBlob).not.toHaveBeenCalled();
+  });
   it("keeps private organizer material outside the participant view and saved session", async () => {
     localStorage.setItem(REVIEW_ROOM_KEY, JSON.stringify(createReviewSession(packetFixture())));
     render(<BlindReviewRoom />);

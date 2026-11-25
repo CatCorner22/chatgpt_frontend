@@ -139,7 +139,8 @@ try {
     guide.split("## Garden journey brief")[1].split("```json")[1].split("```")[0],
   );
   assert.deepEqual(included, portable);
-  const colleague = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const recipient = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const colleague = await recipient.newPage();
   colleague.setDefaultTimeout(15000);
   await colleague.routeWebSocket("**/*", () => {});
   await restrictToFixture(colleague, "garden-journey-recipient");
@@ -160,6 +161,32 @@ try {
   await colleague.getByRole("button", { name: "Open my journey brief" }).click();
   await colleague.getByRole("button", { name: "3. Arrange the page" }).click();
   assert.equal(await colleague.getByLabel("Preferred approach").inputValue(), "scannable-sections");
+  // A second tab may update the current draft while its owner is choosing a Garden start.
+  await colleague.goto(new URL("/?view=studio", origin).href);
+  await colleague.locator("#brief").fill("A returning owner's first brief");
+  await colleague.getByRole("link", { name: "Focus home" }).click();
+  await colleague.getByRole("button", { name: "Change starting point" }).click();
+  await colleague.getByRole("radio", { name: "New app or website" }).check();
+  await colleague.getByRole("button", { name: "Continue", exact: true }).click();
+  await colleague.getByRole("link", { name: "Work on the page content" }).click();
+  await colleague.getByRole("heading", { name: "You have a saved draft" }).waitFor();
+
+  const secondTab = await recipient.newPage();
+  await secondTab.routeWebSocket("**/*", () => {});
+  await restrictToFixture(secondTab, "garden-journey-recipient");
+  await secondTab.goto(new URL("/?view=studio", origin).href);
+  const updatedBrief = "Revised appointment page for the studio";
+  await secondTab.locator("#brief").fill(updatedBrief);
+  await secondTab.reload();
+  assert.equal(await secondTab.locator("#brief").inputValue(), updatedBrief);
+  await colleague.getByRole("button", { name: "Start a separate draft" }).click();
+  await colleague.getByRole("alert").filter({ hasText: "changed in another tab" }).waitFor();
+  await colleague.getByRole("link", { name: "Resume saved work" }).click();
+  assert.equal(await colleague.locator("#brief").inputValue(), updatedBrief);
+  await colleague.goBack();
+  await colleague.getByRole("heading", { name: "Gather your content" }).waitFor();
+  await secondTab.close();
+
   assert.deepEqual(errors, []);
   console.log(
     browserName +

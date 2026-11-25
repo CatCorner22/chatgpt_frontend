@@ -25,11 +25,13 @@ vi.mock("@tanstack/react-router", async (original) => ({
     children,
     search,
     reloadDocument: _reload,
+    replace: _replace,
     ...props
   }: AnchorHTMLAttributes<HTMLAnchorElement> & {
     to: string;
     search?: Record<string, string>;
     reloadDocument?: boolean;
+    replace?: boolean;
   }) => (
     <a href={to + (search ? `?${new URLSearchParams(search)}` : "")} {...props}>
       {children}

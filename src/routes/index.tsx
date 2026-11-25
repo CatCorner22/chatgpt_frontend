@@ -432,7 +432,7 @@ function Studio({
           <div className="mt-5 flex flex-wrap gap-3">
             <Button onClick={startSeparately}>Start a separate draft</Button>
             <Button variant="outline" asChild>
-              <Link to="/" search={{ view: "studio" }} reloadDocument>
+              <Link to="/" search={{ view: "studio" }} reloadDocument replace>
                 Resume saved work
               </Link>
             </Button>

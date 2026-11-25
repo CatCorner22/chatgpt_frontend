@@ -63,7 +63,8 @@ export const pilotManifestSchema = z
     if (
       pilot.samples.some(
         (s) =>
-          !pilotGroups(pilot.protocol).includes(s.group) || (s.group !== "original" && !s.work),
+          !pilotGroups(pilot.protocol).includes(s.group) ||
+          (pilot.protocol === "matched-three-v1" && !s.work),
       )
     )
       ctx.addIssue({

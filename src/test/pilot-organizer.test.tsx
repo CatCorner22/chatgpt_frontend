@@ -232,6 +232,8 @@ describe("original and Focus booking pilot", () => {
     expect(screen.queryByRole("option", { name: "Image" })).toBeNull();
     fireEvent.change(screen.getByLabelText("Source"), { target: { value: "guided" } });
     expect(screen.getByLabelText("Tools used")).toBeRequired();
+    fireEvent.click(screen.getByLabelText("Build time and revision counts are unavailable"));
+    expect(screen.queryByLabelText("Tools used")).toBeNull();
     expect(screen.getByRole("button", { name: /download shuffled/i })).toBeDisabled();
   });
   it("refuses unmapped sources, reused outputs and images for a real booking comparison", () => {
@@ -243,5 +245,13 @@ describe("original and Focus booking pilot", () => {
     expect(() => createPilotPacket(pilot, [])).toThrow(/distinct outputs/);
     pilot.samples[0]!.kind = "image";
     expect(() => createPilotPacket(pilot, [])).toThrow(/interactive pages/);
+  });
+  it("keeps unknown production effort separate from observed task outcomes", () => {
+    const pilot = pair();
+    pilot.samples[1]!.work = null;
+    expect(scorePilot(pilot, []).tasks[0]?.production["guided"]).toBeNull();
+    const expertPilot: PilotManifest = manifest();
+    expertPilot.samples[1]!.work = null;
+    expect(() => scorePilot(expertPilot, [])).toThrow(/production records/);
   });
 });

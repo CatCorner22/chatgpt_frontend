@@ -81,12 +81,14 @@ function SubmissionFields({
   const selected = manifest.tasks.find((task) => task.id === taskId) ?? manifest.tasks[0]!;
   const interactive = selected.observationProtocol === bookingProtocol;
   const [group, setGroup] = useState<Sample["group"]>(first);
+  const [unknownWork, setUnknownWork] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     if (await save(new FormData(form))) {
       form.reset();
       setGroup(first);
+      setUnknownWork(false);
       setTaskId(manifest.tasks[0]!.id);
     }
   }
@@ -145,7 +147,18 @@ function SubmissionFields({
             Source and permission
             <input name="provenance" required maxLength={4000} className={control} />
           </label>
-          {group !== "original" && (
+          {manifest.protocol === "booking-pair-v1" && group === "guided" && (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="unknownWork"
+                checked={unknownWork}
+                onChange={(event) => setUnknownWork(event.target.checked)}
+              />
+              Build time and revision counts are unavailable
+            </label>
+          )}
+          {group !== "original" && !(manifest.protocol === "booking-pair-v1" && unknownWork) && (
             <>
               <label>
                 Tools used
@@ -429,7 +442,8 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         inputsSha256,
         artifactSha256,
         work:
-          text("group") === "original"
+          text("group") === "original" ||
+          (pilot.protocol === "booking-pair-v1" && data.has("unknownWork"))
             ? null
             : {
                 tools: text("tools"),
@@ -488,6 +502,26 @@ export function PilotOrganizer({ onClose }: { onClose: () => void }) {
         Return to reviewer room
       </Button>
       <h1 className="font-display text-3xl">Private pilot organizer</h1>
+      {!pilot && (
+        <section
+          aria-labelledby="practice-pilot-title"
+          className="space-y-2 rounded-lg border border-border p-4"
+        >
+          <h2 id="practice-pilot-title" className="font-display text-xl">
+            Try a booking comparison with a colleague
+          </h2>
+          <p className="max-w-2xl text-sm">
+            This kit contains two working versions of River Kiln and a private review form. Run it
+            on one computer with Node 22.12 or newer. Participants can book a practice class and
+            download their answers.
+          </p>
+          <Button asChild variant="outline">
+            <a href="/examples/river-kiln-booking-pilot.zip" download>
+              Download the ready-to-run study
+            </a>
+          </Button>
+        </section>
+      )}
       <p className="max-w-2xl text-muted-foreground">
         Prepare masked reviewer packets and compare returned answers. Work stays in this tab.
         Download the private draft before leaving and keep it with the organizer.

@@ -18,6 +18,8 @@
     "test:authored": "node scripts/test-authored-pages.mjs",
     "test:booking": "node scripts/test-booking-rehearsal.mjs",
     "test:pilot": "node scripts/test-pilot-organizer.mjs",
+    "build:booking-pilot": "node scripts/build-booking-pilot.mjs",
+    "test:booking-pilot": "node --test scripts/river-kiln-pilot-server.test.mjs && node scripts/test-portable-booking-pilot.mjs public/examples/river-kiln-booking-pilot.zip",
     "benchmark": "node scripts/north-star-benchmark.mjs",
     "test:benchmark": "node --test scripts/benchmark/*.test.mjs",
     "build:sites": "node scripts/build-sites.mjs",

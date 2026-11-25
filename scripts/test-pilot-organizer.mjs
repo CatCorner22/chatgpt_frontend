@@ -50,6 +50,15 @@ try {
   }
   await page.goto(new URL("/review-room", origin).href);
   await page.getByRole("button", { name: "Open private organizer workspace" }).click();
+  const [study] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "Download the ready-to-run study" }).click(),
+  ]);
+  assert.equal(study.suggestedFilename(), "river-kiln-booking-pilot.zip");
+  assert.deepEqual(
+    await readFile(await study.path()),
+    await readFile("public/examples/river-kiln-booking-pilot.zip"),
+  );
   await page.getByRole("button", { name: "Start booking and editorial pilot" }).click();
   const empty = await download("Download private draft");
   assert.equal(empty.samples.length, 0);

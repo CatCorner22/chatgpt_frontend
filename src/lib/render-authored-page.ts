@@ -1,3 +1,4 @@
+import { actionDestination } from "./action-destination";
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
 import { PRODUCT_PRINT_CSS } from "./authored-product-print";
@@ -84,39 +85,6 @@ const escape = (value: unknown): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 const text = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
-
-/** Navigation only: never fetched, embedded, or interpreted as executable content. */
-function actionDestination(value: unknown): string | null {
-  const raw = text(value);
-  if (
-    !raw ||
-    [...raw].some(
-      (character) => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127,
-    ) ||
-    /[<>"'`\\]/.test(raw) ||
-    /%(?:0a|0d)/i.test(raw)
-  )
-    return null;
-  if (/^mailto:/i.test(raw)) {
-    return /^mailto:[a-z0-9.!#$%&*+/=?^_{}|~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i.test(
-      raw,
-    )
-      ? raw
-      : null;
-  }
-  if (/^tel:/i.test(raw)) return /^tel:\+?[0-9][0-9().-]{2,39}$/.test(raw) ? raw : null;
-  try {
-    const url = new URL(raw);
-    return (url.protocol === "https:" || url.protocol === "http:") &&
-      url.hostname &&
-      !url.username &&
-      !url.password
-      ? url.href
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 /** The first bytes verify the declared raster type; SVG and remote URLs are never embedded. */
 function rasterImage(value: PageOptions["image"]): { src: string; alt: string } | null {

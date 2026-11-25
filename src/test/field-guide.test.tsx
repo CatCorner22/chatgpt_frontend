@@ -323,28 +323,29 @@ describe("Field Guide practice", () => {
 
   it("connects definitions to real references and offers useful return links", () => {
     render(<FieldGuide />);
+    const articles = new Map(screen.getAllByRole("article").map((item) => [item.id, item]));
     for (const term of FIELD_GUIDE_TERMS) {
-      const article = screen.getByRole("article", { name: term.term });
+      const article = articles.get(`term-${term.id}`);
+      expect(article).toHaveAccessibleName(term.term);
+      const links = within(article!)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href"));
       expect(term.sourceIds.length).toBeGreaterThan(0);
       for (const sourceId of term.sourceIds) {
-        const source = FIELD_GUIDE_SOURCES.find((item) => item.id === sourceId);
-        expect(source, `Missing reference for ${term.term}`).toBeDefined();
-        const anchor = within(article)
-          .getAllByRole("link")
-          .find((link) => link.getAttribute("href") === `#source-${sourceId}`);
-        expect(anchor).toBeDefined();
+        expect(FIELD_GUIDE_SOURCES.some((item) => item.id === sourceId)).toBe(true);
+        expect(links).toContain(`#source-${sourceId}`);
         expect(document.getElementById(`source-${sourceId}`)).toBeInTheDocument();
       }
     }
     const sources = screen.getByRole("region", { name: "Where these explanations come from" });
+    const sourceLinks = within(sources).getAllByRole("link");
     for (const source of FIELD_GUIDE_SOURCES) {
-      const link = within(sources).getByRole("link", {
-        name: (name) => name.startsWith(source.title),
-      });
+      const link = sourceLinks.find((item) => item.getAttribute("href") === source.url);
+      expect(link).toHaveAccessibleName(`${source.title} (opens in a new tab)`);
       expect(link).toHaveAttribute("href", source.url);
       expect(new URL(source.url).protocol).toBe("https:");
       expect(link).toHaveAttribute("target", "_blank");
-      expect(link.getAttribute("rel")?.split(/\s+/)).toContain("noopener");
+      expect(link?.getAttribute("rel")?.split(/\s+/)).toContain("noopener");
       expect(link).toHaveAccessibleName(/opens in a new tab/);
     }
     for (const station of FIELD_GUIDE_CHOICES)

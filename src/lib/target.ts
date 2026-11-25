@@ -294,6 +294,7 @@ export async function prepareTargetPack(
     : [];
   const purpose = entry.state["purpose"] as { experience?: string } | undefined;
   const prescription = buildPrescription({
+    authoredPage: entry.state["page"],
     brief: `One-page trial for ${draft.page}. Desired visible improvement: ${draft.improvement}`,
     content: entry.state.content,
     direction:

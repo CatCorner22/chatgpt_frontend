@@ -23,7 +23,7 @@ async function sha256(value: string) {
 }
 
 const previewBoundary =
-  "Execution requires a safe isolated working copy and appropriate test data/services for anything it can reach; missing those safeguards blocks execution. If a rendered preview is unavailable, mark browser and visitor checks as not-run. Only independently authorized isolated source/build checks may continue within their existing scope and permissions. Their results are not a completed trial and do not authorize additional edits or external effects.";
+  "Before running a task, record its isolated project path, the test endpoint for every integration it uses, and the test account or made-up address. River Kiln uses the local practice service with a made-up reservation address. Stop if you cannot identify these details or the task can reach a production service. If a rendered preview is unavailable, mark browser and visitor checks as not-run. Only independently authorized isolated source/build checks may continue within their existing scope and permissions. Their results are not a completed trial and do not authorize additional edits or external effects.";
 
 const startHere = `# Source styling trial — proposal prepared
 
@@ -162,6 +162,9 @@ Report the contract/design/source identities, exact files examined, verifier out
 function v2Guide(prepared: PreparedSourceTrial) {
   const { contract } = prepared;
   if (contract.version !== 2) throw new Error("Choose a version 2 trial.");
+  const families = [...new Set([contract.effective.headingFont, contract.effective.bodyFont])].join(
+    " and ",
+  );
   const files = contract.assets
     .map((asset) => `- \`${asset.path}\` (${asset.bytes} bytes, SHA-256 \`${asset.sha256}\`)`)
     .join("\n");
@@ -172,7 +175,7 @@ Start with an empty folder outside the project and extract the ZIP there. Keep t
 ## What will change
 
 - Source files: \`${contract.files[0].path}\` and \`${contract.files[1].path}\`.
-- Typography: ${contract.typography === "portable" ? `use the selected licensed Latin subsets for ${contract.effective.headingFont} and ${contract.effective.bodyFont}. At phone and desktop widths, disconnect external network access while keeping local assets available and wait for fonts to load. In Chrome or Edge, right-click the heading, choose Inspect, open Computed, and expand Rendered Fonts. For Latin text expect ${contract.effective.headingFont} on the heading and ${contract.effective.bodyFont} on both the supporting paragraph and primary action. Inspect each element separately. Also check the scripts, accents, styles and weights your page actually uses. If an unexpected family drew the text, record the fallback, run verify.mjs after again, then check whether your built preview serves the font files and allows them in its font loading policy. Repair the preview or choose “Keep the app’s typography” and prepare another trial. Record the observation only after retesting; Focus grants no automatic credit for this manual check.` : "keep the project's existing fonts."}
+- Typography: ${contract.typography === "portable" ? `use the selected licensed Latin subsets for ${families}. At phone and desktop widths, disconnect external network access while keeping local assets available and wait for fonts to load. In Chrome or Edge, right-click the heading, choose Inspect, open Computed, and expand Rendered Fonts. For Latin text expect ${contract.effective.headingFont} on the heading and ${contract.effective.bodyFont} on both the supporting paragraph and primary action. Inspect each element separately. Also check the scripts, accents, styles and weights your page actually uses. If an unexpected family drew the text, record the fallback, repeat the full after-verification command in the application steps below, then check whether your built preview serves the font files and allows them in its font loading policy. Repair the preview or choose “Keep the app’s typography” and prepare another trial. Record the observation only after retesting; Focus grants no automatic credit for this manual check.` : "keep the project's existing fonts."}
 - Class selection: ${contract.bookingLayout === "compare" ? "show both recognized classes with their times and totals. The existing class field, validation, form and booking service still require a real task check." : "keep the original controls."}
 
 ${files ? `The patch creates the following new files. Every path must be absent before applying, even if a file already there has identical bytes. The ZIP also includes read-only copies in assets/ for inspection. Git installs and removes the project copies as part of the same patch. Do not manually copy or delete them.\n\n${files}` : "This trial creates no font or license files."}

@@ -53,6 +53,7 @@ export function Vision({ s, update, ask }: StudioStageProps) {
   const integration = s.integration;
   const setIntegration = (mode: Integration) => update({ integration: mode });
   const md = buildPrescription({
+    authoredPage: s.page,
     integration,
     brief: s.brief,
     content: s.content!,

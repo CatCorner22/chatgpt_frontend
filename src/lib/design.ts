@@ -4,6 +4,7 @@ import { appRules, signalText, type Experience } from "./appDesign";
 import { techniquesMarkdown } from "./techniques";
 // Shared, browser-safe design model: tokens, steps, contrast, prescription.
 import { CARDS, PAGE_ELEMENTS, cardMarkdown } from "./knowledge";
+import { websiteActionForHandoff } from "./action-destination";
 import { contentHandoffMarkdown } from "./content-handoff";
 export const HEADING_FONTS = [
   "Fraunces",
@@ -294,6 +295,7 @@ export function effectsMarkdown(t: Tokens) {
 }
 
 export function buildPrescription(o: {
+  authoredPage?: unknown;
   brief: string;
   content: Content;
   direction: string;
@@ -470,7 +472,7 @@ ${PAGE_ELEMENTS.map((id) => CARDS.find((c) => c.id === id))
   .join("\n\n")}
 
 ${o.checks ? `## Measured checks\n${o.checks.map((check) => `- ${c(check.name, 200)}: ${c(check.value, 500)} ${check.ok ? "(holds)" : "(DOES NOT HOLD — fix before shipping)"} [evidence ${c(check.grade, 80)}]`).join("\n")}\n` : ""}
-${contentHandoffMarkdown(o.content)}
+${contentHandoffMarkdown(o.content, o.experience === "app" ? null : websiteActionForHandoff(o.authoredPage))}
 
 ## Before you report done
 Render the page, look at it at 390px and 1280px wide, and check the applicable rules above. Preserve authoritative supplied wording when it conflicts with generic wording advice; report that exception and obtain owner approval before any rewrite. Fix implementation failures and report any checks you could not run.
@@ -527,7 +529,7 @@ export const EXISTING_PACK_PLACEMENT =
 export const EXISTING_RULES = `## Safety rules for an existing project (follow before anything else)
 - Make an isolated trial first: use a separate branch or duplicate with a local or staging preview, never edit the live production app for a trial. Save a copy as a named backup and preserve uncommitted work. Use test accounts and sandbox integrations so trial actions cannot charge money, send real messages or modify production data.
 - Change how things LOOK only. Never remove or rename pages, routes, links, forms, fields, buttons, text, images, scripts, analytics or data logic.
-- Never delete or overwrite existing files such as styles, config or rule files. Add the Focus files next to them.
+- Keep existing files and their contents. Place generated files beside them. In the isolated copy, add only the documented trial imports, wrapper attributes and optional reminder. Never replace a customer file with a generated file.
 - ${EXISTING_PACK_PLACEMENT} Check for existing data-focus-restyle or data-focus-theme markers before importing; if found, stop and resolve the scope collision. Load focus-tokens.css and ONE compatible bridge. Apply data-focus-restyle to one page wrapper only, not html/body, to expose the namespaced values.
 - Audit existing foreground/background pairs and component roles before enabling semantic theme mapping. Only after that review, add data-focus-theme="semantic" to the same trial wrapper. Keep original semantic status colors and components that the bridge does not map; test the actual rendered result.
 - Record original routes, forms, fields and working tasks. Test the same tasks after each change. Remove data-focus-theme="semantic" to disable semantic mappings, then data-focus-restyle and the added imports to undo wrapper-scoped CSS. Selectively restore component edits from the backup. Leave pre-existing or ambiguous rule reminders untouched. For an optional reminder newly added by this trial, follow ADD-TO-YOUR-RULES.md and UNDO.md: remove only its exact recorded, unchanged insertion; otherwise stop for manual review with the backup. Never hard-reset unrelated work.

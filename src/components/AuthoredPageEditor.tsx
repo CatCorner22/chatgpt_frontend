@@ -22,6 +22,7 @@ import {
 import { usePageImage } from "@/hooks/usePageImage";
 import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
+import { websiteActionForHandoff } from "@/lib/action-destination";
 import { CompositionComparison } from "@/components/CompositionComparison";
 import { ImageFramingControls } from "@/components/ImageFramingControls";
 import { compactImageFraming } from "@/lib/image-framing";
@@ -309,6 +310,9 @@ export function AuthoredPageEditor({
         <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
           Use your actual booking page, contact address, or destination. Without a valid address,
           the page links to supplied feature details; when there are none, no main action is shown.
+          {settings.actionUrl && !websiteActionForHandoff(settings)
+            ? " Give your developer the destination separately. This address is omitted from developer guides."
+            : " Developer guides include the full web address. Use a link you can share."}
         </p>
       </div>
       <details className="border-y border-border py-2">

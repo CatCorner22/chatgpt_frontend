@@ -336,6 +336,29 @@ describe("Target Content transfer", () => {
     );
   });
 
+  it.each([
+    ["https://[2606:4700:4700::1111]:8443/classes?slot=am&day=Thu", true],
+    ["https://[2001:4860:4860::8888]/classes?slot=pm&day=Sat", true],
+    ["https://[::1]/", false],
+    ["https://[fd12::1]/", false],
+    ["http://[fe80::1]/", false],
+    ["https://[::ffff:192.168.1.1]/", false],
+    ["https://[2001:db8::1]/", false],
+    ["https://[3fff:1::2]/", false],
+    ["https://[ff02::1]/", false],
+    ["https://[2002:c0a8:0101::1]/", false],
+  ] as const)("handles an IPv6 address in a downloaded guide: %s", async (href, shareable) => {
+    const saved = { ...entry, state: { ...entry.state, page: { actionUrl: href } } };
+    const zip = await JSZip.loadAsync(await prepareTargetPack(draft, saved));
+    const markdown = await zip.file("DESIGN.md")!.async("string");
+    const blocks = [...markdown.matchAll(/^```json\n([\s\S]*?)^```$/gm)].map((m) =>
+      JSON.parse(m[1]!),
+    );
+    expect(blocks.filter((block) => block.format === "focus-primary-action-v1")).toEqual(
+      shareable ? [{ format: "focus-primary-action-v1", href }] : [],
+    );
+  });
+
   it("keeps public-code confirmation bound to the exact link and excludes sign-in and signed links", async () => {
     const href = "https://Bookings.example.org?code=SPRINGSALE&slot=morning";
     const guide = (actionUrl: string, publicCodeUrl?: string) =>

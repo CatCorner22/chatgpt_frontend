@@ -87,16 +87,32 @@ export function containsUrlCredentials(url: URL, secretParameters = SECRET_PARAM
   );
 }
 
+// WHATWG URL has already validated and normalized the bracketed IPv6 host.
+// Accept global unicast navigation addresses, excluding documentation,
+// transition and special-purpose prefixes. No network lookup is involved.
+function isShareableHost(host: string): boolean {
+  if (!host.startsWith("[")) return !!safeUrl(`https://${host}/`);
+  const [network, subnet] = host.slice(1, -1).split(":");
+  const first = Number.parseInt(network || "0", 16);
+  const second = Number.parseInt(subnet || "0", 16);
+  return (
+    first >= 0x2000 &&
+    first <= 0x3fff &&
+    first !== 0x2002 &&
+    !(first === 0x2001 && (second < 0x200 || second === 0xdb8)) &&
+    !(first === 0x3fff && second < 0x1000)
+  );
+}
+
 function publicWebAction(value: unknown) {
   if (typeof value !== "string" || value.length > 2000) return null;
   const href = actionDestination(value);
   if (!href || !/^https?:\/\//i.test(href)) return null;
   const url = new URL(href);
   const host = url.hostname.toLowerCase().replace(/\.$/, "");
-  // This is navigation data. Only reuse the Critic's host check; its network
-  // fetch port restrictions do not apply to a link a developer will render.
+  // A developer will render this link. No Critic fetch or port check is required.
   if (
-    !safeUrl(`https://${host}/`) ||
+    !isShareableHost(host) ||
     host.endsWith(".localhost") ||
     host === "home.arpa" ||
     host.endsWith(".home.arpa") ||

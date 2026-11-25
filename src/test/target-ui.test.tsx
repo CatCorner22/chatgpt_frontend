@@ -1,4 +1,5 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import JSZip from "jszip";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -119,6 +120,49 @@ afterEach(() => {
 });
 
 describe("Target guided preparation", () => {
+  it("lets the owner identify a same-named Vision and downloads that exact design", async () => {
+    const selected = {
+      ...entry,
+      id: "weekend",
+      state: {
+        ...entry.state,
+        libraryId: "weekend",
+        content: { ...entry.state.content, headline: "Evening sessions" },
+        tokens: normalizeTokens({ radius: 24 }),
+      },
+    };
+    const other = {
+      ...selected,
+      id: "weekday",
+      state: { ...selected.state, libraryId: "weekday" },
+    };
+    seed();
+    localStorage.setItem(
+      LIBRARY_KEY,
+      JSON.stringify({ version: 1, entries: [entry, other, selected] }),
+    );
+    const { prepareTargetPack } =
+      await vi.importActual<typeof import("@/lib/target")>("@/lib/target");
+    operations.prepare.mockImplementation(prepareTargetPack);
+    render(<Target />);
+    const picker = await screen.findByLabelText("Which saved Vision should guide this?");
+    expect(within(picker).getByRole("option", { name: /Keep original words/ })).toBeVisible();
+    const option = within(picker).getByRole("option", {
+      name: /Evening sessions.*weekend/,
+    }) as HTMLOptionElement;
+    fireEvent.change(picker, { target: { value: option.value } });
+    for (let step = 0; step < 3; step++)
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Your trial at a glance")).toHaveTextContent(option.text);
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    await waitFor(() => expect(operations.download).toHaveBeenCalledTimes(1));
+    const [blob, name] = operations.download.mock.calls[0]!;
+    expect(name).toBe("focus-target-existing-site-pack.zip");
+    const zip = await JSZip.loadAsync(blob);
+    const tokens = JSON.parse(await zip.file("focus-restyle/tokens.json")!.async("string"));
+    expect(tokens).toEqual(selected.state.tokens);
+  });
+
   it("stops a pending owner-selected Garden brief delivery when another tab edits that brief", async () => {
     seed();
     const brief = { ...newGardenJourney(entry.id, "existing"), task: "Book a class" };

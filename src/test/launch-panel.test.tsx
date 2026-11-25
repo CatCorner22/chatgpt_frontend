@@ -5,6 +5,7 @@ import { LaunchPanel } from "@/components/LaunchPanel";
 import { normalizeTokens } from "@/lib/design";
 import {
   EMPTY_LAUNCH,
+  PROGRESS_KEY,
   TASKS,
   addEvidence,
   launchFingerprint,
@@ -14,19 +15,25 @@ import {
   writeProgress,
   type ReviewEvidence,
 } from "@/lib/launch";
+import { saveProgress } from "@/lib/launch.functions";
 import { critiqueUrl } from "@/lib/critic.functions";
+
+const account = vi.hoisted(() => ({ signedIn: false }));
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/progress">{children}</a>,
 }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
-vi.mock("@/hooks/useSession", () => ({ useUser: () => null }));
+vi.mock("@/hooks/useSession", () => ({
+  useUser: () => (account.signedIn ? { id: "test-owner" } : null),
+}));
 vi.mock("@/lib/critic.functions", () => ({ critiqueUrl: vi.fn() }));
 vi.mock("@/lib/launch.functions", () => ({ saveProgress: vi.fn() }));
 vi.mock("@/components/ShotReview", () => ({ ShotReview: () => null }));
 vi.mock("@/components/FixList", () => ({ FixList: () => null }));
 
 beforeEach(() => {
+  account.signedIn = false;
   localStorage.clear();
   vi.clearAllMocks();
 });
@@ -142,6 +149,125 @@ describe("launch readiness explanations", () => {
     render(
       <LaunchPanel id="readiness" title="Customer site" tokens={tokens} tool="Human developer" />,
     );
+
+  it("keeps another tab's newer review when an older panel tries to record a launch", async () => {
+    seed();
+    panel();
+    const launch = await screen.findByRole("button", { name: "Record launch" });
+    const records = readProgress();
+    const newer = {
+      ...evidence,
+      summary: "New issue from the second tab",
+      checks: [{ ...evidence.checks[0]!, ok: false }],
+    };
+    records[0]!.details = addEvidence(records[0]!.details, newer);
+    writeProgress(records);
+    fireEvent.click(launch);
+    expect(readProgress()[0]!.details).toEqual(records[0]!.details);
+    expect(screen.getByText(newer.summary)).toBeInTheDocument();
+    expect(launch).toBeDisabled();
+    fireEvent.click(screen.getByLabelText(TASKS[0].label));
+    const retried = readProgress()[0]!.details;
+    expect(retried.tasks).toEqual([TASKS[0].id]);
+    expect(retried.reviews).toEqual(records[0]!.details.reviews);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps typed address text available while it shows newer saved evidence", async () => {
+    seed();
+    panel();
+    const address = await screen.findByLabelText("Built page address");
+    fireEvent.change(address, { target: { value: "here.example/test" } });
+    const records = readProgress();
+    records[0]!.details.url = "https://elsewhere.example/work";
+    writeProgress(records);
+    fireEvent.blur(address);
+    fireEvent.click(screen.getByRole("button", { name: "I have built the design" }));
+    expect(readProgress()[0]!.details).toEqual(records[0]!.details);
+    expect(address).toHaveValue("here.example/test");
+    const exit = new Event("beforeunload", { cancelable: true });
+    act(() => {
+      window.dispatchEvent(exit);
+    });
+    expect(exit.defaultPrevented).toBe(true);
+  });
+
+  it("preserves a partially damaged collection when opening a different launch checklist", async () => {
+    seed();
+    const raw = JSON.stringify({ version: 1, records: [...readProgress(), { id: "damaged" }] });
+    localStorage.setItem(PROGRESS_KEY, raw);
+    panel();
+    expect(localStorage.getItem(PROGRESS_KEY)).toBe(raw);
+    expect(
+      screen.queryByRole("button", { name: "I have built the design" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not confirm a launch when browser storage silently drops the write", async () => {
+    seed();
+    panel();
+    const launch = await screen.findByRole("button", { name: "Record launch" });
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});
+    try {
+      fireEvent.click(launch);
+      expect(readProgress()[0]!.details.status).toBe("reviewed");
+      expect(screen.queryByRole("button", { name: "Launch recorded" })).not.toBeInTheDocument();
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("requires a new account save if evidence changes while the first save is in flight", async () => {
+    account.signedIn = true;
+    seed();
+    let finish!: () => void;
+    vi.mocked(saveProgress).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ id: "saved" });
+        }),
+    );
+    panel();
+    fireEvent.click(await screen.findByRole("button", { name: "Save evidence to account" }));
+    fireEvent.click(screen.getByLabelText(TASKS[0].label));
+    await act(async () => finish());
+    expect(screen.queryByRole("button", { name: "Saved to account" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save evidence to account" })).toBeEnabled();
+    expect(screen.getByLabelText(TASKS[0].label)).not.toBeChecked();
+  });
+
+  it("lets an owner finish the checklist after reviewing a shorthand page address", async () => {
+    seed();
+    vi.mocked(critiqueUrl).mockResolvedValue({
+      host: "example.com",
+      score: 100,
+      review: null,
+      facts: {
+        fonts: [tokens.headingFont, tokens.bodyFont],
+        colors: [tokens.bg, tokens.ink, tokens.accent],
+      },
+      findings: [
+        {
+          id: "phone",
+          ok: true,
+          detail: "Phone setting present",
+          fix: "",
+          area: "Accessibility",
+          severity: "low",
+        },
+      ],
+    } as Awaited<ReturnType<typeof critiqueUrl>>);
+    panel();
+    const address = await screen.findByLabelText("Built page address");
+    fireEvent.change(address, { target: { value: "example.com" } });
+    fireEvent.blur(address);
+    expect(readProgress()[0]!.details.url).toBe("example.com");
+    fireEvent.click(await screen.findByRole("button", { name: "Review built page" }));
+    await waitFor(() => expect(readProgress()[0]!.details.reviews).toHaveLength(2));
+    for (const task of TASKS) fireEvent.click(screen.getByLabelText(task.label));
+    expect(screen.getByRole("button", { name: "Record launch" })).toBeEnabled();
+  });
 
   it("retains the focused address on departure without reviewing a page or confirming launch", async () => {
     seed();

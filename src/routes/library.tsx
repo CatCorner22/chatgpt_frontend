@@ -362,6 +362,7 @@ function Library() {
           backup there before transferring it.
         </p>
         <HostedLibraryPanel
+          savePendingEdits={flushMetadata}
           disabled={!ready || !!transferring}
           onRestored={() => setReadAttempt((n) => n + 1)}
         />

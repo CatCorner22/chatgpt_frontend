@@ -16,9 +16,11 @@ const problem = (error: unknown) =>
 
 export function HostedLibraryPanel({
   onRestored,
+  savePendingEdits,
   disabled = false,
 }: {
   onRestored: () => void;
+  savePendingEdits: () => boolean;
   disabled?: boolean;
 }) {
   const session = useHostedSession();
@@ -81,6 +83,10 @@ export function HostedLibraryPanel({
       (remote !== null && !reviewed)
     )
       return;
+    if (!savePendingEdits()) {
+      setStatus("");
+      return;
+    }
     const controller = new AbortController();
     operation.current = controller;
     setBusy("save");
@@ -135,6 +141,10 @@ export function HostedLibraryPanel({
   };
   const restore = async () => {
     if (!available || identityChanged || disabled || operation.current || !remote) return;
+    if (!savePendingEdits()) {
+      setStatus("");
+      return;
+    }
     const controller = new AbortController();
     operation.current = controller;
     setBusy("restore");

@@ -107,6 +107,60 @@ describe("Garden home", () => {
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
 
+  it("reopens the latest saved brief from another tab and keeps its next edit", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "First-time students" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    const updated = { ...readGardenJourney(null).brief!, audience: "Returning students" };
+    localStorage.setItem(gardenJourneyKey(null), JSON.stringify(updated));
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Returning students");
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Reserve a place" },
+    });
+    expect(readGardenJourney(null).brief).toMatchObject({
+      audience: "Returning students",
+      task: "Reserve a place",
+    });
+  });
+
+  it("keeps the last readable brief available when reopening it while storage is unavailable", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Weekend students" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    const getItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === gardenJourneyKey(null)) throw new Error("Storage unavailable");
+      return getItem.call(this, key);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Weekend students");
+    expect(screen.getByRole("alert")).toBeVisible();
+  });
+
+  it("keeps an unsaved tab's brief available after closing and reopening the panel", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Storage full");
+    });
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Night class" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    write.mockRestore();
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Night class");
+    fireEvent.click(screen.getByRole("button", { name: "Retry saving" }));
+    expect(readGardenJourney(null).brief?.audience).toBe("Night class");
+  });
+
   it("previews only the selected website's current offers and handles its removal without changing Studio", async () => {
     const id = "class-site";
     const saveWebsite = (price: string) =>
@@ -443,6 +497,25 @@ describe("Garden home", () => {
     });
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
   });
+
+  it.each(["goal", "craft"] as const)(
+    "returns focus to the current %s stop when its map button is activated again",
+    async (stepId) => {
+      const saved = JSON.stringify({ ...GARDEN_DEFAULTS, step: stepId });
+      localStorage.setItem(GARDEN_KEY, saved);
+      render(<GardenHome />);
+      const heading = await screen.findByRole("heading", {
+        level: 1,
+        name: stepId === "goal" ? "Where do we start?" : getGardenStep(stepId).title,
+      });
+      const map = screen.getByRole("navigation", { name: "Garden Path steps" });
+      const current = within(map).getByRole("button", { current: "step" });
+      current.focus();
+      fireEvent.click(current);
+      expect(heading).toHaveFocus();
+      expect(localStorage.getItem(GARDEN_KEY)).toBe(saved);
+    },
+  );
 
   it("remembers goal and navigation choices, focuses the new heading, and writes no completion evidence", async () => {
     seedProtectedRecords();

@@ -1,3 +1,4 @@
+import { savedDesignOptions } from "@/lib/saved-design-options";
 import { useRef, useState } from "react";
 import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GardenBriefComparison } from "./GardenBriefComparison";
@@ -5,7 +6,7 @@ import { GardenBriefImport } from "@/components/GardenBriefImport";
 import { ArrowDownToLine, BookOpen } from "lucide-react";
 import { focusLocalStorage, focusSessionStorage, getBrowserOwnerId } from "@/lib/browser-storage";
 import { downloadBlob } from "@/lib/download-blob";
-import { LIBRARY_KEY, inspectLibrary, type LibraryEntry } from "@/lib/library";
+import { LIBRARY_KEY, inspectLibrary } from "@/lib/library";
 import {
   JOURNEY_FIELDS,
   JOURNEY_NOTE_LIMIT,
@@ -24,25 +25,6 @@ function message(cause: unknown) {
   return cause instanceof Error && cause.name === "Error"
     ? cause.message
     : "Browser storage is unavailable. Keep this tab open and download your edits.";
-}
-
-function briefDesignOptions(entries: LibraryEntry[]) {
-  const choices = entries.filter(({ id }) => id.length <= 200);
-  const headlinesByTitle = new Map<string, Map<string, number>>();
-  for (const { title, state } of choices) {
-    const counts = headlinesByTitle.get(title) ?? new Map<string, number>();
-    const headline = state.content.headline.trim();
-    counts.set(headline, (counts.get(headline) ?? 0) + 1);
-    headlinesByTitle.set(title, counts);
-  }
-  return choices.map(({ id, title, state }) => {
-    const counts = headlinesByTitle.get(title)!;
-    const headline = state.content.headline.trim();
-    const sameHeadline = counts.get(headline)!;
-    if (counts.size === 1 && sameHeadline === 1) return { id, title };
-    const label = [title, headline, sameHeadline > 1 || !headline ? id : ""].filter(Boolean);
-    return { id, title: label.join(" — ") };
-  });
 }
 
 export function GardenJourneyBrief({
@@ -66,18 +48,20 @@ export function GardenJourneyBrief({
   const raw = useRef<string | null>(null);
   const pending = useRef<GardenJourney | null>(null);
   function load(id: string | null) {
+    const lastReadable = !pending.current && draft?.designId === id ? draft : null;
     pending.current = null;
     setUnsaved(false);
     setIssue("");
     setStatus("");
     setSaved(false);
     setCanCopy(false);
-    raw.current = null;
-    let next = newGardenJourney(id, goal);
+    if (!lastReadable) raw.current = null;
+    const empty = newGardenJourney(id, goal);
+    let next = lastReadable ?? empty;
     try {
       const snapshot = readGardenJourney(id);
       raw.current = snapshot.raw;
-      next = snapshot.brief ?? next;
+      next = snapshot.brief ?? empty;
       setSaved(!!snapshot.brief);
       if (id && !snapshot.brief) setCanCopy(!!readGardenJourney(null).brief);
     } catch (cause) {
@@ -93,17 +77,21 @@ export function GardenJourneyBrief({
   }
 
   function toggle() {
-    if (!open && !draft) {
-      let choices: typeof designs = [];
-      let selected: string | null = null;
+    if (!open && !pending.current) {
+      let selected = draft?.designId ?? null;
       try {
         const library = inspectLibrary(focusLocalStorage.getItem(LIBRARY_KEY));
-        choices = briefDesignOptions(library.entries);
+        const choices = savedDesignOptions(library.entries.filter(({ id }) => id.length <= 200));
         setDesigns(choices);
+        const remembered = draft ? draft.designId : focusSessionStorage.getItem(JOURNEY_SCOPE_KEY);
+        selected = choices.find(({ id }) => id === remembered)?.id ?? null;
         if (library.needsRecovery)
           setLibraryIssue("Some saved designs need recovery in My designs.");
-        const remembered = focusSessionStorage.getItem(JOURNEY_SCOPE_KEY);
-        selected = choices.find(({ id }) => id === remembered)?.id ?? null;
+        else if (remembered && !selected)
+          setLibraryIssue(
+            "The selected design is no longer in My designs. Your unassigned planning draft is open.",
+          );
+        else setLibraryIssue("");
       } catch {
         setLibraryIssue("Your saved designs could not be listed in this browser.");
       }

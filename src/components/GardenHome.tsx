@@ -109,6 +109,7 @@ export function GardenHome() {
   };
   const visit = (step: GardenStepId) => {
     focusOnStep.current = step !== preferences.step;
+    if (!focusOnStep.current) heading.current?.focus();
     change({ step });
   };
   const index = GARDEN_STEPS.findIndex((step) => step.id === preferences.step);

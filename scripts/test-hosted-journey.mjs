@@ -56,6 +56,7 @@ const content = {
   quote: "",
   features: [{ title: "Wheel basics", body: "Clay, firing, and materials included." }],
 };
+const updatedCollection = "Autumn workshops";
 const original = {
   kind: "focus-library-backup",
   version: 1,
@@ -153,7 +154,36 @@ async function savedBriefAndBackup(page) {
   await page.getByLabel("Preferred approach").selectOption("guided-sequence");
   await page.getByLabel("What must the visitor see before they decide?").fill(directionNote);
   await goto(page, "/library");
-  await button(page, "Save library online").click();
+  const save = button(page, "Save library online");
+  const collection = page.getByLabel(`Collection for ${title}`);
+  await collection.fill(updatedCollection);
+  // Exercise the actual blur and click after the browser temporarily refuses a write.
+  const restoreWrites = await page.evaluateHandle(() => {
+    const originalWrite = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key.endsWith("refraction:library:v1"))
+        throw new DOMException("Full", "QuotaExceededError");
+      return originalWrite.call(this, key, value);
+    };
+    return () => {
+      Storage.prototype.setItem = originalWrite;
+    };
+  });
+  await save.click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: /save the name or collection/ })
+    .waitFor();
+  await page.getByRole("button", { name: "Saving library…" }).waitFor({ state: "hidden" });
+  assert.equal(
+    events.filter((e) => e.method === "PUT").length,
+    0,
+    "Online save must wait for pending library edits",
+  );
+  assert.equal(await collection.inputValue(), updatedCollection);
+  await restoreWrites.evaluate((restore) => restore());
+  await restoreWrites.dispose();
+  await save.click();
   await page.getByText(/Saved 1 design online/).waitFor();
 }
 
@@ -161,6 +191,7 @@ function assertBackup(copy) {
   assert.equal(copy.entries.length, 1);
   assert.equal(copy.entries[0].id, id);
   assert.equal(copy.entries[0].title, title);
+  assert.equal(copy.entries[0].collection, updatedCollection);
   assert.deepEqual(copy.entries[0].state.content, content);
   assert.equal(copy.entries[0].state.tokens.accent, tokens.accent);
   assert.equal(copy.entries[0].state.page.imageId, imageId);

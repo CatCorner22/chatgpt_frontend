@@ -25,6 +25,7 @@ try {
     "test-autosave-navigation.mjs",
     "test-copy-ownership.mjs",
     "test-authored-pages.mjs",
+    "test-hosted-journey.mjs",
     "test-existing-transfer.mjs",
     "test-booking-rehearsal.mjs",
     "test-pilot-organizer.mjs",

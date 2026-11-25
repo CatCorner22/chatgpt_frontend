@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BookingRehearsalDownload } from "@/components/BookingRehearsalDownload";
@@ -14,6 +14,7 @@ import { readGardenJourney, type GardenJourney } from "@/lib/garden-journey";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
 import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import type { LibraryEntry } from "@/lib/library";
+import { savedDesignOptions } from "@/lib/saved-design-options";
 import {
   EMPTY_TARGET_DRAFT,
   TARGET_LIMITS,
@@ -189,6 +190,8 @@ export function Target() {
     setCopied("");
     setIssues([]);
   };
+  const designOptions = useMemo(() => savedDesignOptions(entries), [entries]);
+  const selectedLabel = designOptions.find(({ id }) => id === draft.designId)?.title;
   const selected = entries.find((entry) => entry.id === draft.designId);
   const allIssues = targetStepIssues(draft, 3, entries);
   const prompts = selected && allIssues.length === 0 ? targetPrompts(draft, selected) : [];
@@ -573,7 +576,7 @@ export function Target() {
                         required
                       >
                         <option value="">Choose a saved design</option>
-                        {entries.map((entry) => (
+                        {designOptions.map((entry) => (
                           <option key={entry.id} value={entry.id}>
                             {entry.title}
                           </option>
@@ -1085,7 +1088,7 @@ export function Target() {
               >
                 <p className="eyebrow">Your trial</p>
                 <p className="font-display text-2xl break-words">
-                  {selected?.title || "Choose your Vision"}
+                  {selectedLabel || "Choose your Vision"}
                 </p>
                 {selected && (
                   <div

@@ -910,6 +910,30 @@ export function deriveStratosphereGraph(input: StratosphereInput): StratosphereG
         blocked: !!unavailable,
       });
   }
+  if (input.page.language === "ja") {
+    const available = profile === "authored-website" && !invalid.length;
+    nodes.push(
+      node(
+        "output:page-language",
+        "output",
+        "Published page language",
+        available
+          ? "Japanese (ja). The page declares Japanese and uses Japanese for its built-in navigation and section labels. Customer copy keeps its original wording."
+          : "Japanese is saved for the authored website. The current output does not apply this setting.",
+        available,
+      ),
+    );
+    edges.push({
+      id: "profile-page-language",
+      from: "context:output",
+      to: "output:page-language",
+      kind: "requires",
+      reason:
+        "The full-page preview, standalone HTML and editable website source share this language setting.",
+      fields: ["integration", "purpose.experience", "page.language"],
+      blocked: !available,
+    });
+  }
   if (input.page.relatedStory) {
     const authored = profile === "authored-website" && !invalid.length;
     const story = input.page.relatedStory;

@@ -1,5 +1,6 @@
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
+import { PRODUCT_PRINT_CSS } from "./authored-product-print";
 import {
   getAuthoredFeatures,
   getAuthoredQuote,
@@ -21,6 +22,7 @@ import { isPageComposition, type PageComposition } from "./page-compositions";
 type PageImage = { src: string; alt: string; credit?: string };
 export type PageOptions = {
   composition: PageComposition;
+  language?: "en" | "ja";
   actionUrl: string;
   image?: PageImage;
   relatedStory?: {
@@ -35,6 +37,44 @@ export type PageOptions = {
 
 export const DEFAULT_PAGE_OPTIONS: PageOptions = { composition: "studio", actionUrl: "" };
 export type PageReadiness = { id: string; message: string };
+
+// Only Focus's own visitor-facing text belongs here. Owner copy is never translated.
+const PAGE_LABELS = {
+  en: {
+    untitled: "Untitled project",
+    continue: "Continue",
+    exploreDetails: "Explore details",
+    detail: "Detail",
+    introduction: "Introduction",
+    explorePage: "Explore this page",
+    contents: "On this page",
+    details: "Details",
+    closerLook: "A closer look.",
+    quotation: "Supplied quotation",
+    related: "Related reading",
+    nextStep: "Next step",
+    mainNav: "Main",
+    skip: "Skip to content",
+    top: "Back to top ↑",
+  },
+  ja: {
+    untitled: "無題のプロジェクト",
+    continue: "次へ",
+    exploreDetails: "詳しく見る",
+    detail: "詳細",
+    introduction: "はじめに",
+    explorePage: "このページの目次",
+    contents: "目次",
+    details: "詳細",
+    closerLook: "詳しい内容",
+    quotation: "引用",
+    related: "関連記事",
+    nextStep: "次のステップ",
+    mainNav: "メイン",
+    skip: "本文へスキップ",
+    top: "ページの先頭へ ↑",
+  },
+} as const;
 
 const escape = (value: unknown): string =>
   String(value ?? "")
@@ -137,6 +177,8 @@ export function renderAuthoredPage(
   const readiness: PageReadiness[] = [];
   const normalized = normalizeTokens(input);
   const t = fixContrast(normalized);
+  const language = options.language === "ja" ? "ja" : "en";
+  const labels = PAGE_LABELS[language];
   const composition = isPageComposition(options.composition) ? options.composition : "studio";
   if (composition !== options.composition)
     readiness.push({
@@ -210,12 +252,13 @@ export function renderAuthoredPage(
   const storyFraming = getImageFramingCss(story?.imageFraming);
   const framing = image && compactImageFraming(options.imageFraming);
   const framed = framing ? getImageFramingCss(framing) : undefined;
-  const brand = text(content.brand) || "Untitled project";
+  const brand = text(content.brand) || labels.untitled;
   const headline = text(content.headline) || brand;
   const sub = text(content.sub);
   const quote = getAuthoredQuote(content.quote);
   const features = getAuthoredFeatures(content.features);
   const firstDescription = features.findIndex(hasAuthoredFeatureDescription);
+  const hasProductDisclosures = composition === "product" && firstDescription >= 0;
   const hasStaticProductFeatures =
     composition === "product" &&
     features.some((feature) => !hasAuthoredFeatureDescription(feature));
@@ -234,8 +277,8 @@ export function renderAuthoredPage(
           : "No action is shown until you add a valid destination or feature details."
       }`,
     });
-  const actionLabel = action ? text(content.cta) || "Continue" : "Explore details";
-  if (!text(content.brand) || brand === "Untitled project")
+  const actionLabel = action ? text(content.cta) || labels.continue : labels.exploreDetails;
+  if (brand === labels.untitled || brand === PAGE_LABELS.en.untitled)
     readiness.push({ id: "brand", message: "Give this page its real project or business name." });
   if (!text(content.headline))
     readiness.push({ id: "headline", message: "Add a headline in your own words." });
@@ -294,7 +337,7 @@ ${fonts.css}:root {
   --type-display: ${Math.max(3.2, Math.pow(t.scale, 5.2)).toFixed(4)}rem;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-block-start: 1rem; }
+html { scroll-behavior: smooth; scroll-padding-block-start: 1rem;${language === "ja" ? " line-break: strict;" : ""} }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--type-body)/1.65 var(--body); }
 body, button, input, textarea, select { font-size: max(16px, var(--type-body)); }
 ::selection { background: var(--ink); color: var(--bg); }
@@ -500,7 +543,7 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   a:focus-visible, summary:focus-visible { outline-color: Highlight; }
   .original-art { forced-color-adjust: auto; }
 }
-`;
+${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
 
   const actionLink = (className = "action") =>
     `<a class="${className}" href="${escape(action ?? "#details")}"><span>${escape(actionLabel)}</span><svg class="action-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a>`;
@@ -516,21 +559,21 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   const featureLinks = features
     .map(
       (feature, index) =>
-        `<a href="#feature-${index + 1}"><span class="feature-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><span>${escape(text(feature.title) || `Detail ${index + 1}`)}</span></a>`,
+        `<a href="#feature-${index + 1}"><span class="feature-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><span>${escape(text(feature.title) || `${labels.detail} ${index + 1}`)}</span></a>`,
     )
     .join("\n");
   const hero =
     composition === "editorial"
-      ? `<section class="hero" aria-label="Introduction"><p class="eyebrow">01 / Introduction</p>${intro}${visual}</section>`
+      ? `<section class="hero" aria-label="${labels.introduction}"><p class="eyebrow">01 / ${labels.introduction}</p>${intro}${visual}</section>`
       : composition === "showcase"
-        ? `<section class="hero" aria-label="Introduction">${visual}${intro}</section>${features.length ? `<nav class="feature-index" aria-label="Explore this page">${featureLinks}</nav>` : ""}`
+        ? `<section class="hero" aria-label="${labels.introduction}">${visual}${intro}</section>${features.length ? `<nav class="feature-index" aria-label="${labels.explorePage}">${featureLinks}</nav>` : ""}`
         : composition === "journal"
-          ? `<section class="hero" aria-label="Introduction"><div class="journal-grid${features.length ? "" : " journal-grid--solo"}"><div class="journal-lead">${visual}${intro}</div>${features.length ? `<aside class="journal-index" aria-labelledby="page-index-title"><h2 id="page-index-title">On this page</h2><nav aria-labelledby="page-index-title">${featureLinks}</nav></aside>` : ""}</div></section>`
-          : `<section class="hero" aria-label="Introduction">${intro}${visual}</section>`;
+          ? `<section class="hero" aria-label="${labels.introduction}"><div class="journal-grid${features.length ? "" : " journal-grid--solo"}"><div class="journal-lead">${visual}${intro}</div>${features.length ? `<aside class="journal-index" aria-labelledby="page-index-title"><h2 id="page-index-title">${labels.contents}</h2><nav aria-labelledby="page-index-title">${featureLinks}</nav></aside>` : ""}</div></section>`
+          : `<section class="hero" aria-label="${labels.introduction}">${intro}${visual}</section>`;
   const rows = features
     .map((feature, index) => {
       const number = String(index + 1).padStart(2, "0");
-      const heading = text(feature.title) || `Detail ${index + 1}`;
+      const heading = text(feature.title) || `${labels.detail} ${index + 1}`;
       if (composition === "product") {
         if (!hasAuthoredFeatureDescription(feature))
           return `<section id="feature-${index + 1}" class="feature-disclosure" aria-labelledby="feature-${index + 1}-title"><div class="feature-static-heading"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3></div></section>`;
@@ -540,24 +583,24 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
     })
     .join("\n");
   const details = hasDetails
-    ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / Details</span><h2 id="details-title">A closer look.</h2></div><div class="feature-list">${rows}</div></section>`
+    ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / ${labels.details}</span><h2 id="details-title">${labels.closerLook}</h2></div><div class="feature-list">${rows}</div></section>`
     : "";
   const quoteSection = quote
-    ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>${escape(quote)}</p></blockquote></section>`
+    ? `<section class="quote-section surface" aria-label="${labels.quotation}"><blockquote><p>${escape(quote)}</p></blockquote></section>`
     : "";
   const related = storyReady
-    ? `<section class="related-story" aria-labelledby="related-story-title"><div><p class="eyebrow">Related reading</p><h2 id="related-story-title"><a href="${escape(storyDestination)}">${escape(storyTitle)}</a></h2></div>${storyImage && storyCredit ? `<figure><img src="${escape(storyImage.src)}" alt="${escape(storyImage.alt)}" width="720" height="480" loading="lazy" decoding="async"><figcaption>${escape(storyCredit)}</figcaption></figure>` : ""}</section>`
+    ? `<section class="related-story" aria-labelledby="related-story-title"><div><p class="eyebrow">${labels.related}</p><h2 id="related-story-title"><a href="${escape(storyDestination)}">${escape(storyTitle)}</a></h2></div>${storyImage && storyCredit ? `<figure><img src="${escape(storyImage.src)}" alt="${escape(storyImage.alt)}" width="720" height="480" loading="lazy" decoding="async"><figcaption>${escape(storyCredit)}</figcaption></figure>` : ""}</section>`
     : "";
   const relatedAfterIntro = story?.placement === "after-intro";
   const closing =
     action && (hasDetails || quote) && !(storyReady && !relatedAfterIntro)
-      ? `<section class="closing" aria-label="Next step"><h2>${escape(text(content.cta) || "Continue")}</h2>${actionLink()}</section>`
+      ? `<section class="closing" aria-label="${labels.nextStep}"><h2>${escape(actionLabel)}</h2>${actionLink()}</section>`
       : "";
   const navigation = hasHeroAction
-    ? `<nav class="site-nav" aria-label="Main">${hasDetails ? `<a href="#details">Explore details</a>` : ""}${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
+    ? `<nav class="site-nav" aria-label="${labels.mainNav}">${hasDetails ? `<a href="#details">${labels.exploreDetails}</a>` : ""}${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
     : "";
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${language}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -568,11 +611,11 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   <style>${css}</style>
 </head>
 <body class="${composition}" id="top">
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main">${labels.skip}</a>
   <div class="site-shell">
     <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a>${navigation}</header>
     <main id="main" tabindex="-1">${hero}${relatedAfterIntro ? related : ""}${details}${quoteSection}${relatedAfterIntro ? "" : related}${closing}</main>
-    <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">Back to top ↑</a></footer>
+    <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">${labels.top}</a></footer>
   </div>
 </body>
 </html>`;
@@ -630,8 +673,8 @@ included. ${
         : "No action is shown because no valid destination or feature details were supplied."
   }
 
-Composition: ${composition}
-Earlier hero arrangement: ${t.heroLayout}
+Composition: ${composition}${language === "ja" ? "\nPage language: Japanese (ja). Keep the html lang attribute and navigation labels in the language of the published page." : ""}
+Earlier hero arrangement: ${t.heroLayout}${hasProductDisclosures ? "\n\nTo keep a paper or PDF copy, open the browser’s Print preview. Check that every\ndescription appears in order. If one is missing in your browser, open its\nsection on the page and print again." : ""}
 
 REVIEW BEFORE PUBLISHING
 ${readiness.map((note) => `- ${note.message}`).join("\n")}

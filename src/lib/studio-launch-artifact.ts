@@ -29,6 +29,11 @@ export function buildStudioLaunchArtifact(state: LaunchState) {
     // Preserve prior revisions and exact legacy identities for unaffected renderer branches.
     ...(authoredOutputRevision ? { authoredOutputRevision } : {}),
     ...(isAuthoredPage &&
+    state.page.composition === "product" &&
+    features.some(hasAuthoredFeatureDescription)
+      ? { authoredPrintRevision: "product-print-v1" as const }
+      : {}),
+    ...(isAuthoredPage &&
     state.tokens &&
     usesNewGalleryTypeface(state.tokens.headingFont, state.tokens.bodyFont)
       ? { authoredFontRevision: "gallery-type-v1" as const }

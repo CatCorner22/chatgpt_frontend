@@ -462,6 +462,22 @@ it("does not deduplicate different nonempty nested timelines accepted by transfe
   expect(result.entries[0]!.state).toEqual(changed.entries[0].state);
 });
 
+it("restores a Japanese page and its earlier English settings to another library", async () => {
+  const design = entry();
+  design.state["page"] = {
+    ...normalizePageSettings(design.state["page"]),
+    language: "ja",
+  };
+  const raw = await transfer.createLibraryBackup([design], sourceStore());
+  const destination = memoryStore();
+  const restored = await transfer.restoreLibraryBackup(raw, destination);
+  const state = migrateStudioState(restored.entries[0]!.state as Partial<StudioState>);
+  expect(state.page.language).toBe("ja");
+  expect(state.past[0]!.page).not.toHaveProperty("language");
+  expect(state.content).toEqual(design.state["content"]);
+  expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(0);
+});
+
 it("does not create a false page version when Studio opens a restored design", async () => {
   const raw = await transfer.createLibraryBackup([entry()], sourceStore());
   const destination = memoryStore();

@@ -10,6 +10,21 @@ import { isDesignStep } from "@/lib/undo";
 
 afterEach(() => localStorage.clear());
 describe("portable page settings", () => {
+  it("saves Japanese and retains the original English settings for older or unknown values", () => {
+    const legacy = { ...DEFAULT_PAGE_SETTINGS, actionUrl: "https://example.com/book" };
+    for (const language of [undefined, "en", "", "es", {}, ["ja"]]) {
+      expect(JSON.stringify(normalizePageSettings({ ...legacy, language }))).toBe(
+        JSON.stringify(legacy),
+      );
+    }
+    const japanese = normalizePageSettings({ ...legacy, language: "ja" });
+    expect(japanese.language).toBe("ja");
+    expect(isDesignStep({ page: legacy }, { page: japanese })).toBe(true);
+    expect(JSON.stringify(normalizePageSettings(JSON.parse(JSON.stringify(japanese))))).toBe(
+      JSON.stringify(japanese),
+    );
+    expect(normalizePageSettings({ ...japanese, language: "en" })).toEqual(legacy);
+  });
   it.each(["showcase", "journal"])(
     "preserves the %s choice when returning to a saved page",
     (composition) => {

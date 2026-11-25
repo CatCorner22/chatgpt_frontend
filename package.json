@@ -17,6 +17,7 @@
     "audit:browser": "node scripts/north-star-audit.mjs",
     "test:audit": "node --test scripts/audit/*.test.mjs",
     "test:authored": "node scripts/test-authored-pages.mjs",
+    "test:product-print": "node scripts/test-product-print.mjs",
     "test:booking": "node scripts/test-booking-rehearsal.mjs",
     "test:pilot": "node scripts/test-pilot-organizer.mjs",
     "build:booking-pilot": "node scripts/build-booking-pilot.mjs",

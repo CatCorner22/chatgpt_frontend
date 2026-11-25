@@ -129,6 +129,21 @@ beforeEach(() => {
 });
 
 describe("authored content-flow evidence boundary", () => {
+  it("requires fresh launch evidence when the owner changes the published language", () => {
+    const english = buildStudioLaunchArtifact(state);
+    const japanese = { ...state, page: { ...state.page, language: "ja" as const } };
+    const records = upsertProgress(
+      reviewed(english),
+      state.libraryId!,
+      "River",
+      tokens,
+      "2026-11-25T12:00:00Z",
+      buildStudioLaunchArtifact(japanese),
+    );
+    expect(records[0]!.details).toEqual(EMPTY_LAUNCH);
+    expect(workHash(japanese)).not.toBe(workHash(state));
+  });
+
   it("requires a fresh review only for authored pages that gained an embedded font", () => {
     const newPair = normalizeTokens({ headingFont: "Outfit", bodyFont: "DM Sans" });
     const input = { ...state, tokens: newPair };

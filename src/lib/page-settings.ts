@@ -25,6 +25,7 @@ export const EMPTY_RELATED_STORY: RelatedStory = {
 export type PageSettings = PageImageSettings & {
   composition: PageOptions["composition"];
   actionUrl: string;
+  language?: NonNullable<PageOptions["language"]>;
   relatedStory?: RelatedStory;
 };
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
@@ -42,6 +43,7 @@ export function normalizePageSettings(input: unknown): PageSettings {
   return {
     composition: isPageComposition(value.composition) ? value.composition : "studio",
     actionUrl: typeof value.actionUrl === "string" ? value.actionUrl.slice(0, 2000) : "",
+    ...(value.language === "ja" ? { language: value.language } : {}),
     ...normalizeImageSettings(value),
     ...(story && typeof story === "object" && !Array.isArray(story)
       ? {

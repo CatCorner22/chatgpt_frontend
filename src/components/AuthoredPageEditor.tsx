@@ -13,7 +13,12 @@ import { Link } from "@tanstack/react-router";
 import type { Content, Tokens } from "@/lib/design";
 import { renderAuthoredPage, type PageOptions } from "@/lib/render-authored-page";
 import type { BundledFamily } from "@/lib/authored-font-styles";
-import { EMPTY_RELATED_STORY, type RelatedStory, type PageSettings } from "@/lib/page-settings";
+import {
+  EMPTY_RELATED_STORY,
+  normalizePageSettings,
+  type RelatedStory,
+  type PageSettings,
+} from "@/lib/page-settings";
 import { usePageImage } from "@/hooks/usePageImage";
 import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
@@ -132,6 +137,7 @@ export function AuthoredPageEditor({
     () => ({
       composition: settings.composition,
       actionUrl: settings.actionUrl,
+      ...(settings.language ? { language: settings.language } : {}),
       ...(settings.imageFraming ? { imageFraming: settings.imageFraming } : {}),
       ...(image
         ? {
@@ -271,6 +277,25 @@ export function AuthoredPageEditor({
   }
   const supportingControls = (
     <>
+      <div className="space-y-2">
+        <Label htmlFor="page-language">Page language</Label>
+        <select
+          id="page-language"
+          className="block min-h-11 w-full rounded-md border border-input bg-background px-3"
+          value={settings.language ?? "en"}
+          aria-describedby="page-language-help"
+          onChange={(event) => {
+            onSettings(normalizePageSettings({ ...settings, language: event.target.value }));
+          }}
+        >
+          <option value="en">English</option>
+          <option value="ja">Japanese (日本語)</option>
+        </select>
+        <p id="page-language-help" className="text-xs leading-relaxed text-muted-foreground">
+          Choose the language your visitors will read. Focus sets the built-in labels and tells
+          screen readers which language to use. Your own wording stays as you wrote it.
+        </p>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="page-action-url">Where should the main action lead?</Label>
         <Input

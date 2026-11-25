@@ -98,7 +98,10 @@ describe("Product detail launch evidence", () => {
 
       expect(next.details).toEqual(EMPTY_LAUNCH);
       expect(next.fingerprint).not.toBe(previous[0]!.fingerprint);
-      expect(artifact).toEqual(productArtifact(input));
+      expect(artifact).toEqual({
+        ...productArtifact(input),
+        authoredPrintRevision: "product-print-v1",
+      });
     },
   );
 
@@ -145,18 +148,31 @@ describe("Product detail launch evidence", () => {
   it.each([
     ["existing sites", { ...state, integration: "existing" }],
     ["apps", { ...state, purpose: { ...state.purpose, experience: "app" } }],
-    [
-      "Product with only body-bearing features",
-      withFeatures([
-        { title: "", body: "Clay and glaze are included." },
-        { title: "Tools", body: "All tools are supplied." },
-        { title: " ", body: "\n " },
-      ]),
-    ],
   ] as const)("keeps the earlier evidence identity for %s", (_case, input) => {
     const previous = reviewed(legacyArtifact(input));
     const current = buildStudioLaunchArtifact(input);
     expect(current).toEqual(legacyArtifact(input));
     expect(revisit(previous, current).details).toEqual(previous[0]!.details);
+  });
+
+  it("invalidates earlier Product reviews when printed descriptions change", () => {
+    const input = withFeatures([
+      { title: "", body: "Clay and glaze are included." },
+      { title: "Tools", body: "All tools are supplied." },
+    ]);
+    const current = buildStudioLaunchArtifact(input);
+    expect(current).toEqual({
+      ...legacyArtifact(input),
+      authoredPrintRevision: "product-print-v1",
+    });
+    expect(revisit(reviewed(legacyArtifact(input)), current).details).toEqual(EMPTY_LAUNCH);
+    expect(revisit(reviewed(current), current).details.status).toBe("launched");
+    for (const other of [
+      { ...input, integration: "existing" as const },
+      { ...input, purpose: { ...input.purpose, experience: "app" as const } },
+      { ...input, page: { ...input.page, composition: "journal" as const } },
+    ]) {
+      expect(buildStudioLaunchArtifact(other)).not.toHaveProperty("authoredPrintRevision");
+    }
   });
 });

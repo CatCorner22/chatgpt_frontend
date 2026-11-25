@@ -1,5 +1,6 @@
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import JSZip from "jszip";
 const studioUrl = new URL(process.env.FOCUS_TEST_URL || "http://localhost:3000");
@@ -238,6 +239,152 @@ try {
   );
   assert.equal(await page.getByRole("radio", { name: /^Journal/ }).isChecked(), true);
   await page.screenshot({ path: `${dir}/workspace.png`, fullPage: true });
+  const language = page.getByLabel("Page language", { exact: true });
+  assert.equal(await language.inputValue(), "en", "Legacy projects must begin in English.");
+  await page.getByLabel("Where should the main action lead?").fill("");
+  await language.selectOption("ja");
+  const japaneseHeadline = "工房のコーヒーと器。京都の窯元を訪ねて、暮らしの道具が生まれるまで";
+  const editor = page.getByRole("region", { name: "See it. Use it. Take it with you." });
+  await editor.getByRole("button", { name: "Edit the page’s words" }).click();
+  await editor.getByLabel("Headline", { exact: true }).fill(japaneseHeadline);
+  await page.reload({ waitUntil: "networkidle" });
+  assert.equal(await language.inputValue(), "ja", "The page language must survive a reload.");
+  const preview = page.frameLocator('iframe[title="Working page preview"]');
+  await preview.getByRole("navigation", { name: "目次", exact: true }).waitFor();
+  const japanesePreview = await page.getByTitle("Working page preview").getAttribute("srcdoc");
+  await compare.click();
+  await page.getByLabel("Compare", { exact: true }).selectOption("second");
+  for (const [frame, width] of [
+    [journalPhone, 320],
+    [journalDesktop, 1024],
+  ]) {
+    await frame.getByRole("navigation", { name: "目次", exact: true }).waitFor();
+    assert.equal(await frame.locator("html").getAttribute("lang"), "ja");
+    assert.equal(await frame.locator("html").evaluate((el) => el.scrollWidth), width);
+    assert.equal(await frame.getByRole("heading", { level: 1 }).textContent(), japaneseHeadline);
+    assert.equal(await frame.locator(".hero-sub").textContent(), exampleContent.sub);
+  }
+  await compare.click();
+  const japaneseHtmlDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download working HTML", exact: true }).click();
+  const japaneseHtml = await readFile(await (await japaneseHtmlDownload).path(), "utf8");
+  assert.equal(japaneseHtml, japanesePreview, "The localized preview must match the download.");
+  const japaneseZipDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download page ZIP", exact: true }).click();
+  const japaneseZip = await JSZip.loadAsync(
+    await readFile(await (await japaneseZipDownload).path()),
+  );
+  const japaneseProject = JSON.parse(await japaneseZip.file("focus-project.json").async("string"));
+  assert.equal(japaneseProject.studio.page.language, "ja");
+  assert.equal(japaneseProject.studio.content.headline, japaneseHeadline);
+  assert.ok(
+    (await japaneseZip.file("index.html").async("nodebuffer")).includes(
+      Buffer.from(japaneseHeadline, "utf8"),
+    ),
+  );
+  const sourceDir = resolve(dir, "japanese-journal");
+  await mkdir(sourceDir, { recursive: true });
+  for (const name of ["index.html", "styles.css"]) {
+    await writeFile(`${sourceDir}/${name}`, await japaneseZip.file(name).async("nodebuffer"));
+  }
+  const delivered = await browser.newPage({ viewport: { width: 320, height: 850 } });
+  delivered.on("pageerror", (error) => pageErrors.push(error.message));
+  // Read the two extracted files on an isolated origin, including in managed browsers that block file URLs.
+  const deliveredOrigin = "https://focus-delivery.test";
+  const deliveryRequests = [];
+  await delivered.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    deliveryRequests.push(url.href);
+    if (url.origin === deliveredOrigin && ["/index.html", "/styles.css"].includes(url.pathname))
+      return route.fulfill({ path: resolve(sourceDir, url.pathname.slice(1)) });
+    return route.abort();
+  });
+  await delivered.goto(deliveredOrigin + "/index.html");
+  assert.equal(await delivered.locator("html").getAttribute("lang"), "ja");
+  const deliveredHeadline = delivered.getByRole("heading", { level: 1 });
+  assert.equal(await deliveredHeadline.textContent(), japaneseHeadline);
+  assert.equal(await delivered.locator(".hero-sub").textContent(), exampleContent.sub);
+  const typography = await deliveredHeadline.evaluate(async (heading) => {
+    await document.fonts.ready;
+    const range = document.createRange();
+    const node = heading.firstChild;
+    const bounds = heading.getBoundingClientRect();
+    const lines = new Map();
+    let allVisible = true;
+    for (let i = 0; i < node.length; i++) {
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const glyph = range.getBoundingClientRect();
+      const midline = glyph.top + glyph.height / 2;
+      allVisible &&=
+        glyph.width > 0 &&
+        glyph.height > 0 &&
+        glyph.left >= bounds.left - 1 &&
+        glyph.right <= bounds.right + 1 &&
+        midline >= bounds.top &&
+        midline <= bounds.bottom;
+      lines.set(glyph.top, (lines.get(glyph.top) ?? "") + node.data[i]);
+    }
+    // Two different ideographs must draw ink and must not share the same missing-glyph box.
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 64;
+    const ctx = canvas.getContext("2d");
+    ctx.font = `32px ${getComputedStyle(heading).fontFamily}`;
+    const renderGlyph = (character) => {
+      ctx.clearRect(0, 0, 64, 64);
+      ctx.fillText(character, 5, 45);
+      return canvas.toDataURL();
+    };
+    const blank = canvas.toDataURL();
+    const first = renderGlyph("工"),
+      second = renderGlyph("房");
+    return {
+      lines: [...lines.values()],
+      allVisible,
+      distinctInk: first !== second && first !== blank && second !== blank,
+      lineBreak: getComputedStyle(heading).lineBreak,
+    };
+  });
+  assert.ok(
+    typography.lines.length > 1 && typography.allVisible,
+    "Every character must fit on a visible line at 320px.",
+  );
+  assert.equal(typography.lines.join(""), japaneseHeadline);
+  assert.ok(
+    typography.lines.every((line) => !/^[、。ー]/u.test(line)),
+    "Japanese punctuation must not start a line in this headline.",
+  );
+  assert.equal(typography.lineBreak, "strict");
+  assert.ok(
+    typography.distinctInk,
+    "Install Japanese system fonts for this browser check; both ideographs must render recognizably different glyphs.",
+  );
+  assert.equal(
+    await delivered.getByRole("navigation", { name: "目次" }).getByRole("link").count(),
+    exampleContent.features.length,
+  );
+  assert.equal(
+    await delivered
+      .locator(".hero-actions")
+      .getByRole("link", { name: "詳しく見る", exact: true })
+      .getAttribute("href"),
+    "#details",
+  );
+  await delivered.keyboard.press("Tab");
+  const skip = delivered.getByRole("link", { name: "本文へスキップ", exact: true });
+  assert.equal(await skip.evaluate((el) => el === document.activeElement), true);
+  await delivered.keyboard.press("Enter");
+  await delivered.waitForFunction(() => document.activeElement?.id === "main");
+  assert.equal(await delivered.evaluate(() => document.documentElement.scrollWidth), 320);
+  assert.deepEqual(deliveryRequests, [
+    deliveredOrigin + "/index.html",
+    deliveredOrigin + "/styles.css",
+  ]);
+  await delivered.close();
+  await language.selectOption("en");
+  await preview.getByRole("navigation", { name: "On this page", exact: true }).waitFor();
+  assert.equal(await preview.locator("html").getAttribute("lang"), "en");
+  assert.equal(await preview.getByRole("heading", { level: 1 }).textContent(), japaneseHeadline);
   // The working-page editor must reflow within the narrow app viewport too.
   await page.setViewportSize({ width: 320, height: 850 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
@@ -259,6 +406,9 @@ try {
       "text spacing override",
       "no remote requests",
       "page settings persist after reload",
+      "Japanese page language persists in layout comparisons, working HTML and extracted ZIP",
+      "Japanese skip link, content index, fallback action, owner wording and switch back to English",
+      "Japanese headline bytes, distinct CJK glyphs and complete 320px line wrapping in the opened source ZIP",
     ],
     pageErrors,
   };

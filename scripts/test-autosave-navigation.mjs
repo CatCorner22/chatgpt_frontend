@@ -171,6 +171,8 @@ try {
     await resumeDraftWrites(page);
     await page.getByRole("link", { name: "My designs", exact: true }).click();
     await page.waitForURL(new URL("/library", origin).href);
+    // The router can update the URL before Firefox finishes displaying the destination.
+    await page.getByRole("heading", { name: "Your saved designs" }).waitFor();
     await page.goto(origin.href);
     await page.getByRole("button", { name: "Open my journey brief" }).click();
     assert.equal(await question.inputValue(), answer);
@@ -185,6 +187,7 @@ try {
     await resumeDraftWrites(page);
     await page.getByRole("link", { name: "Focus home" }).click();
     await page.waitForURL(origin.href);
+    await page.getByRole("button", { name: "Open my journey brief" }).waitFor();
     await page.goto(target);
     assert.equal(await platform.inputValue(), "lovable");
   });

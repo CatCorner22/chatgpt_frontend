@@ -515,6 +515,8 @@ describe("Stratosphere workshop", () => {
     const before = currentState(),
       record = authoredProps().decisionRecord!;
     const patchCount = setup.onPatch.mock.calls.length;
+    // Finish lazy module setup before observing writes attributable to the download.
+    await vi.dynamicImportSettled();
     const writes = vi.spyOn(Storage.prototype, "setItem");
     fireEvent.click(screen.getByRole("button", { name: "Download decision map" }));
     expect(operations.download).toHaveBeenCalledExactlyOnceWith(

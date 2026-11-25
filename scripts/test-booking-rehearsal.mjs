@@ -531,9 +531,10 @@ try {
   // A colleague’s later edit to a scoped file must stop the exact-file undo.
   const pageFile = join(project, "src/Booking.tsx");
   const proposed = await readFile(pageFile);
-  await writeFile(pageFile, Buffer.concat([proposed, Buffer.from("\n// Later rehearsal edit.\n")]));
+  const editedPage = Buffer.concat([proposed, Buffer.from("\n// Later rehearsal edit.\n")]);
+  await writeFile(pageFile, editedPage);
   await assert.rejects(verify("after"), /differs from the expected snapshot/);
-  assert.match(await readFile(pageFile, "utf8"), /Later rehearsal edit/);
+  assert.deepEqual(await readFile(pageFile), editedPage);
   await writeFile(pageFile, proposed); // Restore only this check’s owned test input.
   await verify("after");
   await patch("rollback.patch");
@@ -551,6 +552,12 @@ try {
     existingIdenticalAssetRefused: true,
     modifiedAssetUndoRefused: true,
     unrelatedNeighborsPreserved: true,
+  };
+  result.rollback = {
+    changedBookingSource:
+      "Verification stopped before rollback; the edited file remained byte-identical.",
+    unchangedBookingSource:
+      "Rollback restored the booking task and preserved both later edits in other files.",
   };
   assert.deepEqual(errors, []);
   await writeFile(join(out, "result.json"), JSON.stringify(result, null, 2) + "\n");
@@ -585,7 +592,7 @@ try {
   }
   await copyFile(join(out, "result.json"), join(published, "result.json"));
   console.log(
-    "Booking rehearsal passed. The downloaded proposal rendered the selected heading, body and button fonts offline at 320/1280, detected a withheld face, and fit at 200% CSS zoom. Original, compared and restored bookings each saved one reservation after keyboard recovery and retry. Undo preserved the customer's edits.",
+    "Booking rehearsal passed. The downloaded proposal rendered the selected heading, body and button fonts offline at 320/1280, detected a withheld face, and fit at 200% CSS zoom. Original, compared and restored bookings each saved one reservation after keyboard recovery and retry. Verification stopped before rollback when Booking.tsx had a later edit and preserved its exact bytes. With the expected Booking.tsx restored, rollback completed and retained both later edits in other files.",
   );
 } finally {
   await browser.close();

@@ -80,11 +80,21 @@ async function checkExit(method) {
       dialogs.push(dialog.type());
       await dialog.accept();
     });
+    if (method === "Forward") {
+      await page.goto(outside);
+      await page.goBack();
+      await page.waitForURL(studio);
+      await page.locator("#brief").waitFor();
+    }
     await pendingBrief(page, text);
     await resumeDraftWrites(page);
     if (method === "Back") {
       await page.goBack();
       await page.getByRole("heading", { name: "Gather your content" }).waitFor();
+    } else if (method === "Forward") {
+      await page.goForward();
+      await page.waitForURL(outside);
+      await page.getByRole("heading", { name: "Outside Focus" }).waitFor();
     } else if (method === "internal link") {
       await page.getByRole("link", { name: "Focus home" }).click();
       await page.getByRole("heading", { name: "Gather your content" }).waitFor();
@@ -116,7 +126,14 @@ try {
     await page.goto(studio);
     assert.equal(await page.locator("#brief").inputValue(), text);
   });
-  for (const method of ["Back", "internal link", "document navigation", "reload", "tab close"])
+  for (const method of [
+    "Back",
+    "Forward",
+    "internal link",
+    "document navigation",
+    "reload",
+    "tab close",
+  ])
     await checkExit(method);
   await withWorkspace(async (context, page) => {
     const mine = "My draft while storage is full";
@@ -194,7 +211,7 @@ try {
 
   console.log(
     browserName +
-      " saved the final edit across five exits and recovered Studio, Garden and Target drafts after storage and cross-tab failures.",
+      " saved the final edit across six exits, including browser Back and Forward, and recovered Studio, Garden and Target drafts after storage and cross-tab failures.",
   );
 } finally {
   await browser.close();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { record, undo, redo, UNDO_LIMIT, isDesignStep } from "@/lib/undo";
 import {
   duplicateDesign,
+  openLibraryDesign,
   restoreVersion,
   withVersion,
   parseLibrary,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/library";
 import { normalizeTokens } from "@/lib/design";
 import { afterAnswer } from "@/lib/design";
+import { EMPTY, migrate, snap } from "@/lib/studio-state";
 import { badgePasses, BADGE_MIN_SCORE } from "@/lib/badge";
 
 const content = { brand: "Kiln", headline: "h", sub: "s", cta: "c", features: [], quote: "" };
@@ -132,6 +134,65 @@ describe("saved design copies and versions", () => {
     expect(r[0]!.versions!.at(-1)!.state.tokens.accent).toBe(
       normalizeTokens({ accent: "#0000aa" }).accent,
     );
+  });
+  it.each(["new", "legacy"] as const)(
+    "keeps Undo, Redo and autosave in the %s copy after reopening",
+    (kind) => {
+      const first = {
+        ...EMPTY,
+        ...st("#aa0000"),
+        libraryId: "source",
+        projectId: "source-project",
+        savedHash: "source-receipt",
+      };
+      const latest = { ...first, content: { ...content, headline: "Latest" } };
+      const later = { ...first, content: { ...content, headline: "Later" } };
+      const list = withVersion([], { ...latest, past: [snap(first)], future: [snap(later)] }, "1");
+      const copies = duplicateDesign(list, "source", "copy", "2");
+      const copy = copies[1]!;
+      if (kind === "legacy") {
+        // Earlier releases detached only the top-level state when making a copy.
+        copy.state = {
+          ...copy.state,
+          past: [snap(first)],
+          future: [{ ...snap(later), libraryId: null }],
+        };
+      } else {
+        for (const timeline of [copy.state["past"], copy.state["future"]])
+          expect(timeline).toMatchObject([{ libraryId: "copy", projectId: null, savedHash: null }]);
+      }
+      const saved = parseLibrary(JSON.stringify({ version: 1, entries: copies }));
+      const opened = openLibraryDesign(saved[1]!);
+      for (const [move, headline] of [
+        [undo, "h"],
+        [redo, "Later"],
+      ] as const) {
+        const step = move(opened, snap(opened))!;
+        const next = { ...opened, ...step.state, ...step.t };
+        expect(next).toMatchObject({
+          libraryId: "copy",
+          projectId: null,
+          savedHash: null,
+          content: { headline },
+        });
+        const archived = withVersion(saved, next as LibraryState, "3");
+        expect(archived[0]).toEqual(saved[0]);
+        expect(archived[1]!.state.content.headline).toBe(headline);
+      }
+    },
+  );
+  it("keeps live workspace Undo across New design and same-design history when opening the library", () => {
+    const source = {
+      ...EMPTY,
+      ...st("#aa0000"),
+      libraryId: "source",
+      projectId: "source-project",
+      savedHash: "source-receipt",
+    };
+    const live = migrate({ ...EMPTY, ...record(EMPTY, snap(source)) });
+    expect(undo(live, snap(live))!.state).toEqual(snap(source));
+    const [entry] = withVersion([], { ...source, past: [snap(EMPTY), snap(source)] }, "1");
+    expect(openLibraryDesign(entry!).past).toEqual([snap(EMPTY), snap(source)]);
   });
   it("a copy gets its own identity and survives reload", () => {
     const l = duplicateDesign(withVersion([], st("#aa0000"), "1"), "a", "b", "2");

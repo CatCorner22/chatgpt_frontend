@@ -128,7 +128,10 @@ export function Exam({ s, update }: StudioStageProps) {
       },
     });
   }
-  const setSel = (i: number) => saveDraft(i, { reason, nudges: [] });
+  const selectOption = (i: number) => {
+    if (i === sel && selected?.draft) return;
+    saveDraft(i, { reason, nudges: [] });
+  };
   const base0 = selected?.tokens;
   const shown = base0 ? (tw.length ? applyNudges(base0, tw) : base0) : s.tokens!;
   useDesignFonts([s.tokens, ...(opts ?? []).map((o) => o.tokens)]);
@@ -179,7 +182,7 @@ export function Exam({ s, update }: StudioStageProps) {
       if (isTypingTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
       const n = Number(e.key);
       if (opts && n >= 1 && n <= opts.length) {
-        setSel(n - 1);
+        selectOption(n - 1);
         e.preventDefault();
       } else if (e.key === "ArrowLeft") {
         back();
@@ -242,7 +245,8 @@ export function Exam({ s, update }: StudioStageProps) {
           {opts?.map((o, i) => (
             <button
               key={o.i}
-              onClick={() => setSel(i)}
+              aria-pressed={sel === i}
+              onClick={() => selectOption(i)}
               className={`lens w-full rounded-sm border p-4 text-left ${sel === i ? "border-accent bg-card ring-1 ring-accent" : "border-border bg-card/60"}`}
             >
               <div className="flex items-baseline gap-3">

@@ -277,6 +277,50 @@ export function withVersion(list: LibraryEntry[], state: LibraryState, at: strin
       : e,
   );
 }
+/** Opening one library entry keeps edits and autosave within the selected design.
+ * Older duplicates can have source-project identities in their Studio timeline.
+ * An ordinary live workspace can still undo a switch between designs.
+ */
+export function openLibraryDesign(entry: LibraryEntry): StudioState {
+  const current = migrateStudioState({ ...entry.state, libraryId: entry.id });
+  const ownStep = (step: StudioState["past"][number]) => {
+    if (step.libraryId === entry.id) return step;
+    if (!step.libraryId && !step.tokens && !step.content && !step.projectId && !step.savedHash)
+      return step;
+    return { ...step, libraryId: entry.id, projectId: current.projectId, savedHash: null };
+  };
+  return { ...current, past: current.past.map(ownStep), future: current.future.map(ownStep) };
+}
+
+/** Detach a copied design and its histories from the source account and export receipts. */
+export function detachedLibraryEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
+  const state = (input: Record<string, unknown>): Record<string, unknown> => ({
+    ...input,
+    libraryId: id,
+    projectId: null,
+    savedHash: null,
+    cache: {},
+    ...(Array.isArray(input["past"])
+      ? { past: input["past"].map((item) => state(item as Record<string, unknown>)) }
+      : {}),
+    ...(Array.isArray(input["future"])
+      ? { future: input["future"].map((item) => state(item as Record<string, unknown>)) }
+      : {}),
+  });
+  return {
+    ...entry,
+    id,
+    state: state(entry.state) as LibraryState,
+    ...(entry.versions
+      ? {
+          versions: entry.versions.map((version) => ({
+            ...version,
+            state: state(version.state) as LibraryState,
+          })),
+        }
+      : {}),
+  };
+}
 export function duplicateDesign(
   list: LibraryEntry[],
   id: string,
@@ -288,14 +332,11 @@ export function duplicateDesign(
   return [
     ...list,
     {
-      ...src,
-      id: newId,
+      ...detachedLibraryEntry({ ...src, versions: [] }, newId),
       title: `Copy of ${src.title}`.slice(0, 120),
       favorite: false,
       created: at,
       updated: at,
-      versions: [],
-      state: { ...src.state, libraryId: newId, projectId: null, savedHash: null },
     },
   ];
 }

@@ -21,8 +21,10 @@ vi.mock("@/components/HostedLibraryPanel", () => ({ HostedLibraryPanel: () => nu
 vi.mock("@/components/DesignPreview", () => ({ DesignPreview: () => null }));
 vi.mock("@/lib/useDesignFonts", () => ({ useDesignFonts: () => {} }));
 
+import { Route as brandsRoute } from "@/routes/brands";
 import { Route as libraryRoute } from "@/routes/library";
 import { Route as tasteRoute } from "@/routes/taste";
+const Brands = brandsRoute.options.component as ComponentType;
 const Library = (libraryRoute as unknown as { options: { component: ComponentType } }).options
   .component;
 const Taste = (tasteRoute as unknown as { options: { component: ComponentType } }).options
@@ -98,23 +100,29 @@ it("protects a newer library title and retains typed text when an exit fails", a
   expect(JSON.parse(localStorage.getItem(LIBRARY_KEY)!).entries[0].title).toBe("Changed elsewhere");
 });
 
-it("opens only the exact accepted library navigation and stores no project in history or session storage", async () => {
-  seed();
-  render(<Library />);
-  const button = await screen.findByRole("button", { name: "Open its Vision" });
-  fireEvent.click(button);
-  const request = navigate.mock.calls[0]![0];
-  expect(request).toMatchObject({ to: "/", search: { view: "studio" } });
-  expect(Object.keys(request.state)).toEqual(["focusLibraryOpen"]);
-  // A canceled transition never sets this ticket. A later normal Studio visit must be inert.
-  expect(takeLibraryOpenId(undefined)).toBeNull();
-  expect(sessionStorage.getItem("refraction:pending-rescue")).toBeNull();
-  fireEvent.click(button);
-  const accepted = navigate.mock.calls[1]![0].state.focusLibraryOpen;
-  expect(takeLibraryOpenId(request.state.focusLibraryOpen)).toBeNull();
-  expect(takeLibraryOpenId(accepted)).toBe("work");
-  expect(takeLibraryOpenId(accepted)).toBeNull();
-});
+it.each([
+  { label: "My designs", Page: Library, action: "Open its Vision" },
+  { label: "Brands", Page: Brands, action: "Open" },
+])(
+  "opens only the accepted $label navigation without storing project data in history or session storage",
+  async ({ Page, action }) => {
+    seed();
+    render(<Page />);
+    const button = await screen.findByRole("button", { name: action });
+    fireEvent.click(button);
+    const request = navigate.mock.calls[0]![0];
+    expect(request).toMatchObject({ to: "/", search: { view: "studio" } });
+    expect(Object.keys(request.state)).toEqual(["focusLibraryOpen"]);
+    // A canceled transition never sets this ticket. A later normal Studio visit must be inert.
+    expect(takeLibraryOpenId(undefined)).toBeNull();
+    expect(sessionStorage.getItem("refraction:pending-rescue")).toBeNull();
+    fireEvent.click(button);
+    const accepted = navigate.mock.calls[1]![0].state.focusLibraryOpen;
+    expect(takeLibraryOpenId(request.state.focusLibraryOpen)).toBeNull();
+    expect(takeLibraryOpenId(accepted)).toBe("work");
+    expect(takeLibraryOpenId(accepted)).toBeNull();
+  },
+);
 
 it("restores unsubmitted Taste notes on exit without casting a vote or running analysis", async () => {
   const view = render(<Taste />);

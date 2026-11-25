@@ -6,6 +6,7 @@ import { normalizeTokens, type Tokens } from "./design";
 import {
   LIBRARY_KEY,
   inspectLibrary,
+  detachedLibraryEntry,
   preserveLibraryRecovery,
   type LibraryEntry,
   type LibraryState,
@@ -549,38 +550,10 @@ function canonicalTransferValue(value: unknown): string {
       .join(",")}}`;
   return JSON.stringify(value) ?? "null";
 }
-function portableEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
-  const state = (input: Record<string, unknown>): Record<string, unknown> => ({
-    ...input,
-    libraryId: id,
-    projectId: null,
-    savedHash: null,
-    cache: {},
-    ...(Array.isArray(input["past"])
-      ? { past: input["past"].map((item) => state(item as Record<string, unknown>)) }
-      : {}),
-    ...(Array.isArray(input["future"])
-      ? { future: input["future"].map((item) => state(item as Record<string, unknown>)) }
-      : {}),
-  });
-  return {
-    ...entry,
-    id,
-    state: state(entry.state) as LibraryState,
-    ...(entry.versions
-      ? {
-          versions: entry.versions.map((version) => ({
-            ...version,
-            state: state(version.state) as LibraryState,
-          })),
-        }
-      : {}),
-  };
-}
 const transferIdentity = (entry: LibraryEntry) => {
   // Opening a design updates this bookkeeping time without changing the work.
   // Keep content, settings, organization, creation time, and saved history in the comparison.
-  const { updated: _updated, ...work } = portableEntry(entry, "transfer-identity");
+  const { updated: _updated, ...work } = detachedLibraryEntry(entry, "transfer-identity");
   // Compare the state the Studio actually opens, including the same legacy
   // defaults and snapshot migration; keep meaningful work and history distinct.
   const stateIdentity = (state: Record<string, unknown>): Record<string, unknown> => {
@@ -712,7 +685,7 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
       conflicts++;
     }
     keepBrief(id, brief);
-    merged.push(portableEntry(entry, id));
+    merged.push(detachedLibraryEntry(entry, id));
     added++;
   }
   if (merged.length > MAX_TRANSFER_ENTRIES)

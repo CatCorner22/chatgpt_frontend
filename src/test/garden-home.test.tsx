@@ -487,15 +487,15 @@ describe("Garden home", () => {
     }
     expect(screen.getByRole("img", { name: "Reverie reading a map" })).toHaveAttribute(
       "src",
-      "/brand/reverie-map-guide.png",
+      "/brand/reverie-map-guide.webp",
     );
     expect(screen.getByRole("img", { name: "Reverie walking with her kite" })).toHaveAttribute(
       "src",
-      "/brand/reverie-kite.png",
+      "/brand/reverie-kite.webp",
     );
     expect(document.querySelector(".garden-river")).toHaveAttribute(
       "src",
-      "/brand/garden-river.png",
+      "/brand/garden-river.webp",
     );
   });
 

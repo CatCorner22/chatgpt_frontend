@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { buildPrescription, normalizeTokens, TOOLS, type Content } from "@/lib/design";
+import {
+  buildPrescription,
+  EXISTING_PACK_PLACEMENT,
+  normalizeTokens,
+  TOOLS,
+  type Content,
+} from "@/lib/design";
 import { buildPack, packFiles, PackError } from "@/lib/exportPack";
 import type { LibraryEntry } from "@/lib/library";
 import {
@@ -192,8 +198,16 @@ describe("new-build Content handoff", () => {
       quote: "This sample quote must stay out",
     };
     const markdown = prescription(content, "Cursor", "existing");
-    // Digest of this exact public call on the v15 baseline.
-    expect(createHash("sha256").update(markdown).digest("hex")).toBe(
+    // Pin the corrected output and verify that the v15 prescription differed only in placement guidance.
+    const digest = (text: string) => createHash("sha256").update(text).digest("hex");
+    expect(digest(markdown)).toBe(
+      "066d6e29e8f77b52d074d2abc59a81942496338977a7507c9820af43b7f9bbc4",
+    );
+    const previous = markdown.replace(
+      EXISTING_PACK_PLACEMENT,
+      "Extract to a fresh focus-restyle folder; if it already exists, stop rather than overwrite it.",
+    );
+    expect(digest(previous)).toBe(
       "3392952762a31e75249cdf4876c8edf96aa5bbeebdbe2309db6b41d8c6e0d12d",
     );
     const downloaded = await readPackDesign(markdown, content.brand, "existing");
@@ -203,6 +217,7 @@ describe("new-build Content handoff", () => {
       content.sub,
       content.cta,
       content.quote,
+      content.features[0]!.title,
       content.features[0]!.body,
     ]) {
       expect(downloaded).not.toContain(sample);

@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import { readExamOptionDraft } from "@/lib/exam-option-draft";
 import { takeLibraryOpenId } from "@/lib/library-open";
-import { readLibrarySnapshot } from "@/lib/library";
+import { openLibraryDesign, readLibrarySnapshot } from "@/lib/library";
 import { Button } from "@/components/ui/button";
 import { questionCount, type Integration } from "@/lib/design";
 import { Brief, Directions } from "./-studio/StartDesign";
@@ -166,7 +166,7 @@ function Studio({
             const library = readLibrarySnapshot();
             const selected = library.entries.find((entry) => entry.id === libraryId);
             if (!selected || library.needsRecovery) throw new Error("Saved design needs review.");
-            next = migrate({ ...selected.state, libraryId });
+            next = openLibraryDesign(selected);
           } else {
             next = migrate(JSON.parse(pending!));
           }

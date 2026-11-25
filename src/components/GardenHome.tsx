@@ -200,7 +200,7 @@ export function GardenHome() {
           <div className="garden-map">
             <img
               className="garden-river"
-              src="/brand/garden-river.png"
+              src="/brand/garden-river.webp"
               width="1024"
               height="1536"
               alt=""
@@ -208,7 +208,7 @@ export function GardenHome() {
             />
             <img
               className="garden-reverie"
-              src="/brand/reverie-kite.png"
+              src="/brand/reverie-kite.webp"
               width="1254"
               height="1254"
               alt="Reverie walking with her kite"
@@ -269,9 +269,9 @@ export function GardenHome() {
             </dl>
             <figure className="garden-map-guide">
               <img
-                src="/brand/reverie-map-guide.png"
-                width="1280"
-                height="1280"
+                src="/brand/reverie-map-guide.webp"
+                width="1254"
+                height="1254"
                 loading="lazy"
                 alt="Reverie reading a map"
                 decoding="async"

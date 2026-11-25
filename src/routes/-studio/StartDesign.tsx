@@ -1,5 +1,4 @@
 import { DEFAULT_PAGE_SETTINGS } from "@/lib/page-settings";
-import { migrate, type State } from "@/lib/studio-state";
 import { StudioWelcome, StarterCollection } from "@/components/StudioWelcome";
 import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
@@ -11,7 +10,7 @@ import { useLeaveGuard, useWait } from "@/hooks/useUx";
 import { toast } from "sonner";
 import { DesignPreview } from "@/components/DesignPreview";
 import { readProfile, profileText } from "@/lib/portrait";
-import { readLibrary, resumeLabel, type LibraryEntry } from "@/lib/library";
+import { openLibraryDesign, readLibrary, resumeLabel, type LibraryEntry } from "@/lib/library";
 import type { OpenMode } from "@/components/QuickStart";
 import type { GalleryItem } from "@/lib/gallery";
 import { Button } from "@/components/ui/button";
@@ -142,7 +141,7 @@ export function Brief({ s, update }: StudioStageProps) {
               </Button>
             </div>
           ) : (
-            <ResumeList onOpen={(st) => update(migrate(st as Partial<State>))} />
+            <ResumeList onOpen={(entry) => update(openLibraryDesign(entry))} />
           )
         }
         settings={
@@ -249,7 +248,7 @@ export function Directions({ s, update }: StudioStageProps) {
 }
 
 // Up to three recent saved designs, so people can pick up where they left off.
-function ResumeList({ onOpen }: { onOpen: (state: Record<string, unknown>) => void }) {
+function ResumeList({ onOpen }: { onOpen: (entry: LibraryEntry) => void }) {
   const [list, setList] = useState<LibraryEntry[]>([]);
   useEffect(() => {
     try {
@@ -269,11 +268,7 @@ function ResumeList({ onOpen }: { onOpen: (state: Record<string, unknown>) => vo
         {list.map((e) => (
           <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="min-w-0 truncate">{e.title}</span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onOpen({ ...e.state, libraryId: e.id })}
-            >
+            <Button size="sm" variant="outline" onClick={() => onOpen(e)}>
               {resumeLabel(e.state)}
             </Button>
           </li>

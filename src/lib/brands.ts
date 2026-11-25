@@ -2,7 +2,7 @@ import { designId } from "./launch";
 // Brand workspace: several website and app builds kept together under one brand name, sharing
 // one look. Pure helpers over the browser library so grouping and linking are tested.
 import type { Tokens } from "./design";
-import type { LibraryEntry, LibraryState } from "./library";
+import { detachedLibraryEntry, type LibraryEntry } from "./library";
 
 export type BuildKind = "website" | "app";
 export const kindOf = (e: LibraryEntry): BuildKind =>
@@ -47,24 +47,15 @@ export function newBuild(
 ): LibraryEntry {
   const brand = brandOf(from);
   const purpose = { ...((from.state["purpose"] as object) ?? {}), experience: kind };
-  const state = {
-    ...from.state,
-    libraryId: id,
-    purpose,
-    stage: "rx",
-    projectId: null,
-    savedHash: null,
-    cache: {},
-  } as LibraryState;
-  return {
+  return detachedLibraryEntry({
     id,
     title: `${brand} — ${kind === "app" ? "App" : "Website"}`,
     collection: brand,
     favorite: false,
     created: at,
     updated: at,
-    state,
-  };
+    state: { ...from.state, purpose, stage: "rx" },
+  });
 }
 
 // Copy the lead's colours, fonts and shapes onto another build, keeping that build's words and kind.

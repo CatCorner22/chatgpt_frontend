@@ -308,6 +308,23 @@ describe("Incoming Studio handoff with a brief in progress", () => {
 });
 
 describe("Question preview drafts", () => {
+  it("keeps a preview's adjustments when its option is selected again", async () => {
+    operations.search = { view: "studio" };
+    mount(makeState());
+    const first = await screen.findByRole("button", { name: /^1 / });
+    fireEvent.click(screen.getByRole("button", { name: "Warmer" }));
+
+    fireEvent.click(first);
+    fireEvent.keyDown(window, { key: "1" });
+    expect(screen.getByText(/Option 1, nudged: warmer/)).toBeVisible();
+    expect(first).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.keyDown(window, { key: "2" });
+    expect(screen.getByRole("button", { name: /^2 /, pressed: true })).toBeVisible();
+    expect(first).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText(/nudged: warmer/)).not.toBeInTheDocument();
+  });
+
   it("restores the chosen preview, nudges and unconfirmed words after a return visit", async () => {
     operations.search = { view: "studio" };
     const state = makeState();

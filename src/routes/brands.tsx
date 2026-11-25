@@ -1,4 +1,4 @@
-import { focusLocalStorage, focusSessionStorage, isHostedBuild } from "@/lib/browser-storage";
+import { focusLocalStorage, isHostedBuild } from "@/lib/browser-storage";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppWindow, Globe, Link2, Plus, RefreshCw } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   LibraryChangedError,
   type LibraryEntry,
 } from "@/lib/library";
+import { requestLibraryOpen } from "@/lib/library-open";
 import { groupBrands, newBuild, syncLook, type BuildKind } from "@/lib/brands";
 import { readProgress } from "@/lib/launch";
 import { useDesignFonts } from "@/lib/useDesignFonts";
@@ -131,10 +132,9 @@ function Brands() {
       );
     }
   };
-  const open = (e: LibraryEntry) => {
+  const open = async (e: LibraryEntry) => {
     try {
-      focusSessionStorage.setItem("refraction:pending-rescue", JSON.stringify(e.state));
-      void navigate({ to: "/", search: { view: "studio" } });
+      await navigate({ to: "/", search: { view: "studio" }, state: requestLibraryOpen(e.id) });
     } catch {
       toast.error("Could not open this build. Your current design is unchanged.");
     }

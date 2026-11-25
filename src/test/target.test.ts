@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { normalizeTokens, type Content } from "@/lib/design";
 import { newGardenJourney } from "@/lib/garden-journey";
 import { createOwnerStorage } from "@/lib/browser-storage";
@@ -218,6 +221,49 @@ describe("Target prepares a truthful trial handoff", () => {
     );
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(localStorage.getItem(LIBRARY_KEY)).toBe(raw);
+  });
+
+  it("places the included restyle folder where the reminder and styles can be opened", async () => {
+    const draft = complete();
+    const zip = await JSZip.loadAsync(await prepareTargetPack(draft, entry));
+    const guides = await Promise.all(
+      ["START-HERE.md", "DESIGN.md", "FOCUS-RULES.md", "PROMPT-SHORT.md"].map((name) =>
+        zip.file(`focus-restyle/${name}`)!.async("string"),
+      ),
+    );
+    const implementation = targetPrompts(draft, entry).find((prompt) => prompt.id === "implement")!;
+    for (const guidance of [...guides, implementation.text]) {
+      expect(guidance).toContain("Extract the ZIP into an empty folder outside the project.");
+      expect(guidance).toContain(
+        "Copy the included focus-restyle folder into the isolated project root",
+      );
+    }
+
+    const temporary = await mkdtemp(join(tmpdir(), "focus-target-placement-"));
+    const staging = join(temporary, "unpacked");
+    const project = join(temporary, "customer");
+    try {
+      await mkdir(project);
+      for (const file of Object.values(zip.files).filter((file) => !file.dir)) {
+        const path = join(staging, file.name);
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, await file.async("nodebuffer"));
+      }
+      await cp(join(staging, "focus-restyle"), join(project, "focus-restyle"), { recursive: true });
+      const reminder = await readFile(join(project, "focus-restyle/ADD-TO-YOUR-RULES.md"), "utf8");
+      const documents = reminder.match(/focus-restyle\/[A-Z-]+\.md/g);
+      expect(documents).toEqual(["focus-restyle/FOCUS-RULES.md", "focus-restyle/DESIGN.md"]);
+      for (const path of [
+        ...documents!,
+        "focus-restyle/focus-tokens.css",
+        "focus-restyle/focus-bridge.css",
+      ])
+        expect(await readFile(join(project, path), "utf8")).toBe(
+          await zip.file(path)!.async("string"),
+        );
+    } finally {
+      await rm(temporary, { force: true, recursive: true });
+    }
   });
 
   it("keeps owner-supplied HTML and Markdown as literal context", async () => {

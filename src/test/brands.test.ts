@@ -44,6 +44,18 @@ describe("brand workspace", () => {
       ["app", true],
     ]);
   });
+  it("detaches both inherited timeline directions from the main build and its account save", () => {
+    const lead = entry("main");
+    const step = { ...lead.state, projectId: "main-project", savedHash: "main-receipt" };
+    lead.state = { ...step, past: [step], future: [step] };
+    const next = newBuild(lead, "app", "second", "2026-03-01");
+    for (const history of ["past", "future"]) {
+      expect(next.state[history]).toEqual([
+        { ...step, libraryId: "second", projectId: null, savedHash: null, cache: {} },
+      ]);
+      expect(lead.state[history]).toEqual([step]);
+    }
+  });
   it("flags a build whose look drifted and can bring it back in line", () => {
     const drift = entry("b", h.direction.tokens, g.content.brand, "2026-02-01");
     const b = groupBrands([entry("a"), drift])[0]!;

@@ -4,6 +4,7 @@ import { gardenJourneyJson, type GardenJourney } from "./garden-journey";
 import { focusLocalStorage } from "./browser-storage";
 import {
   buildPrescription,
+  EXISTING_PACK_PLACEMENT,
   markdownText,
   normalizeTokens,
   type Pick as DesignPick,
@@ -228,7 +229,7 @@ export function targetPrompts(draft: TargetDraft, entry: LibraryEntry): TargetPr
       title: "Make one visible improvement",
       text: `Continue only after the inspection and isolated preview have been agreed with the owner. ${scope}\n\n${preserve}\n\n${
         existing
-          ? 'Extract the validated pack into a fresh focus-restyle folder; stop on a folder or marker collision. Load focus-tokens.css and only one compatible bridge. Apply data-focus-restyle to one existing page wrapper, never html or body. This exposes scoped values only. Review actual foreground/background pairs before any separate data-focus-theme="semantic" opt-in; leave incompatible or fixed-color components unchanged. Make the smallest scoped styling patch and show its exact diff.'
+          ? `${EXISTING_PACK_PLACEMENT} Stop on a marker collision. Load focus-tokens.css and only one compatible bridge. Apply data-focus-restyle to one existing page wrapper, never html or body. This exposes scoped values only. Review actual foreground/background pairs before any separate data-focus-theme="semantic" opt-in; leave incompatible or fixed-color components unchanged. Make the smallest scoped styling patch and show its exact diff.`
           : "Build only the first agreed page in the empty separate project using the supplied token values. Show the exact files created and the differences from the saved starting point. Keep missing real integrations clearly labelled instead of simulating successful actions."
       }\n\nUse the existing project tooling; do not upgrade packages or alter production settings. Keep the change in the isolated preview. Report what changed, what stayed unchanged and anything that could not be applied. Stop for review before expanding the scope.`,
     },

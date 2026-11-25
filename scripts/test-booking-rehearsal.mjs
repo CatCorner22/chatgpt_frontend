@@ -1,9 +1,18 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  rmdir,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import JSZip from "jszip";
@@ -15,7 +24,8 @@ assert.equal(origin.protocol, "http:");
 const dir = await mkdtemp(join(tmpdir(), "focus-booking-rehearsal-"));
 const project = join(dir, "river-kiln");
 const bundle = join(dir, "focus-source-trial");
-const out = resolve("artifacts/booking-rehearsal");
+const out = join(dir, "evidence");
+const published = resolve("artifacts/booking-rehearsal");
 const exec = promisify(execFile);
 const env = Object.fromEntries(
   Object.entries(process.env).filter(
@@ -27,6 +37,19 @@ const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const browser = await launchTestBrowser();
 const errors = [];
 const result = { builds: [] };
+const catalog = JSON.parse(await readFile("assets/vendor-fonts/provenance.json", "utf8"));
+const design = JSON.parse(await readFile("src/lib/directions.data.json", "utf8")).find(
+  (d) => d.id === "graphite-precision",
+);
+const roles = [
+  { role: "heading", selector: "main header h1", family: design.direction.tokens.headingFont },
+  { role: "body", selector: "main header p", family: design.direction.tokens.bodyFont },
+  {
+    role: "action",
+    selector: "main form button[type=submit]",
+    family: design.direction.tokens.bodyFont,
+  },
+];
 
 async function unzipOwned(bytes, root) {
   const zip = await JSZip.loadAsync(bytes, { checkCRC32: true });
@@ -58,8 +81,6 @@ async function receivePackages() {
       });
     return route.continue();
   });
-  const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
-  const design = directions.find((d) => d.id === "graphite-precision");
   const id = "booking-rehearsal";
   const entry = {
     id,
@@ -127,6 +148,17 @@ async function receivePackages() {
     await page.getByLabel(pathLabel).fill(file);
   }
   await page.getByRole("button", { name: "Check whether this page is supported" }).click();
+  assert(await page.getByRole("radio", { name: "Keep the page’s fonts" }).isChecked());
+  assert(await page.getByRole("radio", { name: "Keep the compact picker" }).isChecked());
+  const previewPicker = page.getByRole("region", { name: "Class picker preview" });
+  const compactPicker = previewPicker.getByRole("combobox", { name: "Class" });
+  await compactPicker.selectOption("glaze");
+  assert.match(await previewPicker.innerText(), /Total including materials: \$56/);
+  await page.getByRole("radio", { name: "Use my design’s fonts" }).check();
+  await page.getByRole("radio", { name: "Compare times and totals" }).check();
+  assert.equal(await previewPicker.getByRole("radio").count(), 2);
+  await previewPicker.getByRole("radio", { name: /Wheel basics/ }).check();
+  assert.match(await previewPicker.innerText(), /Total including materials: \$48/);
   await page.getByRole("checkbox", { name: /These are the page parts/ }).check();
   await page.getByRole("button", { name: "Prepare proposed edits" }).click();
   const proposal = await download(page, "Download proposed code change");
@@ -137,16 +169,157 @@ async function receivePackages() {
   await context.close();
 }
 
-async function book(page, owner, width) {
+// Read the face used to draw real glyphs. The CSS declaration alone also succeeds on fallback.
+async function measurePaint(page) {
+  await page.evaluate(() => document.fonts.ready);
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send("DOM.enable");
+    await cdp.send("CSS.enable");
+    const { root } = await cdp.send("DOM.getDocument");
+    const report = {};
+    for (const { role, selector, family } of roles) {
+      const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+      assert(nodeId, "Missing text for " + role);
+      const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
+      assert(fonts.length && fonts.every((font) => font.glyphCount > 0), "No glyphs for " + role);
+      const chosen = catalog.families.find((entry) => entry.name === family);
+      const expectedFace = chosen.faces[0].metadata.names["6"];
+      report[role] = {
+        family,
+        declared: await page.locator(selector).evaluate((e) => getComputedStyle(e).fontFamily),
+        faces: fonts.map(({ postScriptName, glyphCount, isCustomFont }) => ({
+          name: postScriptName,
+          glyphs: glyphCount,
+          custom: isCustomFont,
+        })),
+        matchesChosenFace: fonts.every(
+          (font) => font.isCustomFont && font.postScriptName === expectedFace,
+        ),
+      };
+    }
+    return report;
+  } finally {
+    await cdp.detach();
+  }
+}
+
+async function checkReflow(page, cssZoom = 1) {
+  return page.evaluate((zoom) => {
+    document.documentElement.style.zoom = String(zoom);
+    return {
+      cssZoom: Number(getComputedStyle(document.documentElement).zoom),
+      viewport: innerWidth,
+      fits:
+        document.documentElement.scrollWidth <= innerWidth &&
+        [
+          ...document.querySelectorAll("main :is(h1, p, label, select, input, button, strong)"),
+        ].every((node) => {
+          const rect = node.getBoundingClientRect();
+          return rect.width > 0 && rect.right <= innerWidth + 1 && rect.left >= -1;
+        }),
+    };
+  }, cssZoom);
+}
+
+// A fresh Chromium context cannot use any network. Only exact files from the recipient's
+// production build are served in memory. Deliberately withhold a face in a second fresh context.
+async function checkOfflineBuild(app, width, withholdFont, shippedFonts) {
+  const context = await browser.newContext({ offline: true, viewport: { width, height: 850 } });
+  try {
+    const dist = join(project, "dist");
+    const root = await readdir(join(dist, "assets"));
+    const files = new Map([
+      ["/", "index.html"],
+      ...root.map((f) => ["/assets/" + f, "assets/" + f]),
+    ]);
+    const requests = [];
+    const withheld = [];
+    const served = [];
+    await context.route("**/*", async (route) => {
+      const { origin, pathname } = new URL(route.request().url());
+      const file = origin === app && files.get(pathname);
+      if (!file) {
+        requests.push(route.request().url());
+        return route.abort();
+      }
+      const ext = extname(file);
+      if (ext === ".woff2" && withholdFont) {
+        withheld.push(file);
+        return route.abort();
+      }
+      const bytes = await readFile(join(dist, file));
+      if (ext === ".woff2") served.push(digest(bytes));
+      return route.fulfill({
+        contentType: {
+          ".html": "text/html",
+          ".js": "text/javascript",
+          ".css": "text/css",
+          ".woff2": "font/woff2",
+        }[ext],
+        body: bytes,
+      });
+    });
+    const page = await context.newPage();
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(app);
+    await page.getByRole("heading", { level: 1 }).waitFor();
+    const paint = await measurePaint(page);
+    assert.deepEqual(requests, [], "The offline page requested an unshipped resource.");
+    assert.equal(withheld.length > 0, withholdFont);
+    assert.deepEqual([...new Set(served)].sort(), withholdFont ? [] : [...shippedFonts].sort());
+    for (const measured of Object.values(paint)) {
+      assert.equal(measured.matchesChosenFace, !withholdFont, JSON.stringify(measured));
+      if (withholdFont) assert(measured.faces.every((face) => !face.custom));
+    }
+    const layout = await checkReflow(page, width === 1280 ? 2 : 1);
+    assert.equal(layout.cssZoom, width === 1280 ? 2 : 1);
+    assert(layout.fits, "Offline layout clipped at " + width);
+    return { width, withheld, served, layout, paint };
+  } finally {
+    await context.close();
+  }
+}
+
+async function book(page, app, width, phase) {
+  const compare = phase === "applied";
+  const replies = [];
+  const observeResponse = (response) => {
+    if (response.url() === app + "/api/practice-bookings") replies.push(response.status());
+  };
+  page.on("response", observeResponse);
   await page.setViewportSize({ width, height: 850 });
-  await page.goto(owner);
+  await page.goto(app);
   const field = page.getByLabel("Practice email");
-  const session = page.getByLabel("Class", { exact: true });
-  const action = page.getByRole("button", { name: "Reserve a place" });
-  const status = page.getByRole("status");
+  const form = page.getByRole("form", { name: "Practice booking" });
+  const action = form.getByRole("button", { name: "Reserve a place" });
+  const status = form.getByRole("status");
   const email = "student-" + width + "@example.test";
-  await session.selectOption("glaze");
-  assert.match(await page.locator("strong").innerText(), /\$56/);
+  const select = form.getByRole("combobox", { name: "Class" });
+  const wheel = form.getByRole("radio", { name: /Wheel basics/ });
+  const glaze = form.getByRole("radio", { name: /Glaze studio/ });
+  if (compare) {
+    const group = form.getByRole("group", { name: "Class" });
+    assert.equal(await group.getByRole("radio").count(), 2);
+    for (const [control, expected] of [
+      [wheel, /Wheel basics[\s\S]*10 am[\s\S]*\$48/],
+      [glaze, /Glaze studio[\s\S]*2 pm[\s\S]*\$56/],
+    ]) {
+      assert.match(await control.evaluate((e) => e.labels[0].innerText), expected);
+    }
+    assert(await wheel.isChecked());
+    await page.screenshot({ path: join(out, "choices-" + width + ".png"), fullPage: true });
+    await wheel.focus();
+    await page.keyboard.press("ArrowDown");
+    assert(await glaze.isChecked());
+  } else {
+    assert.equal(await form.getByRole("radio").count(), 0);
+    await select.focus();
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await select.inputValue(), "glaze");
+  }
+  const total = form.locator("[aria-live=polite]").filter({ hasText: /Total including materials/ });
+  assert.match(await total.innerText(), /\$56/);
   await field.fill(email);
   await field.press("Tab");
   assert(
@@ -162,37 +335,64 @@ async function book(page, owner, width) {
     await action.evaluate((button) => button === document.activeElement),
     "Recovery lost keyboard focus.",
   );
-  await session.selectOption("wheel");
+  await (compare ? glaze : select).focus();
+  await page.keyboard.press("ArrowUp");
+  if (compare) assert(await wheel.isChecked());
+  else assert.equal(await select.inputValue(), "wheel");
   assert.equal(await field.inputValue(), email);
-  assert.match(await page.locator("strong").innerText(), /\$48/);
+  assert.match(await total.innerText(), /\$48/);
   await page.getByText("Practice conditions", { exact: true }).click();
   await page.getByLabel("Lose the first confirmation").check();
-  await action.click();
+  await action.press("Enter");
   await status.getByText(/confirmation didn’t reach you/).waitFor();
   assert.equal(await field.inputValue(), email);
-  await action.click();
+  await action.press("Enter");
   await status.getByText(/Booking confirmed/).waitFor();
   const confirmed = await status.innerText();
   assert.match(confirmed, /RK-\d{3} · Total \$48/);
   assert(await action.isDisabled());
   await page.reload();
   await field.fill(email);
-  await action.click();
+  await action.press("Enter");
   await status.getByText(/Booking confirmed/).waitFor();
   assert.equal(await status.innerText(), confirmed);
-  assert(
-    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-    "Overflow at " + width,
+  await page.getByText("Practice conditions", { exact: true }).click();
+  await page.getByText("Check saved reservations", { exact: true }).click();
+  const lookup = page.getByLabel("Address used for the booking");
+  const countButton = page.getByRole("button", { name: "Count reservations" });
+  const count = page.getByRole("form", { name: "Reservation count" }).getByRole("status");
+  await lookup.fill("unbooked@example.test");
+  await countButton.click();
+  await count.getByText("Saved reservations for this address: 0.", { exact: true }).waitFor();
+  await lookup.fill(email);
+  await countButton.click();
+  await count.getByText("Saved reservations for this address: 1.", { exact: true }).waitFor();
+  page.off("response", observeResponse);
+  assert.deepEqual(
+    replies,
+    [409, 503, 200, 200],
+    "Unexpected full, lost, retry, or reload result.",
   );
+  const layout = await checkReflow(page);
+  assert(layout.fits, "Overflow at " + width);
+  const paint = await measurePaint(page);
+  if (compare)
+    assert(
+      Object.values(paint).every((role) => role.matchesChosenFace),
+      JSON.stringify(paint),
+    );
   return {
     width,
     confirmed,
-    heading: await page.locator("h1").evaluate((e) => getComputedStyle(e).fontFamily),
+    savedReservations: 1,
+    bookingResponseStatuses: replies,
+    treatment: compare ? "compare" : "compact",
+    paint,
     radius: await action.evaluate((e) => getComputedStyle(e).borderRadius),
   };
 }
 
-async function checkBuild(phase) {
+async function checkBuild(phase, shippedFonts = []) {
   await run("npm", ["run", "build"]);
   // Import the Vite version actually installed into the extracted customer's project.
   const { preview } = await import(
@@ -214,7 +414,7 @@ async function checkBuild(phase) {
     page.on("pageerror", (e) => errors.push(e.message));
     const sizes = [];
     for (const width of [320, 1280]) {
-      sizes.push(await book(page, app, width));
+      sizes.push(await book(page, app, width, phase));
       await page.screenshot({ path: join(out, phase + "-" + width + ".png"), fullPage: true });
     }
     // Each user books once, even after a lost reply and a page reload.
@@ -245,6 +445,13 @@ async function checkBuild(phase) {
     ]);
     assert.equal(simultaneous.conflict, 409);
     await context.close();
+    if (phase === "applied") {
+      result.offlineRecipient = [];
+      for (const width of [320, 1280]) {
+        result.offlineRecipient.push(await checkOfflineBuild(app, width, false, shippedFonts));
+      }
+      result.missingFont = await checkOfflineBuild(app, 320, true, shippedFonts);
+    }
     result.builds.push({ phase, sizes });
     return sizes;
   } finally {
@@ -263,12 +470,64 @@ try {
     await run("git", ["apply", join(bundle, file)]);
   };
   await verify("before");
+  const contract = JSON.parse(await readFile(join(bundle, "trial-contract.json"), "utf8"));
+  assert.equal(contract.version, 2);
+  assert.equal(contract.typography, "portable");
+  assert.equal(contract.bookingLayout, "compare");
+  result.trial = {
+    version: contract.version,
+    typography: contract.typography,
+    bookingLayout: contract.bookingLayout,
+  };
+  const shippedFonts = contract.assets.filter((file) => file.path.endsWith(".woff2"));
+  assert(shippedFonts.length, "The received proposal contains no font.");
+  const owned = shippedFonts[0];
+  const newFont = join(project, owned.path);
+  const fontDir = dirname(newFont);
+  const bytes = await readFile(join(bundle, "assets", basename(owned.path)));
+  assert.equal(digest(bytes), owned.sha256);
+  // Even identical bytes at this name belong to the customer until this proposal creates them.
+  await mkdir(fontDir, { recursive: true });
+  await writeFile(newFont, bytes, { flag: "wx" });
+  await assert.rejects(verify("before"), /asset path already exists/);
+  await assert.rejects(run("git", ["apply", "--check", join(bundle, "forward.patch")]));
+  assert.deepEqual(await readFile(newFont), bytes);
+  await rm(newFont);
+  await rmdir(fontDir);
+  await verify("before");
   const before = await checkBuild("original");
   await patch("forward.patch");
   await verify("after");
-  const after = await checkBuild("applied");
+  const after = await checkBuild(
+    "applied",
+    shippedFonts.map((file) => file.sha256),
+  );
+  const builtAssets = join(project, "dist", "assets");
+  const notices = (await readdir(builtAssets)).filter((name) => name.endsWith(".txt"));
+  const expectedNotices = contract.assets.filter((asset) => asset.path.endsWith(".txt"));
+  assert(expectedNotices.length > 0);
+  result.productionLicenses = await Promise.all(
+    notices.map(async (name) => ({
+      name,
+      sha256: digest(await readFile(join(builtAssets, name))),
+    })),
+  );
+  assert.deepEqual(
+    result.productionLicenses.map((notice) => notice.sha256).sort(),
+    expectedNotices.map((notice) => notice.sha256).sort(),
+    "The deployable website must carry the original notices for the fonts it serves.",
+  );
   assert.notEqual(after[0].radius, before[0].radius, "A shipped style must actually change.");
   await writeFile(join(project, "studio-notes.txt"), "Clay delivery on Monday.\n", { flag: "wx" });
+  const neighbor = join(fontDir, "customer-notes.txt");
+  await writeFile(neighbor, "Customer artwork lives here.\n", { flag: "wx" });
+  const changedFont = Buffer.from(bytes);
+  changedFont[changedFont.length - 1] ^= 1;
+  await writeFile(newFont, changedFont);
+  await assert.rejects(verify("after"), /asset changed/);
+  await assert.rejects(run("git", ["apply", "--check", join(bundle, "rollback.patch")]));
+  assert.deepEqual(await readFile(newFont), changedFont);
+  await writeFile(newFont, bytes);
   // A colleague’s later edit to a scoped file must stop the exact-file undo.
   const pageFile = join(project, "src/Booking.tsx");
   const proposed = await readFile(pageFile);
@@ -285,10 +544,48 @@ try {
     await readFile(join(project, "studio-notes.txt"), "utf8"),
     "Clay delivery on Monday.\n",
   );
+  assert.equal(await readFile(neighbor, "utf8"), "Customer artwork lives here.\n");
+  for (const asset of contract.assets)
+    await assert.rejects(readFile(join(project, asset.path)), { code: "ENOENT" });
+  result.assetGuards = {
+    existingIdenticalAssetRefused: true,
+    modifiedAssetUndoRefused: true,
+    unrelatedNeighborsPreserved: true,
+  };
   assert.deepEqual(errors, []);
   await writeFile(join(out, "result.json"), JSON.stringify(result, null, 2) + "\n");
+  const kit = new JSZip();
+  const deliveries = [
+    ["START-HERE.md", resolve("docs/RIVER-KILN-TRIAL.md")],
+    ["01-original.zip", join(out, "focus-booking-rehearsal.zip")],
+    ["02-focus-proposal.zip", join(out, "river-kiln-sample-proposal.zip")],
+    ["evidence/receipt.json", join(out, "result.json")],
+    ["evidence/phone-original.png", join(out, "original-320.png")],
+    ["evidence/phone-class-comparison.png", join(out, "choices-320.png")],
+    ["evidence/desktop-class-comparison.png", join(out, "choices-1280.png")],
+  ];
+  const checksums = [];
+  for (const [path, source] of deliveries) {
+    const bytes = await readFile(source);
+    kit.file(path, bytes);
+    checksums.push(digest(bytes) + "  " + path);
+  }
+  kit.file("SHA256SUMS", checksums.join("\n") + "\n");
+  await writeFile(
+    join(out, "river-kiln-colleague-kit.zip"),
+    await kit.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+    }),
+  );
+  // Publish only a fully passing run. Write the receipt last.
+  await mkdir(published, { recursive: true });
+  for (const name of await readdir(out)) {
+    if (name !== "result.json") await copyFile(join(out, name), join(published, name));
+  }
+  await copyFile(join(out, "result.json"), join(published, "result.json"));
   console.log(
-    "Booking rehearsal passed: actual Target downloads, original/applied/undone production builds at 320/1280, failed confirmation retry, stable booking references, keyboard activation, and unrelated edit retention.",
+    "Booking rehearsal passed. The downloaded proposal rendered the selected heading, body and button fonts offline at 320/1280, detected a withheld face, and fit at 200% CSS zoom. Original, compared and restored bookings each saved one reservation after keyboard recovery and retry. Undo preserved the customer's edits.",
   );
 } finally {
   await browser.close();

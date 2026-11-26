@@ -22,6 +22,7 @@ try {
     "test-protected-design-journey.mjs",
     "test-comparison-phone.mjs",
     "test-garden-journey.mjs",
+    "test-layout-browser.mjs",
     "test-autosave-navigation.mjs",
     "test-copy-ownership.mjs",
     "test-authored-pages.mjs",

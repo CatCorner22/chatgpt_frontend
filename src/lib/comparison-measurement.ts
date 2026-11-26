@@ -5,7 +5,7 @@ export type ComparisonMeasurement = {
 
 // The comparison renderer emits plain text in h3 and p. Measure glyphs after its fonts settle.
 // Vertical scrolling is expected. Check clipped containers, including any future line clamp.
-function textFits(element: HTMLElement, viewport: number): boolean {
+export function textFits(element: HTMLElement, viewport: number): boolean {
   const win = element.ownerDocument.defaultView!;
   const range = element.ownerDocument.createRange();
   range.selectNodeContents(element);

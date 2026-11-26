@@ -1,23 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { focusLocalStorage } from "@/lib/browser-storage";
 import { readLibrarySnapshot, withVersion, writeLibrary, type LibraryState } from "@/lib/library";
-import { STUDIO_KEY } from "@/lib/projects";
+import { changedElsewhere, writeCurrentDraft } from "@/lib/studio-draft-storage";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { useDraftExitSave } from "./useDraftExitSave";
-
-const changedElsewhere =
-  "Another tab changed this draft. Download your current work before reloading to open the other tab’s version.";
-
-function writeCurrentDraft(state: State, expected: string | null): string {
-  const raw = JSON.stringify(state);
-  const stored = focusLocalStorage.getItem(STUDIO_KEY);
-  if (stored === raw) return raw;
-  if (stored !== expected) throw new Error(changedElsewhere);
-  focusLocalStorage.setItem(STUDIO_KEY, raw);
-  if (focusLocalStorage.getItem(STUDIO_KEY) !== raw)
-    throw new Error("Draft write was not retained");
-  return raw;
-}
 
 export function archiveStudioDraft(state: State) {
   if (!state.tokens || !state.content || !state.libraryId) return;

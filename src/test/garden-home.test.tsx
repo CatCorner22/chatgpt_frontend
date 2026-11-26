@@ -469,12 +469,17 @@ describe("Garden home", () => {
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).toBeChecked();
   });
 
-  it("puts both starts and Continue before the map, and lets a returning visitor change paths", async () => {
+  it("puts both project starts and the direct layout shortcut before the map", async () => {
     seedProtectedRecords();
     render(<GardenHome />);
     const choices = await screen.findByRole("group", { name: "Choose a starting point" });
     const map = screen.getByRole("navigation", { name: "Garden Path steps" });
     const next = screen.getByRole("button", { name: "Continue" });
+    const shortcut = screen.getByRole("link", { name: "Browse designer layouts" });
+    expect(shortcut).toHaveAttribute("href", "/layouts");
+    expect(shortcut).toHaveAccessibleDescription("Preview six ways to arrange a page.");
+    expect(shortcut.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(choices).not.toContainElement(shortcut);
     expect(choices.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(next.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const fresh = within(choices).getByRole("radio", { name: "New app or website" });

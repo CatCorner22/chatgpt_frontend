@@ -6,6 +6,7 @@ import { EMPTY, type State } from "@/lib/studio-state";
 import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
 import { buildLocalOptions } from "@/lib/local-design";
 import { readLibrary } from "@/lib/library";
+import { readLayoutDraft, commitLayoutDraft } from "@/lib/layout-draft";
 import { deferred } from "./deferred";
 
 const operations = vi.hoisted(() => ({
@@ -232,6 +233,51 @@ describe("Garden-directed Studio start", () => {
     fireEvent.click(button);
     expect(screen.getByRole("alert")).toHaveTextContent(/changed in another tab/);
     expect(localStorage.getItem(key)).toBe(newer);
+  });
+});
+
+describe("Opening an explicitly chosen layout", () => {
+  afterEach(() => window.history.replaceState(null, ""));
+
+  it("keeps the selected design active across reload while preserving an earlier rescue for its own navigation", async () => {
+    const original = makeState();
+    const rescueRaw = JSON.stringify({
+      ...original,
+      libraryId: "rescue",
+      brief: "A separate request",
+    });
+    sessionStorage.setItem("refraction:pending-rescue", rescueRaw);
+    window.history.replaceState({ focusLayoutOpen: true }, "");
+    localStorage.setItem(key, JSON.stringify(original));
+    const page = render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    expect(saved().libraryId).toBe(original.libraryId);
+    expect(sessionStorage.getItem("refraction:pending-rescue")).toBe(rescueRaw);
+    page.unmount();
+    render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    expect(saved().libraryId).toBe(original.libraryId);
+    expect(sessionStorage.getItem("refraction:pending-rescue")).toBe(rescueRaw);
+  });
+
+  it("reopens the exact partial original while its completed website copy remains in My designs", async () => {
+    const original = {
+      ...EMPTY,
+      brief: "A brief I have only started writing",
+      integration: "existing",
+    };
+    const raw = JSON.stringify(original);
+    localStorage.setItem(key, raw);
+    const copy = commitLayoutDraft(readLayoutDraft(), "journal", undefined, "copy");
+    window.history.replaceState({ focusLayoutOpen: true }, "");
+    render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    fireEvent.click(screen.getByText(/Original saved data preserved/));
+    fireEvent.click(screen.getByRole("button", { name: /Restore pre-layout draft/ }));
+    await waitFor(() => expect(saved()).toEqual(original));
+    expect(readLibrary().find((entry) => entry.id === copy.libraryId)?.state["page"]).toEqual(
+      copy.page,
+    );
   });
 });
 

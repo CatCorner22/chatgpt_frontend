@@ -1,3 +1,4 @@
+import { isLayoutCheckpoint } from "@/lib/studio-draft-storage";
 import { focusLocalStorage, focusSessionStorage } from "@/lib/browser-storage";
 import { EMPTY, isEmptyStudioDraft, migrate, snap, type State } from "@/lib/studio-state";
 import { GardenHome } from "@/components/GardenHome";
@@ -36,7 +37,7 @@ import {
 import { toast } from "sonner";
 import { readExamOptionDraft } from "@/lib/exam-option-draft";
 import { takeLibraryOpenId } from "@/lib/library-open";
-import { openLibraryDesign, readLibrarySnapshot } from "@/lib/library";
+import { openLibraryDesign, readLibrarySnapshot, restoreLayoutCheckpoint } from "@/lib/library";
 import { Button } from "@/components/ui/button";
 import { questionCount, type Integration } from "@/lib/design";
 import { Brief, Directions } from "./-studio/StartDesign";
@@ -104,8 +105,8 @@ function Studio({
   const startingSeparateDraft = useRef(false);
   const [gardenStartIssue, setGardenStartIssue] = useState("");
   const restored = useRef(false);
-  const keepDraftCopy = useCallback((raw: string) => {
-    const copyKey = `${KEY}:recovery:${new Date().toISOString()}:${crypto.randomUUID()}`;
+  const keepDraftCopy = useCallback((raw: string, forLayout = false) => {
+    const copyKey = `${KEY}:recovery:${new Date().toISOString()}:${forLayout ? "layout:" : ""}${crypto.randomUUID()}`;
     keepStudioCheckpoint(focusLocalStorage, copyKey, raw);
     setRecoveries((copies) => [{ key: copyKey, raw }, ...copies]);
   }, []);
@@ -158,8 +159,16 @@ function Studio({
       }
       // A failed archive or pending hand-off must not disable autosave for a valid current design.
       try {
-        const libraryId = takeLibraryOpenId(window.history.state?.focusLibraryOpen);
-        const pending = libraryId ? null : focusSessionStorage.getItem("refraction:pending-rescue");
+        // This history entry already has a confirmed layout save. An older rescue
+        // belongs to its own navigation, including after refreshing this entry.
+        const openedLayout = window.history.state?.focusLayoutOpen === true;
+        const libraryId = openedLayout
+          ? null
+          : takeLibraryOpenId(window.history.state?.focusLibraryOpen);
+        const pending =
+          libraryId || openedLayout
+            ? null
+            : focusSessionStorage.getItem("refraction:pending-rescue");
         if (libraryId || pending) {
           let next: State;
           if (libraryId) {
@@ -291,6 +300,32 @@ function Studio({
   };
   const downloadRecovery = (raw: string, filename = "focus-saved-data-recovery.txt") =>
     downloadBlob(new Blob([raw], { type: "text/plain;charset=utf-8" }), filename);
+  function restoreLayoutOriginal(copy: { key: string; raw: string }) {
+    try {
+      if (focusLocalStorage.getItem(copy.key) !== copy.raw || !isLayoutCheckpoint(copy.key))
+        throw new Error();
+      const raw = JSON.stringify(s);
+      if (focusLocalStorage.getItem(KEY) !== raw || !flush()) throw new Error();
+      const parsed = JSON.parse(copy.raw);
+      if (studioHistoryNeedsRecovery(parsed)) throw new Error();
+      const recovered = migrate(parsed);
+      const library = readLibrarySnapshot();
+      if (library.needsRecovery) throw new Error();
+      const next = restoreLayoutCheckpoint(recovered, library.entries);
+      if (hasLocalOnlyDraft(s)) keepDraftCopy(raw, true);
+      restoreState(next, raw);
+      setHandoffIssue("");
+      toast(
+        next === recovered
+          ? "Restored the draft from before the layout change."
+          : "Restored as a separate design. Your newer saved version is still in My designs.",
+      );
+    } catch {
+      setHandoffIssue(
+        "Focus couldn't confirm the restore. Reload and try again, or download the preserved draft.",
+      );
+    }
+  }
   if (!loaded)
     return (
       <div className="min-h-screen">
@@ -473,16 +508,26 @@ function Studio({
               </p>
               <div className="mt-3 flex flex-wrap gap-3">
                 {recoveries.map((copy, i) => (
-                  <Button
-                    key={copy.key}
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      downloadRecovery(copy.raw, `focus-saved-data-recovery-${i + 1}.txt`)
-                    }
-                  >
-                    Download preserved data {i + 1}
-                  </Button>
+                  <div key={copy.key} className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        downloadRecovery(copy.raw, `focus-saved-data-recovery-${i + 1}.txt`)
+                      }
+                    >
+                      Download preserved data {i + 1}
+                    </Button>
+                    {isLayoutCheckpoint(copy.key) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => restoreLayoutOriginal(copy)}
+                      >
+                        Restore pre-layout draft {i + 1}
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             </details>

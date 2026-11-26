@@ -223,6 +223,17 @@ export function resumeLabel(state: Record<string, unknown>): string {
   return `Continue at question ${at} of ${total}`;
 }
 
+function sortFields(_key: string, value: unknown): unknown {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+    : value;
+}
+
+/** An independently edited library original must survive a layout change or checkpoint restore. */
+export function libraryMatchesDraft(entry: LibraryEntry, draft: StudioState): boolean {
+  const saved = migrateStudioState({ ...entry.state, libraryId: entry.id });
+  return JSON.stringify(saved, sortFields) === JSON.stringify({ ...draft, cache: {} }, sortFields);
+}
 const look = (state: LibraryState) => {
   // Opening an older save adds defaults without editing the page. Compare the
   // same migrated state that the Studio renders before creating a revision.
@@ -238,10 +249,7 @@ const look = (state: LibraryState) => {
       s["direction"],
       s.integration,
     ],
-    (_key, value: unknown) =>
-      value && typeof value === "object" && !Array.isArray(value)
-        ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
-        : value,
+    sortFields,
   );
 };
 const answersOf = (s: LibraryState) => (Array.isArray(s["picks"]) ? s["picks"].length : 0);
@@ -297,30 +305,42 @@ export function openLibraryDesign(entry: LibraryEntry): StudioState {
   return { ...current, past: current.past.map(ownStep), future: current.future.map(ownStep) };
 }
 
-/** Detach a copied design and its histories from the source account and export receipts. */
-export function detachedLibraryEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
-  const state = (input: Record<string, unknown>): Record<string, unknown> => ({
+function detachedState(input: Record<string, unknown>, id: string): Record<string, unknown> {
+  return {
     ...input,
     libraryId: id,
     projectId: null,
     savedHash: null,
     cache: {},
     ...(Array.isArray(input["past"])
-      ? { past: input["past"].map((item) => state(item as Record<string, unknown>)) }
+      ? { past: input["past"].map((item) => detachedState(item, id)) }
       : {}),
     ...(Array.isArray(input["future"])
-      ? { future: input["future"].map((item) => state(item as Record<string, unknown>)) }
+      ? { future: input["future"].map((item) => detachedState(item, id)) }
       : {}),
-  });
+  };
+}
+
+export function restoreLayoutCheckpoint(state: StudioState, entries: LibraryEntry[]): StudioState {
+  const saved = entries.find((entry) => entry.id === state.libraryId);
+  if (!saved || libraryMatchesDraft(saved, state)) return state;
+  const id = crypto.randomUUID();
+  if (entries.some((entry) => entry.id === id))
+    throw new Error("A saved design already uses this identifier.");
+  return migrateStudioState({ ...detachedState(state, id), cache: state.cache });
+}
+
+/** Detach a copied design and its histories from the source account and export receipts. */
+export function detachedLibraryEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
   return {
     ...entry,
     id,
-    state: state(entry.state) as LibraryState,
+    state: detachedState(entry.state, id) as LibraryState,
     ...(entry.versions
       ? {
           versions: entry.versions.map((version) => ({
             ...version,
-            state: state(version.state) as LibraryState,
+            state: detachedState(version.state, id) as LibraryState,
           })),
         }
       : {}),

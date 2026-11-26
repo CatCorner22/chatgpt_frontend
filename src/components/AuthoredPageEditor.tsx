@@ -11,7 +11,8 @@ import {
 import JSZip from "jszip";
 import { Link } from "@tanstack/react-router";
 import type { Content, Tokens } from "@/lib/design";
-import { renderAuthoredPage, type PageOptions } from "@/lib/render-authored-page";
+import { pageOptionsWithImages } from "@/lib/page-options-with-images";
+import { renderAuthoredPage } from "@/lib/render-authored-page";
 import type { BundledFamily } from "@/lib/authored-font-styles";
 import {
   EMPTY_RELATED_STORY,
@@ -135,42 +136,9 @@ export function AuthoredPageEditor({
       mounted.current = false;
     };
   }, []);
-  const pageOptions = useMemo<PageOptions>(
-    () => ({
-      composition: settings.composition,
-      actionUrl: settings.actionUrl,
-      ...(settings.language ? { language: settings.language } : {}),
-      ...(settings.imageFraming ? { imageFraming: settings.imageFraming } : {}),
-      ...(image
-        ? {
-            image: {
-              src: image,
-              alt: settings.imageAlt,
-              ...(settings.imageCredit ? { credit: settings.imageCredit } : {}),
-            },
-          }
-        : {}),
-      ...(story
-        ? {
-            relatedStory: {
-              title: story.title,
-              url: story.url,
-              placement: story.placement,
-              ...(story.imageFraming ? { imageFraming: story.imageFraming } : {}),
-              ...(storyImage.src
-                ? {
-                    image: {
-                      src: storyImage.src,
-                      alt: story.imageAlt,
-                      ...(story.imageCredit ? { credit: story.imageCredit } : {}),
-                    },
-                  }
-                : {}),
-            },
-          }
-        : {}),
-    }),
-    [settings, story, image, storyImage.src],
+  const pageOptions = useMemo(
+    () => pageOptionsWithImages(settings, image, storyImage.src),
+    [settings, image, storyImage.src],
   );
   const built = useMemo(
     () => renderAuthoredPage(tokens, content, pageOptions, families),

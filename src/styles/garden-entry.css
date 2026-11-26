@@ -55,7 +55,56 @@
 }
 
 .garden-entry .garden-actions {
+  align-items: center;
   margin-top: 16px;
+}
+
+.garden-layout-shortcut {
+  display: flex;
+  flex: 1 1 16rem;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid #b6cfcc;
+  border-radius: 12px;
+  background: #f2f9f8;
+  color: #204e50;
+  text-decoration: none;
+}
+
+.garden-layout-shortcut:hover {
+  background: #e4f3f1;
+  border-color: #608886;
+}
+
+.garden-layout-shortcut:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.garden-layout-shortcut svg {
+  flex-shrink: 0;
+}
+
+.garden-layout-shortcut svg:last-child {
+  margin-inline-start: auto;
+}
+
+.garden-layout-shortcut strong,
+.garden-layout-shortcut span > span {
+  display: block;
+}
+
+.garden-layout-shortcut strong {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.garden-layout-shortcut span > span {
+  margin-top: 2px;
+  font-size: 14px;
 }
 
 .garden-step-navigation {
@@ -78,22 +127,22 @@
 }
 
 @media (max-width: 420px) {
-  .garden-page .studio-header-main {
+  :is(.garden-page, .layout-browser-page) .studio-header-main {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0 8px;
     padding: 8px 16px 0;
   }
 
-  .garden-page .studio-logo {
+  :is(.garden-page, .layout-browser-page) .studio-logo {
     min-height: 44px;
   }
 
-  .garden-page .brand-logo--focus {
+  :is(.garden-page, .layout-browser-page) .brand-logo--focus {
     width: 126px;
   }
 
-  .garden-page .studio-navigation {
+  :is(.garden-page, .layout-browser-page) .studio-navigation {
     grid-column: 1 / -1;
     grid-row: 2;
     gap: 0 4px;

@@ -132,7 +132,12 @@ try {
     kiteHash,
     protectedArt.find((item) => item.path === "brand/reverie-kite.webp").sha256,
   );
-  for (const choice of [start("New"), start("Existing"), continueButton]) {
+  for (const choice of [
+    start("New"),
+    start("Existing"),
+    continueButton,
+    link("Browse designer layouts"),
+  ]) {
     const bounds = await choice.boundingBox();
     assert.ok(
       bounds && bounds.y >= 0 && bounds.y + bounds.height <= 844,
@@ -151,8 +156,10 @@ try {
   await button("Change starting point").click();
   await start("New").check();
 
-  // Tab through the actual first four map controls in DOM order, then activate the fourth.
+  // The one-click shortcut and the first four map stops are reachable from Continue, in order.
   await continueButton.focus();
+  await page.keyboard.press("Tab");
+  assert.ok(await focusIs(link("Browse designer layouts")));
   for (const stop of [
     "1. Choose your goal",
     "2. Gather your content",

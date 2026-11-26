@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, PanelsTopLeft } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { GardenJourneyBrief } from "@/components/GardenJourneyBrief";
 import { GardenStudioAction } from "@/components/GardenStudioAction";
@@ -198,6 +198,19 @@ export function GardenHome() {
               >
                 Continue <ArrowRight size={18} aria-hidden="true" />
               </button>
+              <Link
+                to="/layouts"
+                className="garden-layout-shortcut"
+                aria-labelledby="garden-layout-title"
+                aria-describedby="garden-layout-help"
+              >
+                <PanelsTopLeft size={22} aria-hidden="true" />
+                <span>
+                  <strong id="garden-layout-title">Browse designer layouts</strong>
+                  <span id="garden-layout-help">Preview six ways to arrange a page.</span>
+                </span>
+                <ArrowRight size={17} aria-hidden="true" />
+              </Link>
             </div>
           </section>
         )}

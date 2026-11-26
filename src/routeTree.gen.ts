@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as CriticRouteImport } from './routes/critic'
 import { Route as FieldGuideRouteImport } from './routes/field-guide'
+import { Route as LayoutsRouteImport } from './routes/layouts'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -69,6 +70,11 @@ const CriticRoute = CriticRouteImport.update({
 const FieldGuideRoute = FieldGuideRouteImport.update({
   id: '/field-guide',
   path: '/field-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutsRoute = LayoutsRouteImport.update({
+  id: '/layouts',
+  path: '/layouts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
   '/field-guide': typeof FieldGuideRoute
+  '/layouts': typeof LayoutsRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
   '/field-guide': typeof FieldGuideRoute
+  '/layouts': typeof LayoutsRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/brands': typeof BrandsRoute
   '/critic': typeof CriticRoute
   '/field-guide': typeof FieldGuideRoute
+  '/layouts': typeof LayoutsRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/brands'
     | '/critic'
     | '/field-guide'
+    | '/layouts'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/brands'
     | '/critic'
     | '/field-guide'
+    | '/layouts'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/brands'
     | '/critic'
     | '/field-guide'
+    | '/layouts'
     | '/library'
     | '/mcp'
     | '/privacy'
@@ -414,6 +426,7 @@ export interface RootRouteChildren {
   BrandsRoute: typeof BrandsRoute
   CriticRoute: typeof CriticRoute
   FieldGuideRoute: typeof FieldGuideRoute
+  LayoutsRoute: typeof LayoutsRoute
   LibraryRoute: typeof LibraryRoute
   McpRoute: typeof McpRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -482,6 +495,13 @@ declare module '@tanstack/react-router' {
       path: '/field-guide'
       fullPath: '/field-guide'
       preLoaderRoute: typeof FieldGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/layouts': {
+      id: '/layouts'
+      path: '/layouts'
+      fullPath: '/layouts'
+      preLoaderRoute: typeof LayoutsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -689,6 +709,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrandsRoute: BrandsRoute,
   CriticRoute: CriticRoute,
   FieldGuideRoute: FieldGuideRoute,
+  LayoutsRoute: LayoutsRoute,
   LibraryRoute: LibraryRoute,
   McpRoute: McpRoute,
   PrivacyRoute: PrivacyRoute,

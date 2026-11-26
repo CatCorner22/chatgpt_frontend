@@ -1,9 +1,10 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import type { Content, Tokens } from "@/lib/design";
 import type { BundledFamily } from "@/lib/authored-font-styles";
 import { getAuthoredFeatures, hasAuthoredFeatureDescription } from "@/lib/authored-content";
 import { renderAuthoredPage, type PageOptions } from "@/lib/render-authored-page";
 import { PAGE_COMPOSITIONS, type PageComposition } from "@/lib/page-compositions";
+import { ComparisonFrame } from "./ComparisonFrame";
 import "./composition-comparison.css";
 
 const tasks = [
@@ -43,44 +44,6 @@ function describeLayout(id: PageComposition, content: Content, options: PageOpti
     case "studio":
       return "The headline and visual share the opening on wide screens. The words lead on a phone.";
   }
-}
-
-function ComparisonFrame({
-  html,
-  title,
-  size,
-}: {
-  html: string;
-  title: string;
-  size: "phone" | "desktop";
-}) {
-  const stage = useRef<HTMLDivElement>(null);
-  const [availableWidth, setWidth] = useState(0);
-  useEffect(() => {
-    const element = stage.current;
-    if (!element) return;
-    setWidth(element.clientWidth);
-    if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => setWidth(element.clientWidth));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  const width = size === "phone" ? 320 : 1024;
-  const height = size === "phone" ? 610 : 740;
-  const scale = availableWidth ? Math.min(1, availableWidth / width) : 1;
-  return (
-    <div className="layout-comparison-stage" ref={stage} style={{ height: height * scale }}>
-      <div style={{ width: width * scale, height: height * scale, marginInline: "auto" }}>
-        <iframe
-          title={title}
-          srcDoc={html}
-          sandbox=""
-          referrerPolicy="no-referrer"
-          style={{ width, height, transform: `scale(${scale})` }}
-        />
-      </div>
-    </div>
-  );
 }
 
 type Props = {

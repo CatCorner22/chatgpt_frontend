@@ -16,7 +16,8 @@ import { assertRestorableStudioState } from "./studio-recovery";
 import { migrate as migrateStudioState, type State as StudioState } from "./studio-state";
 
 export const inventorySchema = z.object({
-  url: z.string().max(500),
+  // The final public URL may expand after redirects or percent-encoding a short typed address.
+  url: z.string().max(8192),
   links: z.array(z.string().max(500)).max(200),
   forms: z.array(z.string().max(500)).max(80),
   fields: z.array(z.string().max(300)).max(200),
@@ -153,11 +154,11 @@ export function samePage(before: Inventory, after: Inventory) {
   }
 }
 export const BASELINE_KEY = "focus:transfer-baselines:v1";
+const baselineList = z.array(inventorySchema).max(20);
+
 export function readBaselines(raw: string | null): Inventory[] {
   try {
-    return z
-      .array(inventorySchema)
-      .max(20)
+    return baselineList
       .parse(JSON.parse(raw ?? "[]"))
       .filter((v) => safeUrl(v.url))
       .map((v) => ({ ...v, completeness: v.completeness ?? "unknown" }));
@@ -171,12 +172,17 @@ export function saveBaseline(
   store: Pick<Storage, "getItem" | "setItem"> = focusLocalStorage,
 ): boolean {
   try {
-    const old = readBaselines(store.getItem(BASELINE_KEY));
-    store.setItem(
-      BASELINE_KEY,
-      JSON.stringify([...old.filter((v) => v.url !== before.url), before].slice(-20)),
+    const snapshot = store.getItem(BASELINE_KEY);
+    // The reader's empty-list fallback cannot distinguish an empty list from damaged originals.
+    const old = baselineList.parse(JSON.parse(snapshot ?? "[]"));
+    const original = inventorySchema.parse(before);
+    if (!safeUrl(original.url)) return false;
+    const next = JSON.stringify(
+      [...old.filter((v) => v.url !== original.url), original].slice(-20),
     );
-    return true;
+    if (store.getItem(BASELINE_KEY) !== snapshot) return false;
+    store.setItem(BASELINE_KEY, next);
+    return store.getItem(BASELINE_KEY) === next;
   } catch {
     return false;
   }
@@ -300,7 +306,8 @@ const transferStateSchema = z
           tokens: z.record(z.string(), z.unknown()),
         }),
       )
-      .max(20)
+      // Layout browsing retains the owner's original choices plus each gallery theme they apply.
+      .max(100)
       .optional(),
     picks: z
       .array(

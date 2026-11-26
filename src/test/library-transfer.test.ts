@@ -3,6 +3,7 @@ import { webcrypto } from "node:crypto";
 import * as transfer from "@/lib/transfer";
 import { LIBRARY_KEY, withVersion, type LibraryEntry } from "@/lib/library";
 import { gardenJourneyKey, newGardenJourney } from "@/lib/garden-journey";
+import { GALLERY } from "@/lib/gallery";
 import { normalizeTokens } from "@/lib/design";
 import { normalizePageSettings } from "@/lib/page-settings";
 import { migrate as migrateStudioState, type State as StudioState } from "@/lib/studio-state";
@@ -104,6 +105,31 @@ describe("library backups retain referenced images", () => {
 });
 
 describe("library backup recovery", () => {
+  it("transfers a design that has tried the entire layout theme catalog and its original direction", async () => {
+    const design = entry();
+    const themes = GALLERY.map((item) => item.direction);
+    const earlier = { ...themes[0]!, name: "Owner's first direction" };
+    const directions = [earlier, ...themes];
+    design.state["directions"] = directions;
+    design.state["direction"] = themes.at(-1)!.name;
+    design.versions![0]!.state["directions"] = directions.slice(0, -1);
+    const raw = await transfer.createLibraryBackup([design], sourceStore());
+    await transfer.validateCompleteLibraryBackup(raw);
+    const target = memoryStore();
+    const restored = await transfer.restoreLibraryBackup(raw, target);
+    expect(restored.entries[0]!.state["directions"]).toEqual(directions);
+    expect(restored.entries[0]!.state["direction"]).toBe(design.state["direction"]);
+    expect(restored.entries[0]!.versions![0]!.state["directions"]).toEqual(directions.slice(0, -1));
+    expect((await transfer.restoreLibraryBackup(raw, target)).duplicates).toBe(1);
+  });
+  it("keeps the per-design direction limit when restoring an oversized collection", async () => {
+    const original = entry();
+    original.state["directions"] = Array.from({ length: 101 }, () => GALLERY[0]!.direction);
+    const raw = JSON.stringify({ version: 1, entries: [original] });
+    const target = memoryStore();
+    await expect(transfer.restoreLibraryBackup(raw, target)).rejects.toThrow();
+    expect(target.data.size).toBe(0);
+  });
   it("exports a readable legacy pick without a reason and restores it with an empty reason", async () => {
     const legacy = entry();
     legacy.state["picks"] = [{ step: "palette", label: "Warm" }];

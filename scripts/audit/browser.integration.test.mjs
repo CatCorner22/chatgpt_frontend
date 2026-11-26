@@ -4,7 +4,7 @@ import { mkdtemp, rm, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright-core";
+import { launchChromium } from "../browser-engine.mjs";
 import { loadChecks, runAudit } from "../north-star-audit.mjs";
 import { parseArgs } from "./options.mjs";
 
@@ -15,11 +15,7 @@ test(
   { timeout: 30000 },
   async () => {
     const check = (await loadChecks()).find((entry) => entry.ruleId === "floor-text-contrast");
-    const browser = await chromium.launch({
-      executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-      headless: true,
-      args: ["--no-sandbox"],
-    });
+    const browser = await launchChromium();
     try {
       const page = await browser.newPage();
       await page.setContent(`<!doctype html><html><head><style>
@@ -139,6 +135,7 @@ test(
         parseArgs([
           "--file",
           join(projectRoot, "scripts/audit/fixtures/runtime.html"),
+          "--mobile-profile",
           "--actions",
           join(projectRoot, "scripts/audit/fixtures/runtime-actions.json"),
           "--out",
@@ -149,6 +146,11 @@ test(
       );
       const scenario = (id) => report.scenarios.find((entry) => entry.id === id);
       assert.ok(scenario("desktop-1440").observations.layoutShift.maxSessionScore > 0);
+      assert.ok(
+        scenario("desktop-1440").observations.layoutShift.samples.some((sample) =>
+          sample.moved.some((box) => box.before[1] !== box.after[1]),
+        ),
+      );
       assert.ok(
         scenario("phone-320").findings.some(
           (finding) => finding.ruleId === "floor-visible-labels" && finding.status === "fails",
@@ -176,6 +178,34 @@ test(
         ),
       );
       for (const entry of report.scenarios) assert.equal(entry.observations.actions.complete, true);
+      const desktop = scenario("desktop-1440");
+      assert.equal(desktop.observations.layout.horizontalOverflowPx, 0);
+      const sweep = desktop.observations.widthSweep;
+      assert.deepEqual(
+        sweep.discovery.boundaries.filter((width) => width > 760 && width < 766),
+        [761, 765],
+      );
+      assert.equal(sweep.samples.length, sweep.plannedWidths.length);
+      const at = (width) => sweep.samples.find((sample) => sample.width === width);
+      for (const width of [760, 766, 768]) assert.equal(at(width).documentWidth, width);
+      assert.ok(at(765).documentWidth > 1000);
+      assert.ok(at(765).candidates.includes("#details"));
+      assert.equal(at(765).focusBefore, "#toggle");
+      assert.equal(at(765).focusAfter, null);
+      assert.ok((await stat(join(out, at(765).screenshot))).size > 0);
+      assert.ok(
+        desktop.findings.some(
+          (finding) =>
+            finding.ruleId === "browser-resize-focus" &&
+            finding.status === "fails" &&
+            finding.where.includes("765px"),
+        ),
+      );
+      const mobile = scenario("phone-320").observations.mobileTiming;
+      assert.equal(mobile.profile.cpuSlowdown, 4);
+      assert.ok(mobile.load.domContentLoadedMs > 0);
+      assert.ok(mobile.load.firstContentfulPaintMs > 0);
+      assert.equal(desktop.observations.mobileTiming, undefined);
     } finally {
       await rm(out, { recursive: true, force: true });
     }

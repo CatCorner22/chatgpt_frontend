@@ -41,6 +41,29 @@ afterEach(() => {
 });
 
 describe("source trial returned bytes", () => {
+  it("recognizes the two returned sources of a portable comparison at the stylesheet input limit", async () => {
+    const pair = ["Booking.tsx", "Booking.module.css"].map((name) => ({
+      path: "src/" + name,
+      content: readFileSync("examples/booking-rehearsal/src/" + name, "utf8"),
+    }));
+    const css = pair[1]!;
+    const padding = SOURCE_TRIAL_LIMITS.stylesheetBytes - encode(css.content).length - 5;
+    css.content = "/*" + "x".repeat(padding) + "*/\n" + css.content;
+    const prepared = await prepareSourceTrial(pair, design, {
+      typography: "portable",
+      bookingLayout: "compare",
+    });
+    expect(prepared.contract.files[1].afterBytes).toBeGreaterThan(
+      SOURCE_TRIAL_LIMITS.stylesheetBytes + SOURCE_TRIAL_LIMITS.afterGrowthBytes,
+    );
+    await expect(
+      compareSourceTrialReturn(prepared, selection(prepared, "after")),
+    ).resolves.toMatchObject({ state: "proposed" });
+    await expect(
+      compareSourceTrialReturn(prepared, selection(prepared, "before")),
+    ).resolves.toMatchObject({ state: "original" });
+  });
+
   it("recognizes both proposed files regardless of picker order", async () => {
     const expected = trial.contract.files;
     const files = selection(trial, "after").reverse();

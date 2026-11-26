@@ -157,6 +157,9 @@ describe("Image framing controls", () => {
     const onChange = vi.fn();
     render(<ImageFramingControls onChange={onChange} />);
     const summary = screen.getByText("How image framing works");
+    expect(screen.getByRole("group", { name: "Image framing" })).toHaveAccessibleDescription(
+      /HTML and ZIP include the full image file and any embedded location data/,
+    );
     const details = summary.closest("details")!;
     expect(details.open).toBe(false);
     fireEvent.click(summary);

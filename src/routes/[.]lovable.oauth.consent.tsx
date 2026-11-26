@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { hasCloudBackend } from "@/lib/runtime-config";
+import { socialHead } from "./-social-head";
 
 type Details = { client?: { name?: string }; redirect_url?: string; redirect_to?: string } | null;
 type OAuthApi = {
@@ -20,23 +21,12 @@ const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   // SSR has no localStorage session and would redirect signed-in users.
   ssr: false,
-  head: () => ({
-    meta: [
-      { title: "Connect an AI tool — Focus" },
-      {
-        name: "description",
-        content: "Approve read-only access to your Focus Visions for an AI tool.",
-      },
-      { property: "og:title", content: "Connect an AI tool — Focus" },
-      {
-        property: "og:description",
-        content: "Approve read-only access to your Focus Visions for an AI tool.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Connect an AI tool — Focus",
+      description: "Approve read-only access to your Focus Visions for an AI tool.",
+      robots: "noindex",
+    }),
   validateSearch: (s: Record<string, unknown>) => ({
     authorization_id: typeof s["authorization_id"] === "string" ? s["authorization_id"] : "",
   }),

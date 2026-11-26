@@ -1,0 +1,116 @@
+.layout-comparison {
+  margin-block: 0 1.5rem;
+  border-block: 1px solid var(--border);
+}
+.layout-comparison-toggle,
+.layout-comparison-apply {
+  min-height: 44px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.layout-comparison-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: start;
+}
+.layout-comparison-toggle span {
+  font-size: 1.25rem;
+}
+.layout-comparison-body {
+  padding-block: 0.5rem 1.25rem;
+}
+.layout-comparison-filters,
+.layout-comparison-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+.layout-comparison-filters > div {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+}
+.layout-comparison-filters select {
+  min-width: 0;
+  min-height: 44px;
+  width: 100%;
+  padding-inline: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--foreground);
+  background: var(--background);
+  font: inherit;
+}
+.layout-comparison-pair {
+  align-items: start;
+  margin-top: 1rem;
+}
+.layout-comparison-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+.layout-comparison-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+.layout-comparison-card header h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.layout-comparison-card header span,
+.layout-comparison-card p {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+.layout-comparison-card p {
+  margin-block: 0.35rem 0.8rem;
+  line-height: 1.5;
+}
+.layout-comparison-stage {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--muted);
+}
+.layout-comparison-stage iframe {
+  display: block;
+  border: 0;
+  max-width: none;
+  transform-origin: top left;
+}
+.layout-comparison-apply {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.layout-comparison-apply:disabled {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+.layout-comparison-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  padding-top: 0.8rem;
+  font-size: 0.875rem;
+}
+.layout-comparison-summary .layout-comparison-apply {
+  margin-top: 0;
+}
+.layout-comparison-card header + .layout-comparison-stage {
+  margin-top: 0.6rem;
+}

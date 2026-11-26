@@ -48,7 +48,13 @@ describe("design pack hand-off", () => {
         .filter((n) => !zip.files[n]?.dir)
         .every((n) => n.startsWith("focus-restyle/")),
     ).toBe(true);
-    expect(zip.file("focus-restyle/UNDO.md")).not.toBeNull();
+    const undo = await zip.file("focus-restyle/UNDO.md")!.async("string");
+    const start = await zip.file("focus-restyle/START-HERE.md")!.async("string");
+    expect(start).toContain("Record the actual incoming trial folder path");
+    expect(undo).toContain("exact folder path you recorded at setup");
+    expect(undo).toContain("Compare every filename and file byte");
+    expect(undo).toContain("Keep every folder that existed before the trial");
+    expect(undo).not.toMatch(/point to focus-restyle\/|unused focus-restyle folder/);
   });
   it.each(["../outside.txt", "src/tokens.css", "AGENTS.md/extra", "fonts.css"])(
     "rejects unexpected customer path %s",

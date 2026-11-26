@@ -12,6 +12,8 @@ Use that meaning consistently. The standard includes visual craft, clear informa
 
 ## Current assessment
 
+The November 24 editorial update adds an optional second image for a related story, independent framing, public credits, and an editable Hokusai example. The earlier single-image assessment below describes the November 18 source. [Editorial handoff and browser rehearsal](EDITORIAL-READING.md)
+
 Focus has a substantial guided-design and handoff foundation: constrained design tokens, five authored page compositions, a shared preview/export renderer, explicit existing-site safeguards, version-bound launch records, interactive app specimens, a browser-audit runner and a blind-review toolkit. These are useful building blocks and should be strengthened rather than duplicated.
 
 The current local generator chooses existing gallery directions (`src/lib/local-design.ts`). Paid AI remains explicitly paused (`src/lib/ai-policy.ts`). The content model is small (`src/lib/design.ts`): brand, headline, subhead, CTA, feature pairs and a quotation. The authored exporter accepts one image. All three Stratosphere font pairs now embed licensed Latin font subsets in the shared preview/HTML/ZIP stylesheet; other families and characters still use local fallbacks. Clean-device rendering remains unverified. These constraints limit bespoke information architecture and exact visual delivery. App preview states are local specimens; a preview does not supply a complete customer's application workflow.

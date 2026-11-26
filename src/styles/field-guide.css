@@ -32,7 +32,7 @@
 .field-guide h1,
 .field-guide h2,
 .field-guide h3 {
-  font-family: var(--font-display, "Bricolage Grotesque", sans-serif);
+  font-family: var(--font-display);
   line-height: 1.15;
   letter-spacing: -0.025em;
 }

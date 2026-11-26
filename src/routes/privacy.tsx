@@ -1,22 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy policy — Focus" },
-      {
-        name: "description",
-        content:
-          "How Focus handles account details, design work, screenshots, shared links and visitor analytics.",
-      },
-      { property: "og:title", content: "Privacy policy — Focus" },
-      { property: "og:description", content: "Data handling for the Focus design studio." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Privacy policy — Focus",
+      description:
+        "How Focus handles account details, design work, screenshots, shared links and visitor analytics.",
+      ogDescription: "Data handling for the Focus design studio.",
+    }),
   component: Privacy,
 });
 function Privacy() {
@@ -223,9 +217,10 @@ function PreparationPrivacy() {
       <p>
         Telescope reads selected HTML, ZIP and receipt files locally in the open tab. It does not
         execute customer code, fetch its resources, upload the files or save them in browser
-        storage. Leaving or reloading removes the session. Downloaded receipts and task plans
-        include filenames, observations and the task descriptions you entered; those copies remain
-        under their holders' control.
+        storage. Leaving or reloading clears the inspection. The visitor task and edited expected
+        outcomes you type are saved separately in this browser. Choose Clear this session in
+        Telescope to remove the saved plan. Downloaded receipts and task plans can contain
+        filenames, observations and your task descriptions.
       </p>
     </section>
   );

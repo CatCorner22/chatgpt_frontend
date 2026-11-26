@@ -3,14 +3,20 @@ import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_DEFAULTS, GARDEN_KEY } from "@/lib/garden-preferences";
+import { gardenJourneyKey, readGardenJourney } from "@/lib/garden-journey";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
+import { normalizeTokens } from "@/lib/design";
 import { LIBRARY_KEY } from "@/lib/library";
+import { takeLibraryOpenId } from "@/lib/library-open";
 import { PROGRESS_KEY } from "@/lib/launch";
 import { ONBOARDING_KEY } from "@/lib/onboarding";
 import { STUDIO_KEY } from "@/lib/projects";
 
+const navigate = vi.hoisted(() => vi.fn());
 vi.mock("@/components/AppHeader", () => ({ AppHeader: () => <header>Focus navigation</header> }));
 vi.mock("@tanstack/react-router", () => ({
+  useBlocker: vi.fn(),
+  useNavigate: () => navigate,
   Link: ({
     to,
     search,
@@ -18,6 +24,10 @@ vi.mock("@tanstack/react-router", () => ({
   }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: Record<string, string> }) => (
     <a
       href={to + (search && Object.keys(search).length ? `?${new URLSearchParams(search)}` : "")}
+      onClick={(event) => {
+        event.preventDefault();
+        navigate({ to, search });
+      }}
       {...props}
     />
   ),
@@ -58,6 +68,325 @@ afterEach(() => {
 });
 
 describe("Garden home", () => {
+  it("saves a visitor goal and an approach across stops and reload without granting completion", async () => {
+    seedProtectedRecords();
+    const { unmount } = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Choose a class and book it" },
+    });
+    visitStep("plan");
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "scannable-sections" },
+    });
+    fireEvent.change(screen.getByLabelText("What must the visitor see before they decide?"), {
+      target: { value: "Class price and times" },
+    });
+    const saved = readGardenJourney(null);
+    expect(saved.brief?.task).toBe("Choose a class and book it");
+    expect(saved.brief?.decisions["plan"]).toEqual({
+      choice: "scannable-sections",
+      note: "Class price and times",
+    });
+    unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Preferred approach")).toHaveValue("scannable-sections");
+    expect(screen.getByLabelText("What must the visitor see before they decide?")).toHaveValue(
+      "Class price and times",
+    );
+    localStorage.setItem(
+      gardenJourneyKey(null),
+      JSON.stringify({ ...saved.brief, task: "Edited elsewhere" }),
+    );
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "guided-sequence" },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("saved in another tab");
+    expect(readGardenJourney(null).brief?.task).toBe("Edited elsewhere");
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
+  });
+
+  it("reopens the latest saved brief from another tab and keeps its next edit", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "First-time students" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    const updated = { ...readGardenJourney(null).brief!, audience: "Returning students" };
+    localStorage.setItem(gardenJourneyKey(null), JSON.stringify(updated));
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Returning students");
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Reserve a place" },
+    });
+    expect(readGardenJourney(null).brief).toMatchObject({
+      audience: "Returning students",
+      task: "Reserve a place",
+    });
+  });
+
+  it("keeps the last readable brief available when reopening it while storage is unavailable", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Weekend students" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    const getItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === gardenJourneyKey(null)) throw new Error("Storage unavailable");
+      return getItem.call(this, key);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Weekend students");
+    expect(screen.getByRole("alert")).toBeVisible();
+  });
+
+  it("keeps an unsaved tab's brief available after closing and reopening the panel", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Storage full");
+    });
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Night class" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+    write.mockRestore();
+    fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Night class");
+    fireEvent.click(screen.getByRole("button", { name: "Retry saving" }));
+    expect(readGardenJourney(null).brief?.audience).toBe("Night class");
+  });
+
+  it("previews only the selected website's current offers and handles its removal without changing Studio", async () => {
+    const id = "class-site";
+    const saveWebsite = (price: string) =>
+      localStorage.setItem(
+        LIBRARY_KEY,
+        JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              id,
+              title: "Clay classes",
+              state: {
+                libraryId: id,
+                tokens: normalizeTokens({}),
+                integration: "new",
+                content: {
+                  brand: "Clay classes",
+                  headline: "Join us",
+                  sub: "",
+                  cta: "Ask",
+                  quote: "",
+                  features: [
+                    { title: "Wheel basics", body: price },
+                    { title: "Glaze studio", body: "$56 at 2 pm" },
+                  ],
+                },
+              },
+            },
+          ],
+        }),
+      );
+    saveWebsite("$48 at 10 am");
+    const untouched = "separate existing Studio draft";
+    localStorage.setItem(STUDIO_KEY, untouched);
+    localStorage.setItem(
+      GARDEN_KEY,
+      JSON.stringify({ ...GARDEN_DEFAULTS, step: "plan", goal: "new" }),
+    );
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    fireEvent.change(screen.getByLabelText("Preferred approach"), {
+      target: { value: "compare-options" },
+    });
+    expect(screen.getByText(/Choose a saved website under/)).toBeVisible();
+    fireEvent.change(screen.getByLabelText("Brief for"), { target: { value: id } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copy my unassigned brief into this design" }),
+    );
+    const trigger = await screen.findByRole("button", { name: "Preview my options together" });
+    expect(screen.queryByTitle("Your option comparison preview")).toBeNull();
+    fireEvent.click(trigger);
+    expect(await screen.findByTitle("Your option comparison preview")).toHaveAttribute(
+      "srcdoc",
+      expect.stringContaining("$48 at 10 am"),
+    );
+    saveWebsite("$52 at 11 am");
+    fireEvent(window, new StorageEvent("storage", { key: LIBRARY_KEY }));
+    await waitFor(() =>
+      expect(screen.getByTitle("Your option comparison preview")).toHaveAttribute(
+        "srcdoc",
+        expect.stringContaining("$52 at 11 am"),
+      ),
+    );
+    localStorage.removeItem(LIBRARY_KEY);
+    fireEvent(window, new StorageEvent("storage", { key: LIBRARY_KEY }));
+    expect(screen.queryByTitle("Your option comparison preview")).toBeNull();
+    expect(screen.getByText(/saved website could not be read/)).toBeVisible();
+    expect(localStorage.getItem(STUDIO_KEY)).toBe(untouched);
+  });
+
+  it("distinguishes same-titled designs in the brief selector and resumes the selected copy", async () => {
+    const names = [
+      ["morning", "Classes", "Morning sessions"],
+      ["evening", "Classes", "Evening sessions"],
+      ["weekend", "Classes", "Evening sessions"],
+      ["news", "Seasonal news", "News from the studio"],
+    ] as const;
+    const entries = names.map(([id, title, headline]) => ({
+      id,
+      title,
+      state: {
+        libraryId: id,
+        tokens: normalizeTokens({}),
+        content: { brand: title, headline, sub: "", cta: "", quote: "", features: [] },
+      },
+    }));
+    localStorage.setItem(LIBRARY_KEY, JSON.stringify({ version: 1, entries }));
+    const view = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const choices = within(screen.getByLabelText("Brief for"));
+    expect(choices.getByRole("option", { name: "Seasonal news" })).toBeVisible();
+    expect(choices.getByRole("option", { name: /Morning sessions/ })).toBeVisible();
+    const evening = choices.getAllByRole("option", { name: /Evening sessions/ });
+    expect(evening).toHaveLength(2);
+    expect(evening[0]?.textContent).not.toBe(evening[1]?.textContent);
+    const selected = choices.getByRole("option", { name: /Evening sessions.*weekend/ });
+    fireEvent.change(screen.getByLabelText("Brief for"), {
+      target: { value: (selected as HTMLOptionElement).value },
+    });
+    fireEvent.change(screen.getByLabelText("Who is this for?"), {
+      target: { value: "Weekend students" },
+    });
+    expect(readGardenJourney("weekend").brief?.audience).toBe("Weekend students");
+    expect(readGardenJourney("evening").brief).toBeNull();
+    view.unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("Brief for")).toHaveValue("weekend");
+    expect(screen.getByLabelText("Who is this for?")).toHaveValue("Weekend students");
+  });
+
+  it.each([
+    ["content", "Work on the page content", null],
+    ["direction", "Explore design directions", null],
+    ["plan", "Arrange the page", "composition"],
+    ["craft", "Explore color pairs", "palette"],
+    ["craft", "Font pairs", "fonts"],
+    ["craft", "Text size and emphasis", "hierarchy"],
+    ["craft", "Spacing", "spacing"],
+    ["craft", "Buttons and corners", "form"],
+    ["behavior", "Choose button appearance", "form"],
+  ] as const)(
+    "routes %s / %s to the open brief's design only while it is selected",
+    async (stop, name, group) => {
+      const id = "chosen-design";
+      localStorage.setItem(
+        LIBRARY_KEY,
+        JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              id,
+              title: "Design to review",
+              state: {
+                libraryId: id,
+                tokens: normalizeTokens({}),
+                content: {
+                  brand: "Guide",
+                  headline: "Seasonal activities",
+                  sub: "",
+                  cta: "",
+                  quote: "",
+                  features: [],
+                },
+              },
+            },
+          ],
+        }),
+      );
+      render(<GardenHome />);
+      fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+      visitStep(stop);
+      const design = screen.getByLabelText("Brief for");
+      const choose = (value: string) => fireEvent.change(design, { target: { value } });
+      function checkDestination(linked: boolean) {
+        const action = screen.queryByRole("link", { name }) ?? screen.getByRole("button", { name });
+        navigate.mockClear();
+        fireEvent.click(action);
+        const request = navigate.mock.calls[0]?.[0];
+        expect(request?.to).toBe("/");
+        expect(request.search).toEqual(
+          group
+            ? { view: "studio", panel: "stratosphere", group }
+            : linked
+              ? { view: "studio" }
+              : { view: "studio", start: "existing" },
+        );
+        expect(takeLibraryOpenId(request.state?.focusLibraryOpen)).toBe(linked ? id : null);
+      }
+      choose("");
+      checkDestination(false);
+      choose(id);
+      checkDestination(true);
+      fireEvent.click(screen.getByRole("button", { name: "Close my journey brief" }));
+      checkDestination(false);
+      fireEvent.click(screen.getByRole("button", { name: "Open my journey brief" }));
+      checkDestination(true);
+    },
+  );
+
+  it("retries pending notes and preferences on exit without overwriting other Garden choices", async () => {
+    const ui = render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Storage full");
+    });
+    fireEvent.change(screen.getByLabelText("What should someone be able to do?"), {
+      target: { value: "Compare two class times" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Keep it brief" }));
+    write.mockRestore();
+    localStorage.setItem(GARDEN_KEY, JSON.stringify({ ...GARDEN_DEFAULTS, goal: "new" }));
+    fireEvent(window, new Event("pagehide"));
+    expect(readGardenJourney(null).brief?.task).toBe("Compare two class times");
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({
+      ...GARDEN_DEFAULTS,
+      goal: "new",
+      brief: false,
+    });
+    const cleanWrites = vi.spyOn(Storage.prototype, "setItem");
+    fireEvent(window, new Event("pagehide"));
+    expect(cleanWrites).not.toHaveBeenCalled();
+    ui.unmount();
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open my journey brief" }));
+    expect(screen.getByLabelText("What should someone be able to do?")).toHaveValue(
+      "Compare two class times",
+    );
+  });
+
+  it("refuses to autosave a stale pending stop over another tab on exit", async () => {
+    render(<GardenHome />);
+    await screen.findByRole("button", { name: "Continue" });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+      throw new Error("Storage full");
+    });
+    visitStep("content");
+    const newer = JSON.stringify({ ...GARDEN_DEFAULTS, step: "direction" });
+    localStorage.setItem(GARDEN_KEY, newer);
+    const leaving = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, leaving);
+    expect(leaving.defaultPrevented).toBe(true);
+    expect(screen.getByRole("status")).toHaveTextContent("Another tab changed");
+    expect(localStorage.getItem(GARDEN_KEY)).toBe(newer);
+  });
+
   it("preserves newer lesson and goal choices when an older tab moves to another stop", async () => {
     localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
     render(<GardenHome />);
@@ -67,6 +396,22 @@ describe("Garden home", () => {
     visitStep("craft");
     expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toEqual({ ...newer, step: "craft" });
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
+  });
+
+  it("continues along the visible starting point when another tab saves the opposite one", async () => {
+    render(<GardenHome />);
+    fireEvent.click(await screen.findByRole("radio", { name: "New app or website" }));
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(GARDEN_DEFAULTS));
+    expect(screen.getByRole("radio", { name: "New app or website" })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("link", { name: "Work on the page content" })).toHaveAttribute(
+      "href",
+      "/?view=studio&start=new",
+    );
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toMatchObject({
+      goal: "existing",
+      step: "content",
+    });
   });
 
   it("updates lesson depth without overwriting another tab's saved stop or moving the visible stop", async () => {
@@ -80,7 +425,7 @@ describe("Garden home", () => {
       step: "handoff",
       brief: false,
     });
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("What are we working on?");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Where do we start?");
   });
 
   it("keeps unsaved lesson choices on retry while preserving a newer goal from another tab", async () => {
@@ -112,7 +457,7 @@ describe("Garden home", () => {
     const clears = vi.spyOn(Storage.prototype, "clear");
     render(<GardenHome />);
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(
-      "What are we working on?",
+      "Where do we start?",
     );
     expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "false");
     expect(reads.mock.calls.every(([key]) => key === GARDEN_KEY)).toBe(true);
@@ -120,21 +465,74 @@ describe("Garden home", () => {
     expect(removes).not.toHaveBeenCalled();
     expect(clears).not.toHaveBeenCalled();
     for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
-    expect(screen.getByRole("radio", { name: /^An existing app or website/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Existing app or website/ })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Keep it brief" })).toBeChecked();
   });
+
+  it("puts both project starts and the direct layout shortcut before the map", async () => {
+    seedProtectedRecords();
+    render(<GardenHome />);
+    const choices = await screen.findByRole("group", { name: "Choose a starting point" });
+    const map = screen.getByRole("navigation", { name: "Garden Path steps" });
+    const next = screen.getByRole("button", { name: "Continue" });
+    const shortcut = screen.getByRole("link", { name: "Browse designer layouts" });
+    expect(shortcut).toHaveAttribute("href", "/layouts");
+    expect(shortcut).toHaveAccessibleDescription("Preview six ways to arrange a page.");
+    expect(shortcut.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(choices).not.toContainElement(shortcut);
+    expect(choices.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(next.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const fresh = within(choices).getByRole("radio", { name: "New app or website" });
+    const existing = within(choices).getByRole("radio", { name: "Existing app or website" });
+    expect(fresh).toHaveAccessibleDescription(/first version/);
+    expect(existing).toHaveAccessibleDescription(/working features/);
+    fireEvent.click(fresh);
+    fireEvent.click(next);
+    expect(screen.getByRole("link", { name: "Work on the page content" })).toHaveAttribute(
+      "href",
+      "/?view=studio&start=new",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Change starting point" }));
+    expect(screen.getByRole("radio", { name: "New app or website" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "Existing app or website" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(JSON.parse(localStorage.getItem(GARDEN_KEY)!)).toMatchObject({
+      step: "content",
+      goal: "existing",
+    });
+    for (const [key, value] of protectedRecords) expect(localStorage.getItem(key)).toBe(value);
+  });
+
+  it.each(["goal", "craft"] as const)(
+    "returns focus to the current %s stop when its map button is activated again",
+    async (stepId) => {
+      const saved = JSON.stringify({ ...GARDEN_DEFAULTS, step: stepId });
+      localStorage.setItem(GARDEN_KEY, saved);
+      render(<GardenHome />);
+      const heading = await screen.findByRole("heading", {
+        level: 1,
+        name: stepId === "goal" ? "Where do we start?" : getGardenStep(stepId).title,
+      });
+      const map = screen.getByRole("navigation", { name: "Garden Path steps" });
+      const current = within(map).getByRole("button", { current: "step" });
+      current.focus();
+      fireEvent.click(current);
+      expect(heading).toHaveFocus();
+      expect(localStorage.getItem(GARDEN_KEY)).toBe(saved);
+    },
+  );
 
   it("remembers goal and navigation choices, focuses the new heading, and writes no completion evidence", async () => {
     seedProtectedRecords();
     const writes = vi.spyOn(Storage.prototype, "setItem");
     render(<GardenHome />);
-    fireEvent.click(await screen.findByRole("radio", { name: /^A new page/ }));
+    fireEvent.click(await screen.findByRole("radio", { name: /^New app or website/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus(),
     );
     visitStep("direction");
-    expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+    expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
     const navigation = screen.getByRole("navigation", { name: "Garden Path steps" });
     expect(within(navigation).getAllByRole("button")).toHaveLength(9);
     expect(GARDEN_STEPS.map((step) => step.id)).toEqual(
@@ -186,7 +584,7 @@ describe("Garden home", () => {
       render(<GardenHome />);
       const step = getGardenStep(stepId);
       expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(
-        stepId === "goal" ? "What are we working on?" : step.title,
+        stepId === "goal" ? "Where do we start?" : step.title,
       );
       expect(screen.getByRole("checkbox", { name: "Keep it brief" })).not.toBeChecked();
       expect(lessons().details).toHaveAttribute("open");
@@ -255,11 +653,11 @@ describe("Garden home", () => {
     });
     render(<GardenHome />);
     expect(await screen.findByRole("status")).toHaveTextContent(/could not be read/);
-    fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^New app or website/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByRole("heading", { level: 1, name: GARDEN_STEPS[1]!.title })).toHaveFocus();
     visitStep("direction");
-    expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+    expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
     fireEvent.click(lessons().summary);
     expect(lessons().details).toHaveAttribute("open");
@@ -284,13 +682,13 @@ describe("Garden home", () => {
         vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
           throw new Error("Readback denied");
         });
-      fireEvent.click(screen.getByRole("radio", { name: /^A new page/ }));
+      fireEvent.click(screen.getByRole("radio", { name: /^New app or website/ }));
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
       expect(screen.getByRole("status")).toHaveTextContent(/could not be confirmed as saved/);
       visitStep("direction");
-      expect(screen.getByText(/Your starting point: a new page/)).toBeVisible();
+      expect(screen.getByText(/Your starting point: a new app or website/)).toBeVisible();
       visitStep("goal");
-      expect(screen.getByRole("radio", { name: /^A new page/ })).toBeChecked();
+      expect(screen.getByRole("radio", { name: /^New app or website/ })).toBeChecked();
       if (failure !== "denied readback") expect(readOriginal(GARDEN_KEY)).toBe(before);
     },
   );
@@ -304,9 +702,9 @@ describe("Garden home", () => {
       "/welcome",
     );
     const destinations: Record<Exclude<GardenStepId, "goal">, string> = {
-      content: "/?view=studio",
+      content: "/?view=studio&start=existing",
       plan: "/?view=studio&panel=stratosphere&group=composition",
-      direction: "/?view=studio",
+      direction: "/?view=studio&start=existing",
       craft: "/?view=studio&panel=stratosphere&group=palette",
       behavior: "/?view=studio&panel=stratosphere&group=form",
       responsive: "/quality",
@@ -327,7 +725,7 @@ describe("Garden home", () => {
     }
     expect([...offered]).toEqual(
       expect.arrayContaining([
-        "/?view=studio",
+        "/?view=studio&start=existing",
         "/?view=studio&panel=stratosphere&group=palette",
         "/quality",
         "/target",
@@ -371,15 +769,15 @@ describe("Garden home", () => {
     }
     expect(screen.getByRole("img", { name: "Reverie reading a map" })).toHaveAttribute(
       "src",
-      "/brand/reverie-map-guide.png",
+      "/brand/reverie-map-guide.webp",
     );
     expect(screen.getByRole("img", { name: "Reverie walking with her kite" })).toHaveAttribute(
       "src",
-      "/brand/reverie-kite.png",
+      "/brand/reverie-kite.webp",
     );
     expect(document.querySelector(".garden-river")).toHaveAttribute(
       "src",
-      "/brand/garden-river.png",
+      "/brand/garden-river.webp",
     );
   });
 

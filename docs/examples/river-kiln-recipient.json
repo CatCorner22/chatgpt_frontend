@@ -1,0 +1,499 @@
+{
+  "builds": [
+    {
+      "phase": "original",
+      "sizes": [
+        {
+          "width": 320,
+          "confirmed": "Booking confirmed. Reference RK-001 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compact",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "Georgia, serif",
+              "faces": [
+                {
+                  "name": "LiberationSerif",
+                  "glyphs": 28,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Regular",
+                  "glyphs": 79,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Bold",
+                  "glyphs": 15,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            }
+          },
+          "radius": "5px"
+        },
+        {
+          "width": 1280,
+          "confirmed": "Booking confirmed. Reference RK-002 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compact",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "Georgia, serif",
+              "faces": [
+                {
+                  "name": "LiberationSerif",
+                  "glyphs": 28,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Regular",
+                  "glyphs": 80,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Bold",
+                  "glyphs": 15,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            }
+          },
+          "radius": "5px"
+        }
+      ]
+    },
+    {
+      "phase": "applied",
+      "sizes": [
+        {
+          "width": 320,
+          "confirmed": "Booking confirmed. Reference RK-001 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compare",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 28,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 79,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 15,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            }
+          },
+          "radius": "8px"
+        },
+        {
+          "width": 1280,
+          "confirmed": "Booking confirmed. Reference RK-002 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compare",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 28,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 80,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "InstrumentSans-Regular",
+                  "glyphs": 15,
+                  "custom": true
+                }
+              ],
+              "matchesChosenFace": true
+            }
+          },
+          "radius": "8px"
+        }
+      ]
+    },
+    {
+      "phase": "restored",
+      "sizes": [
+        {
+          "width": 320,
+          "confirmed": "Booking confirmed. Reference RK-001 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compact",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "Georgia, serif",
+              "faces": [
+                {
+                  "name": "LiberationSerif",
+                  "glyphs": 28,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Regular",
+                  "glyphs": 79,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Bold",
+                  "glyphs": 15,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            }
+          },
+          "radius": "5px"
+        },
+        {
+          "width": 1280,
+          "confirmed": "Booking confirmed. Reference RK-002 · Total $48.",
+          "savedReservations": 1,
+          "bookingResponseStatuses": [
+            409,
+            503,
+            200,
+            200
+          ],
+          "treatment": "compact",
+          "paint": {
+            "heading": {
+              "family": "Instrument Sans",
+              "declared": "Georgia, serif",
+              "faces": [
+                {
+                  "name": "LiberationSerif",
+                  "glyphs": 28,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "body": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Regular",
+                  "glyphs": 80,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            },
+            "action": {
+              "family": "Instrument Sans",
+              "declared": "system-ui, sans-serif",
+              "faces": [
+                {
+                  "name": "NotoSans-Bold",
+                  "glyphs": 15,
+                  "custom": false
+                }
+              ],
+              "matchesChosenFace": false
+            }
+          },
+          "radius": "5px"
+        }
+      ]
+    }
+  ],
+  "practiceZipSha256": "2f231d01cf406baf4c47bdf67be34cb4fc6989db23ddc52f3c41203f34f21208",
+  "proposalZipSha256": "59a372056c26d060d5f0f0659fea76320c56e9770af8554ea1a062cc8550572e",
+  "trial": {
+    "version": 2,
+    "typography": "portable",
+    "bookingLayout": "compare"
+  },
+  "offlineRecipient": [
+    {
+      "width": 320,
+      "withheld": [],
+      "served": [
+        "2ee17598a98d8a59e4df8152d015bec9ab8e4d5672cc0ab42bef806b568e3971"
+      ],
+      "layout": {
+        "cssZoom": 1,
+        "viewport": 320,
+        "fits": true
+      },
+      "paint": {
+        "heading": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 28,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        },
+        "body": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 79,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        },
+        "action": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 15,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "withheld": [],
+      "served": [
+        "2ee17598a98d8a59e4df8152d015bec9ab8e4d5672cc0ab42bef806b568e3971"
+      ],
+      "layout": {
+        "cssZoom": 2,
+        "viewport": 1280,
+        "fits": true
+      },
+      "paint": {
+        "heading": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 28,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        },
+        "body": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 80,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        },
+        "action": {
+          "family": "Instrument Sans",
+          "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+          "faces": [
+            {
+              "name": "InstrumentSans-Regular",
+              "glyphs": 15,
+              "custom": true
+            }
+          ],
+          "matchesChosenFace": true
+        }
+      }
+    }
+  ],
+  "missingFont": {
+    "width": 320,
+    "withheld": [
+      "assets/instrument-sans-2ee17598a98d-BbzFLZTg.woff2"
+    ],
+    "served": [],
+    "layout": {
+      "cssZoom": 1,
+      "viewport": 320,
+      "fits": true
+    },
+    "paint": {
+      "heading": {
+        "family": "Instrument Sans",
+        "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+        "faces": [
+          {
+            "name": "NotoSans-Regular",
+            "glyphs": 28,
+            "custom": false
+          }
+        ],
+        "matchesChosenFace": false
+      },
+      "body": {
+        "family": "Instrument Sans",
+        "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+        "faces": [
+          {
+            "name": "NotoSans-Regular",
+            "glyphs": 79,
+            "custom": false
+          }
+        ],
+        "matchesChosenFace": false
+      },
+      "action": {
+        "family": "Instrument Sans",
+        "declared": "FocusTrial-952322e9a4cb-instrument-sans, system-ui, sans-serif",
+        "faces": [
+          {
+            "name": "NotoSans-Bold",
+            "glyphs": 15,
+            "custom": false
+          }
+        ],
+        "matchesChosenFace": false
+      }
+    }
+  },
+  "productionLicenses": [
+    {
+      "name": "instrument-sans-9e27a72ed30e-BNWuI_C7.txt",
+      "sha256": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966"
+    }
+  ],
+  "assetGuards": {
+    "existingIdenticalAssetRefused": true,
+    "modifiedAssetUndoRefused": true,
+    "unrelatedNeighborsPreserved": true
+  },
+  "rollback": {
+    "changedBookingSource": "Verification stopped before rollback; the edited file remained byte-identical.",
+    "unchangedBookingSource": "Rollback restored the booking task and preserved both later edits in other files."
+  }
+}

@@ -1,5 +1,7 @@
+import { actionDestination, isPrivatePageDestination } from "./action-destination";
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
+import { PRODUCT_PRINT_CSS } from "./authored-product-print";
 import {
   getAuthoredFeatures,
   getAuthoredQuote,
@@ -18,15 +20,66 @@ import {
 } from "./image-framing";
 import { isPageComposition, type PageComposition } from "./page-compositions";
 
+type PageImage = { src: string; alt: string; credit?: string };
 export type PageOptions = {
   composition: PageComposition;
+  language?: "en" | "ja";
   actionUrl: string;
-  image?: { src: string; alt: string };
+  publicCodeUrl?: string;
+  image?: PageImage;
+  relatedStory?: {
+    title: string;
+    url: string;
+    publicCodeUrl?: string;
+    placement: "after-intro" | "after-article";
+    image?: PageImage;
+    imageFraming?: ImageFraming;
+  };
   imageFraming?: ImageFraming;
 };
 
 export const DEFAULT_PAGE_OPTIONS: PageOptions = { composition: "studio", actionUrl: "" };
 export type PageReadiness = { id: string; message: string };
+
+// Only Focus's own visitor-facing text belongs here. Owner copy is never translated.
+const PAGE_LABELS = {
+  en: {
+    untitled: "Untitled project",
+    continue: "Continue",
+    exploreDetails: "Explore details",
+    detail: "Detail",
+    introduction: "Introduction",
+    explorePage: "Explore this page",
+    contents: "On this page",
+    compareOptions: "Compare options",
+    details: "Details",
+    closerLook: "A closer look.",
+    quotation: "Supplied quotation",
+    related: "Related reading",
+    nextStep: "Next step",
+    mainNav: "Main",
+    skip: "Skip to content",
+    top: "Back to top ↑",
+  },
+  ja: {
+    untitled: "無題のプロジェクト",
+    continue: "次へ",
+    exploreDetails: "詳しく見る",
+    detail: "詳細",
+    introduction: "はじめに",
+    explorePage: "このページの目次",
+    contents: "目次",
+    compareOptions: "選択肢を比較",
+    details: "詳細",
+    closerLook: "詳しい内容",
+    quotation: "引用",
+    related: "関連記事",
+    nextStep: "次のステップ",
+    mainNav: "メイン",
+    skip: "本文へスキップ",
+    top: "ページの先頭へ ↑",
+  },
+} as const;
 
 const escape = (value: unknown): string =>
   String(value ?? "")
@@ -36,39 +89,6 @@ const escape = (value: unknown): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 const text = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
-
-/** Navigation only: never fetched, embedded, or interpreted as executable content. */
-function actionDestination(value: unknown): string | null {
-  const raw = text(value);
-  if (
-    !raw ||
-    [...raw].some(
-      (character) => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127,
-    ) ||
-    /[<>"'`\\]/.test(raw) ||
-    /%(?:0a|0d)/i.test(raw)
-  )
-    return null;
-  if (/^mailto:/i.test(raw)) {
-    return /^mailto:[a-z0-9.!#$%&*+/=?^_{}|~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i.test(
-      raw,
-    )
-      ? raw
-      : null;
-  }
-  if (/^tel:/i.test(raw)) return /^tel:\+?[0-9][0-9().-]{2,39}$/.test(raw) ? raw : null;
-  try {
-    const url = new URL(raw);
-    return (url.protocol === "https:" || url.protocol === "http:") &&
-      url.hostname &&
-      !url.username &&
-      !url.password
-      ? url.href
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 /** The first bytes verify the declared raster type; SVG and remote URLs are never embedded. */
 function rasterImage(value: PageOptions["image"]): { src: string; alt: string } | null {
@@ -124,11 +144,14 @@ export function renderAuthoredPage(
   html: string;
   css: string;
   files: Record<string, string>;
+  comparisonSection?: string;
   readiness: PageReadiness[];
 } {
   const readiness: PageReadiness[] = [];
   const normalized = normalizeTokens(input);
   const t = fixContrast(normalized);
+  const language = options.language === "ja" ? "ja" : "en";
+  const labels = PAGE_LABELS[language];
   const composition = isPageComposition(options.composition) ? options.composition : "studio";
   if (composition !== options.composition)
     readiness.push({
@@ -139,6 +162,7 @@ export function renderAuthoredPage(
     studio: "split",
     editorial: "editorial",
     product: "stacked",
+    comparison: "stacked",
     showcase: "poster",
     journal: "editorial",
   }[composition];
@@ -174,7 +198,14 @@ export function renderAuthoredPage(
       message:
         "Text on the surface color uses a separate readable color. The original background and surface colors are preserved.",
     });
-  const action = actionDestination(options.actionUrl);
+  const actionPrivate = isPrivatePageDestination(options.actionUrl, options.publicCodeUrl);
+  const action = actionPrivate ? null : actionDestination(options.actionUrl);
+  if (actionPrivate)
+    readiness.push({
+      id: "action-private",
+      message:
+        "The main action needs a public address. Replace or clear its private link before downloading. For a public coupon code, confirm it beside the address.",
+    });
   const image = rasterImage(options.image);
   if (options.image && !image)
     readiness.push({
@@ -182,18 +213,41 @@ export function renderAuthoredPage(
       message:
         "The image was omitted. Use an embedded PNG, JPEG, or WebP under 2 MiB with a meaningful description.",
     });
+  const story = options.relatedStory;
+  const storyPrivate = isPrivatePageDestination(story?.url, story?.publicCodeUrl);
+  const storyDestination = storyPrivate ? null : actionDestination(story?.url);
+  const storyTitle = text(story?.title);
+  const storyReady = !!(storyTitle && storyDestination && /^https?:/i.test(storyDestination));
+  const storyImage = rasterImage(story?.image);
+  const storyCredit = text(story?.image?.credit);
+  if (story && !storyReady)
+    readiness.push({
+      id: "story-link",
+      message: storyPrivate
+        ? "The related story needs a public address. Replace the private link or remove the story before downloading. For a public coupon code, confirm it beside the address."
+        : "Give the related story a title and its full website address, or remove the story.",
+    });
+  if (story?.image && (!storyImage || !storyCredit))
+    readiness.push({
+      id: "story-image",
+      message:
+        "Add a readable story image, its description and a public credit, or remove the image.",
+    });
+  const storyFraming = getImageFramingCss(story?.imageFraming);
   const framing = image && compactImageFraming(options.imageFraming);
   const framed = framing ? getImageFramingCss(framing) : undefined;
-  const brand = text(content.brand) || "Untitled project";
+  const brand = text(content.brand) || labels.untitled;
   const headline = text(content.headline) || brand;
   const sub = text(content.sub);
   const quote = getAuthoredQuote(content.quote);
   const features = getAuthoredFeatures(content.features);
   const firstDescription = features.findIndex(hasAuthoredFeatureDescription);
+  const hasProductDisclosures = composition === "product" && firstDescription >= 0;
   const hasStaticProductFeatures =
     composition === "product" &&
     features.some((feature) => !hasAuthoredFeatureDescription(feature));
   const hasDetails = features.length > 0;
+  const compareOptions = composition === "comparison";
   const hasHeroAction = !!action || hasDetails;
   if (!action)
     readiness.push({
@@ -208,8 +262,8 @@ export function renderAuthoredPage(
           : "No action is shown until you add a valid destination or feature details."
       }`,
     });
-  const actionLabel = action ? text(content.cta) || "Continue" : "Explore details";
-  if (!text(content.brand) || brand === "Untitled project")
+  const actionLabel = action ? text(content.cta) || labels.continue : labels.exploreDetails;
+  if (brand === labels.untitled || brand === PAGE_LABELS.en.untitled)
     readiness.push({ id: "brand", message: "Give this page its real project or business name." });
   if (!text(content.headline))
     readiness.push({ id: "headline", message: "Add a headline in your own words." });
@@ -251,6 +305,7 @@ export function renderAuthoredPage(
   ];
   readiness.push({ id: "fonts", message: fontNotes.filter(Boolean).join(" ") });
 
+  const leadCredit = image && text(options.image?.credit);
   const space = { airy: 1.25, balanced: 1, compact: 0.85 }[t.density];
   const link = readableOn(t.accent, t.bg);
   const css = `/* Focus authored page. The standalone HTML embeds this exact stylesheet.
@@ -267,7 +322,7 @@ ${fonts.css}:root {
   --type-display: ${Math.max(3.2, Math.pow(t.scale, 5.2)).toFixed(4)}rem;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-block-start: 1rem; }
+html { scroll-behavior: smooth; scroll-padding-block-start: 1rem;${language === "ja" ? " line-break: strict;" : ""} }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--type-body)/1.65 var(--body); }
 body, button, input, textarea, select { font-size: max(16px, var(--type-body)); }
 ::selection { background: var(--ink); color: var(--bg); }
@@ -404,7 +459,23 @@ ${hasStaticProductFeatures ? ".feature-static-heading { display: flex; align-ite
 .journal .feature-row { grid-template-columns: 2.5rem minmax(0, 1fr); column-gap: 1.25rem; row-gap: .75rem; }
 .journal .feature-row .feature-body { grid-column: 2; }
 .journal .quote-section { max-inline-size: calc(66.666666% - 2rem); border-radius: 0; }
-/* Decorative texture never sits behind reading text. */
+${
+  storyReady
+    ? `.related-story { border-block-start: 1px solid var(--muted); padding-block: clamp(2rem, 5vw, 4.5rem); display: grid; align-items: center; gap: clamp(1rem, 3vw, 3rem); }
+.related-story:has(figure) { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.related-story .eyebrow { margin-block-end: .65rem; }
+.related-story h2 a { min-block-size: 44px; display: inline-block; max-width: 100%; }
+.related-story figure { min-inline-size: 0; margin: 0; }
+.related-story img { inline-size: 100%; aspect-ratio: 3/2; object-fit: ${storyFraming.fit}; object-position: ${storyFraming.position}; }
+.related-story figcaption { margin-block-start: .5rem; color: var(--muted); font-size: 1rem; overflow-wrap: anywhere; }
+.showcase .related-story { max-inline-size: 1440px; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 5rem); }
+@media (max-width: ${IMAGE_NARROW_BREAKPOINT}px) {
+  .related-story:has(figure) { grid-template-columns: minmax(0, 1fr); }
+  .related-story img { object-position: ${storyFraming.narrowPosition}; }
+}
+`
+    : ""
+}${leadCredit ? ".visual-caption { overflow-wrap: anywhere; }\n" : ""}/* Decorative texture never sits behind reading text. */
 ${t.texture === "grid" ? ".visual { background-image: linear-gradient(var(--surface-muted) 1px, transparent 1px), linear-gradient(90deg, var(--surface-muted) 1px, transparent 1px); background-size: 4rem 4rem; } .visual .original-art { background: var(--surface); margin: 1.25rem; inline-size: calc(100% - 2.5rem); }" : ""}
 ${t.texture === "grain" ? ".visual::before { content: ''; position: absolute; inset: 0; pointer-events: none; border: 1px dotted var(--surface-muted); border-radius: inherit; }" : ""}
 @media (max-width: ${IMAGE_NARROW_BREAKPOINT}px) {
@@ -457,37 +528,54 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   a:focus-visible, summary:focus-visible { outline-color: Highlight; }
   .original-art { forced-color-adjust: auto; }
 }
-`;
+${
+  compareOptions
+    ? `
+.comparison .hero { padding-block: calc(2.5rem * var(--space)); }
+.comparison .hero-sub { margin-block-start: 1rem; }
+.comparison .visual { margin-block: 2rem; }
+.option-comparison { padding-block: calc(2rem * var(--space)); border-block-start: 1px solid var(--muted); }
+.option-list { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.option-list li { min-inline-size: 0; padding: clamp(1rem, 3vw, 2rem); border-block-start: 3px solid var(--accent); border-radius: var(--radius); background: var(--surface); color: var(--surface-ink); break-inside: avoid; }
+.option-list p { margin-block-start: .75rem; color: var(--surface-muted); white-space: pre-line; font-variant-numeric: tabular-nums; }
+.option-comparison .action { margin-block-start: 1.5rem; }
+@media (forced-colors: active) { .option-list li { border: 1px solid CanvasText; } }
+`
+    : ""
+}${hasProductDisclosures ? PRODUCT_PRINT_CSS : ""}`;
 
   const actionLink = (className = "action") =>
     `<a class="${className}" href="${escape(action ?? "#details")}"><span>${escape(actionLabel)}</span><svg class="action-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a>`;
   const visual =
-    !image && (composition === "showcase" || composition === "journal")
+    !image && (composition === "showcase" || composition === "journal" || compareOptions)
       ? ""
       : `<figure class="visual">${
           image
             ? `<img class="owner-image" src="${escape(image.src)}" alt="${escape(image.alt)}" width="1200" height="900" decoding="async">`
             : ornament(composition)
-        }</figure>`;
-  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
+        }${image && text(options.image?.credit) ? `<figcaption class="visual-caption"><bdi>${escape(text(options.image?.credit))}</bdi></figcaption>` : ""}</figure>`;
+  const intro = `<div class="hero-copy">${composition !== "editorial" && composition !== "journal" && !compareOptions ? `<p class="eyebrow">${escape(brand)}</p>` : ""}<h1>${escape(headline)}</h1>${sub ? `<p class="hero-sub">${escape(sub)}</p>` : ""}${hasHeroAction && !(compareOptions && hasDetails) ? `<div class="hero-actions">${actionLink()}</div>` : ""}</div>`;
   const featureLinks = features
     .map(
       (feature, index) =>
-        `<a href="#feature-${index + 1}"><span class="feature-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><span>${escape(text(feature.title) || `Detail ${index + 1}`)}</span></a>`,
+        `<a href="#feature-${index + 1}"><span class="feature-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><span>${escape(text(feature.title) || `${labels.detail} ${index + 1}`)}</span></a>`,
     )
     .join("\n");
-  const hero =
-    composition === "editorial"
-      ? `<section class="hero" aria-label="Introduction"><p class="eyebrow">01 / Introduction</p>${intro}${visual}</section>`
+  const hero = compareOptions
+    ? `<section class="hero" aria-label="${labels.introduction}">${intro}</section>`
+    : composition === "editorial"
+      ? `<section class="hero" aria-label="${labels.introduction}"><p class="eyebrow">01 / ${labels.introduction}</p>${intro}${visual}</section>`
       : composition === "showcase"
-        ? `<section class="hero" aria-label="Introduction">${visual}${intro}</section>${features.length ? `<nav class="feature-index" aria-label="Explore this page">${featureLinks}</nav>` : ""}`
+        ? `<section class="hero" aria-label="${labels.introduction}">${visual}${intro}</section>${features.length ? `<nav class="feature-index" aria-label="${labels.explorePage}">${featureLinks}</nav>` : ""}`
         : composition === "journal"
-          ? `<section class="hero" aria-label="Introduction"><div class="journal-grid${features.length ? "" : " journal-grid--solo"}"><div class="journal-lead">${visual}${intro}</div>${features.length ? `<aside class="journal-index" aria-labelledby="page-index-title"><h2 id="page-index-title">On this page</h2><nav aria-labelledby="page-index-title">${featureLinks}</nav></aside>` : ""}</div></section>`
-          : `<section class="hero" aria-label="Introduction">${intro}${visual}</section>`;
+          ? `<section class="hero" aria-label="${labels.introduction}"><div class="journal-grid${features.length ? "" : " journal-grid--solo"}"><div class="journal-lead">${visual}${intro}</div>${features.length ? `<aside class="journal-index" aria-labelledby="page-index-title"><h2 id="page-index-title">${labels.contents}</h2><nav aria-labelledby="page-index-title">${featureLinks}</nav></aside>` : ""}</div></section>`
+          : `<section class="hero" aria-label="${labels.introduction}">${intro}${visual}</section>`;
   const rows = features
     .map((feature, index) => {
       const number = String(index + 1).padStart(2, "0");
-      const heading = text(feature.title) || `Detail ${index + 1}`;
+      const heading = text(feature.title) || `${labels.detail} ${index + 1}`;
+      if (compareOptions)
+        return `<li id="feature-${index + 1}"><h3>${escape(heading)}</h3>${text(feature.body) ? `<p>${escape(feature.body)}</p>` : ""}</li>`;
       if (composition === "product") {
         if (!hasAuthoredFeatureDescription(feature))
           return `<section id="feature-${index + 1}" class="feature-disclosure" aria-labelledby="feature-${index + 1}-title"><div class="feature-static-heading"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3></div></section>`;
@@ -496,21 +584,31 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
       return `<section id="feature-${index + 1}" class="feature-row" tabindex="-1" aria-labelledby="feature-${index + 1}-title"><span class="feature-number" aria-hidden="true">${number}</span><h3 id="feature-${index + 1}-title">${escape(heading)}</h3>${text(feature.body) ? `<p class="feature-body">${escape(feature.body)}</p>` : ""}</section>`;
     })
     .join("\n");
-  const details = hasDetails
-    ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / Details</span><h2 id="details-title">A closer look.</h2></div><div class="feature-list">${rows}</div></section>`
-    : "";
+  const comparisonSection =
+    compareOptions && hasDetails
+      ? `<section id="details" class="option-comparison" aria-labelledby="details-title"><h2 id="details-title">${labels.compareOptions}</h2><ul class="option-list" role="list">${rows}</ul>${action ? actionLink() : ""}</section>`
+      : "";
+  const details =
+    comparisonSection ||
+    (hasDetails
+      ? `<section id="details" class="details-section" aria-labelledby="details-title"><div class="section-heading"><span class="section-number">02 / ${labels.details}</span><h2 id="details-title">${labels.closerLook}</h2></div><div class="feature-list">${rows}</div></section>`
+      : "");
   const quoteSection = quote
-    ? `<section class="quote-section surface" aria-label="Supplied quotation"><blockquote><p>${escape(quote)}</p></blockquote></section>`
+    ? `<section class="quote-section surface" aria-label="${labels.quotation}"><blockquote><p>${escape(quote)}</p></blockquote></section>`
     : "";
+  const related = storyReady
+    ? `<section class="related-story" aria-labelledby="related-story-title"><div><p class="eyebrow">${labels.related}</p><h2 id="related-story-title"><a href="${escape(storyDestination)}">${escape(storyTitle)}</a></h2></div>${storyImage && storyCredit ? `<figure><img src="${escape(storyImage.src)}" alt="${escape(storyImage.alt)}" width="720" height="480" loading="lazy" decoding="async"><figcaption>${escape(storyCredit)}</figcaption></figure>` : ""}</section>`
+    : "";
+  const relatedAfterIntro = story?.placement === "after-intro";
   const closing =
-    action && (hasDetails || quote)
-      ? `<section class="closing" aria-label="Next step"><h2>${escape(text(content.cta) || "Continue")}</h2>${actionLink()}</section>`
+    !compareOptions && action && (hasDetails || quote) && !(storyReady && !relatedAfterIntro)
+      ? `<section class="closing" aria-label="${labels.nextStep}"><h2>${escape(actionLabel)}</h2>${actionLink()}</section>`
       : "";
   const navigation = hasHeroAction
-    ? `<nav class="site-nav" aria-label="Main">${hasDetails ? `<a href="#details">Explore details</a>` : ""}${action ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
+    ? `<nav class="site-nav" aria-label="${labels.mainNav}">${hasDetails ? `<a href="#details">${labels.exploreDetails}</a>` : ""}${action && !(compareOptions && hasDetails) ? `<a href="${escape(action)}">${escape(actionLabel)}</a>` : ""}</nav>`
     : "";
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${language}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -521,11 +619,11 @@ h1, h2, h3, p, a, blockquote, summary { overflow-wrap: anywhere; }
   <style>${css}</style>
 </head>
 <body class="${composition}" id="top">
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main">${labels.skip}</a>
   <div class="site-shell">
     <header class="site-header"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>${escape(brand)}</a>${navigation}</header>
-    <main id="main" tabindex="-1">${hero}${details}${quoteSection}${closing}</main>
-    <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">Back to top ↑</a></footer>
+    <main id="main" tabindex="-1">${hero}${relatedAfterIntro ? related : ""}${details}${compareOptions ? visual : ""}${quoteSection}${relatedAfterIntro ? "" : related}${closing}</main>
+    <footer class="site-footer"><span class="footer-note">${escape(brand)}</span><a class="footer-link" href="#top">${labels.top}</a></footer>
   </div>
 </body>
 </html>`;
@@ -547,8 +645,9 @@ FILES AND CUSTOMER HANDOFF
 - index.html: the editable page, including the supplied copy and embedded image.
 - styles.css: the page's appearance; keep it beside index.html.${fonts.includedFamilies.length ? "\n- fonts/: source details and license notices for the fonts embedded in styles.css." : ""}
 - focus-project.json: an archival studio snapshot for a developer. It is not an
-  importable library backup. It may include earlier studio inputs and history;
-  keep it private rather than uploading it to the public website.
+  importable library backup. Focus omits recognized private page links from this
+  snapshot and its history. Earlier inputs and owner-written notes may still be
+  sensitive. Keep the snapshot private. Your saved local draft keeps the original links.
 - README.txt: these instructions.
 
 Extract the whole ZIP before opening index.html. Send the ZIP for an editable
@@ -565,7 +664,7 @@ Keep the original backup until the restored design and its image have been check
 
 To change words in this exported page, edit index.html. A supplied image is an
 embedded data URL; a developer can replace its src with a local image filename,
-keep an accurate alt description, and include that image file when hosting.${framingReadme}
+keep an accurate alt description, and include that image file when hosting.${framingReadme}${storyReady ? "\nThe related-story section contains your reading order, story title and navigation\naddress. Preserve image descriptions, credits and any license conditions when editing." : ""}
 Edits to exported files do not update the original Focus design.
 
 The separate standalone HTML download embeds the same generated CSS. It needs
@@ -583,8 +682,8 @@ included. ${
         : "No action is shown because no valid destination or feature details were supplied."
   }
 
-Composition: ${composition}
-Earlier hero arrangement: ${t.heroLayout}
+Composition: ${composition}${compareOptions ? "\nThe comparison lists each supplied offer with its description before the primary link. Check each name, time and total against the owner’s copy." : ""}${language === "ja" ? "\nPage language: Japanese (ja). Keep the html lang attribute and navigation labels in the language of the published page." : ""}
+Earlier hero arrangement: ${t.heroLayout}${hasProductDisclosures ? "\n\nTo keep a paper or PDF copy, open the browser’s Print preview. Check that every\ndescription appears in order. If one is missing in your browser, open its\nsection on the page and print again." : ""}
 
 REVIEW BEFORE PUBLISHING
 ${readiness.map((note) => `- ${note.message}`).join("\n")}
@@ -595,6 +694,7 @@ phone and desktop. Automated checks do not establish overall usability or craft.
   return {
     html,
     css,
+    ...(comparisonSection ? { comparisonSection } : {}),
     files: {
       "index.html": sourceHtml,
       "styles.css": css,

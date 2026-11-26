@@ -18,6 +18,13 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 import { Telescope } from "@/routes/telescope";
+import { TELESCOPE_PLAN_KEY } from "@/hooks/useTelescopePlan";
+import {
+  createOwnerStorage,
+  initializeBrowserOwner,
+  lockBrowserOwner,
+  resumeBrowserOwner,
+} from "@/lib/browser-storage";
 
 const report = (name = "build.html", hash = "a"): TelescopeReceipt => ({
   schema: "focus.telescope.build-receipt",
@@ -54,6 +61,7 @@ function select(file: File) {
 }
 
 beforeEach(() => {
+  localStorage.clear();
   operations.inspect.mockReset();
   operations.download.mockReset();
   operations.blocker.mockReset().mockReturnValue({ status: "idle" });
@@ -61,6 +69,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("Telescope workbench boundaries", () => {
@@ -183,16 +192,23 @@ describe("Telescope workbench boundaries", () => {
     dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Clear this session" }));
     expect(screen.getByLabelText("Primary visitor task")).toHaveValue("");
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBeNull();
   });
 
   it("protects authored work from route navigation and reload, and opens review tools separately", () => {
     const view = render(<Telescope />);
     expect(operations.blocker.mock.lastCall?.[0].shouldBlockFn()).toBe(false);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("Quota exceeded");
+    });
     fireEvent.change(screen.getByLabelText("error expected outcome"), {
       target: { value: "Keep the chosen slot" },
     });
     expect(operations.blocker.mock.lastCall?.[0].shouldBlockFn()).toBe(true);
-    expect(operations.blocker.mock.lastCall?.[0].enableBeforeUnload).toBe(true);
+    expect(operations.blocker.mock.lastCall?.[0].enableBeforeUnload).toBe(false);
+    const leaving = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, leaving);
+    expect(leaving.defaultPrevented).toBe(true);
     expect(
       screen.getByRole("link", { name: "Open Quality lab (opens in a new tab)" }),
     ).toHaveAttribute("target", "_blank");
@@ -209,5 +225,112 @@ describe("Telescope workbench boundaries", () => {
     expect(screen.getByLabelText("error expected outcome")).toHaveValue("Keep the chosen slot");
     fireEvent.click(screen.getByRole("button", { name: "Leave Telescope" }));
     expect(proceed).toHaveBeenCalledTimes(1);
+  });
+  it("restores only authored text after a departure retry, leaving build evidence in the closed tab", async () => {
+    const ui = render(<Telescope />);
+    operations.inspect.mockResolvedValue(report("private-build.html", "c"));
+    select(artifact("private-build.html"));
+    await screen.findByRole("button", { name: "Download build receipt" });
+    fireEvent.change(screen.getByLabelText("Previous Telescope receipt JSON"), {
+      target: { files: [receiptFile(report("external-receipt.html"))] },
+    });
+    await screen.findByText(/Different artifact bytes/);
+    expect(localStorage.length).toBe(0);
+    fireEvent.change(screen.getByLabelText("Primary visitor task"), {
+      target: { value: "Find an appointment" },
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+      throw new Error("Full storage");
+    });
+    fireEvent.change(screen.getByLabelText("error expected outcome"), {
+      target: { value: "Retry without losing a date" },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("confirm the save");
+    fireEvent(window, new Event("pagehide"));
+    expect(localStorage.length).toBe(1);
+    expect(JSON.parse(localStorage.getItem(TELESCOPE_PLAN_KEY)!)).toEqual({
+      version: 1,
+      task: "Find an appointment",
+      expectations: { error: "Retry without losing a date" },
+    });
+    expect(operations.blocker.mock.lastCall?.[0].shouldBlockFn()).toBe(false);
+    ui.unmount();
+    render(<Telescope />);
+    expect(screen.getByLabelText("Primary visitor task")).toHaveValue("Find an appointment");
+    expect(screen.getByLabelText("error expected outcome")).toHaveValue(
+      "Retry without losing a date",
+    );
+    expect(screen.queryByRole("button", { name: "Download build receipt" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Download task test plan" })).toBeDisabled();
+    expect(operations.download).not.toHaveBeenCalled();
+  });
+
+  it("confines saved text and departure retries to the verified owner", () => {
+    vi.stubEnv("VITE_FOCUS_HOSTED", "true");
+    const owner = "sites:telescope-owner";
+    const own = createOwnerStorage(localStorage, owner);
+    const other = createOwnerStorage(localStorage, "sites:telescope-colleague");
+    const otherDraft = JSON.stringify({ version: 1, task: "Another workspace", expectations: {} });
+    other.setItem(TELESCOPE_PLAN_KEY, otherDraft);
+    initializeBrowserOwner(owner);
+    render(<Telescope />);
+    const task = screen.getByLabelText("Primary visitor task");
+    expect(task).toHaveValue("");
+    fireEvent.change(task, { target: { value: "Find a class" } });
+    lockBrowserOwner();
+    fireEvent.change(task, { target: { value: "Find a pottery class" } });
+    fireEvent(window, new Event("pagehide"));
+    expect(JSON.parse(own.getItem(TELESCOPE_PLAN_KEY)!).task).toBe("Find a class");
+    resumeBrowserOwner(owner);
+    fireEvent(window, new Event("pagehide"));
+    expect(JSON.parse(own.getItem(TELESCOPE_PLAN_KEY)!).task).toBe("Find a pottery class");
+    expect(other.getItem(TELESCOPE_PLAN_KEY)).toBe(otherDraft);
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBeNull();
+  });
+
+  it("keeps a concurrent plan intact on edit, exit or clearing and allows reopening the saved plan", () => {
+    render(<Telescope />);
+    fireEvent.change(screen.getByLabelText("Primary visitor task"), {
+      target: { value: "My task" },
+    });
+    const newer = JSON.stringify({ version: 1, task: "Concurrent edit", expectations: {} });
+    localStorage.setItem(TELESCOPE_PLAN_KEY, newer);
+    fireEvent.change(screen.getByLabelText("Primary visitor task"), {
+      target: { value: "My latest edit" },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("another tab");
+    fireEvent(window, new Event("pagehide"));
+    fireEvent.click(screen.getByRole("button", { name: "Clear this session" }));
+    fireEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Clear this session" }),
+    );
+    expect(screen.getByLabelText("Primary visitor task")).toHaveValue("My latest edit");
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBe(newer);
+    fireEvent.click(screen.getByRole("button", { name: "Reload saved plan" }));
+    fireEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Reopen saved plan" }),
+    );
+    expect(screen.getByLabelText("Primary visitor task")).toHaveValue("Concurrent edit");
+  });
+
+  it("keeps unreadable data until an explicit clear and refuses secret URLs", () => {
+    localStorage.setItem(TELESCOPE_PLAN_KEY, "invalid draft");
+    render(<Telescope />);
+    expect(screen.getByRole("alert")).toHaveTextContent("could not be read");
+    fireEvent.change(screen.getByLabelText("Primary visitor task"), {
+      target: { value: "A local edit" },
+    });
+    fireEvent(window, new Event("pagehide"));
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBe("invalid draft");
+    fireEvent.click(screen.getByRole("button", { name: "Clear this session" }));
+    fireEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Clear this session" }),
+    );
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBeNull();
+    fireEvent.change(screen.getByLabelText("Primary visitor task"), {
+      target: { value: "Preview https://example.test/?token=sample" },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("secret URLs");
+    expect(localStorage.getItem(TELESCOPE_PLAN_KEY)).toBeNull();
   });
 });

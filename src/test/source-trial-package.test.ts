@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
+  access,
+  chmod,
+  copyFile,
   mkdir,
   mkdtemp,
   readFile,
@@ -47,6 +50,7 @@ const bundleFiles = [
   "AGENT-HANDOFF.md",
   "START-HERE.md",
   "TRIAL-PLAN.md",
+  "github-trial.mjs",
   "forward.patch",
   "rollback.patch",
   "trial-contract.json",
@@ -59,14 +63,17 @@ afterEach(async () => {
   await Promise.all(temporary.splice(0).map((path) => rm(path, { recursive: true, force: true })));
 });
 
-async function prepare(source = files) {
-  return prepareSourceTrial(source, {
+async function prepare(source = files, portable = false) {
+  const design = {
     id: draft.designId,
     tokens: normalizeTokens({ bg: "#F4F8FA", accent: "#2156B8", radius: 8 }),
-  });
+  };
+  return portable
+    ? prepareSourceTrial(source, design, { typography: "portable", bookingLayout: "compact" })
+    : prepareSourceTrial(source, design);
 }
 
-async function fixture(source = files) {
+async function fixture(source = files, githubBase = "", portable = false) {
   const base = await mkdtemp(join(tmpdir(), "focus-source-trial-package-"));
   temporary.push(base);
   const project = join(base, "project");
@@ -76,15 +83,18 @@ async function fixture(source = files) {
     await writeFile(join(project, file.path), file.content);
   }
   await writeFile(join(project, "unrelated.txt"), "Keep this later work.\n");
-  const prepared = await prepare(source);
+  const prepared = await prepare(source, portable);
   const zip = await JSZip.loadAsync(
-    await buildSourceTrialPackage(prepared, { draft, designTitle: "Clear booking" }),
+    await buildSourceTrialPackage(prepared, { draft, designTitle: "Clear booking", githubBase }),
     { checkCRC32: true },
   );
   const bundle = join(base, "focus-source-trial");
   await mkdir(bundle);
   for (const file of Object.values(zip.files).filter((file) => !file.dir)) {
-    expect(file.name).toMatch(/^focus-source-trial\/[A-Za-z.-]+$/);
+    if (portable && file.name.startsWith("focus-source-trial/assets/")) {
+      expect(file.name).toMatch(/^focus-source-trial\/assets\/[A-Za-z0-9_.-]+$/);
+      await mkdir(join(bundle, "assets"), { recursive: true });
+    } else expect(file.name).toMatch(/^focus-source-trial\/[A-Za-z.-]+$/);
     await writeFile(join(base, file.name), await file.async("nodebuffer"), { flag: "wx" });
   }
   return { base, project, prepared, zip, bundle };
@@ -137,7 +147,7 @@ async function reseal(bundle: string) {
 }
 
 describe("source trial package: actual ZIP and read-only recipient verifier", () => {
-  it("exports only seven fixed files in a separate folder and verifies both exact snapshots without writes", async () => {
+  it("exports only the fixed proposal and GitHub trial files in a separate folder and verifies both exact snapshots without writes", async () => {
     const f = await fixture();
     expect(
       Object.values(f.zip.files)
@@ -215,6 +225,50 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     },
   );
 
+  it.each([false, true])(
+    "pasting the downloaded guide stops before changing files on any refused check (portable=%s)",
+    async (portable) => {
+      const f = await fixture(files, "", portable);
+      const target = join(f.project, files[0]!.path);
+      const original = await readFile(target, "utf8");
+      for (const filename of ["START-HERE.md", "AGENT-HANDOFF.md"]) {
+        const guide = await readFile(join(f.bundle, filename), "utf8");
+        const blocks = [...guide.matchAll(/```sh\n([\s\S]*?)\n```/g)].map((match) =>
+          match[1]!
+            .replaceAll("/absolute/path/to/isolated-project", f.project)
+            .replaceAll("/absolute/path/to/focus-source-trial", f.bundle),
+        );
+        const runBlock = (direction: "forward" | "rollback") => {
+          const block = blocks.find((cmd) =>
+            cmd.includes(`apply "${f.bundle}/${direction}.patch"`),
+          );
+          expect(block).toBeDefined();
+          return spawnSync("sh", ["-c", block!], {
+            cwd: f.bundle,
+            env: isolatedChildEnv(),
+            encoding: "utf8",
+            timeout: 15000,
+          });
+        };
+        await writeFile(target, original + "\n// Later local edit before application.\n");
+        const beforeRefusedApply = await snapshot(f.project);
+        expect(runBlock("forward").status).not.toBe(0);
+        expect(await snapshot(f.project)).toEqual(beforeRefusedApply);
+        await writeFile(target, original);
+        expect(runBlock("forward").status).toBe(0);
+        const applied = await readFile(target, "utf8");
+        await writeFile(target, applied + "\n// Later local edit before undo.\n");
+        const beforeRefusedUndo = await snapshot(f.project);
+        expect(runBlock("rollback").status).not.toBe(0);
+        expect(await snapshot(f.project)).toEqual(beforeRefusedUndo);
+        await writeFile(target, applied);
+        expect(runBlock("rollback").status).toBe(0);
+        expect(await readFile(target, "utf8")).toBe(original);
+      }
+    },
+    30000,
+  );
+
   it("accepts deeply nested supported paths and normalized uppercase palette values", async () => {
     const nested = files.map((file) => ({
       ...file,
@@ -227,6 +281,7 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
 
   it.each([
     "AGENT-HANDOFF.md",
+    "github-trial.mjs",
     "forward.patch",
     "rollback.patch",
     "trial-contract.json",
@@ -436,5 +491,279 @@ describe("source trial package: actual ZIP and read-only recipient verifier", ()
     expect(plan).toContain("Original title");
     expect(plan).toContain(draft.page);
     expect(plan).not.toMatch(/mutated-.*-sentinel/);
+  });
+});
+
+const fixtureRepo = "FocusExamples/owned-trial";
+function localGit(project: string, ...args: string[]) {
+  const result = spawnSync("git", ["-C", project, ...args], {
+    env: { ...isolatedChildEnv(), GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  return result.stdout.trimEnd();
+}
+async function githubFixture(pin?: string, portable = false) {
+  const f = await fixture(files, pin, portable);
+  localGit(f.project, "-c", "init.defaultBranch=main", "init");
+  localGit(f.project, "add", "src", "unrelated.txt");
+  localGit(
+    f.project,
+    "-c",
+    "user.name=Test",
+    "-c",
+    "user.email=test@localhost",
+    "commit",
+    "-m",
+    "owned baseline",
+  );
+  localGit(f.project, "remote", "add", "origin", "https://github.com/" + fixtureRepo + ".git");
+  const revision = localGit(f.project, "rev-parse", "HEAD");
+  const directory = join(f.base, "isolated trial");
+  const helper = (args: string[], extraEnv: NodeJS.ProcessEnv = {}) =>
+    spawnSync(process.execPath, [join(f.bundle, "github-trial.mjs"), ...args], {
+      env: { ...isolatedChildEnv(), ...extraEnv },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+  const prepareArgs = ["prepare", f.project, "main", revision, directory];
+  const publishArgs = ["publish", directory, fixtureRepo];
+  return { ...f, revision, directory, helper, prepareArgs, publishArgs };
+}
+
+describe("GitHub trial from a recipient's actual download", () => {
+  it("prepares a commit containing only the two source edits and the exact licensed assets, then undoes it", async () => {
+    const f = await githubFixture(undefined, true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a version 2 font trial");
+    expect(contract.assets.length).toBeGreaterThan(1);
+    const result = f.helper(f.prepareArgs);
+    expect(result.status, result.stderr).toBe(0);
+    const expected = [...contract.files, ...contract.assets].map((entry) => entry.path).sort();
+    expect(
+      localGit(f.directory, "diff", "--name-only", "HEAD^", "HEAD").split("\n").sort(),
+    ).toEqual(expected);
+    for (const asset of contract.assets) {
+      expect(digest(await readFile(join(f.directory, asset.path)))).toBe(asset.sha256);
+      await expect(access(join(f.project, asset.path))).rejects.toThrow();
+    }
+    await writeFile(join(f.directory, "keep.txt"), "Owner edit");
+    expect(applyOwnedFixturePatch(f.bundle, f.directory, "rollback.patch").status).toBe(0);
+    expect(verify(f.bundle, f.directory, "before").status).toBe(0);
+    expect(await readFile(join(f.directory, "keep.txt"), "utf8")).toBe("Owner edit");
+    for (const asset of contract.assets)
+      await expect(access(join(f.directory, asset.path))).rejects.toThrow();
+  });
+
+  it("prepares exactly two committed edits in a fresh clone, preserves uncommitted owner work and supports selective undo", async () => {
+    const f = await githubFixture();
+    await writeFile(join(f.project, "unrelated.txt"), "Owner's current edit.\n");
+    const outcome = f.helper(f.prepareArgs);
+    expect(outcome.status, outcome.stderr).toBe(0);
+    expect(outcome.stdout).toMatch(/GitHub has not been contacted/i);
+    expect(localGit(f.directory, "rev-parse", "HEAD^")).toBe(f.revision);
+    expect(localGit(f.directory, "remote")).toBe("");
+    expect(
+      localGit(f.directory, "diff", "--name-only", "HEAD^", "HEAD").split("\n").sort(),
+    ).toEqual(files.map((f) => f.path).sort());
+    expect(localGit(f.project, "branch", "--show-current")).toBe("main");
+    expect(await readFile(join(f.project, "unrelated.txt"), "utf8")).toBe(
+      "Owner's current edit.\n",
+    );
+    expect(verify(f.bundle, f.directory, "after").status).toBe(0);
+    expect(f.helper(f.prepareArgs).status).not.toBe(0);
+    expect(f.helper(["publish", f.directory, "Different/Repository"]).status).not.toBe(0);
+    await writeFile(join(f.directory, "unrelated.txt"), "Later edits survive undo.\n");
+    const altered = f.helper(f.publishArgs);
+    expect(altered.stderr).toMatch(/additional edits/);
+    expect(applyOwnedFixturePatch(f.bundle, f.directory, "rollback.patch").status).toBe(0);
+    expect(verify(f.bundle, f.directory, "before").status).toBe(0);
+    expect(await readFile(join(f.directory, "unrelated.txt"), "utf8")).toBe(
+      "Later edits survive undo.\n",
+    );
+  });
+
+  it("binds the owner pin, refuses a stale branch and never creates trial directories inside the source checkout", async () => {
+    const f = await githubFixture("1".repeat(40));
+    expect(f.helper(f.prepareArgs).stderr).toMatch(/baseline recorded/);
+    await expect(access(f.directory)).rejects.toThrow();
+    await expect(
+      buildSourceTrialPackage(f.prepared, { draft, designTitle: "Booking", githubBase: "short" }),
+    ).rejects.toThrow(/40-character/);
+    const g = await githubFixture();
+    expect(g.helper(["prepare", g.project, "main", "2".repeat(40), g.directory]).stderr).toMatch(
+      /branch has moved/,
+    );
+    expect(
+      g.helper(["prepare", g.project, "main", g.revision, join(g.project, "inside")]).stderr,
+    ).toMatch(/outside/);
+    await expect(access(join(g.project, "inside"))).rejects.toThrow();
+    // New local Git configuration requires a fresh isolated copy.
+    expect(g.helper(g.prepareArgs).status).toBe(0);
+    localGit(g.directory, "config", "remote.unexpected.url", "https://example.invalid/test");
+    expect(g.helper(g.publishArgs).stderr).toMatch(/configuration changed/);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "shares via a creation-only Git push, refuses drift and public defaults, and recovers after interrupted draft creation",
+    async () => {
+      const f = await githubFixture();
+      expect(f.helper(f.prepareArgs).status).toBe(0);
+      const head = localGit(f.directory, "rev-parse", "HEAD");
+      const branch = localGit(f.directory, "branch", "--show-current");
+      const remote = join(f.base, "local-remote.git");
+      localGit(f.base, "clone", "--bare", "--no-hardlinks", f.project, remote);
+      const bin = join(f.base, "test-cli");
+      await mkdir(bin);
+      const gitPath = spawnSync("which", ["git"], { encoding: "utf8" }).stdout.trim();
+      // Only this fixture hostname is translated to the local bare repository. Git itself
+      // performs every ref discovery, creation-only push, and object transfer in the test.
+      await writeFile(
+        join(bin, "git"),
+        [
+          "#!/bin/sh",
+          'exec "$FOCUS_TEST_GIT_BINARY" -c "url.$FOCUS_TEST_GIT_REMOTE.insteadOf=$FOCUS_TEST_GIT_URL" "$@"',
+        ].join("\n"),
+      );
+      await copyFile(resolve("src/test/fixtures/source-trial-gh.cjs"), join(bin, "gh"));
+      await chmod(join(bin, "git"), 0o700);
+      await chmod(join(bin, "gh"), 0o700);
+      const env = {
+        PATH: bin + ":" + process.env["PATH"],
+        FOCUS_TEST_GIT_BINARY: gitPath,
+        FOCUS_TEST_GIT_REMOTE: remote,
+        FOCUS_TEST_GIT_URL: "https://github.com/" + fixtureRepo + ".git",
+        FOCUS_TEST_GITHUB: JSON.stringify({
+          pullFile: join(bin, "pr"),
+          repo: fixtureRepo,
+          branch,
+          head,
+          base: f.revision,
+        }),
+      };
+      // Move the simulated remote base while leaving the recipient's source intact.
+      localGit(
+        f.project,
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@localhost",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "other work",
+      );
+      localGit(f.project, "push", remote, "main");
+      expect(f.helper(f.publishArgs, env).stderr).toMatch(/GitHub base has moved/);
+      expect(localGit(remote, "branch", "--list", branch)).toBe("");
+      // Use a fresh independent baseline remote for the interrupted-publication case.
+      await rm(remote, { recursive: true });
+      localGit(f.base, "clone", "--bare", "--no-hardlinks", f.project, remote);
+      localGit(remote, "update-ref", "refs/heads/main", f.revision);
+      const publicEnv = { ...env, FOCUS_TEST_PUBLIC: "yes" };
+      expect(f.helper(f.publishArgs, publicEnv).stderr).toMatch(/publicly visible/);
+      expect(localGit(remote, "branch", "--list", branch)).toBe("");
+      const args = [...f.publishArgs, "--allow-public"];
+      const interrupted = f.helper(args, { ...publicEnv, FOCUS_TEST_INTERRUPT: "yes" });
+      expect(interrupted.stderr).toMatch(/draft could not be confirmed/);
+      expect(localGit(remote, "rev-parse", "refs/heads/" + branch)).toBe(head);
+      const resumed = f.helper(args, publicEnv);
+      expect(resumed.status, resumed.stderr).toBe(0);
+      expect(resumed.stdout).toContain(
+        "Draft pull request: https://github.com/" + fixtureRepo + "/pull/1",
+      );
+      const repeated = f.helper(args, publicEnv);
+      expect(repeated.status, repeated.stderr).toBe(0);
+      expect(repeated.stdout).toContain(
+        "Existing pull request: https://github.com/" + fixtureRepo + "/pull/1",
+      );
+      expect(f.helper(args, { ...publicEnv, FOCUS_TEST_PR_DRIFT: "1".repeat(40) }).stderr).toMatch(
+        /references different commits/,
+      );
+      localGit(remote, "update-ref", "refs/heads/" + branch, f.revision);
+      expect(f.helper(args, publicEnv).stderr).toMatch(/different work/);
+      expect(localGit(remote, "rev-parse", "refs/heads/" + branch)).toBe(f.revision);
+      expect(localGit(remote, "rev-parse", "main")).toBe(f.revision);
+    },
+    30_000,
+  );
+});
+
+describe("portable source trial recipient checks", () => {
+  it("refuses occupied asset paths and symlinked ancestors before applying, including byte-identical customer files", async () => {
+    const f = await fixture(files, "", true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const font = contract.assets.find((entry) => entry.path.endsWith(".woff2"))!;
+    const target = join(f.project, font.path);
+    const bundled = join(f.bundle, "assets", font.path.split("/").at(-1)!);
+    expect(verify(f.bundle, f.project).status).toBe(0);
+    await mkdir(dirname(target), { recursive: true });
+    await copyFile(bundled, target);
+    expect(verify(f.bundle, f.project).stderr).toContain("already exists");
+    expect(await readFile(target)).toEqual(await readFile(bundled));
+    await rm(dirname(target), { recursive: true });
+    const outside = join(f.base, "kept-assets");
+    await mkdir(outside);
+    await symlink(outside, dirname(target));
+    expect(verify(f.bundle, f.project).stderr).toContain("Symlink");
+    expect(await readdir(outside)).toEqual([]);
+  });
+
+  it("compares raw font and license bytes, refuses later changes and removes only the owned files", async () => {
+    const f = await fixture(files, "", true);
+    const contract = f.prepared.contract;
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const result = applyOwnedFixturePatch(f.bundle, f.project, "forward.patch");
+    expect(result.status, result.stderr).toBe(0);
+    expect(verify(f.bundle, f.project, "after").status).toBe(0);
+    for (const file of contract.assets) {
+      const target = join(f.project, file.path);
+      const original = await readFile(target);
+      expect(digest(original)).toBe(file.sha256);
+      await writeFile(target, Buffer.alloc(original.length));
+      expect(verify(f.bundle, f.project, "after").status).not.toBe(0);
+      await writeFile(target, original);
+    }
+    if (process.platform !== "win32") {
+      const target = join(f.project, contract.assets[0]!.path);
+      await chmod(target, 0o755);
+      expect(verify(f.bundle, f.project, "after").stderr).toContain("permissions");
+      await chmod(target, 0o644);
+    }
+    const later = join(dirname(join(f.project, contract.assets[0]!.path)), "customer-note.txt");
+    await writeFile(later, "Keep this new file.");
+    const reverse = applyOwnedFixturePatch(f.bundle, f.project, "rollback.patch");
+    expect(reverse.status, reverse.stderr).toBe(0);
+    const before = verify(f.bundle, f.project);
+    expect(before.status, before.stderr).toBe(0);
+    expect(await readFile(later, "utf8")).toBe("Keep this new file.");
+    for (const file of contract.assets)
+      await expect(access(join(f.project, file.path))).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("refuses corrupted bundled assets and altered binary payloads even when patch hashes have been recomputed", async () => {
+    const f = await fixture(files, "", true);
+    const contract = structuredClone(f.prepared.contract);
+    if (contract.version !== 2) throw new Error("Expected a portable contract");
+    const asset = contract.assets[0]!;
+    const bundled = join(f.bundle, "assets", asset.path.split("/").at(-1)!);
+    const clean = await readFile(bundled);
+    await writeFile(bundled, Buffer.alloc(clean.length));
+    expect(verify(f.bundle, f.project).status).not.toBe(0);
+    await writeFile(bundled, clean);
+    const changed = f.prepared.patch.replace(
+      /(GIT binary patch\nliteral \d+\n[a-zA-Z])([!-~])/,
+      (_, head: string, old: string) => head + (old === "0" ? "1" : "0"),
+    );
+    expect(changed).not.toBe(f.prepared.patch);
+    contract.patchSha256 = digest(changed);
+    await writeFile(join(f.bundle, "forward.patch"), changed);
+    await writeFile(join(f.bundle, "trial-contract.json"), JSON.stringify(contract));
+    await reseal(f.bundle);
+    expect(verify(f.bundle, f.project).status).not.toBe(0);
+    for (const file of files)
+      expect(await readFile(join(f.project, file.path), "utf8")).toBe(file.content);
   });
 });

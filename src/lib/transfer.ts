@@ -1,10 +1,12 @@
 import { focusLocalStorage } from "./browser-storage";
 import { z } from "zod";
+import { gardenJourneyKey, parseGardenJourney, type GardenJourney } from "./garden-journey";
 import { safeUrl } from "./critic";
 import { normalizeTokens, type Tokens } from "./design";
 import {
   LIBRARY_KEY,
   inspectLibrary,
+  detachedLibraryEntry,
   preserveLibraryRecovery,
   type LibraryEntry,
   type LibraryState,
@@ -14,7 +16,8 @@ import { assertRestorableStudioState } from "./studio-recovery";
 import { migrate as migrateStudioState, type State as StudioState } from "./studio-state";
 
 export const inventorySchema = z.object({
-  url: z.string().max(500),
+  // The final public URL may expand after redirects or percent-encoding a short typed address.
+  url: z.string().max(8192),
   links: z.array(z.string().max(500)).max(200),
   forms: z.array(z.string().max(500)).max(80),
   fields: z.array(z.string().max(300)).max(200),
@@ -102,16 +105,13 @@ export function pageInventory(html: string, url: string, sourceComplete = true):
   const limits = { links: 200, forms: 80, fields: 200, buttons: 200 };
   const truncated: NonNullable<Inventory["truncated"]> = sourceComplete ? [] : ["source"];
   for (const kind of ["links", "forms", "fields", "buttons"] as const) {
+    const maxLength = kind === "fields" ? 300 : kind === "buttons" ? 120 : 500;
     if (
       values[kind].length > limits[kind] ||
-      values[kind].some(
-        (value) => value.length > (kind === "fields" ? 300 : kind === "buttons" ? 120 : 500),
-      )
+      values[kind].some((value) => value.length > maxLength)
     )
       truncated.push(kind);
-    values[kind] = all(values[kind], limits[kind]).map((value) =>
-      value.slice(0, kind === "fields" ? 300 : kind === "buttons" ? 120 : 500),
-    );
+    values[kind] = all(values[kind], limits[kind]).map((value) => value.slice(0, maxLength));
   }
   return { url, ...values, completeness: truncated.length ? "partial" : "complete", truncated };
 }
@@ -154,11 +154,11 @@ export function samePage(before: Inventory, after: Inventory) {
   }
 }
 export const BASELINE_KEY = "focus:transfer-baselines:v1";
+const baselineList = z.array(inventorySchema).max(20);
+
 export function readBaselines(raw: string | null): Inventory[] {
   try {
-    return z
-      .array(inventorySchema)
-      .max(20)
+    return baselineList
       .parse(JSON.parse(raw ?? "[]"))
       .filter((v) => safeUrl(v.url))
       .map((v) => ({ ...v, completeness: v.completeness ?? "unknown" }));
@@ -172,12 +172,17 @@ export function saveBaseline(
   store: Pick<Storage, "getItem" | "setItem"> = focusLocalStorage,
 ): boolean {
   try {
-    const old = readBaselines(store.getItem(BASELINE_KEY));
-    store.setItem(
-      BASELINE_KEY,
-      JSON.stringify([...old.filter((v) => v.url !== before.url), before].slice(-20)),
+    const snapshot = store.getItem(BASELINE_KEY);
+    // The reader's empty-list fallback cannot distinguish an empty list from damaged originals.
+    const old = baselineList.parse(JSON.parse(snapshot ?? "[]"));
+    const original = inventorySchema.parse(before);
+    if (!safeUrl(original.url)) return false;
+    const next = JSON.stringify(
+      [...old.filter((v) => v.url !== original.url), original].slice(-20),
     );
-    return true;
+    if (store.getItem(BASELINE_KEY) !== snapshot) return false;
+    store.setItem(BASELINE_KEY, next);
+    return store.getItem(BASELINE_KEY) === next;
   } catch {
     return false;
   }
@@ -269,7 +274,24 @@ const transferStateSchema = z
   .object({
     tokens: z.record(z.string(), z.unknown()).nullable().optional(),
     content: transferContentSchema.nullable().optional(),
-    page: z.object({ imageId: imageIdSchema.nullish() }).passthrough().optional(),
+    page: z
+      .object({
+        imageId: imageIdSchema.nullish(),
+        imageCredit: z.string().max(500).optional(),
+        relatedStory: z
+          .object({
+            title: z.string().max(240),
+            url: z.string().max(2000),
+            placement: z.enum(["after-intro", "after-article"]),
+            imageId: imageIdSchema.nullable(),
+            imageAlt: z.string().max(500),
+            imageCredit: z.string().max(500).optional(),
+          })
+          .passthrough()
+          .optional(),
+      })
+      .passthrough()
+      .optional(),
     stage: z.enum(["brief", "directions", "exam", "review", "rx"]).optional(),
     stepIndex: z.number().int().min(0).max(8).optional(),
     brief: z.string().max(20000).optional(),
@@ -284,7 +306,8 @@ const transferStateSchema = z
           tokens: z.record(z.string(), z.unknown()),
         }),
       )
-      .max(20)
+      // Layout browsing retains the owner's original choices plus each gallery theme they apply.
+      .max(100)
       .optional(),
     picks: z
       .array(
@@ -320,6 +343,10 @@ const libraryEnvelopeSchema = z.object({
   kind: z.literal("focus-library-backup").optional(),
   version: z.literal(1),
   entries: z.array(transferEntrySchema).max(MAX_TRANSFER_ENTRIES),
+  journeys: z
+    .array(z.object({ designId: z.string() }).passthrough())
+    .max(MAX_TRANSFER_ENTRIES)
+    .optional(),
   assets: z
     .object({ version: z.literal(1), images: z.record(imageIdSchema, z.string().max(1_010_000)) })
     .strict()
@@ -348,6 +375,7 @@ function validatedEntries(input: unknown): { entries: LibraryEntry[]; imageIds: 
     if (required && (!next.tokens || !next.content))
       throw new Error("A saved design is missing its content or design values.");
     if (next.page?.imageId) imageIds.add(next.page.imageId);
+    if (next.page?.relatedStory?.imageId) imageIds.add(next.page.relatedStory.imageId);
     return {
       ...next,
       ...(next.tokens ? { tokens: normalizeTokens(next.tokens) } : {}),
@@ -455,9 +483,14 @@ export async function createLibraryBackup(
     images[id] = await validateImageAsset(id, stored);
     await decodeImageAsset(stored);
   }
+  const journeys = checked.entries.flatMap(({ id }) => {
+    const stored = store.getItem(gardenJourneyKey(id));
+    return stored === null ? [] : [parseGardenJourney(stored, id)];
+  });
   const raw = JSON.stringify(
     {
       kind: "focus-library-backup",
+      ...(journeys.length ? { journeys } : {}),
       version: 1,
       entries: checked.entries,
       assets: { version: 1, images },
@@ -484,12 +517,23 @@ function parsedLibraryEnvelope(raw: string) {
     );
   return parsed.data;
 }
+function validatedJourneys(envelope: ReturnType<typeof parsedLibraryEnvelope>) {
+  const ids = new Set(envelope.entries.map((entry) => entry.id));
+  const journeys = new Map<string, GardenJourney>();
+  for (const record of envelope.journeys ?? []) {
+    if (!ids.has(record.designId) || journeys.has(record.designId))
+      throw new Error("Each Garden brief must belong to one design in this backup.");
+    journeys.set(record.designId, parseGardenJourney(JSON.stringify(record), record.designId));
+  }
+  return journeys;
+}
 /** Server-safe validation of a self-contained backup; browser restore also decodes every raster. */
 export async function validateCompleteLibraryBackup(raw: string): Promise<void> {
   const envelope = parsedLibraryEnvelope(raw);
   if (envelope.kind !== "focus-library-backup" || !envelope.assets)
     throw new Error("Choose a complete library backup with its image files from My designs.");
   const incoming = validatedEntries(envelope.entries);
+  validatedJourneys(envelope);
   const images = envelope.assets.images;
   const keys = Object.keys(images);
   if (keys.length > MAX_TRANSFER_IMAGES || keys.some((id) => !incoming.imageIds.has(id)))
@@ -513,38 +557,10 @@ function canonicalTransferValue(value: unknown): string {
       .join(",")}}`;
   return JSON.stringify(value) ?? "null";
 }
-function portableEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
-  const state = (input: Record<string, unknown>): Record<string, unknown> => ({
-    ...input,
-    libraryId: id,
-    projectId: null,
-    savedHash: null,
-    cache: {},
-    ...(Array.isArray(input["past"])
-      ? { past: input["past"].map((item) => state(item as Record<string, unknown>)) }
-      : {}),
-    ...(Array.isArray(input["future"])
-      ? { future: input["future"].map((item) => state(item as Record<string, unknown>)) }
-      : {}),
-  });
-  return {
-    ...entry,
-    id,
-    state: state(entry.state) as LibraryState,
-    ...(entry.versions
-      ? {
-          versions: entry.versions.map((version) => ({
-            ...version,
-            state: state(version.state) as LibraryState,
-          })),
-        }
-      : {}),
-  };
-}
 const transferIdentity = (entry: LibraryEntry) => {
   // Opening a design updates this bookkeeping time without changing the work.
   // Keep content, settings, organization, creation time, and saved history in the comparison.
-  const { updated: _updated, ...work } = portableEntry(entry, "transfer-identity");
+  const { updated: _updated, ...work } = detachedLibraryEntry(entry, "transfer-identity");
   // Compare the state the Studio actually opens, including the same legacy
   // defaults and snapshot migration; keep meaningful work and history distinct.
   const stateIdentity = (state: Record<string, unknown>): Record<string, unknown> => {
@@ -616,34 +632,67 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
   const inspected = inspectLibrary(before);
   const existing = validatedEntries(inspected.entries).entries;
   const merged = [...existing];
+  const journeys = validatedJourneys(envelope);
+  const observedBriefs = new Map<string, string | null>();
+  const newBriefs = new Map<string, string>();
+  function storedBrief(id: string) {
+    const key = gardenJourneyKey(id);
+    if (!observedBriefs.has(key)) observedBriefs.set(key, store.getItem(key));
+    return newBriefs.get(key) ?? observedBriefs.get(key) ?? null;
+  }
+  function briefFits(id: string, brief: GardenJourney | undefined, occupied: boolean) {
+    const raw = storedBrief(id);
+    if (raw === null) return true;
+    if (!occupied) return false; // An orphaned local brief belongs to earlier work.
+    if (!brief) return true; // Older backups can merge into designs with later planning.
+    try {
+      return (
+        canonicalTransferValue(parseGardenJourney(raw, id)) ===
+        canonicalTransferValue({ ...brief, designId: id })
+      );
+    } catch {
+      return false;
+    }
+  }
+  function keepBrief(id: string, brief: GardenJourney | undefined) {
+    if (brief && storedBrief(id) === null)
+      newBriefs.set(gardenJourneyKey(id), JSON.stringify({ ...brief, designId: id }));
+  }
   let added = 0,
     duplicates = 0,
     conflicts = 0;
   for (const entry of incoming.entries) {
     const occupied = merged.find((candidate) => candidate.id === entry.id);
     const identity = transferIdentity(entry);
-    if (occupied && transferIdentity(occupied) === identity) {
+    const brief = journeys.get(entry.id);
+    const fits = briefFits(entry.id, brief, !!occupied);
+    if (occupied && transferIdentity(occupied) === identity && fits) {
+      keepBrief(entry.id, brief);
       duplicates++;
       continue;
     }
     let id = entry.id;
-    if (occupied) {
+    if (occupied || !fits) {
       const base = `restored-${await contentHash(new TextEncoder().encode(identity))}`;
       const priorCopy = merged.find(
         (candidate) =>
           (candidate.id === base || candidate.id.startsWith(`${base}-`)) &&
-          transferIdentity(candidate) === identity,
+          transferIdentity(candidate) === identity &&
+          briefFits(candidate.id, brief, true),
       );
       if (priorCopy) {
+        keepBrief(priorCopy.id, brief);
         duplicates++;
         continue;
       }
       id = base;
       let suffix = 2;
-      while (merged.some((candidate) => candidate.id === id)) id = `${base}-${suffix++}`;
+      while (merged.some((candidate) => candidate.id === id) || storedBrief(id) !== null)
+        id = `${base}-${suffix++}`;
       conflicts++;
     }
-    merged.push(portableEntry(entry, id));
+    keepBrief(id, brief);
+    merged.push(detachedLibraryEntry(entry, id));
     added++;
   }
   if (merged.length > MAX_TRANSFER_ENTRIES)
@@ -673,26 +722,46 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
     throw new Error(
       "Your library changed while the backup was being checked. Try restoring again; no designs were replaced.",
     );
+  for (const [key, observed] of observedBriefs)
+    if (store.getItem(key) !== observed)
+      throw new Error(
+        "A Garden brief changed during restore. Retry to preserve the latest choices.",
+      );
   const written: [string, string][] = [];
   try {
-    for (const [key, data] of pending) {
-      store.setItem(key, data);
+    for (const [key, data] of [...pending, ...newBriefs]) {
+      if (store.getItem(key) !== null) throw new Error("A backup item changed during restore.");
       written.push([key, data]);
+      store.setItem(key, data);
     }
-    if (added) store.setItem(LIBRARY_KEY, next);
+    // Confirm every dependency before committing designs that refer to it. An earlier
+    // write can be discarded, or another tab can change an item during the restore.
+    for (const [id, data] of assets)
+      if (store.getItem(IMAGE_STORAGE_PREFIX + id) !== data) throw new Error("Image unavailable.");
+    for (const [key, observed] of observedBriefs)
+      if (store.getItem(key) !== (newBriefs.get(key) ?? observed))
+        throw new Error("Journey brief changed.");
+    if (store.getItem(LIBRARY_KEY) !== before) throw new Error("Library changed.");
+    if (added) {
+      store.setItem(LIBRARY_KEY, next);
+      if (store.getItem(LIBRARY_KEY) !== next) throw new Error("Library write unconfirmed.");
+    }
   } catch {
-    let rollbackFailed = false;
-    for (const [key, data] of written.reverse()) {
-      try {
-        if (store.getItem(key) === data) store.removeItem(key);
-      } catch {
-        rollbackFailed = true;
+    try {
+      for (const [key, data] of written.reverse()) {
+        // A committed or concurrently changed library may already use these items.
+        if (store.getItem(LIBRARY_KEY) !== before) throw new Error("Library changed.");
+        if (store.getItem(key) !== data) continue;
+        store.removeItem(key);
+        if (store.getItem(key) === data) throw new Error("Removal unconfirmed.");
       }
+    } catch {
+      throw new Error(
+        "Focus could not confirm the restore or safely finish cleanup. Keep your backup, reopen My designs to check the saved copies, and retry.",
+      );
     }
     throw new Error(
-      rollbackFailed
-        ? "Browser storage stopped the restore. Existing designs were not replaced, but some unused image copies could not be removed. Keep your backup file and retry after freeing space."
-        : "There is not enough browser storage to restore this backup. No designs were replaced and new image copies were removed. Keep your backup file and retry after freeing space.",
+      "Focus could not confirm the complete restore in browser storage. Keep your backup, check the saved designs and available storage, and retry.",
     );
   }
   return {
@@ -702,6 +771,7 @@ export async function restoreLibraryBackup(raw: string, store: TransferStore = f
     conflicts,
     imageCount: assets.size,
     imagesAdded: pending.length,
+    journeysAdded: newBriefs.size,
     legacy: !envelope.assets,
     designCount: incoming.entries.length,
   };

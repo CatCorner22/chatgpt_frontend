@@ -6,6 +6,8 @@ import { EMPTY_TARGET_DRAFT } from "@/lib/target";
 import * as core from "@/lib/source-trial";
 import { SourceTrialPanel, type SourceTrialPanelProps } from "@/components/SourceTrialPanel";
 import * as sourcePanelModule from "@/components/SourceTrialPanel";
+import bookingSource from "../../examples/booking-rehearsal/src/Booking.tsx?raw";
+import { readFileSync } from "node:fs";
 import { LazySourceTrialPanel } from "@/components/LazySourceTrialPanel";
 
 const operations = vi.hoisted(() => ({
@@ -66,7 +68,7 @@ function pick(kind: "component" | "stylesheet", file: File) {
     { target: { files: [file] } },
   );
 }
-async function chooseFiles(source = component) {
+async function chooseFiles(source = component, css = stylesheet) {
   fireEvent.change(screen.getByLabelText("What runs this page?"), { target: { value: "vite" } });
   fireEvent.change(screen.getByLabelText("Page file path in the project"), {
     target: { value: "src/Booking.tsx" },
@@ -75,7 +77,7 @@ async function chooseFiles(source = component) {
     target: { value: "src/Booking.module.css" },
   });
   pick("component", new File([source], "Booking.tsx"));
-  pick("stylesheet", new File([stylesheet], "Booking.module.css"));
+  pick("stylesheet", new File([css], "Booking.module.css"));
   await waitFor(() => expect(screen.getAllByText(/Read in this tab/)).toHaveLength(2));
 }
 function inspectAndConfirm() {
@@ -189,7 +191,15 @@ describe("Optional source trial", () => {
     ).toContain("src/Booking.tsx");
     expect(document.querySelector("main")).toBeNull();
     expect(operations.download).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Download proposed code change" }));
+    fireEvent.click(screen.getByText("Review in a separate GitHub branch"));
+    const baseline = screen.getByRole("textbox", { name: "Starting GitHub commit (optional)" });
+    const download = screen.getByRole("button", { name: "Download proposed code change" });
+    fireEvent.change(baseline, { target: { value: "short" } });
+    expect(baseline).toHaveAttribute("aria-invalid", "true");
+    expect(download).toBeDisabled();
+    fireEvent.change(baseline, { target: { value: "A".repeat(40) } });
+    expect(download).toBeEnabled();
+    fireEvent.click(download);
     await waitFor(() =>
       expect(operations.download).toHaveBeenCalledWith(
         expect.any(Blob),
@@ -199,6 +209,7 @@ describe("Optional source trial", () => {
     expect(operations.package.mock.calls[0]![0].inspection.roles.action.label).toBe(
       "Reserve a place",
     );
+    expect(operations.package.mock.calls[0]![1].githubBase).toBe("a".repeat(40));
     expect(screen.getByText(/Download started.*coding assistant/)).toBeVisible();
     expect(
       (
@@ -212,6 +223,71 @@ describe("Optional source trial", () => {
     expect(xhr).not.toHaveBeenCalled();
     expect(localStorage.getItem("focus:studio")).toBe("original draft");
     expect(sessionStorage.getItem("owner-work")).toBe("keep");
+  });
+
+  it("previews the actual class details, prepares the chosen layout and lists the portable files", async () => {
+    render(<SourceTrialPanel {...props()} gardenComparison />);
+    const customized = bookingSource
+      .replace("Wheel basics · 10 am", "Wheel lab · 9 am")
+      .replace('"$48"', '"$42"');
+    await chooseFiles(
+      customized,
+      readFileSync("examples/booking-rehearsal/src/Booking.module.css", "utf8"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Check whether this page is supported" }));
+    expect(screen.getByText(/Your Garden brief calls for comparing/)).toBeVisible();
+    expect(screen.getByRole("radio", { name: "Keep the page’s fonts" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Keep the compact picker" })).toBeChecked();
+    const preview = within(screen.getByRole("region", { name: "Class picker preview" }));
+    expect(preview.getByRole("option", { name: "Wheel lab · 9 am" })).toBeInTheDocument();
+    expect(preview.getByText("Total including materials: $42")).toBeVisible();
+    expect(preview.queryByText("$56")).toBeNull();
+    fireEvent.change(preview.getByRole("combobox", { name: "Class" }), {
+      target: { value: "glaze" },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: "Compare times and totals" }));
+    expect(preview.getByRole("radio", { name: /Glaze studio.*2 pm.*\$56/ })).toBeChecked();
+    fireEvent.click(preview.getByRole("radio", { name: /Wheel lab.*9 am.*\$42/ }));
+    expect(preview.getByText("Total including materials: $42")).toBeVisible();
+    fireEvent.click(screen.getByRole("radio", { name: "Use my design’s fonts" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /These are the page parts/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare proposed edits" }));
+    await screen.findByRole("button", { name: "Download proposed code change" });
+    fireEvent.click(screen.getByText(/Included fonts and licenses/));
+    expect(screen.getAllByText(/\.woff2$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/\.txt$/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/replaces the compact class picker/)).toBeVisible();
+    fireEvent.click(screen.getByText("Check files returned by your coding assistant"));
+    expect(screen.getByText(/This check covers the page and stylesheet only/)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Download proposed code change" }));
+    await waitFor(() => expect(operations.download).toHaveBeenCalledOnce());
+    expect(operations.package.mock.calls[0]![0].contract).toMatchObject({
+      version: 2,
+      typography: "portable",
+      bookingLayout: "compare",
+    });
+  });
+
+  it("keeps unsupported fonts and unknown booking structures on the guided path", async () => {
+    const current = props();
+    current.design.tokens.headingFont = "Syne";
+    render(<SourceTrialPanel {...current} gardenComparison />);
+    await chooseFiles();
+    inspectAndConfirm();
+    expect(screen.getByRole("radio", { name: "Use my design’s fonts" })).toBeDisabled();
+    expect(
+      screen.getByRole("radio", { name: "Use my design’s fonts" }),
+    ).toHaveAccessibleDescription(/no portable copy of Syne/);
+    expect(screen.queryByRole("radio", { name: "Compare times and totals" })).toBeNull();
+    fireEvent.click(screen.getByText("Change how visitors compare options"));
+    expect(screen.getByText(/Your Garden brief requests a comparison/)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare proposed edits" }));
+    await screen.findByRole("button", { name: "Download proposed code change" });
+    expect(
+      within(screen.getByRole("region", { name: "Declared style changes" })).queryByText(
+        "Font family",
+      ),
+    ).toBeNull();
   });
 
   it("retains a file when its picker is cancelled and refuses unsupported source without executing it", async () => {
@@ -366,7 +442,7 @@ describe("Optional source trial", () => {
     expect(draftInput).toHaveValue("Current answers");
   });
 
-  it.each(["path", "confirmation", "cancel", "context", "unmount"] as const)(
+  it.each(["path", "confirmation", "typography", "cancel", "context", "unmount"] as const)(
     "discards a pending proposal download after %s changes",
     async (change) => {
       const initial = props();
@@ -379,7 +455,10 @@ describe("Optional source trial", () => {
         fireEvent.change(screen.getByLabelText("Page file path in the project"), {
           target: { value: "src/Other.tsx" },
         });
-      else if (change === "confirmation")
+      else if (change === "typography") {
+        fireEvent.click(screen.getByRole("radio", { name: "Use my design’s fonts" }));
+        expect(screen.getByRole("button", { name: "Prepare proposed edits" })).toBeDisabled();
+      } else if (change === "confirmation")
         fireEvent.click(screen.getByRole("checkbox", { name: /These are the page parts/ }));
       else if (change === "cancel")
         fireEvent.click(screen.getByRole("button", { name: "Cancel source preparation" }));

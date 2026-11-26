@@ -1,7 +1,8 @@
-import { createHash, webcrypto } from "node:crypto";
+import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleHostedRequest } from "@/lib/hosted.server";
 import { normalizeTokens } from "@/lib/design";
+import { pngAsset } from "./image-asset.fixture";
 
 beforeEach(() => vi.stubGlobal("crypto", webcrypto));
 afterEach(() => {
@@ -15,12 +16,7 @@ type MutationDocument = {
   entries: [{ state: { content: { features: unknown }; past: unknown } }];
 };
 const origin = "https://focus.example";
-const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6XD8AAAAASUVORK5CYII=",
-  "base64",
-);
-const imageId = createHash("sha256").update(png).digest("hex");
-const image = `data:image/png;base64,${png.toString("base64")}`;
+const { id: imageId, src: image } = pngAsset();
 const backup = (title = "Workshop") =>
   JSON.stringify({
     kind: "focus-library-backup",

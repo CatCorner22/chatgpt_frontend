@@ -14,16 +14,16 @@ This writes a draft with six matched tasks: service booking, editorial reading, 
 
 Obtain each candidate and a genuinely independent human reference built from the same task brief, content, data, assets and viewport. Record actual permission and provenance. Edit `samples` in the organizer file to add two records for every task. Each sample needs:
 
-| Field | What to record |
-| --- | --- |
-| `id` | A unique opaque identifier that does not reveal source group |
-| `taskId` | The matching task ID in the draft |
-| `assetRef` | An actual HTTP/HTTPS address reachable by reviewers, with a neutral path |
-| `kind` | `interactive` for a working page or `image` for a static image |
-| `group` | `spec` for the candidate or `human` for the independent reference |
-| `creatorCode` | An organizer-only creator code |
-| `provenance` | Actual source, permission and evidence of how the work was made |
-| `artifactSha256` | The frozen artifact's SHA-256 digest before registered collection |
+| Field            | What to record                                                           |
+| ---------------- | ------------------------------------------------------------------------ |
+| `id`             | A unique opaque identifier that does not reveal source group             |
+| `taskId`         | The matching task ID in the draft                                        |
+| `assetRef`       | An actual HTTP/HTTPS address reachable by reviewers, with a neutral path |
+| `kind`           | `interactive` for a working page or `image` for a static image           |
+| `group`          | `spec` for the candidate or `human` for the independent reference        |
+| `creatorCode`    | An organizer-only creator code                                           |
+| `provenance`     | Actual source, permission and evidence of how the work was made          |
+| `artifactSha256` | The frozen artifact's SHA-256 digest before registered collection        |
 
 The same artifact hash or creator code cannot stand in for both groups of a registered pair. The CLI validates recorded hashes but does not download or hash remote assets; compute the hash from the actual fixed artifact through your existing build process. For a multi-file interactive build, define and record a consistent archive/build-hash procedure.
 
@@ -73,3 +73,15 @@ npm run typecheck
 ```
 
 Regression tests use clearly synthetic fixtures to check software behavior. Their fabricated numbers are never used as participant-study evidence.
+
+## Compare one-shot, Focus, and independent expert work
+
+Run `npm run benchmark -- init-pilot organizer.json` for the booking and editorial briefs. The draft has a unique study ID and empty samples. Prepare one folder of approved words, images, rules and constraints per task, archive it once, and give the exact same archive to each builder. Retain the archive and its SHA-256. Start a new pilot ID for a subsequent brief or revised set of builds.
+
+For each task add three samples with the usual neutral ID, taskId, web address, presentation kind, creatorCode, provenance, and frozen artifactSha256. Use the group values `one-shot`, `guided` (Focus), and `expert`. Set `inputsSha256` to the digest of the shared input archive. In `work` record `tools` (text), `minutes` (elapsed production minutes) and `revisionPasses` (a whole number). A one-shot build has zero revision passes. The expert works independently of both other builds. Document permissions and any differences in time or tools in provenance.
+
+Use the existing packet and score commands above. The Review room accepts these packets and hides the group, time, tools and hashes. The organizer report compares ratings within one task and reviewer across all three builds. A positive remaining gap measures how far the expert scored above Focus. Missing task observations stay empty. Each metric reports its own reviewer count. Use a fresh matched brief after repairing a weakness. The registered two-group procedure remains available for a separate confirmatory study.
+
+## Compare Focus with one independent designer
+
+The River Kiln organizer guide prepares a two-page booking pilot. Give the designer only the shared starter and brief. Their returned build and permission record complete the pair. Use the bundled scorer for primary observations and the optional preference ballot. [Organizer guide](RIVER-KILN-DESIGNER-STUDY.md) · [Shared starter](examples/river-kiln-builder.zip)

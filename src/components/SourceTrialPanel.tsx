@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SourceTrialChoices } from "@/components/SourceTrialChoices";
+import { inspectBookingComparison } from "@/lib/booking-comparison";
 import { SourceTrialReturnPanel } from "@/components/SourceTrialReturnPanel";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { readFileBytes } from "@/lib/read-file-bytes";
 import { downloadBlob } from "@/lib/exportPack";
 import type { Tokens } from "@/lib/design";
 import type { TargetDraft } from "@/lib/target";
@@ -13,8 +16,14 @@ import {
   type PreparedSourceTrial,
   type SourceTrialFile,
   type SourceTrialInspection,
+  type SourceTrialOptions,
 } from "@/lib/source-trial";
 import { buildSourceTrialPackage, SOURCE_TRIAL_KICKOFF } from "@/lib/source-trial-package";
+
+const defaultOptions: SourceTrialOptions = { typography: "preserve", bookingLayout: "compact" };
+type ReviewedSource = SourceTrialInspection & {
+  booking: ReturnType<typeof inspectBookingComparison>;
+};
 
 type InputKind = "component" | "stylesheet";
 type SourceInput = {
@@ -58,42 +67,32 @@ const propertyLabels: Record<string, string> = {
   "border-radius": "Corner radius",
 };
 
-async function fileBytes(file: File): Promise<ArrayBuffer> {
-  if (typeof file.arrayBuffer === "function") return file.arrayBuffer();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () =>
-      reader.result instanceof ArrayBuffer
-        ? resolve(reader.result)
-        : reject(new Error("The selected file could not be read."));
-    reader.onerror = () =>
-      reject(new Error("The selected file could not be read. Choose it again."));
-    reader.onabort = () => reject(new Error("The file read was cancelled."));
-    reader.readAsArrayBuffer(file);
-  });
-}
-
 export type SourceTrialPanelProps = {
   design: { id: string; tokens: Tokens };
   designTitle: string;
   draft: TargetDraft;
   contextKey: string;
+  gardenComparison?: boolean;
   /** Captures and checks the parent's owner, saved design and exact draft revision. */
   captureContext: () => () => void;
 };
 
-/** Selected source is ephemeral data: never rendered, executed, uploaded or persisted. */
+/** Source is ephemeral. Previews render only recognized text as React children. */
 export function SourceTrialPanel({
   design,
   designTitle,
   draft,
   contextKey,
+  gardenComparison = false,
   captureContext,
 }: SourceTrialPanelProps) {
   const id = useId();
   const [runtime, setRuntime] = useState("");
+  const [githubBase, setGithubBase] = useState("");
+  const invalidBase = Boolean(githubBase && !/^[0-9a-f]{40}$/.test(githubBase));
   const [inputs, setInputs] = useState<Inputs>(emptyInputs);
-  const [inspection, setInspection] = useState<SourceTrialInspection | null>(null);
+  const [inspection, setInspection] = useState<ReviewedSource | null>(null);
+  const [options, setOptions] = useState<SourceTrialOptions>(defaultOptions);
   const [confirmed, setConfirmed] = useState(false);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [busy, setBusy] = useState<"prepare" | "download" | null>(null);
@@ -150,17 +149,26 @@ export function SourceTrialPanel({
       verifyParent();
     };
   }
-  function invalidate() {
+  function invalidateProposal() {
     sourceRevision.current++;
     generation.current++;
     proposalNow.current = null;
     confirmedNow.current = false;
     setProposal(null);
-    setInspection(null);
     setConfirmed(false);
     setBusy(null);
     setError("");
     setNotice("");
+  }
+  function invalidate() {
+    invalidateProposal();
+    setInspection(null);
+    setGithubBase("");
+    setOptions(defaultOptions);
+  }
+  function changeOptions(next: SourceTrialOptions) {
+    invalidateProposal();
+    setOptions(next);
   }
   function updateInput(kind: InputKind, patch: Partial<SourceInput>) {
     inputsNow.current = { ...inputsNow.current, [kind]: { ...inputsNow.current[kind], ...patch } };
@@ -201,7 +209,11 @@ export function SourceTrialPanel({
         throw new Error(
           `${inputLabels[kind]} must be nonempty and no larger than ${Math.round(limit / 1024)} KiB.`,
         );
-      const bytes = await fileBytes(file);
+      const bytes = await readFileBytes(file, {
+        failed: "The selected file could not be read. Choose it again.",
+        cancelled: "The file read was cancelled.",
+        invalidResult: "The selected file could not be read.",
+      });
       if (!current()) return;
       verify();
       if (bytes.byteLength !== file.size || bytes.byteLength > limit)
@@ -237,9 +249,11 @@ export function SourceTrialPanel({
       const verify = capture();
       if (runtime !== "vite")
         throw new Error("This source-change format supports React with Vite only.");
-      const found = inspectSourceTrial(filesForTrial());
+      const files = filesForTrial();
+      const found = inspectSourceTrial(files);
+      const booking = inspectBookingComparison(files[0]!.content);
       verify();
-      setInspection(found);
+      setInspection({ ...found, booking });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "This page needs a developer-guided integration.",
@@ -264,7 +278,7 @@ export function SourceTrialPanel({
       const verify = capture();
       if (runtime !== "vite" || !inspection || !confirmedNow.current)
         throw new Error("Check the page and confirm its recognized parts before preparing edits.");
-      const prepared = await prepareSourceTrial(filesForTrial(), design);
+      const prepared = await prepareSourceTrial(filesForTrial(), design, options);
       if (!current()) return;
       verify();
       const result = { value: prepared, verify, revision, contextKey: expectedContext };
@@ -298,7 +312,11 @@ export function SourceTrialPanel({
     try {
       selected.verify();
       if (!current() || !confirmedNow.current) return;
-      const blob = await buildSourceTrialPackage(selected.value, { draft, designTitle });
+      const blob = await buildSourceTrialPackage(selected.value, {
+        draft,
+        designTitle,
+        githubBase,
+      });
       if (!current()) return;
       selected.verify();
       downloadBlob(blob, "focus-source-trial-proposal.zip");
@@ -352,6 +370,8 @@ export function SourceTrialPanel({
   const reading = inputs.component.reading || inputs.stylesheet.reading;
   const actionIssue = sourceTrialActionIssue(design.tokens);
   const visibleProposal = proposal?.contextKey === contextKey ? proposal : null;
+  const contract = visibleProposal?.value.contract;
+  const assets = contract?.version === 2 ? contract.assets : [];
   return (
     <section
       aria-labelledby={`${id}-heading`}
@@ -362,7 +382,7 @@ export function SourceTrialPanel({
           A proposed change for one existing page
         </h3>
         <p className="mt-2 text-sm leading-relaxed">
-          Provide the page’s source files and review exact styling edits. Your coding assistant or
+          Provide the page’s source files and review what would change. Your coding assistant or
           developer applies the proposal in the separate preview; Focus does not connect to GitHub
           or run this page.
         </p>
@@ -526,11 +546,14 @@ export function SourceTrialPanel({
                   </div>
                 ))}
               </dl>
-              <p className="text-sm">
-                Only these recognized heading, body and action styles can change: colors, fonts and
-                action shape. Other page content, controls and behavior still need checking in the
-                actual project.
-              </p>
+              <SourceTrialChoices
+                headingFont={design.tokens.headingFont}
+                bodyFont={design.tokens.bodyFont}
+                options={options}
+                onChange={changeOptions}
+                booking={inspection.booking}
+                gardenComparison={gardenComparison}
+              />
               <label className="flex min-h-11 items-start gap-3 text-sm font-medium">
                 <input
                   type="checkbox"
@@ -564,10 +587,13 @@ export function SourceTrialPanel({
                 Proposed source changes — page not run here
               </h4>
               <p className="text-sm">
-                Design: {designTitle}. Review these {visibleProposal.value.files.length} file
-                changes with your coding assistant or developer. The proposal preserves the existing
-                page background and layout rules. Font changes can alter wrapping and need preview
-                checks; this proposal does not add font files.
+                For {designTitle}, review the two edited source files with your developer.
+                {assets.length > 0
+                  ? " The ZIP also includes the selected fonts and their licenses. Check the rendered type and line breaks on the actual page."
+                  : " The existing page keeps its fonts."}
+                {contract?.version === 2 &&
+                  contract.bookingLayout === "compare" &&
+                  " The proposal replaces the compact class picker with a choice for each class showing its time and total."}
               </p>
               <div
                 className="overflow-x-auto"
@@ -626,6 +652,21 @@ export function SourceTrialPanel({
                   <li key={file.path}>{file.path}</li>
                 ))}
               </ul>
+              {assets.length > 0 && (
+                <details>
+                  <summary className="min-h-11 cursor-pointer py-3 font-medium">
+                    Included fonts and licenses ({assets.length} files)
+                  </summary>
+                  <ul className="list-inside list-disc break-words text-sm">
+                    {assets.map((asset) => (
+                      <li key={asset.path}>{asset.path}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-sm">
+                    The handoff verifier checks these files separately from the two source edits.
+                  </p>
+                </details>
+              )}
               <details>
                 <summary className="min-h-11 cursor-pointer py-3 font-medium">
                   Review exact forward and undo patches
@@ -658,16 +699,51 @@ export function SourceTrialPanel({
                   className={`${fieldClass} font-mono text-xs`}
                 />
               </details>
-              <Button type="button" onClick={() => void download()} disabled={!!busy}>
+              <details>
+                <summary className="min-h-11 cursor-pointer py-3 font-medium">
+                  Review in a separate GitHub branch
+                </summary>
+                <p id={`${id}-base-help`} className="my-2 text-sm">
+                  Your developer can use the download to rehearse the edits in a fresh local copy,
+                  then share a draft pull request for review. To tie it to one saved version, copy
+                  the full commit ID from that version’s page on GitHub.
+                </p>
+                <label htmlFor={`${id}-base`} className="text-sm font-medium">
+                  Starting GitHub commit (optional)
+                </label>
+                <input
+                  id={`${id}-base`}
+                  value={githubBase}
+                  onChange={(event) => setGithubBase(event.target.value.trim().toLowerCase())}
+                  aria-invalid={invalidBase}
+                  aria-describedby={`${id}-base-help${invalidBase ? " " + id + "-base-error" : ""}`}
+                  maxLength={80}
+                  disabled={!!busy}
+                  spellCheck={false}
+                  autoComplete="off"
+                  className={`${fieldClass} font-mono text-sm`}
+                />
+              </details>
+              {invalidBase && (
+                <p id={`${id}-base-error`} className="text-sm">
+                  Paste all 40 characters from GitHub or clear this field to choose the version
+                  later.
+                </p>
+              )}
+              <Button
+                type="button"
+                onClick={() => void download()}
+                disabled={!!busy || invalidBase}
+              >
                 {busy === "download"
                   ? "Preparing proposal download…"
                   : "Download proposed code change"}
               </Button>
               <p className="text-sm text-muted-foreground">
                 Give focus-source-trial-proposal.zip to your coding assistant or developer. It
-                includes your trial plan, private source excerpts, exact edits, checks and stop
-                conditions in AGENT-HANDOFF.md. It is not a public website package, test certificate
-                or release approval.
+                includes your trial plan, private source excerpts, exact edits, GitHub branch
+                helper, and checks and stop conditions in AGENT-HANDOFF.md. It is not a public
+                website package, test certificate or release approval.
               </p>
               <label htmlFor={`${id}-kickoff`} className="block text-sm font-medium">
                 Message to include with the proposal

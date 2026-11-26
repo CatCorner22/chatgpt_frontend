@@ -62,16 +62,17 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
     actionLabel: "Open the design studio",
     choices: [
       {
-        id: "existing" satisfies GardenGoal,
-        title: "Improve an existing app",
-        benefit: "Build on the pages and features you already have.",
-        tradeoff: "Changes need a separate preview and a way to restore the earlier version.",
+        id: "new" satisfies GardenGoal,
+        title: "New app or website",
+        benefit: "Design your first version.",
+        tradeoff: "You’ll need content and a working build to test before launch.",
       },
       {
-        id: "new" satisfies GardenGoal,
-        title: "Begin something new",
-        benefit: "Choose the structure and visual direction from a fresh start.",
-        tradeoff: "Content, working features, and testing still need to be built.",
+        id: "existing" satisfies GardenGoal,
+        title: "Existing app or website",
+        benefit: "Build on your working features.",
+        tradeoff:
+          "Try changes in a separate preview and keep a way to restore the earlier version.",
       },
     ],
     lessons: [
@@ -167,7 +168,7 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
     purpose: "Plan the reading order, grouping, and routes through your content.",
     essentials: [
       "Group related details and give each section a useful heading.",
-      "For an existing-app restyle, preserve the current structure and navigation.",
+      "To compare offers, open your journey brief and choose “Show options together before choosing”.",
     ],
     action: "studio",
     actionLabel: "Explore page structure",
@@ -184,6 +185,12 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
         benefit: "Clear headings and section links help people find a specific answer.",
         tradeoff: "Each section needs enough context to make sense when read on its own.",
       },
+      {
+        id: "compare-options",
+        title: "Show options together before choosing",
+        benefit: "Visitors can compare a name, time and total without memorizing the last option.",
+        tradeoff: "A visible choice for each option takes more room, especially on a phone.",
+      },
     ],
     lessons: [
       {
@@ -191,7 +198,7 @@ export const GARDEN_STEPS: readonly GardenStep[] = [
         title: "Give the page a readable outline",
         paragraphs: [
           "Read just the proposed headings, in order. They should describe the page’s argument or task without relying on decorative cards. Put the information needed for a decision before that decision, keep related details together, and avoid repeating a section simply because a template has room for it.",
-          "The visual order should agree with the underlying reading order. Moving blocks around with styling can make a desktop screen look convincing while leaving keyboard and screen-reader users with a confusing sequence. On a new page, choose a composition that follows the intended content order. In an existing-app restyle, record structural ideas separately from the allowed appearance changes.",
+          "The visual order should agree with the underlying reading order. Moving blocks around with styling can make a desktop screen look convincing while leaving keyboard and screen-reader users with a confusing sequence. On a new page, choose a composition that follows the intended content order. For an existing app, record the structure you want in your journey brief. In Target, a recognized class picker lets you preview its class names, times and totals in either layout before preparing a proposal.",
         ],
         example: {
           title: "An outline with a purpose",

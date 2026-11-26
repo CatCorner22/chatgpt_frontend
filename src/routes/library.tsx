@@ -1,4 +1,4 @@
-import { focusLocalStorage, focusSessionStorage } from "@/lib/browser-storage";
+import { focusLocalStorage } from "@/lib/browser-storage";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Star, Folder, Download, Upload, ArrowRight, Copy, History } from "lucide-react";
@@ -8,6 +8,7 @@ import { HostedLibraryPanel } from "@/components/HostedLibraryPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DesignPreview } from "@/components/DesignPreview";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   duplicateDesign,
@@ -22,6 +23,8 @@ import {
   type LibraryEntry,
   resumeLabel,
 } from "@/lib/library";
+import { requestLibraryOpen } from "@/lib/library-open";
+import { isEmptyStudioDraft, migrate } from "@/lib/studio-state";
 import { STUDIO_KEY } from "@/lib/projects";
 import { useDesignFonts } from "@/lib/useDesignFonts";
 import { downloadBlob } from "@/lib/exportPack";
@@ -31,24 +34,25 @@ import {
   restoreLibraryBackup,
   MAX_LIBRARY_BACKUP_BYTES,
 } from "@/lib/transfer";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/library")({
-  head: () => ({
-    meta: [
-      { title: "Design library — Focus" },
-      {
-        name: "description",
-        content:
-          "Your browser's saved designs, organized into collections without replacing your work.",
-      },
-      { property: "og:title", content: "Design library — Focus" },
-      { property: "og:description", content: "Keep, organize and revisit your designs." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Design library — Focus",
+      description:
+        "Your browser's saved designs, organized into collections without replacing your work.",
+      ogDescription: "Keep, organize and revisit your designs.",
+    }),
   component: Library,
 });
+
+type MetadataEdit = {
+  id: string;
+  field: "title" | "collection";
+  before: string;
+  text: string;
+};
 
 function Library() {
   const navigate = useNavigate();
@@ -68,8 +72,64 @@ function Library() {
   const transferInFlight = useRef(false);
   const librarySnapshot = useRef<string | null>(null);
   const backupInput = useRef<HTMLInputElement>(null);
+  const pendingMetadata = useRef<MetadataEdit[]>([]);
+  const [metadata, setMetadata] = useState<MetadataEdit[]>([]);
+  const [metadataIssue, setMetadataIssue] = useState("");
+  function stageMetadata(entry: LibraryEntry, field: MetadataEdit["field"], text: string) {
+    const prior = pendingMetadata.current.find(
+      (item) => item.id === entry.id && item.field === field,
+    );
+    const before = prior?.before ?? entry[field];
+    const next = pendingMetadata.current.filter((item) => item !== prior);
+    if (text !== before) next.push({ id: entry.id, field, before, text });
+    pendingMetadata.current = next;
+    setMetadata(next);
+    if (!next.length) setMetadataIssue("");
+  }
+  function flushMetadata() {
+    const pending = pendingMetadata.current;
+    if (!pending.length) return true;
+    try {
+      const snapshot = readLibrarySnapshot();
+      if (snapshot.needsRecovery) {
+        setMetadataIssue(
+          "The saved library needs recovery. Copy your edits before reopening the saved names.",
+        );
+        return false;
+      }
+      const next = snapshot.entries.slice();
+      let changed = false;
+      for (const edit of pending) {
+        const index = next.findIndex((entry) => entry.id === edit.id);
+        const entry = next[index];
+        const text = edit.text.trim();
+        const value = edit.field === "title" && !text ? edit.before : text;
+        if (!entry || (entry[edit.field] !== edit.before && entry[edit.field] !== value))
+          throw new LibraryChangedError();
+        if (entry[edit.field] === value) continue;
+        next[index] = { ...entry, [edit.field]: value };
+        changed = true;
+      }
+      const raw = changed ? writeLibrary(next, focusLocalStorage, snapshot.raw) : snapshot.raw;
+      if (focusLocalStorage.getItem(LIBRARY_KEY) !== raw) throw new LibraryChangedError();
+      librarySnapshot.current = raw;
+      setList(next);
+      pendingMetadata.current = [];
+      setMetadata([]);
+      setMetadataIssue("");
+      return true;
+    } catch (error) {
+      setMetadataIssue(
+        error instanceof LibraryChangedError
+          ? "A saved design changed in another tab. Copy your edits before reopening the saved names."
+          : "Focus couldn’t save the name or collection. Keep this tab open and check browser storage.",
+      );
+      return false;
+    }
+  }
+  useDraftExitSave(flushMetadata);
   const backUp = async () => {
-    if (transferInFlight.current) return;
+    if (transferInFlight.current || !flushMetadata()) return;
     transferInFlight.current = true;
     setTransferring("backup");
     setTransferError("");
@@ -100,7 +160,7 @@ function Library() {
     }
   };
   const restore = async (file: File) => {
-    if (transferInFlight.current) return;
+    if (transferInFlight.current || !flushMetadata()) return;
     transferInFlight.current = true;
     setTransferring("restore");
     setTransferError("");
@@ -125,9 +185,11 @@ function Library() {
           ? "This backup contains no designs. Your library is unchanged."
           : result.added
             ? `Restored ${result.added} ${result.added === 1 ? "design" : "designs"} and retained ${result.imageCount} referenced ${result.imageCount === 1 ? "image" : "images"}. Existing designs were kept.${result.conflicts ? ` ${result.conflicts} ${result.conflicts === 1 ? "conflicting design was" : "conflicting designs were"} added as a separate copy.` : ""}`
-            : result.imagesAdded
-              ? `Recovered ${result.imagesAdded} missing image files. These designs were already in your library.`
-              : "These designs and their images are already in your library. No duplicate designs were added.",
+            : result.journeysAdded
+              ? `Recovered ${result.journeysAdded} Garden brief(s) and ${result.imagesAdded} missing images for your saved designs.`
+              : result.imagesAdded
+                ? `Recovered ${result.imagesAdded} missing image files. These designs were already in your library.`
+                : "These designs and their images are already in your library. No duplicate designs were added.",
       );
     } catch (error) {
       if (error instanceof LibraryRecoveryError) {
@@ -179,9 +241,15 @@ function Library() {
     }
   };
   useDesignFonts(list.map((e) => e.state.tokens));
+  const currentLibrary = () => {
+    const current = readLibrarySnapshot();
+    if (current.raw !== librarySnapshot.current) throw new LibraryChangedError();
+    return current.entries;
+  };
   const edit = (id: string, changes: Partial<LibraryEntry>) => {
-    const next = list.map((e) => (e.id === id ? { ...e, ...changes } : e));
+    if (!flushMetadata()) return;
     try {
+      const next = currentLibrary().map((e) => (e.id === id ? { ...e, ...changes } : e));
       librarySnapshot.current = writeLibrary(next, focusLocalStorage, librarySnapshot.current);
       setList(next);
     } catch (error) {
@@ -193,8 +261,11 @@ function Library() {
       if (error instanceof LibraryChangedError) setReadAttempt((n) => n + 1);
     }
   };
-  const replace = (next: LibraryEntry[], done: string, before: LibraryEntry[]) => {
+  const replace = (change: (entries: LibraryEntry[]) => LibraryEntry[], done: string) => {
+    if (!flushMetadata()) return;
     try {
+      const before = currentLibrary();
+      const next = change(before);
       const committed = writeLibrary(next, focusLocalStorage, librarySnapshot.current);
       librarySnapshot.current = committed;
       setList(next);
@@ -230,10 +301,10 @@ function Library() {
     }
   };
   const [versionsOf, setVersionsOf] = useState<string | null>(null);
-  const open = (e: LibraryEntry) => {
+  const open = async (e: LibraryEntry) => {
+    if (!flushMetadata()) return;
     try {
-      focusSessionStorage.setItem("refraction:pending-rescue", JSON.stringify(e.state));
-      void navigate({ to: "/", search: { view: "studio" } });
+      await navigate({ to: "/", search: { view: "studio" }, state: requestLibraryOpen(e.id) });
     } catch {
       toast.error("Could not open this design. Your current design is unchanged.");
     }
@@ -291,9 +362,31 @@ function Library() {
           backup there before transferring it.
         </p>
         <HostedLibraryPanel
+          savePendingEdits={flushMetadata}
           disabled={!ready || !!transferring}
           onRestored={() => setReadAttempt((n) => n + 1)}
         />
+        {metadataIssue && (
+          <div className="mt-4">
+            <p role="alert" className="text-sm text-destructive">
+              {metadataIssue}
+            </p>
+            <Button variant="outline" onClick={flushMetadata}>
+              Retry saving edits
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                pendingMetadata.current = [];
+                setMetadata([]);
+                setMetadataIssue("");
+                setReadAttempt((n) => n + 1);
+              }}
+            >
+              Discard unsaved names and reload
+            </Button>
+          </div>
+        )}
         {libraryError && (
           <section
             aria-label="Library recovery needed"
@@ -423,12 +516,13 @@ function Library() {
                   <div className="flex gap-2">
                     <Input
                       aria-label={`Name for ${e.title}`}
-                      defaultValue={e.title}
-                      key={`${e.id}-${e.title}`}
-                      onBlur={(x) => {
-                        const title = x.target.value.trim().slice(0, 120);
-                        if (title && title !== e.title) edit(e.id, { title });
-                      }}
+                      maxLength={120}
+                      value={
+                        metadata.find((item) => item.id === e.id && item.field === "title")?.text ??
+                        e.title
+                      }
+                      onChange={(event) => stageMetadata(e, "title", event.target.value)}
+                      onBlur={flushMetadata}
                     />
                     <Button
                       size="icon"
@@ -443,13 +537,13 @@ function Library() {
                   <Input
                     aria-label={`Collection for ${e.title}`}
                     placeholder="Collection"
-                    defaultValue={e.collection}
-                    key={`${e.id}-${e.collection}`}
                     maxLength={60}
-                    onBlur={(x) => {
-                      if (x.target.value !== e.collection)
-                        edit(e.id, { collection: x.target.value.trim() });
-                    }}
+                    value={
+                      metadata.find((item) => item.id === e.id && item.field === "collection")
+                        ?.text ?? e.collection
+                    }
+                    onChange={(event) => stageMetadata(e, "collection", event.target.value)}
+                    onBlur={flushMetadata}
                   />
                   <p className="text-xs text-muted-foreground">
                     {resumeLabel(e.state).startsWith("Open")
@@ -463,10 +557,15 @@ function Library() {
                     onClick={() => {
                       try {
                         const current = JSON.parse(focusLocalStorage.getItem(STUDIO_KEY) ?? "null");
-                        if (current?.tokens && current.libraryId !== e.id) setOpening(e);
-                        else open(e);
+                        if (
+                          current &&
+                          current.libraryId !== e.id &&
+                          !isEmptyStudioDraft(migrate(current))
+                        ) {
+                          if (flushMetadata()) setOpening(e);
+                        } else void open(e);
                       } catch {
-                        setOpening(e);
+                        if (flushMetadata()) setOpening(e);
                       }
                     }}
                   >
@@ -479,14 +578,14 @@ function Library() {
                       variant="ghost"
                       onClick={() =>
                         replace(
-                          duplicateDesign(
-                            list,
-                            e.id,
-                            crypto.randomUUID(),
-                            new Date().toISOString(),
-                          ),
+                          (entries) =>
+                            duplicateDesign(
+                              entries,
+                              e.id,
+                              crypto.randomUUID(),
+                              new Date().toISOString(),
+                            ),
                           `Made a copy of ${e.title}`,
-                          list,
                         )
                       }
                     >
@@ -525,11 +624,15 @@ function Library() {
                               size="sm"
                               variant="outline"
                               onClick={() =>
-                                replace(
-                                  restoreVersion(list, e.id, i, new Date().toISOString()),
-                                  `Restored an earlier version of ${e.title}`,
-                                  list,
-                                )
+                                replace((entries) => {
+                                  if (
+                                    JSON.stringify(
+                                      entries.find((entry) => entry.id === e.id)?.versions?.[i],
+                                    ) !== JSON.stringify(v)
+                                  )
+                                    throw new LibraryChangedError();
+                                  return restoreVersion(entries, e.id, i, new Date().toISOString());
+                                }, `Restored an earlier version of ${e.title}`)
                               }
                             >
                               Restore
@@ -551,7 +654,7 @@ function Library() {
         open={!!opening}
         onOpenChange={(v) => !v && setOpening(null)}
         title="Switch designs?"
-        body="Your current design stays in this library. The selected design will open on the Design page."
+        body="Open the selected design in the Studio? Focus keeps a copy of your current work before switching."
         confirmLabel="Open design"
         onConfirm={() => {
           if (opening) open(opening);

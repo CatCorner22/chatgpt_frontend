@@ -9,6 +9,7 @@ const VALUE_FLAGS = new Map([
 ]);
 const BOOLEAN_FLAGS = new Map([
   ["--allow-remote", "allowRemote"],
+  ["--mobile-profile", "mobileProfile"],
   ["--help", "help"],
 ]);
 
@@ -49,6 +50,7 @@ export function parseArgs(argv) {
     file: null,
     out: "artifacts/north-star-audit",
     allowRemote: false,
+    mobileProfile: false,
     settleMs: 1500,
     timeoutMs: 15000,
     actions: null,
@@ -109,6 +111,7 @@ Options:
   --out DIRECTORY       Report directory (default: artifacts/north-star-audit)
   --settle-ms INTEGER   Observation delay after load, 0–10000 (default: 1500)
   --timeout-ms INTEGER  Navigation/action timeout, 1000–60000 (default: 15000)
+  --mobile-profile     Measure the 320px phone visit with 150ms latency, 1.6Mbps down and 4× CPU slowdown
   --actions FILE        Optional JSON browser walk
   --executable FILE    Chromium executable path
   --allow-remote       Explicitly permit HTTP(S) requests to remote hosts

@@ -4,6 +4,8 @@ import { appRules, signalText, type Experience } from "./appDesign";
 import { techniquesMarkdown } from "./techniques";
 // Shared, browser-safe design model: tokens, steps, contrast, prescription.
 import { CARDS, PAGE_ELEMENTS, cardMarkdown } from "./knowledge";
+import { websiteActionForHandoff } from "./action-destination";
+import { COMPARISON_HANDOFF, usesOptionComparison } from "./page-compositions";
 import { contentHandoffMarkdown } from "./content-handoff";
 export const HEADING_FONTS = [
   "Fraunces",
@@ -293,14 +295,28 @@ export function effectsMarkdown(t: Tokens) {
   return lines.length ? lines.join("\n") + "\n" : "";
 }
 
+export type DesignSettingCheck = {
+  name: string;
+  value: string;
+  ok: boolean | null;
+  grade: string;
+  basis?:
+    | "Reading guideline"
+    | "Layout estimate"
+    | "Type scale guideline"
+    | "Case guideline"
+    | "Calculated color ratio";
+};
+
 export function buildPrescription(o: {
+  authoredPage?: unknown;
   brief: string;
   content: Content;
   direction: string;
   tokens: Tokens;
   picks: Pick[];
   tool: (typeof TOOLS)[number];
-  checks?: { name: string; value: string; ok: boolean; grade: string }[];
+  checks?: DesignSettingCheck[];
   nav?: string | undefined;
   experience?: Experience | undefined;
   integration?: Integration | undefined;
@@ -392,8 +408,12 @@ ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(token p
     "Own or local model":
       "If your model cannot accept the complete Vision in one request, provide the short summary followed by the relevant sections; review every result against the complete specification.",
     "Human developer":
-      "These are the design decisions for the build. Implement tokens.css as the single source of truth for color, type, spacing and radius; nothing else should be hardcoded.",
+      "These are the design decisions for the build. Read color, type, spacing and radius from tokens.css. Use the supplied content and primary destination from this guide.",
   }[tool];
+  const comparison = o.experience !== "app" && usesOptionComparison(o.authoredPage);
+  const elements = comparison
+    ? ["heading", "body-text", "link", ...(o.content.quote.trim() ? ["quote"] : [])]
+    : PAGE_ELEMENTS;
   return `# Design Vision — new project
 
 You are building the frontend for: ${c(o.brief, 1200)}
@@ -414,18 +434,18 @@ ${tokensCss(t)}
 ${o.picks.map((p) => `- **${c(p.step, 80)}:** ${c(p.label, 160)}${p.reason ? ` — because ${c(p.reason, 500)}` : ""}`).join("\n") || "- (Direction taken as-is)"}
 
 ## Layout and shape
-- First screen arrangement: **${t.heroLayout}**.
+${comparison ? `- Selected website layout: **Comparison**. ${COMPARISON_HANDOFF}` : `- First screen arrangement: **${t.heroLayout}**.`}
 - Spacing density: **${t.density}** (multiply all gaps by --space-unit).
 - Corners: ${t.radius}px everywhere; nested corners use outer radius minus padding.
-- Buttons: **${t.buttonStyle}** style; one primary action per screen, in the accent color.
+${comparison ? `- Style the primary link with the **${t.buttonStyle}** treatment and selected accent.` : `- Buttons: **${t.buttonStyle}** style; one primary action per screen, in the accent color.`}
 - Headings: ${t.headingFont}, ${t.headingCase === "uppercase" ? "uppercase with +0.04em tracking" : "sentence case with slightly tight tracking (-0.01em)"}; text-wrap: balance.
 - Finishing touch: **${t.texture}**${t.texture === "none" ? " — no gradients, glows, or decorative effects" : " — use it once, on the first screen only"}.
 ${effectsMarkdown(t)}
-${navMarkdown(o.nav)}
+${comparison ? "## Navigation\nKeep the brand link and an in-page link to the comparison. Place the destination link after the options." : navMarkdown(o.nav)}
 
 ${appRules(o.experience)}
 
-${techniquesMarkdown(t)}
+${techniquesMarkdown(t, comparison)}
 
 ## Craft rules (always)
 - Body text 16px minimum, line length 60–75 characters, line height 1.5–1.65.
@@ -460,17 +480,18 @@ ${techniquesMarkdown(t)}
 - Use real photos of the business, its people, place and work; if none exist yet, leave a clearly marked placeholder box with a caption saying what photo belongs there.
 - No stock handshakes, laptops-on-desks, 3D blobs or AI-generated people.
 
-## Contrast checks (measured)
+## Contrast ratios calculated from the selected colors
 ${notes.map((n) => `- ${n.pair}: ${formatContrast(n.ratio)}:1 ${n.ok ? "(meets 4.5:1)" : "(BELOW 4.5:1 — darken or lighten before shipping)"}`).join("\n")}
 
 ## Element spec cards (only elements this page uses)
-${PAGE_ELEMENTS.map((id) => CARDS.find((c) => c.id === id))
+${elements
+  .map((id) => CARDS.find((c) => c.id === id))
   .filter((c) => !!c)
   .map((c) => cardMarkdown(c))
   .join("\n\n")}
 
-${o.checks ? `## Measured checks\n${o.checks.map((check) => `- ${c(check.name, 200)}: ${c(check.value, 500)} ${check.ok ? "(holds)" : "(DOES NOT HOLD — fix before shipping)"} [evidence ${c(check.grade, 80)}]`).join("\n")}\n` : ""}
-${contentHandoffMarkdown(o.content)}
+${o.checks ? `## Design setting checks\nThese checks use design settings. Verify text wrapping, control size and contrast on the finished page.\n${o.checks.map((check) => `- ${c(check.name, 200)}: ${c(check.value, 500)} (${c(check.basis || "Design setting", 80)}; ${check.ok === null || check.basis === "Layout estimate" ? "verify in rendered page" : check.ok ? "within guideline" : "review this setting"}) [guideline evidence ${c(check.grade, 80)}]`).join("\n")}\n` : ""}
+${contentHandoffMarkdown(o.content, o.experience === "app" ? null : websiteActionForHandoff(o.authoredPage))}
 
 ## Before you report done
 Render the page, look at it at 390px and 1280px wide, and check the applicable rules above. Preserve authoritative supplied wording when it conflicts with generic wording advice; report that exception and obtain owner approval before any rewrite. Fix implementation failures and report any checks you could not run.
@@ -521,11 +542,14 @@ export function markdownText(value: unknown, max = 400): string {
 }
 
 /** Safety rules for restyling an existing site: change looks only, never behaviour or content. */
+export const EXISTING_PACK_PLACEMENT =
+  "Extract the ZIP into an empty folder outside the project. Copy the included focus-restyle folder into the isolated project root only if the name is unused there. On a collision, stop and choose an unused name for the incoming folder. Use its actual path in imports and reminders. Never unzip over customer files.";
+
 export const EXISTING_RULES = `## Safety rules for an existing project (follow before anything else)
 - Make an isolated trial first: use a separate branch or duplicate with a local or staging preview, never edit the live production app for a trial. Save a copy as a named backup and preserve uncommitted work. Use test accounts and sandbox integrations so trial actions cannot charge money, send real messages or modify production data.
 - Change how things LOOK only. Never remove or rename pages, routes, links, forms, fields, buttons, text, images, scripts, analytics or data logic.
-- Never delete or overwrite existing files such as styles, config or rule files. Add the Focus files next to them.
-- Extract to a fresh focus-restyle folder; if it already exists, stop rather than overwrite it. Check for existing data-focus-restyle or data-focus-theme markers before importing; if found, stop and resolve the scope collision. Load focus-tokens.css and ONE compatible bridge. Apply data-focus-restyle to one page wrapper only, not html/body, to expose the namespaced values.
+- Keep existing files and their contents. Place generated files beside them. In the isolated copy, add only the documented trial imports, wrapper attributes and optional reminder. Never replace a customer file with a generated file.
+- ${EXISTING_PACK_PLACEMENT} Check for existing data-focus-restyle or data-focus-theme markers before importing; if found, stop and resolve the scope collision. Load focus-tokens.css and ONE compatible bridge. Apply data-focus-restyle to one page wrapper only, not html/body, to expose the namespaced values.
 - Audit existing foreground/background pairs and component roles before enabling semantic theme mapping. Only after that review, add data-focus-theme="semantic" to the same trial wrapper. Keep original semantic status colors and components that the bridge does not map; test the actual rendered result.
 - Record original routes, forms, fields and working tasks. Test the same tasks after each change. Remove data-focus-theme="semantic" to disable semantic mappings, then data-focus-restyle and the added imports to undo wrapper-scoped CSS. Selectively restore component edits from the backup. Leave pre-existing or ambiguous rule reminders untouched. For an optional reminder newly added by this trial, follow ADD-TO-YOUR-RULES.md and UNDO.md: remove only its exact recorded, unchanged insertion; otherwise stop for manual review with the backup. Never hard-reset unrelated work.
 - Restyle one page first, rerun the original tasks in the isolated preview, demonstrate selective rollback, show the before/after evidence and wait for approval before restyling the rest. Deploy only after the owner accepts the tested changes and rollback plan; a passing Focus score is not release approval.
@@ -544,7 +568,7 @@ export function toolMessages(
   const human = tool === "Human developer";
   if (integration === "existing") {
     return {
-      first: `${human ? "Please restyle" : "Restyle"} the existing ${brand} project using the design Vision ${human ? "below" : "I'm pasting below"}. First create an isolated branch or duplicate and a local or staging preview, never a trial directly on the live production app. Save a copy as a named backup including uncommitted work, and use test accounts and sandbox integrations for all trial tasks. Change only how things look: keep every page, link, form, button and word exactly as it is, and don't delete or overwrite any existing file. Read PRESERVE.md and UNDO.md first. Extract to a fresh focus-restyle folder; stop on any collision. Load focus-tokens.css and one compatible scoped bridge; apply data-focus-restyle to one existing wrapper (not html/body) to expose namespaced values. Audit existing color pairs and component roles before adding data-focus-theme="semantic" to enable semantic mappings on that wrapper. Record and rerun original tasks in the preview, restyle only the agreed trial page, demonstrate selective rollback, then stop and show me. Deploy only after I accept the tested changes and rollback plan.`,
+      first: `${human ? "Please restyle" : "Restyle"} the existing ${brand} project using the design Vision ${human ? "below" : "I'm pasting below"}. First create an isolated branch or duplicate and a local or staging preview, never a trial directly on the live production app. Save a copy as a named backup including uncommitted work, and use test accounts and sandbox integrations for all trial tasks. Change only how things look: keep every page, link, form, button and word exactly as it is, and don't delete or overwrite any existing file. Read PRESERVE.md and UNDO.md first. ${EXISTING_PACK_PLACEMENT} Load focus-tokens.css and one compatible scoped bridge; apply data-focus-restyle to one existing wrapper (not html/body) to expose namespaced values. Audit existing color pairs and component roles before adding data-focus-theme="semantic" to enable semantic mappings on that wrapper. Record and rerun original tasks in the preview, restyle only the agreed trial page, demonstrate selective rollback, then stop and show me. Deploy only after I accept the tested changes and rollback plan.`,
       next: [
         "Compare the restyled page with the original: list any page, link, form, button or text that changed or disappeared, and put it back.",
         "Now restyle the next page the same way, using only the Focus values. Don't touch behaviour or content.",

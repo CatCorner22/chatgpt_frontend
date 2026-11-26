@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
 import { rolldown } from "rolldown";
 import { createServer } from "node:http";
-import { chromium } from "playwright-core";
+import { launchChromium } from "./browser-engine.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactDir = join(root, "artifacts/reference-layouts");
 mkdirSync(artifactDir, { recursive: true });
@@ -77,11 +77,7 @@ try {
   };
   const output = [];
   const requests = [];
-  browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-    headless: true,
-    args: ["--no-sandbox"],
-  });
+  browser = await launchChromium();
   const page = await browser.newPage();
   page.on("request", (request) => requests.push(request.url()));
   for (const composition of ["showcase", "journal"]) {

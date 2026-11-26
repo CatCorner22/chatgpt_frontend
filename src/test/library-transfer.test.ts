@@ -1,28 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createHash, webcrypto } from "node:crypto";
+import { webcrypto } from "node:crypto";
 import * as transfer from "@/lib/transfer";
 import { LIBRARY_KEY, withVersion, type LibraryEntry } from "@/lib/library";
+import { gardenJourneyKey, newGardenJourney } from "@/lib/garden-journey";
+import { GALLERY } from "@/lib/gallery";
 import { normalizeTokens } from "@/lib/design";
 import { normalizePageSettings } from "@/lib/page-settings";
 import { migrate as migrateStudioState, type State as StudioState } from "@/lib/studio-state";
+import { pngAsset, stubImageDecode } from "./image-asset.fixture";
 
 const IMAGE_PREFIX = "focus:page-image:";
-const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6XD8AAAAASUVORK5CYII=",
-  "base64",
-);
-const image = (suffix = "") => {
-  const bytes = Buffer.concat([png, Buffer.from(suffix)]);
-  return {
-    id: createHash("sha256").update(bytes).digest("hex"),
-    src: `data:image/png;base64,${bytes.toString("base64")}`,
-  };
-};
-const current = image(),
-  prior = image("prior"),
-  undo = image("undo"),
-  redo = image("redo"),
-  unused = image("unused");
+const current = pngAsset(),
+  prior = pngAsset("prior"),
+  undo = pngAsset("undo"),
+  redo = pngAsset("redo"),
+  unused = pngAsset("unused");
 const entry = (id = "design-one"): LibraryEntry => ({
   id,
   title: "Clay House",
@@ -88,18 +80,7 @@ const sourceStore = () =>
 
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
-  vi.stubGlobal(
-    "Image",
-    class {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      naturalWidth = 1;
-      naturalHeight = 1;
-      set src(_value: string) {
-        queueMicrotask(() => this.onload?.());
-      }
-    },
-  );
+  stubImageDecode();
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -124,6 +105,31 @@ describe("library backups retain referenced images", () => {
 });
 
 describe("library backup recovery", () => {
+  it("transfers a design that has tried the entire layout theme catalog and its original direction", async () => {
+    const design = entry();
+    const themes = GALLERY.map((item) => item.direction);
+    const earlier = { ...themes[0]!, name: "Owner's first direction" };
+    const directions = [earlier, ...themes];
+    design.state["directions"] = directions;
+    design.state["direction"] = themes.at(-1)!.name;
+    design.versions![0]!.state["directions"] = directions.slice(0, -1);
+    const raw = await transfer.createLibraryBackup([design], sourceStore());
+    await transfer.validateCompleteLibraryBackup(raw);
+    const target = memoryStore();
+    const restored = await transfer.restoreLibraryBackup(raw, target);
+    expect(restored.entries[0]!.state["directions"]).toEqual(directions);
+    expect(restored.entries[0]!.state["direction"]).toBe(design.state["direction"]);
+    expect(restored.entries[0]!.versions![0]!.state["directions"]).toEqual(directions.slice(0, -1));
+    expect((await transfer.restoreLibraryBackup(raw, target)).duplicates).toBe(1);
+  });
+  it("keeps the per-design direction limit when restoring an oversized collection", async () => {
+    const original = entry();
+    original.state["directions"] = Array.from({ length: 101 }, () => GALLERY[0]!.direction);
+    const raw = JSON.stringify({ version: 1, entries: [original] });
+    const target = memoryStore();
+    await expect(transfer.restoreLibraryBackup(raw, target)).rejects.toThrow();
+    expect(target.data.size).toBe(0);
+  });
   it("exports a readable legacy pick without a reason and restores it with an empty reason", async () => {
     const legacy = entry();
     legacy.state["picks"] = [{ step: "palette", label: "Warm" }];
@@ -274,16 +280,7 @@ describe("library backup failure boundaries", () => {
   });
   it("rejects a raster that cannot decode before touching the existing library", async () => {
     const raw = await transfer.createLibraryBackup([entry()], sourceStore());
-    vi.stubGlobal(
-      "Image",
-      class {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        set src(_value: string) {
-          queueMicrotask(() => this.onerror?.());
-        }
-      },
-    );
+    stubImageDecode(() => false);
     const destination = memoryStore({ [LIBRARY_KEY]: '{"version":1,"entries":[]}' });
     await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow(/decoded/);
     expect([...destination.data]).toEqual([[LIBRARY_KEY, '{"version":1,"entries":[]}']]);
@@ -301,6 +298,57 @@ describe("library backup failure boundaries", () => {
     expect(destination.data.size).toBe(0);
     destination.setItem = original;
     expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(1);
+  });
+  it.each([
+    ["image", IMAGE_PREFIX + prior.id],
+    ["journey brief", gardenJourneyKey("design-one")],
+    ["library", LIBRARY_KEY],
+  ])("refuses a discarded %s write and restores the complete backup on retry", async (_, key) => {
+    const source = sourceStore();
+    const briefKey = gardenJourneyKey("design-one");
+    const brief = { ...newGardenJourney("design-one", "new"), audience: "Students" };
+    source.setItem(briefKey, JSON.stringify(brief));
+    const raw = await transfer.createLibraryBackup([entry()], source);
+    const destination = memoryStore({ [IMAGE_PREFIX + current.id]: current.src });
+    const set = destination.setItem;
+    destination.setItem = (k, v) => {
+      if (k !== key) set(k, v);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect([...destination.data]).toEqual([[IMAGE_PREFIX + current.id, current.src]]);
+    destination.setItem = set;
+    expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(1);
+    expect(JSON.parse(destination.getItem(briefKey)!)).toEqual(brief);
+    for (const asset of [current, prior, undo, redo])
+      expect(destination.getItem(IMAGE_PREFIX + asset.id)).toBe(asset.src);
+  });
+
+  it("keeps a library saved in another tab while the restore is writing its images", async () => {
+    const raw = await transfer.createLibraryBackup([entry()], sourceStore());
+    const destination = memoryStore();
+    const other = JSON.stringify({ version: 1, entries: [entry("other-tab")] });
+    const set = destination.setItem;
+    destination.setItem = (key, value) => {
+      set(key, value);
+      if (key === IMAGE_PREFIX + current.id) set(LIBRARY_KEY, other);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect(destination.getItem(LIBRARY_KEY)).toBe(other);
+    expect(destination.getItem(IMAGE_PREFIX + current.id)).toBe(current.src);
+  });
+
+  it("preserves images if the final library write cannot be read back safely", async () => {
+    const raw = await transfer.createLibraryBackup([entry()], sourceStore());
+    const destination = memoryStore();
+    const get = destination.getItem;
+    destination.getItem = (key) => {
+      if (key === LIBRARY_KEY && destination.data.has(key)) throw new Error("Read unavailable");
+      return get(key);
+    };
+    await expect(transfer.restoreLibraryBackup(raw, destination)).rejects.toThrow();
+    expect(JSON.parse(destination.data.get(LIBRARY_KEY)!).entries).toHaveLength(1);
+    for (const asset of [current, prior, undo, redo])
+      expect(destination.getItem(IMAGE_PREFIX + asset.id)).toBe(asset.src);
   });
   it("does not overwrite conflicting image bytes and retains corrupt library bytes before recovery", async () => {
     const raw = await transfer.createLibraryBackup([entry()], sourceStore());
@@ -335,16 +383,7 @@ describe("library backup failure boundaries", () => {
 });
 
 it("refuses to export image bytes that cannot be decoded", async () => {
-  vi.stubGlobal(
-    "Image",
-    class {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      set src(_value: string) {
-        queueMicrotask(() => this.onerror?.());
-      }
-    },
-  );
+  stubImageDecode(() => false);
   await expect(transfer.createLibraryBackup([entry()], sourceStore())).rejects.toThrow(/decoded/);
 });
 
@@ -462,6 +501,22 @@ it("does not deduplicate different nonempty nested timelines accepted by transfe
   expect(result.entries[0]!.state).toEqual(changed.entries[0].state);
 });
 
+it("restores a Japanese page and its earlier English settings to another library", async () => {
+  const design = entry();
+  design.state["page"] = {
+    ...normalizePageSettings(design.state["page"]),
+    language: "ja",
+  };
+  const raw = await transfer.createLibraryBackup([design], sourceStore());
+  const destination = memoryStore();
+  const restored = await transfer.restoreLibraryBackup(raw, destination);
+  const state = migrateStudioState(restored.entries[0]!.state as Partial<StudioState>);
+  expect(state.page.language).toBe("ja");
+  expect(state.past[0]!.page).not.toHaveProperty("language");
+  expect(state.content).toEqual(design.state["content"]);
+  expect((await transfer.restoreLibraryBackup(raw, destination)).added).toBe(0);
+});
+
 it("does not create a false page version when Studio opens a restored design", async () => {
   const raw = await transfer.createLibraryBackup([entry()], sourceStore());
   const destination = memoryStore();
@@ -495,3 +550,75 @@ it.each(["content", "settings"])(
     expect(repeated.entries[0]?.state).toEqual(edited.entries[0].state);
   },
 );
+
+describe("design-bound Garden briefs travel with the customer's library", () => {
+  it("restores exact choices, preserves a changed local brief as a separate design, and repeats safely", async () => {
+    const { newGardenJourney, gardenJourneyKey, parseGardenJourney } =
+      await import("@/lib/garden-journey");
+    const design = entry();
+    const key = gardenJourneyKey(design.id);
+    const original = { ...newGardenJourney(design.id, "existing"), task: "Book exactly once" };
+    const src = sourceStore();
+    src.setItem(key, JSON.stringify(original));
+    const backup = await transfer.createLibraryBackup([design], src);
+    await transfer.validateCompleteLibraryBackup(backup);
+    const dst = memoryStore();
+    expect((await transfer.restoreLibraryBackup(backup, dst)).journeysAdded).toBe(1);
+    expect(parseGardenJourney(dst.getItem(key)!, design.id)).toEqual(original);
+    dst.setItem(key, JSON.stringify({ ...original, task: "Keep my later decision" }));
+    const result = await transfer.restoreLibraryBackup(backup, dst);
+    expect(result.conflicts).toBe(1);
+    const other = result.entries.find((item) => item.id !== design.id)!;
+    expect(parseGardenJourney(dst.getItem(gardenJourneyKey(other.id))!, other.id)).toEqual({
+      ...original,
+      designId: other.id,
+    });
+    expect(parseGardenJourney(dst.getItem(key)!, design.id).task).toBe("Keep my later decision");
+    expect((await transfer.restoreLibraryBackup(backup, dst)).added).toBe(0);
+    expect((await transfer.restoreLibraryBackup(backup, dst)).journeysAdded).toBe(0);
+  });
+
+  it("restores a missing brief beside an unchanged design and rejects orphan or duplicate incoming briefs before writes", async () => {
+    const { newGardenJourney, gardenJourneyKey } = await import("@/lib/garden-journey");
+    const design = entry();
+    const src = sourceStore();
+    const legacy = await transfer.createLibraryBackup([design], src);
+    const sourceBrief = newGardenJourney(design.id, "new");
+    src.setItem(gardenJourneyKey(design.id), JSON.stringify(sourceBrief));
+    const backup = await transfer.createLibraryBackup([design], src);
+    const dst = memoryStore();
+    await transfer.restoreLibraryBackup(legacy, dst);
+    expect(await transfer.restoreLibraryBackup(backup, dst)).toMatchObject({
+      added: 0,
+      journeysAdded: 1,
+    });
+    for (const journeys of [[{ ...sourceBrief, designId: "absent" }], [sourceBrief, sourceBrief]]) {
+      const invalid = JSON.stringify({ ...JSON.parse(backup), journeys });
+      const empty = memoryStore();
+      await expect(transfer.validateCompleteLibraryBackup(invalid)).rejects.toThrow(/Garden brief/);
+      await expect(transfer.restoreLibraryBackup(invalid, empty)).rejects.toThrow(/Garden brief/);
+      expect(empty.data.size).toBe(0);
+    }
+  });
+
+  it("removes newly written brief and images if the library commit fails", async () => {
+    const { newGardenJourney, gardenJourneyKey } = await import("@/lib/garden-journey");
+    const design = entry();
+    const src = sourceStore();
+    src.setItem(
+      gardenJourneyKey(design.id),
+      JSON.stringify(newGardenJourney(design.id, "existing")),
+    );
+    const backup = await transfer.createLibraryBackup([design], src);
+    const dst = memoryStore();
+    const failAtCommit = {
+      ...dst,
+      setItem(key: string, value: string) {
+        if (key === LIBRARY_KEY) throw new Error("Storage full");
+        dst.setItem(key, value);
+      },
+    };
+    await expect(transfer.restoreLibraryBackup(backup, failAtCommit)).rejects.toThrow(/storage/i);
+    expect(dst.data.size).toBe(0);
+  });
+});

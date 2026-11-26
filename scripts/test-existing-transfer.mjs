@@ -1,9 +1,11 @@
+import { openSavedStudio } from "./fixtures/saved-studio.mjs";
 /** Actual existing-site ZIP applied to isolated customer fixtures, then completely undone. */
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +17,10 @@ const target = process.env.FOCUS_TEST_URL || "http://localhost:3000";
 const out = `artifacts/existing-site-hardening/${browserName}`;
 await mkdir(out, { recursive: true });
 const temporary = await mkdtemp(join(tmpdir(), "focus-existing-customer-"));
+const customerRoot = join(temporary, "customer");
+const stagingRoot = join(temporary, "staging");
+await mkdir(customerRoot);
+await mkdir(stagingRoot);
 const browser = await launchTestBrowser();
 const sourceFiles = new Map();
 const failures = [];
@@ -25,8 +31,8 @@ const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const server = createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-    const file = resolve(temporary, `.${pathname}`);
-    if (!file.startsWith(temporary + sep)) throw new Error("Outside fixture");
+    const file = resolve(customerRoot, `.${pathname}`);
+    if (!file.startsWith(customerRoot + sep)) throw new Error("Outside fixture");
     const bytes = await readFile(file);
     response.writeHead(200, {
       "Content-Type": file.endsWith(".css")
@@ -43,6 +49,14 @@ const server = createServer(async (request, response) => {
 });
 await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const origin = `http://127.0.0.1:${server.address().port}`;
+
+async function fileHashes(folder) {
+  const files = {};
+  for (const name of (await readdir(folder)).sort()) {
+    files[name] = hash(await readFile(join(folder, name)));
+  }
+  return files;
+}
 
 function customerCss(kind) {
   const legacy = kind.includes("legacy"),
@@ -159,38 +173,22 @@ try {
   // Download from the real Focus interaction, including switching to existing mode.
   const source = await browser.newPage({ acceptDownloads: true });
   source.on("pageerror", (error) => pageErrors.push(error.message));
-  await source.goto(target, { waitUntil: "networkidle" });
   const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
   const tokens = directions.find((d) => d.id === "garden-ledger").direction.tokens;
-  await source.evaluate(
-    (tokens) =>
-      localStorage.setItem(
-        "refraction:v1",
-        JSON.stringify({
-          version: 2,
-          stage: "rx",
-          brief: "An existing booking application",
-          content: {
-            brand: "Existing booking",
-            headline: "Keep customer work",
-            sub: "Synthetic transfer fixture",
-            cta: "Book",
-            features: [],
-            quote: "",
-          },
-          tokens,
-          direction: "Garden Ledger",
-          libraryId: "existing-transfer-fixture",
-          quick: true,
-          picks: [],
-          history: [],
-          directions: [],
-          stepIndex: 3,
-        }),
-      ),
+  await openSavedStudio(source, target, {
+    brief: "An existing booking application",
+    content: {
+      brand: "Existing booking",
+      headline: "Keep customer work",
+      sub: "Synthetic transfer fixture",
+      cta: "Book",
+      features: [],
+      quote: "",
+    },
     tokens,
-  );
-  await source.reload({ waitUntil: "networkidle" });
+    direction: "Garden Ledger",
+    libraryId: "existing-transfer-fixture",
+  });
   await source.getByRole("button", { name: /Design specification.*handoff tools/ }).click();
   await source.getByRole("radio", { name: /Restyle my existing site or app/ }).check();
   const download = source.waitForEvent("download");
@@ -207,10 +205,21 @@ try {
     "customer-data.json": '{"draft":"Keep this uncommitted customer work"}\n',
   };
   for (const [name, value] of Object.entries(originalSentinels)) {
-    await writeFile(join(temporary, name), value);
+    await writeFile(join(customerRoot, name), value);
     sourceFiles.set(name, hash(value));
   }
-  await mkdir(join(temporary, "focus-restyle"));
+  const packName = "focus-restyle";
+  const existingPack = join(customerRoot, packName);
+  await mkdir(existingPack);
+  const collidingFile = "focus-tokens.css";
+  assert.ok(zip.file(`${packName}/${collidingFile}`));
+  await writeFile(join(existingPack, collidingFile), ":root{--customer-brand:navy}\n");
+  await writeFile(join(existingPack, "customer-notes.md"), "Customer's existing style pack.\n");
+  const beforeExtraction = await fileHashes(existingPack);
+
+  const stagedPack = join(stagingRoot, packName);
+  await mkdir(stagedPack);
+  const archiveFiles = {};
   for (const [name, entry] of Object.entries(zip.files)) {
     if (entry.dir) continue;
     assert.match(name, /^focus-restyle\/[A-Za-z0-9_.-]+$/);
@@ -219,9 +228,24 @@ try {
         name.split("/")[1],
       ),
     );
-    await writeFile(join(temporary, name), await entry.async("nodebuffer"));
+    const bytes = await entry.async("nodebuffer");
+    archiveFiles[name.split("/")[1]] = hash(bytes);
+    await writeFile(join(stagingRoot, name), bytes, { flag: "wx" });
   }
-  await assert.rejects(mkdir(join(temporary, "focus-restyle")), { code: "EEXIST" });
+  assert.notEqual(beforeExtraction[collidingFile], archiveFiles[collidingFile]);
+  await assert.rejects(mkdir(existingPack), { code: "EEXIST" });
+  const atCollision = await fileHashes(existingPack);
+  assert.deepEqual(atCollision, beforeExtraction);
+
+  const placedName = `${packName}-trial`;
+  const placedPack = join(customerRoot, placedName);
+  await mkdir(placedPack);
+  for (const name of Object.keys(archiveFiles)) {
+    await copyFile(join(stagedPack, name), join(placedPack, name), constants.COPYFILE_EXCL);
+  }
+  assert.deepEqual(await fileHashes(placedPack), archiveFiles);
+  const afterPlacement = await fileHashes(existingPack);
+  assert.deepEqual(afterPlacement, beforeExtraction);
   const built = await build({
     configFile: false,
     logLevel: "silent",
@@ -249,14 +273,14 @@ try {
     "plain-mixed",
     "react-mixed",
   ]) {
-    await mkdir(join(temporary, kind));
+    await mkdir(join(customerRoot, kind));
     for (const [name, value] of Object.entries({
       "index.html": html(kind.startsWith("react")),
       "customer.css": customerCss(kind),
       "customer.js": kind.startsWith("react") ? reactJs : plainJs,
     })) {
       const path = `${kind}/${name}`;
-      await writeFile(join(temporary, path), value);
+      await writeFile(join(customerRoot, path), value);
       sourceFiles.set(path, hash(value));
     }
     for (const width of [1280, 768, 320]) {
@@ -282,23 +306,29 @@ try {
         const controls = await inventory(page);
         await task(page, 1);
         await page.screenshot({ path: `${out}/${label}-before.png`, fullPage: true });
-        await page.evaluate((legacy) => {
-          for (const file of [
-            "focus-tokens.css",
-            legacy ? "focus-bridge-legacy.css" : "focus-bridge.css",
-          ]) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = `/focus-restyle/${file}`;
-            link.dataset.focusTestImport = "";
-            document.head.append(link);
-          }
-        }, kind.includes("legacy"));
-        await page.waitForFunction(() =>
-          [...document.querySelectorAll("link[data-focus-test-import]")].every(
-            (link) => link.sheet,
-          ),
+        const stylePaths = [
+          `/${placedName}/focus-tokens.css`,
+          `/${placedName}/${kind.includes("legacy") ? "focus-bridge-legacy.css" : "focus-bridge.css"}`,
+        ];
+        const loadedStyles = await page.evaluate(
+          (paths) =>
+            Promise.all(
+              paths.map(
+                (path) =>
+                  new Promise((loaded, failed) => {
+                    const link = document.createElement("link");
+                    link.rel = "stylesheet";
+                    link.href = path;
+                    link.dataset.focusTestImport = "";
+                    link.onload = () => loaded(new URL(link.sheet.href).pathname);
+                    link.onerror = () => failed(new Error(`Could not load ${path}`));
+                    document.head.append(link);
+                  }),
+              ),
+            ),
+          stylePaths,
         );
+        assert.deepEqual(loadedStyles, stylePaths);
         assert.deepEqual(
           await appearance(page),
           before,
@@ -370,6 +400,7 @@ try {
         scenarios.push({
           label,
           status: issues.length ? "failed" : "passed",
+          loadedStyles,
           importBeforeOptInInert: true,
           defaultWrapperInert: true,
           semanticTrial: semanticCompatible
@@ -393,9 +424,16 @@ try {
       await page.close();
     }
   }
+  // UNDO.md permits removing the incoming folder once its contents have been checked.
+  assert.deepEqual(await fileHashes(placedPack), archiveFiles);
+  await rm(placedPack, { recursive: true });
+  const placedFolderPresentAfterUndo = (await readdir(customerRoot)).includes(placedName);
+  assert.equal(placedFolderPresentAfterUndo, false);
+  const afterUndo = await fileHashes(existingPack);
+  assert.deepEqual(afterUndo, beforeExtraction);
   for (const [name, sha] of sourceFiles)
     assert.equal(
-      hash(await readFile(join(temporary, name))),
+      hash(await readFile(join(customerRoot, name))),
       sha,
       `Customer source was changed: ${name}`,
     );
@@ -407,7 +445,15 @@ try {
     actualUiZip: true,
     archiveSha256: hash(zipBytes),
     sourceFilesByteIdentical: sourceFiles.size,
-    collisionRefusedBeforeWrites: true,
+    placement: {
+      existingFolder: packName,
+      collidingFile,
+      incomingFileSha256: archiveFiles[collidingFile],
+      customerFolderSha256ByFile: { beforeExtraction, atCollision, afterPlacement, afterUndo },
+      placedFolder: placedName,
+      archiveFilesVerifiedBeforeRemoval: Object.keys(archiveFiles).length,
+      placedFolderPresentAfterUndo,
+    },
     scenarios,
     failures,
     pageErrors,

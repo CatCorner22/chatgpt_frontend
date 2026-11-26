@@ -1,12 +1,11 @@
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
+import { openSavedStudio } from "./fixtures/saved-studio.mjs";
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import JSZip from "jszip";
-const studioUrl = new URL(process.env.FOCUS_TEST_URL || "http://localhost:3000");
-studioUrl.searchParams.set("view", "studio");
-studioUrl.searchParams.delete("panel");
-studioUrl.hash = "";
-const url = studioUrl.href;
+const target = process.env.FOCUS_TEST_URL || "http://localhost:3000";
 const dir = "artifacts/authored-pages";
 await mkdir(dir, { recursive: true });
 const directions = JSON.parse(await readFile("src/lib/directions.data.json", "utf8"));
@@ -45,33 +44,70 @@ try {
     viewport: { width: 1440, height: 1000 },
     acceptDownloads: true,
   });
+  page.setDefaultTimeout(20_000);
   page.on("pageerror", (e) => pageErrors.push(e.message));
-  await page.goto(url, { waitUntil: "networkidle" });
-  // A legacy saved state deliberately has no page settings; migration must supply them.
-  await page.evaluate(
-    ({ tokens, content }) =>
-      localStorage.setItem(
-        "refraction:v1",
-        JSON.stringify({
-          version: 2,
-          stage: "rx",
-          brief: "Example ceramics studio",
-          content,
-          tokens,
-          direction: "Garden Ledger",
-          libraryId: "authored-browser-fixture",
-          quick: true,
-          picks: [],
-          history: [],
-          directions: [],
-          stepIndex: 3,
-        }),
-      ),
-    { tokens: testTokens, content: exampleContent },
-  );
-  await page.reload({ waitUntil: "networkidle" });
+  const url = await openSavedStudio(page, target, {
+    brief: "Example ceramics studio",
+    content: exampleContent,
+    tokens: testTokens,
+    direction: "Garden Ledger",
+    libraryId: "authored-browser-fixture",
+  });
   await page.getByRole("heading", { name: "See it. Use it. Take it with you." }).waitFor();
-  await page.getByLabel("Where should the main action lead?").fill("https://example.com/studio");
+  const mainAction = page.getByLabel("Where should the main action lead?");
+  const privateMarker = "focus-browser-private-fixture";
+  const privateLink = `https://example.com/studio?access_token=${privateMarker}`;
+  await mainAction.fill(privateLink);
+  await page
+    .getByRole("button", { name: "Download working HTML" })
+    .and(page.locator(":disabled"))
+    .waitFor();
+  assert.equal(await page.getByRole("button", { name: "Download page ZIP" }).isDisabled(), true);
+  assert.equal(await mainAction.inputValue(), privateLink);
+  assert.ok(
+    !(await readPreviewDocument(page.getByTitle("Working page preview"))).includes(privateMarker),
+  );
+  await mainAction.fill("https://example.com/studio");
+  const compare = page.getByRole("button", { name: "Compare layouts with your content" });
+  await compare.click();
+  await page.getByLabel("What does your visitor want to do?").selectOption("read");
+  await page
+    .frameLocator('iframe[title="Editorial comparison on phone"]')
+    .getByRole("heading", { name: exampleContent.headline })
+    .waitFor();
+  const journalPhone = page.frameLocator('iframe[title="Journal comparison on phone"]');
+  await journalPhone.getByRole("heading", { name: exampleContent.headline }).waitFor();
+  assert.equal(
+    await journalPhone.locator(".journal-index a").count(),
+    exampleContent.features.length,
+  );
+  await page.getByLabel("Compare", { exact: true }).selectOption("second");
+  const journalDesktop = page.frameLocator('iframe[title="Journal comparison on desktop"]');
+  await journalDesktop.getByRole("heading", { name: exampleContent.headline }).waitFor();
+  for (const [frame, expectedWidth] of [
+    [journalPhone, 320],
+    [journalDesktop, 1024],
+  ]) {
+    assert.equal(await frame.locator("body").evaluate(() => innerWidth), expectedWidth);
+    assert.equal(
+      await frame.locator(".hero-actions a").getAttribute("href"),
+      "https://example.com/studio",
+    );
+  }
+  const comparison = page.locator(".layout-comparison");
+  await comparison.screenshot({ path: `${dir}/layout-comparison.png` });
+  await page.setViewportSize({ width: 320, height: 850 });
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= 320);
+  assert.equal(await journalDesktop.locator("body").evaluate(() => innerWidth), 1024);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const compared = await readPreviewDocument(page.getByTitle("Journal comparison on desktop"));
+  await page.getByRole("button", { name: "Use Journal layout" }).click();
+  await page.getByRole("button", { name: "Using Journal" }).waitFor();
+  await compare.click();
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("radio", { name: /^Journal/ }).waitFor();
+  assert.equal(await page.getByRole("radio", { name: /^Journal/ }).isChecked(), true);
+  assert.equal(await readPreviewDocument(page.getByTitle("Working page preview")), compared);
   const results = [];
   for (const composition of ["Studio", "Editorial", "Product", "Showcase", "Journal"]) {
     await page.getByRole("radio", { name: new RegExp("^" + composition) }).check();
@@ -79,10 +115,10 @@ try {
     await page.getByRole("button", { name: "Download working HTML", exact: true }).click();
     const downloaded = await ready;
     const html = await readFile(await downloaded.path(), "utf8");
-    const iframeHtml = await page
-      .locator('iframe[title="Working page preview"]')
-      .getAttribute("srcdoc");
+    const iframeHtml = await readPreviewDocument(page.getByTitle("Working page preview"));
     assert.equal(html, iframeHtml, "Preview and download must contain the same document.");
+    if (composition === "Journal")
+      assert.equal(html, compared, "The chosen comparative preview must travel intact.");
     assert.ok(html.includes("https://example.com/studio"));
     assert.ok(!/<script\b/i.test(html));
     const file = `${dir}/${composition.toLowerCase()}.html`;
@@ -170,6 +206,13 @@ try {
   assert.ok(zip.file("fonts/PROVENANCE.txt"));
   const zipCss = await zip.file("styles.css").async("string");
   const finalHtml = await readFile(`${dir}/journal.html`, "utf8");
+  assert.ok(!finalHtml.includes(privateMarker));
+  for (const file of Object.values(zip.files).filter((entry) => !entry.dir)) {
+    assert.ok(
+      !(await file.async("string")).includes(privateMarker),
+      `Private link remained in ${file.name}`,
+    );
+  }
   assert.ok(finalHtml.includes(`<style>${zipCss}</style>`), "ZIP and HTML must use the same CSS.");
   const project = JSON.parse(await zip.file("focus-project.json").async("string"));
   assert.equal(project.studio.page.actionUrl, "https://example.com/studio");
@@ -182,6 +225,152 @@ try {
   );
   assert.equal(await page.getByRole("radio", { name: /^Journal/ }).isChecked(), true);
   await page.screenshot({ path: `${dir}/workspace.png`, fullPage: true });
+  const language = page.getByLabel("Page language", { exact: true });
+  assert.equal(await language.inputValue(), "en", "Legacy projects must begin in English.");
+  await page.getByLabel("Where should the main action lead?").fill("");
+  await language.selectOption("ja");
+  const japaneseHeadline = "工房のコーヒーと器。京都の窯元を訪ねて、暮らしの道具が生まれるまで";
+  const editor = page.getByRole("region", { name: "See it. Use it. Take it with you." });
+  await editor.getByRole("button", { name: "Edit the page’s words" }).click();
+  await editor.getByLabel("Headline", { exact: true }).fill(japaneseHeadline);
+  await page.reload({ waitUntil: "networkidle" });
+  assert.equal(await language.inputValue(), "ja", "The page language must survive a reload.");
+  const preview = page.frameLocator('iframe[title="Working page preview"]');
+  await preview.getByRole("navigation", { name: "目次", exact: true }).waitFor();
+  const japanesePreview = await readPreviewDocument(page.getByTitle("Working page preview"));
+  await compare.click();
+  await page.getByLabel("Compare", { exact: true }).selectOption("second");
+  for (const [frame, width] of [
+    [journalPhone, 320],
+    [journalDesktop, 1024],
+  ]) {
+    await frame.getByRole("navigation", { name: "目次", exact: true }).waitFor();
+    assert.equal(await frame.locator("html").getAttribute("lang"), "ja");
+    assert.equal(await frame.locator("html").evaluate((el) => el.scrollWidth), width);
+    assert.equal(await frame.getByRole("heading", { level: 1 }).textContent(), japaneseHeadline);
+    assert.equal(await frame.locator(".hero-sub").textContent(), exampleContent.sub);
+  }
+  await compare.click();
+  const japaneseHtmlDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download working HTML", exact: true }).click();
+  const japaneseHtml = await readFile(await (await japaneseHtmlDownload).path(), "utf8");
+  assert.equal(japaneseHtml, japanesePreview, "The localized preview must match the download.");
+  const japaneseZipDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download page ZIP", exact: true }).click();
+  const japaneseZip = await JSZip.loadAsync(
+    await readFile(await (await japaneseZipDownload).path()),
+  );
+  const japaneseProject = JSON.parse(await japaneseZip.file("focus-project.json").async("string"));
+  assert.equal(japaneseProject.studio.page.language, "ja");
+  assert.equal(japaneseProject.studio.content.headline, japaneseHeadline);
+  assert.ok(
+    (await japaneseZip.file("index.html").async("nodebuffer")).includes(
+      Buffer.from(japaneseHeadline, "utf8"),
+    ),
+  );
+  const sourceDir = resolve(dir, "japanese-journal");
+  await mkdir(sourceDir, { recursive: true });
+  for (const name of ["index.html", "styles.css"]) {
+    await writeFile(`${sourceDir}/${name}`, await japaneseZip.file(name).async("nodebuffer"));
+  }
+  const delivered = await browser.newPage({ viewport: { width: 320, height: 850 } });
+  delivered.on("pageerror", (error) => pageErrors.push(error.message));
+  // Read the two extracted files on an isolated origin, including in managed browsers that block file URLs.
+  const deliveredOrigin = "https://focus-delivery.test";
+  const deliveryRequests = [];
+  await delivered.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    deliveryRequests.push(url.href);
+    if (url.origin === deliveredOrigin && ["/index.html", "/styles.css"].includes(url.pathname))
+      return route.fulfill({ path: resolve(sourceDir, url.pathname.slice(1)) });
+    return route.abort();
+  });
+  await delivered.goto(deliveredOrigin + "/index.html");
+  assert.equal(await delivered.locator("html").getAttribute("lang"), "ja");
+  const deliveredHeadline = delivered.getByRole("heading", { level: 1 });
+  assert.equal(await deliveredHeadline.textContent(), japaneseHeadline);
+  assert.equal(await delivered.locator(".hero-sub").textContent(), exampleContent.sub);
+  const typography = await deliveredHeadline.evaluate(async (heading) => {
+    await document.fonts.ready;
+    const range = document.createRange();
+    const node = heading.firstChild;
+    const bounds = heading.getBoundingClientRect();
+    const lines = new Map();
+    let allVisible = true;
+    for (let i = 0; i < node.length; i++) {
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const glyph = range.getBoundingClientRect();
+      const midline = glyph.top + glyph.height / 2;
+      allVisible &&=
+        glyph.width > 0 &&
+        glyph.height > 0 &&
+        glyph.left >= bounds.left - 1 &&
+        glyph.right <= bounds.right + 1 &&
+        midline >= bounds.top &&
+        midline <= bounds.bottom;
+      lines.set(glyph.top, (lines.get(glyph.top) ?? "") + node.data[i]);
+    }
+    // Two different ideographs must draw ink and must not share the same missing-glyph box.
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 64;
+    const ctx = canvas.getContext("2d");
+    ctx.font = `32px ${getComputedStyle(heading).fontFamily}`;
+    const renderGlyph = (character) => {
+      ctx.clearRect(0, 0, 64, 64);
+      ctx.fillText(character, 5, 45);
+      return canvas.toDataURL();
+    };
+    const blank = canvas.toDataURL();
+    const first = renderGlyph("工"),
+      second = renderGlyph("房");
+    return {
+      lines: [...lines.values()],
+      allVisible,
+      distinctInk: first !== second && first !== blank && second !== blank,
+      lineBreak: getComputedStyle(heading).lineBreak,
+    };
+  });
+  assert.ok(
+    typography.lines.length > 1 && typography.allVisible,
+    "Every character must fit on a visible line at 320px.",
+  );
+  assert.equal(typography.lines.join(""), japaneseHeadline);
+  assert.ok(
+    typography.lines.every((line) => !/^[、。ー]/u.test(line)),
+    "Japanese punctuation must not start a line in this headline.",
+  );
+  assert.equal(typography.lineBreak, "strict");
+  assert.ok(
+    typography.distinctInk,
+    "Install Japanese system fonts for this browser check; both ideographs must render recognizably different glyphs.",
+  );
+  assert.equal(
+    await delivered.getByRole("navigation", { name: "目次" }).getByRole("link").count(),
+    exampleContent.features.length,
+  );
+  assert.equal(
+    await delivered
+      .locator(".hero-actions")
+      .getByRole("link", { name: "詳しく見る", exact: true })
+      .getAttribute("href"),
+    "#details",
+  );
+  await delivered.keyboard.press("Tab");
+  const skip = delivered.getByRole("link", { name: "本文へスキップ", exact: true });
+  assert.equal(await skip.evaluate((el) => el === document.activeElement), true);
+  await delivered.keyboard.press("Enter");
+  await delivered.waitForFunction(() => document.activeElement?.id === "main");
+  assert.equal(await delivered.evaluate(() => document.documentElement.scrollWidth), 320);
+  assert.deepEqual(deliveryRequests, [
+    deliveredOrigin + "/index.html",
+    deliveredOrigin + "/styles.css",
+  ]);
+  await delivered.close();
+  await language.selectOption("en");
+  await preview.getByRole("navigation", { name: "On this page", exact: true }).waitFor();
+  assert.equal(await preview.locator("html").getAttribute("lang"), "en");
+  assert.equal(await preview.getByRole("heading", { level: 1 }).textContent(), japaneseHeadline);
   // The working-page editor must reflow within the narrow app viewport too.
   await page.setViewportSize({ width: 320, height: 850 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
@@ -194,14 +383,19 @@ try {
     results,
     checks: [
       "legacy save migration",
+      "task-based layout comparison, phone/desktop viewports and selected layout surviving reload",
       "exact preview/download parity",
       "embedded font faces loaded and licenses retained",
       "valid source ZIP",
+      "private link held for repair and omitted from preview, downloaded HTML and every ZIP member",
       "native disclosure and section-link keyboard operation",
       "320px page and workspace reflow",
       "text spacing override",
       "no remote requests",
       "page settings persist after reload",
+      "Japanese page language persists in layout comparisons, working HTML and extracted ZIP",
+      "Japanese skip link, content index, fallback action, owner wording and switch back to English",
+      "Japanese headline bytes, distinct CJK glyphs and complete 320px line wrapping in the opened source ZIP",
     ],
     pageErrors,
   };

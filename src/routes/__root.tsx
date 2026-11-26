@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useBlocker,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -13,9 +14,11 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import appCss from "../styles.css?url";
+import { uiFontLicenses } from "../lib/ui-font-licenses";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AI_SPENDING_ENABLED } from "@/lib/ai-policy";
 import { hasCloudBackend } from "@/lib/runtime-config";
+import { flushRouterDrafts } from "@/hooks/useDraftExitSave";
 import { HostedBoundary } from "@/components/HostedBoundary";
 
 function NotFoundComponent() {
@@ -103,12 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/brand/cat-icon.png", type: "image/png", sizes: "64x64" },
       { rel: "apple-touch-icon", href: "/brand/cat-touch.png", sizes: "180x180" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
-      },
+      ...uiFontLicenses,
     ],
   }),
   shellComponent: RootShell,
@@ -134,6 +132,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  useBlocker({
+    enableBeforeUnload: false,
+    shouldBlockFn: () => {
+      if (flushRouterDrafts()) return false;
+      try {
+        return !window.confirm("Some work is still only in this tab. Leave anyway?");
+      } catch {
+        return true;
+      }
+    },
+  });
   useEffect(() => {
     if (!hasCloudBackend()) return;
     const { data } = supabase.auth.onAuthStateChange((event) => {

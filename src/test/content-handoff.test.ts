@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { buildPrescription, normalizeTokens, TOOLS, type Content } from "@/lib/design";
+import {
+  buildPrescription,
+  EXISTING_PACK_PLACEMENT,
+  normalizeTokens,
+  TOOLS,
+  type Content,
+} from "@/lib/design";
 import { buildPack, packFiles, PackError } from "@/lib/exportPack";
 import type { LibraryEntry } from "@/lib/library";
 import {
@@ -54,11 +60,15 @@ function prescription(
   content: Content,
   tool: Parameters<typeof buildPrescription>[0]["tool"] = "Cursor",
   integration: "new" | "existing" = "new",
+  authoredPage?: unknown,
+  experience?: "app" | "website",
 ) {
   return buildPrescription({
     content,
     tool,
     integration,
+    authoredPage,
+    experience,
     tokens,
     brief: "A workshop booking page",
     direction: "Quiet editorial",
@@ -192,8 +202,21 @@ describe("new-build Content handoff", () => {
       quote: "This sample quote must stay out",
     };
     const markdown = prescription(content, "Cursor", "existing");
-    // Digest of this exact public call on the v15 baseline.
-    expect(createHash("sha256").update(markdown).digest("hex")).toBe(
+    // Pin the corrected output and verify that the v15 prescription differed only in placement guidance.
+    const digest = (text: string) => createHash("sha256").update(text).digest("hex");
+    const preceding = markdown.replace(
+      "Keep existing files and their contents. Place generated files beside them. In the isolated copy, add only the documented trial imports, wrapper attributes and optional reminder. Never replace a customer file with a generated file.",
+      "Never delete or overwrite existing files such as styles, config or rule files. Add the Focus files next to them.",
+    );
+    expect(preceding).not.toBe(markdown);
+    expect(digest(preceding)).toBe(
+      "066d6e29e8f77b52d074d2abc59a81942496338977a7507c9820af43b7f9bbc4",
+    );
+    const previous = preceding.replace(
+      EXISTING_PACK_PLACEMENT,
+      "Extract to a fresh focus-restyle folder; if it already exists, stop rather than overwrite it.",
+    );
+    expect(digest(previous)).toBe(
       "3392952762a31e75249cdf4876c8edf96aa5bbeebdbe2309db6b41d8c6e0d12d",
     );
     const downloaded = await readPackDesign(markdown, content.brand, "existing");
@@ -203,6 +226,7 @@ describe("new-build Content handoff", () => {
       content.sub,
       content.cta,
       content.quote,
+      content.features[0]!.title,
       content.features[0]!.body,
     ]) {
       expect(downloaded).not.toContain(sample);
@@ -264,6 +288,97 @@ describe("Target Content transfer", () => {
       expect(markdown).not.toContain(marker);
     }
     expect(saved).toEqual(before);
+  });
+
+  it("carries the selected design's exact public destination through the downloaded guides", async () => {
+    const href =
+      "https://Calendar.example.org:8443/rooms/O'Brien?service=wheel&slot=am&slot=pm#classes";
+    const saved = { ...entry, state: { ...entry.state, page: { actionUrl: href } } };
+    const direct = prescription(entry.state.content, "Cursor", "new", saved.state.page, "website");
+    const zip = await JSZip.loadAsync(await prepareTargetPack(draft, saved));
+    for (const markdown of [direct, await zip.file("DESIGN.md")!.async("string")]) {
+      const blocks = [...markdown.matchAll(/^```json\n([\s\S]*?)^```$/gm)].map((m) =>
+        JSON.parse(m[1]!),
+      );
+      expect(blocks.filter((block) => block.format === "focus-primary-action-v1")).toEqual([
+        { format: "focus-primary-action-v1", href },
+      ]);
+    }
+    for (const guide of [
+      prescription(entry.state.content, "Cursor", "existing", saved.state.page, "website"),
+      prescription(entry.state.content, "Cursor", "new", saved.state.page, "app"),
+    ]) {
+      expect(guide).not.toContain("focus-primary-action-v1");
+      expect(guide).not.toContain("calendar.example.org");
+    }
+  });
+
+  it.each([
+    undefined,
+    null,
+    { actionUrl: "" },
+    { actionUrl: "mailto:studio@example.org" },
+    { actionUrl: "https://private.localhost/path" },
+    { actionUrl: "http://127.0.0.1/test" },
+    { actionUrl: "https://calendar.example.org/?token=synthetic" },
+    { actionUrl: "https://calendar.example.org/#confirm?access_token=synthetic" },
+    { actionUrl: "https://calendar.example.org/?X-Amz-Signature=synthetic" },
+    { actionUrl: "https://name:pass@example.org/path" },
+  ])("keeps an absent or non-shareable action unresolved in the guide: %j", async (page) => {
+    const markdown = await readPackDesign(
+      prescription(editorLimitCopy, "Cursor", "new", page),
+      "Studio",
+    );
+    expect(markdown).toContain("Keep an unconfirmed action unlinked");
+    expect(markdown).not.toContain("focus-primary-action-v1");
+    expect(markdown).not.toMatch(
+      /private\.localhost|calendar\.example|studio@example|127\.0\.0\.1|synthetic/,
+    );
+  });
+
+  it.each([
+    ["https://[2606:4700:4700::1111]:8443/classes?slot=am&day=Thu", true],
+    ["https://[2001:4860:4860::8888]/classes?slot=pm&day=Sat", true],
+    ["https://[::1]/", false],
+    ["https://[fd12::1]/", false],
+    ["http://[fe80::1]/", false],
+    ["https://[::ffff:192.168.1.1]/", false],
+    ["https://[2001:db8::1]/", false],
+    ["https://[3fff:1::2]/", false],
+    ["https://[ff02::1]/", false],
+    ["https://[2002:c0a8:0101::1]/", false],
+  ] as const)("handles an IPv6 address in a downloaded guide: %s", async (href, shareable) => {
+    const saved = { ...entry, state: { ...entry.state, page: { actionUrl: href } } };
+    const zip = await JSZip.loadAsync(await prepareTargetPack(draft, saved));
+    const markdown = await zip.file("DESIGN.md")!.async("string");
+    const blocks = [...markdown.matchAll(/^```json\n([\s\S]*?)^```$/gm)].map((m) =>
+      JSON.parse(m[1]!),
+    );
+    expect(blocks.filter((block) => block.format === "focus-primary-action-v1")).toEqual(
+      shareable ? [{ format: "focus-primary-action-v1", href }] : [],
+    );
+  });
+
+  it("keeps public-code confirmation bound to the exact link and excludes sign-in and signed links", async () => {
+    const href = "https://Bookings.example.org?code=SPRINGSALE&slot=morning";
+    const guide = (actionUrl: string, publicCodeUrl?: string) =>
+      prescription(editorLimitCopy, "Cursor", "new", { actionUrl, publicCodeUrl }, "website");
+    const markdown = await readPackDesign(guide(href, href), "Studio");
+    const blocks = [...markdown.matchAll(/^```json\n([\s\S]*?)^```$/gm)].map((m) =>
+      JSON.parse(m[1]!),
+    );
+    expect(blocks).toContainEqual({ format: "focus-primary-action-v1", href });
+    for (const [address, confirmation] of [
+      [href, undefined],
+      [href + "&day=2", href],
+      ...[
+        "https://service.example.org/oauth/callback?code=synthetic",
+        href + "&state=synthetic",
+        href + "&access_token=synthetic",
+      ].map((value) => [value, value]),
+    ]) {
+      expect(guide(address!, confirmation)).not.toContain("focus-primary-action-v1");
+    }
   });
 
   it("preserves the existing-project oversized-plan error", async () => {

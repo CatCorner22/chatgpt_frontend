@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { chromium } from "playwright-core";
+import { launchChromium } from "../browser-engine.mjs";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,11 +10,7 @@ import { createAuditRealm } from "./isolated-realm.mjs";
 
 let browser, checks;
 test.before(async () => {
-  browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-    headless: true,
-    args: ["--no-sandbox"],
-  });
+  browser = await launchChromium();
   checks = await loadChecks();
 });
 test.after(async () => {

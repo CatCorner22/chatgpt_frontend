@@ -130,7 +130,18 @@ export function createReviewerPacket(
   input: BenchmarkManifest,
   sampleOrder: string[],
 ): ReviewerPacket {
-  const manifest = benchmarkManifestSchema.parse(input);
+  return maskReviewerSamples(benchmarkManifestSchema.parse(input), sampleOrder);
+}
+
+type ReviewMaterial = Pick<BenchmarkManifest, "id" | "title" | "tasks"> & {
+  samples: Pick<BenchmarkManifest["samples"][number], "id" | "taskId" | "assetRef" | "kind">[];
+};
+
+/** Only public fields may cross from the organizer into a reviewer's file. */
+export function maskReviewerSamples(
+  manifest: ReviewMaterial,
+  sampleOrder: string[],
+): ReviewerPacket {
   if (
     sampleOrder.length !== manifest.samples.length ||
     new Set(sampleOrder).size !== sampleOrder.length ||

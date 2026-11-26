@@ -22,6 +22,16 @@ export const browserAuditSchema = z
     kind: z.literal("north-star-browser-audit"),
     version: z.literal(1),
     target: z.string().trim().min(1).max(2048),
+    entryHtml: z
+      .object({
+        bytes: z
+          .number()
+          .int()
+          .min(0)
+          .max(16 * 1024 * 1024),
+        sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      })
+      .optional(),
     startedAt: z.iso.datetime({ offset: true }),
     scenarios: z
       .array(
@@ -116,4 +126,28 @@ export function parseBrowserAudit(text: string): BrowserAudit {
 export function auditScreenshotName(path: string | undefined): string {
   if (!path) return "Not captured";
   return path.split(/[\\/]/).at(-1)?.split(/[?#]/)[0] || "Screenshot filename not supplied";
+}
+
+const duration = z.number().nonnegative().finite().nullable();
+const phoneLabSchema = z.object({
+  profile: z.object({
+    latencyMs: z.number().nonnegative().finite(),
+    downloadKbps: z.number().positive().finite(),
+    uploadKbps: z.number().positive().finite(),
+    cpuSlowdown: z.number().positive().finite(),
+  }),
+  load: z.object({
+    responseStartMs: duration,
+    domContentLoadedMs: duration,
+    firstContentfulPaintMs: duration,
+    largestContentfulPaintMs: duration,
+  }),
+  interactions: z
+    .object({ recordedEvents: z.number().int().nonnegative(), longestEventMs: duration })
+    .nullable(),
+});
+
+export function phoneLabObservations(scenario: BrowserAudit["scenarios"][number] | undefined) {
+  const result = phoneLabSchema.safeParse(scenario?.observations?.["mobileTiming"]);
+  return result.success ? result.data : null;
 }

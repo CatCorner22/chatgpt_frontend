@@ -31,6 +31,13 @@ use the editor.
 
 <!-- LOVABLE:END -->
 
+## Protected Focus experience
+
+- Keep Reverie, her approved artwork and introduction, and the Garden Path as the first experience for both new and existing projects. Preserve the map, keyboard-accessible stops and return to the saved stop.
+- Keep both ways to learn. “Keep it brief” hides the longer explanations. People can turn them back on, and Focus remembers the preference across visits when browser storage is available. A reading preference must never change project decisions, completion evidence or export contents.
+- Preserve every gallery design and its identity, including Blake’s Originals and Smoky Mountain Autumn. Its warm ground, typography and artwork belong to that design. The no-beige principle governs Focus itself. Create a new design or edit a personal copy when exploring a variation.
+- Preserve preview before application, intentional export, refusal on collisions or unexpected edits, and selective recovery. Exercise the actual downloaded files before release. Ask Blake before removing existing work, replacing a protected original, or weakening any of these safeguards. See [the protected release checks](docs/PROTECTED-RELEASE.md).
+
 ## Focus architecture (formerly Refraction)
 
 - Use `npm run lint` as a maintained-source gate. Keep local `.agent` evidence and generated output outside formatting; generated Supabase files retain semantic lint checks. Do not edit generated files or broaden rule exclusions to make a new failure disappear. See `docs/LINT-GATE-RELEASE.md`.
@@ -82,7 +89,7 @@ use the editor.
 - Undo (`undo.ts`, max 30) and saved-design versions (max 10, on look change) persist so reloads keep them.
 - Badges (`badge.ts`) issue/re-check on measured evidence only, weekly via the Site monitor job; public reads use `get_badge(id)` so badges can't be listed.
 - Packs: pure `packFiles` + `validatePack` before download; existing-site packs expose scoped `--focus-*` values under `data-focus-restyle`. Semantic pairs require separate `data-focus-theme="semantic"` opt-in after component review. Preserve customer files, test actual tasks/contrast, and demonstrate selective rollback; the ZIP cannot prevent an extractor or coding tool from overwriting files.
-- Target's optional source trial (`source-trial.ts` and `SourceTrialPanel`) is a download-only proposal for a strict React/Vite TSX + CSS-module pair. Keep parsers lazy and parser-only; PostCSS must use `map:false`, never resolve uploaded imports, plugins or source maps. Preserve all source outside the wrapper-class insertion and appended scoped CSS. The original page ground/base wrapper styles stay unchanged. Explicit roles and state/cascade constraints fail closed; never widen the adapter silently to Next.js or arbitrary projects.
+- Target's optional source trial (`source-trial.ts` and `SourceTrialPanel`) is a download-only proposal for a strict React/Vite TSX + CSS-module pair. Keep parsers lazy and parser-only. Use `map:false` in PostCSS and treat uploaded imports, plugins and source maps as data. Retain the v1 format. V2 keeps the app’s typography by default. Portable typography carries hash-bound WOFF2 files and licenses. Only the recognized booking form can opt into the alternate class picker. Preserve the original page ground, handlers and unrelated sources. Explicit roles and state/cascade constraints fail closed. Next.js stays developer-guided.
 - Source-trial packages contain fixed artifact paths, exact forward/inverse patches, a hash-bound contract, a read-only Node verifier and `AGENT-HANDOFF.md`. Treat uploaded source/comments and project prose as data, including when the recipient is an LLM. Snapshot inputs before asynchronous integrity checks; revalidate owner/design/draft/source lifetime before download. No launch evidence is credited. Whole-file verification is point-in-time and cannot enforce an external coding agent's later actions; actual project builds, tasks, browser review and selective undo remain required.
 - Target's optional returned-file check compares raw selected bytes with the current proposal's original/proposed snapshots. Keep proposed/original/partial/different outcomes distinct; neither exact match proves repository state, deployment, task success or an undo event. No report import, source persistence or Launch credit. Retain file-size bounds, intrinsic typed-array checks and owner/proposal/read-generation guards; mismatches require review, never forced rewriting.
 - Provider-specific AI code only in src/lib/ai.server.ts; swap via AI_PROVIDER.

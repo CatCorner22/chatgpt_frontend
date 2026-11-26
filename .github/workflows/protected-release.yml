@@ -1,0 +1,31 @@
+name: Protected release
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main, north-star/garden-to-delivery]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protected-release:
+    name: Protected release checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - run: npm ci --no-audit --no-fund && npm ci --prefix north-star-kit --no-audit --no-fund
+      - name: Install the matching Chromium build
+        run: |
+          npm exec --no -- playwright-core install --with-deps chromium
+          node --input-type=module -e 'import { chromium } from "playwright-core"; console.log("CHROMIUM_PATH=" + chromium.executablePath())' >> "$GITHUB_ENV"
+      - run: npm run test:protected-release

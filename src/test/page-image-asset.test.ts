@@ -1,29 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash, webcrypto } from "node:crypto";
 import { validatePageImageAsset } from "@/lib/page-image-asset";
-const bytes = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6XD8AAAAASUVORK5CYII=",
-  "base64",
-);
-const id = createHash("sha256").update(bytes).digest("hex");
-const source = `data:image/png;base64,${bytes.toString("base64")}`;
+import { pngAsset, stubImageDecode } from "./image-asset.fixture";
+const { id, src: source } = pngAsset();
 const decode = vi.fn();
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
   decode.mockReset();
   decode.mockReturnValue(true);
-  vi.stubGlobal(
-    "Image",
-    class {
-      naturalWidth = 1;
-      naturalHeight = 1;
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      set src(value: string) {
-        queueMicrotask(() => (decode(value) ? this.onload?.() : this.onerror?.()));
-      }
-    },
-  );
+  stubImageDecode(decode);
 });
 afterEach(() => vi.unstubAllGlobals());
 describe("persisted image byte validation", () => {

@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 
-export const STUDIO_KEY = "refraction:v1";
+export { STUDIO_KEY } from "./studio-draft-storage";
 
 // Saves the studio state to the signed-in user's account; RLS limits rows to the owner.
 export async function saveProject(id: string | null, title: string, state: unknown) {

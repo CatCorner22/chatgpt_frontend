@@ -1,7 +1,9 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import JSZip from "jszip";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import type { AnchorHTMLAttributes } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { newGardenJourney, writeGardenJourney } from "@/lib/garden-journey";
 import { normalizeTokens } from "@/lib/design";
 import { LIBRARY_KEY, type LibraryEntry } from "@/lib/library";
 import { EMPTY_TARGET_DRAFT, TARGET_DRAFT_KEY, type TargetDraft } from "@/lib/target";
@@ -118,6 +120,94 @@ afterEach(() => {
 });
 
 describe("Target guided preparation", () => {
+  it("lets the owner identify a same-named Vision and downloads that exact design", async () => {
+    const selected = {
+      ...entry,
+      id: "weekend",
+      state: {
+        ...entry.state,
+        libraryId: "weekend",
+        content: { ...entry.state.content, headline: "Evening sessions" },
+        tokens: normalizeTokens({ radius: 24 }),
+      },
+    };
+    const other = {
+      ...selected,
+      id: "weekday",
+      state: { ...selected.state, libraryId: "weekday" },
+    };
+    seed();
+    localStorage.setItem(
+      LIBRARY_KEY,
+      JSON.stringify({ version: 1, entries: [entry, other, selected] }),
+    );
+    const { prepareTargetPack } =
+      await vi.importActual<typeof import("@/lib/target")>("@/lib/target");
+    operations.prepare.mockImplementation(prepareTargetPack);
+    render(<Target />);
+    const picker = await screen.findByLabelText("Which saved Vision should guide this?");
+    expect(within(picker).getByRole("option", { name: /Keep original words/ })).toBeVisible();
+    const option = within(picker).getByRole("option", {
+      name: /Evening sessions.*weekend/,
+    }) as HTMLOptionElement;
+    fireEvent.change(picker, { target: { value: option.value } });
+    for (let step = 0; step < 3; step++)
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Your trial at a glance")).toHaveTextContent(option.text);
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    await waitFor(() => expect(operations.download).toHaveBeenCalledTimes(1));
+    const [blob, name] = operations.download.mock.calls[0]!;
+    expect(name).toBe("focus-target-existing-site-pack.zip");
+    const zip = await JSZip.loadAsync(blob);
+    const tokens = JSON.parse(await zip.file("focus-restyle/tokens.json")!.async("string"));
+    expect(tokens).toEqual(selected.state.tokens);
+  });
+
+  it("stops a pending owner-selected Garden brief delivery when another tab edits that brief", async () => {
+    seed();
+    const brief = { ...newGardenJourney(entry.id, "existing"), task: "Book a class" };
+    const raw = writeGardenJourney(brief, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    const finish = deferredPack();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    expect(operations.prepare).toHaveBeenCalledWith(expect.anything(), expect.anything(), brief);
+    writeGardenJourney({ ...brief, task: "Book two places" }, raw);
+    await finish();
+    expect(operations.download).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Garden brief changed");
+    fireEvent.click(screen.getByRole("button", { name: "Remove Garden brief" }));
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    expect(screen.getByText("Book two places")).toBeInTheDocument();
+  });
+
+  it("keeps the included Garden brief when reselecting the current review step", async () => {
+    seed();
+    const brief = { ...newGardenJourney(entry.id, "existing"), task: "Book a class" };
+    writeGardenJourney(brief, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    fireEvent.click(screen.getByRole("button", { name: /4.*Prepare the handoff/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    await waitFor(() => expect(operations.download).toHaveBeenCalledOnce());
+    expect(operations.prepare).toHaveBeenCalledWith(expect.anything(), expect.anything(), brief);
+  });
+
+  it("cancels a pending ZIP when leaving review removes its Garden brief", async () => {
+    seed();
+    writeGardenJourney({ ...newGardenJourney(entry.id, "existing"), task: "Book a class" }, null);
+    await openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Include my Garden brief" }));
+    const finish = deferredPack();
+    fireEvent.click(screen.getByRole("button", { name: "Prepare and download trial ZIP" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("button", { name: "Include my Garden brief" })).toBeVisible();
+    await finish();
+    expect(operations.download).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Prepare and download trial ZIP" })).toBeEnabled();
+  });
+
   it("keeps the source tools closed until requested and clears them on step exit without losing the plan", async () => {
     seed();
     await openReview();
@@ -402,7 +492,10 @@ describe("Target guided preparation", () => {
       enableBeforeUnload: boolean;
     };
     expect(guard.shouldBlockFn()).toBe(true);
-    expect(guard.enableBeforeUnload).toBe(true);
+    expect(guard.enableBeforeUnload).toBe(false);
+    const leaving = new Event("beforeunload", { cancelable: true });
+    fireEvent(window, leaving);
+    expect(leaving.defaultPrevented).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "Download original for recovery" }));
     expect(operations.download).toHaveBeenCalledWith(expect.any(Blob), "target-draft-recovery.txt");
   });
@@ -472,6 +565,35 @@ describe("Target guided preparation", () => {
     expect(localStorage.getItem(TARGET_DRAFT_KEY)).toBe(other);
   });
 
+  it.each(["pagehide", "route"] as const)(
+    "retries the latest Target edit on %s and restores it on return",
+    async (departure) => {
+      seed();
+      const ui = render(<Target />);
+      const select = await screen.findByLabelText("Where is the project built?");
+      const writes = vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+        throw new Error("Temporarily full");
+      });
+      fireEvent.change(select, { target: { value: "lovable" } });
+      expect(screen.getByRole("alert")).toHaveTextContent(/could not be confirmed as saved/);
+      if (departure === "pagehide") fireEvent(window, new Event("pagehide"));
+      else {
+        const guard = operations.blocker.mock.lastCall![0] as { shouldBlockFn: () => boolean };
+        act(() => expect(guard.shouldBlockFn()).toBe(false));
+      }
+      expect(screen.getByText("Answers saved in this browser")).toBeVisible();
+      expect(JSON.parse(localStorage.getItem(TARGET_DRAFT_KEY)!).platform).toBe("lovable");
+      writes.mockClear();
+      fireEvent(window, new Event("pagehide"));
+      expect(writes).not.toHaveBeenCalled();
+      ui.unmount();
+      render(<Target />);
+      expect(await screen.findByLabelText("Where is the project built?")).toHaveValue("lovable");
+      expect(operations.prepare).not.toHaveBeenCalled();
+      expect(operations.download).not.toHaveBeenCalled();
+    },
+  );
+
   it("reports failed autosaves without losing the current answers or reporting them saved", async () => {
     seed();
     const original = localStorage.getItem(TARGET_DRAFT_KEY);
@@ -532,7 +654,7 @@ describe("Target guided preparation", () => {
     },
   );
 
-  it.each(["account", "locked session", "design"] as const)(
+  it.each(["account", "locked session", "design", "draft"] as const)(
     "warns when the %s changes during a prompt copy",
     async (change) => {
       seed();
@@ -548,7 +670,12 @@ describe("Target guided preparation", () => {
       try {
         await openReview();
         fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
-        if (change === "account") operations.owner.mockReturnValue("another-owner");
+        if (change === "draft")
+          localStorage.setItem(
+            TARGET_DRAFT_KEY,
+            JSON.stringify({ ...complete, page: "Updated appointment page" }),
+          );
+        else if (change === "account") operations.owner.mockReturnValue("another-owner");
         else if (change === "locked session")
           operations.owner.mockImplementation(() => {
             throw new Error("Session locked");
@@ -592,7 +719,7 @@ describe("Target guided preparation", () => {
         expect(
           screen.getByText(
             reason === "removed design"
-              ? /Reload designs and review the plan before copying/
+              ? /Reload designs and review the plan/
               : /Your session needs verification/,
           ),
         ).toBeInTheDocument();
@@ -608,6 +735,33 @@ describe("Target guided preparation", () => {
       }
     },
   );
+
+  it("reloads another tab's plan before copying the current trial instructions", async () => {
+    seed();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const previous = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    try {
+      await openReview();
+      localStorage.setItem(
+        TARGET_DRAFT_KEY,
+        JSON.stringify({ ...complete, page: "Updated appointment page" }),
+      );
+      fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+      expect(writeText).not.toHaveBeenCalled();
+      expect(screen.getByText(/Saved Target answers changed in another tab/)).toBeVisible();
+      fireEvent.click(screen.getByRole("button", { name: "Reload saved answers" }));
+      for (let step = 0; step < 3; step++)
+        fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      expect(screen.queryByText(/Saved Target answers changed in another tab/)).toBeNull();
+      fireEvent.click(screen.getAllByRole("button", { name: "Copy prompt" })[0]!);
+      await screen.findByText("Copied");
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Updated appointment page"));
+    } finally {
+      if (previous) Object.defineProperty(navigator, "clipboard", previous);
+      else Reflect.deleteProperty(navigator, "clipboard");
+    }
+  });
 
   it("offers manual copy when the clipboard is unavailable without claiming preparation", async () => {
     seed();

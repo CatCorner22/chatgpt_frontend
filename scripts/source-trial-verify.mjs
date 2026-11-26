@@ -3,7 +3,8 @@
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
-import { dirname, join, parse, resolve } from "node:path";
+import { basename, dirname, join, parse, resolve } from "node:path";
+import { inflateSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 const EXPECTED_BUNDLE_HASHES = /* FOCUS_BUNDLE_HASHES */ null;
@@ -11,6 +12,7 @@ const COMPANIONS = [
   "AGENT-HANDOFF.md",
   "START-HERE.md",
   "TRIAL-PLAN.md",
+  "github-trial.mjs",
   "forward.patch",
   "rollback.patch",
   "trial-contract.json",
@@ -19,6 +21,9 @@ const LIMITS = {
   component: 131072,
   stylesheet: 65536,
   growth: 2048,
+  v2Growth: 8192,
+  font: 192 * 1024,
+  license: 16 * 1024,
   patch: 524288,
   contract: 65536,
   document: 65536,
@@ -72,6 +77,8 @@ function relativePath(value) {
   return value;
 }
 function validateContract(contract) {
+  const v2 = contract?.version === 2;
+  const growth = v2 ? LIMITS.v2Growth : LIMITS.growth;
   keys(contract, [
     "version",
     "adapter",
@@ -85,10 +92,11 @@ function validateContract(contract) {
     "effective",
     "limits",
     "tasks",
+    ...(v2 ? ["typography", "bookingLayout", "assets"] : []),
   ]);
   if (
-    contract.version !== 1 ||
-    contract.adapter !== "react-vite-css-module-v1" ||
+    ![1, 2].includes(contract.version) ||
+    contract.adapter !== (v2 ? "react-vite-css-module-v2" : "react-vite-css-module-v1") ||
     contract.status !== "static-checks-complete"
   )
     fail("Unsupported trial contract.");
@@ -116,7 +124,7 @@ function validateContract(contract) {
       file.beforeBytes > maximum ||
       !Number.isSafeInteger(file.afterBytes) ||
       file.afterBytes < 1 ||
-      file.afterBytes > file.beforeBytes + LIMITS.growth
+      file.afterBytes > file.beforeBytes + growth
     )
       fail("Invalid trial byte bounds.");
     digest(file.beforeSha256);
@@ -125,7 +133,7 @@ function validateContract(contract) {
   });
   if (
     contract.files.reduce((total, file) => total + file.afterBytes, 0) >
-    LIMITS.component + LIMITS.stylesheet + LIMITS.growth
+    LIMITS.component + LIMITS.stylesheet + growth
   )
     fail("The trial exceeds its combined byte limit.");
   keys(contract.inspection, [
@@ -184,9 +192,14 @@ function validateContract(contract) {
     action: ["background-color", "color", "font-family", "border-radius"],
   };
   for (const role of Object.keys(properties)) {
-    if (JSON.stringify(effective.changedProperties[role]) !== JSON.stringify(properties[role]))
+    const expected =
+      v2 && contract.typography === "preserve"
+        ? properties[role].filter((property) => property !== "font-family")
+        : properties[role];
+    if (JSON.stringify(effective.changedProperties[role]) !== JSON.stringify(expected))
       fail("Unsupported trial property changes.");
   }
+  if (v2) validateAssets(contract);
   stringList(contract.limits, 20, 2000);
   if (!Array.isArray(contract.tasks) || contract.tasks.length < 1 || contract.tasks.length > 20)
     fail("Invalid trial tasks.");
@@ -200,15 +213,78 @@ function validateContract(contract) {
   }
 }
 
+function validateAssets(contract) {
+  if (
+    !["preserve", "portable"].includes(contract.typography) ||
+    !["compact", "compare"].includes(contract.bookingLayout) ||
+    !Array.isArray(contract.assets)
+  )
+    fail("Unsupported source-trial options.");
+  if (contract.typography === "preserve") {
+    if (contract.assets.length) fail("Preserved typography cannot create font files.");
+    return;
+  }
+  const families = new Set(
+    [contract.effective.headingFont, contract.effective.bodyFont].map((family) =>
+      family.toLowerCase().replace(/ /g, "-"),
+    ),
+  );
+  if (contract.assets.length !== families.size * 2) fail("Incomplete font and license set.");
+  const css = contract.files[1].path;
+  const prefix = css.slice(0, css.lastIndexOf("/") + 1);
+  const entries = new Set();
+  const identity = [
+    contract.design.id,
+    contract.design.fingerprint,
+    contract.sourceFingerprint,
+    contract.typography,
+    contract.bookingLayout,
+  ];
+  const directory = "focus-assets-" + hash(JSON.stringify(identity)).slice(0, 12);
+  for (const asset of contract.assets) {
+    keys(asset, ["path", "bytes", "sha256"]);
+    digest(asset.sha256);
+    if (typeof asset.path !== "string" || !asset.path.startsWith(prefix))
+      fail("Unexpected font asset path.");
+    const match =
+      /^(focus-assets-[a-f0-9]{12})\/([a-z0-9]+(?:-[a-z0-9]+)*)-([a-f0-9]{12})\.(woff2|txt)$/.exec(
+        asset.path.slice(prefix.length),
+      );
+    if (
+      !match ||
+      match[0].length > 120 ||
+      match[1] !== directory ||
+      !families.has(match[2]) ||
+      match[3] !== asset.sha256.slice(0, 12)
+    )
+      fail("Unexpected font asset identity.");
+    const key = match[2] + "." + match[4];
+    if (entries.has(key)) fail("Duplicate font asset.");
+    entries.add(key);
+    if (
+      !Number.isSafeInteger(asset.bytes) ||
+      asset.bytes < 1 ||
+      asset.bytes > (match[4] === "woff2" ? LIMITS.font : LIMITS.license)
+    )
+      fail("Invalid font asset byte bounds.");
+  }
+}
+
 // Inspect all ancestors as well as the final entry; never follow an accepted symlink.
-async function inspectPath(path, kind) {
+async function inspectPath(path, kind, allowMissing = false) {
   const absolute = resolve(path);
   const root = parse(absolute).root;
   let current = root;
   const parts = absolute.slice(root.length).split(/[\\/]/).filter(Boolean);
   for (let index = 0; index <= parts.length; index += 1) {
     if (index > 0) current = join(current, parts[index - 1]);
-    const info = await lstat(current);
+    let info;
+    try {
+      info = await lstat(current);
+    } catch (error) {
+      if (allowMissing && error.code === "ENOENT") return null;
+      throw error;
+    }
     if (info.isSymbolicLink()) fail("Symlinks are not supported by this verifier.");
     const final = index === parts.length;
     if (final && kind === "file" ? !info.isFile() : !info.isDirectory())
@@ -222,9 +298,12 @@ async function readBounded(
   path,
   maximum,
   sizeError = "A required file is empty or exceeds its byte limit.",
+  checkAssetMode = false,
 ) {
   const checked = await inspectPath(path, "file");
   if (checked.size < 1 || checked.size > maximum) fail(sizeError);
+  if (checkAssetMode && process.platform !== "win32" && checked.mode & 0o111)
+    fail("An owned font asset now has executable permissions. Preserve the change for review.");
   const handle = await open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
     const start = await handle.stat();
@@ -268,7 +347,7 @@ function decode(bytes) {
   }
 }
 
-function validatePatch(bytes, files) {
+function validatePatch(bytes, files, assets, reverse) {
   const lines = decode(bytes).split("\n");
   if (lines.pop() !== "") fail("Invalid patch ending.");
   let index = 0;
@@ -311,7 +390,65 @@ function validatePatch(bytes, files) {
     }
     if (!changed) fail("The patch contains an unchanged file.");
   }
+  for (const asset of assets) {
+    const { path, bytes } = asset;
+    const zero = "0".repeat(40);
+    const blob = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+    if (
+      lines[index++] !== `diff --git a/${path} b/${path}` ||
+      lines[index++] !== (reverse ? "deleted file mode 100644" : "new file mode 100644") ||
+      lines[index++] !== (reverse ? `index ${blob}..${zero}` : `index ${zero}..${blob}`) ||
+      lines[index++] !== "GIT binary patch"
+    )
+      fail("Unexpected asset path, mode, or Git object identity.");
+    const empty = Buffer.alloc(0);
+    for (const expected of reverse ? [empty, bytes] : [bytes, empty]) {
+      if (lines[index++] !== `literal ${expected.length}`) fail("Invalid binary patch length.");
+      index = verifyLiteral(lines, index, expected);
+    }
+  }
   if (index !== lines.length) fail("The patch contains undeclared content.");
+}
+
+const base85 =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+function verifyLiteral(lines, index, expected) {
+  // Stored DEFLATE blocks need five bytes per 65,535 bytes plus the zlib header/checksum.
+  const maximum = expected.length + 5 * Math.max(1, Math.ceil(expected.length / 65535)) + 6;
+  const compressed = Buffer.alloc(maximum);
+  let size = 0;
+  while (index < lines.length && lines[index] !== "") {
+    const line = lines[index++];
+    const prefix = line.charCodeAt(0);
+    const count =
+      prefix >= 97 && prefix <= 122 ? prefix - 70 : prefix >= 65 && prefix <= 90 ? prefix - 64 : 0;
+    if (!count || line.length !== 1 + 5 * Math.ceil(count / 4) || size + count > maximum)
+      fail("Invalid Git binary literal encoding.");
+    const end = size + count;
+    for (let pos = 1; pos < line.length; pos += 5) {
+      let word = 0;
+      for (let j = pos; j < pos + 5; j++) {
+        const digit = base85.indexOf(line[j]);
+        if (digit < 0) fail("Invalid Git binary literal encoding.");
+        word = word * 85 + digit;
+      }
+      if (word > 0xffffffff) fail("Invalid Git binary literal encoding.");
+      for (const shift of [24, 16, 8, 0]) {
+        if (size < end) compressed[size++] = (word >>> shift) & 0xff;
+      }
+    }
+  }
+  if (!size || lines[index++] !== "") fail("Invalid binary patch ending.");
+  try {
+    const inflated = inflateSync(compressed.subarray(0, size), {
+      info: true,
+      maxOutputLength: Math.max(1, expected.length),
+    });
+    if (inflated.engine.bytesWritten === size && inflated.buffer.equals(expected)) return index;
+  } catch {
+    /* Malformed or oversized data. */
+  }
+  fail("Binary patch content differs from the sealed asset.");
 }
 
 async function main() {
@@ -348,8 +485,30 @@ async function main() {
     hash(data["rollback.patch"]) !== contract.inversePatchSha256
   )
     fail("Patch digests do not match the contract.");
-  validatePatch(data["forward.patch"], contract.files);
-  validatePatch(data["rollback.patch"], contract.files);
+  const assets = [];
+  for (const asset of contract.assets ?? []) {
+    const bytes = await readBounded(join(bundle, "assets", basename(asset.path)), asset.bytes);
+    if (
+      bytes.length !== asset.bytes ||
+      hash(bytes) !== asset.sha256 ||
+      (asset.path.endsWith(".woff2") && bytes.subarray(0, 4).toString("ascii") !== "wOF2")
+    )
+      fail("Bundled font asset differs from its contract.");
+    assets.push({ path: asset.path, bytes });
+    const target = join(project, asset.path);
+    if (direction === "before") {
+      if (await inspectPath(target, "file", true))
+        fail("A proposed asset path already exists. Keep existing files and review the collision.");
+    } else {
+      const actual = await readBounded(target, asset.bytes, undefined, true);
+      if (!actual.equals(bytes))
+        fail(
+          "A project font asset changed. Keep your changes and review the differences before continuing.",
+        );
+    }
+  }
+  validatePatch(data["forward.patch"], contract.files, assets, false);
+  validatePatch(data["rollback.patch"], contract.files, assets, true);
   for (const file of contract.files) {
     const expectedBytes = file[`${direction}Bytes`];
     const mismatch =
@@ -359,7 +518,7 @@ async function main() {
       fail(mismatch);
   }
   process.stdout.write(
-    `Verified bundle integrity and both ${direction} file snapshots at this check. No files changed. This point-in-time result is not an application guard, build, browser test, or release approval.\n`,
+    `Verified bundle integrity and both ${direction} file snapshots${assets.length ? ` and ${assets.length} asset paths` : ""} at this check. No files changed. This point-in-time result is not an application guard, build, browser test, or release approval.\n`,
   );
 }
 

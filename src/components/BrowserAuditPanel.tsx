@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState } from "react";
 import { ChevronDown, FileJson, Monitor, Upload, X } from "lucide-react";
+import { BrowserAuditFileMatch } from "./BrowserAuditFileMatch";
 import { Button } from "@/components/ui/button";
 import {
   auditCounts,
   auditScreenshotName,
   MAX_BROWSER_AUDIT_BYTES,
   parseBrowserAudit,
+  phoneLabObservations,
   type BrowserAudit,
 } from "@/lib/browser-audit";
 import { allRules } from "../../north-star-kit/data/rules";
@@ -18,7 +20,7 @@ const STATUS = {
   "not-applicable": "Not applicable",
 } as const;
 const RUN_COMMAND =
-  "node scripts/north-star-audit.mjs --url http://localhost:3000 --out artifacts/north-star-audit";
+  "node scripts/north-star-audit.mjs --url http://localhost:3000 --mobile-profile --out artifacts/north-star-audit";
 
 export function BrowserAuditPanel() {
   const [report, setReport] = useState<BrowserAudit | null>(null);
@@ -31,6 +33,7 @@ export function BrowserAuditPanel() {
   const inputRef = useRef<HTMLInputElement>(null);
   const requestId = useRef(0);
   const scenario = report?.scenarios.find((item) => item.id === scenarioId);
+  const mobile = phoneLabObservations(scenario);
   const findings = useMemo(() => {
     const selected = (scenario?.findings ?? []).filter(
       (finding) =>
@@ -139,7 +142,10 @@ export function BrowserAuditPanel() {
             <code>{RUN_COMMAND}</code>
           </pre>
           <p className="leading-relaxed text-muted-foreground">
-            Choose <code className="text-xs">report.json</code> from the output folder. Keep the
+            For a downloaded page, replace <code>--url http://localhost:3000</code> with{" "}
+            <code>--file path/to/index.html</code> to record its exact HTML. Open the desktop
+            findings for layout changes between screen sizes. Choose{" "}
+            <code className="text-xs">report.json</code> from the output folder. Keep the
             screenshots alongside it for visual review. Importing reads the local file only; it
             never visits the reported address or loads screenshot paths.
           </p>
@@ -182,6 +188,12 @@ export function BrowserAuditPanel() {
               recalculated the counts; it has not independently rerun the audit or confirmed the
               reported address.
             </p>
+            {report.entryHtml && (
+              <BrowserAuditFileMatch
+                key={`${report.startedAt}:${report.entryHtml.sha256}`}
+                entry={report.entryHtml}
+              />
+            )}
           </div>
 
           <div
@@ -279,6 +291,36 @@ export function BrowserAuditPanel() {
                   </select>
                 </div>
               </div>
+              {mobile && (
+                <details className="mt-4 text-sm">
+                  <summary className="cursor-pointer py-2 font-medium">
+                    Phone loading and interaction timings
+                  </summary>
+                  <p className="my-2 text-muted-foreground">
+                    One lab visit with {mobile.profile.latencyMs} ms network latency,{" "}
+                    {mobile.profile.downloadKbps} kbps download and {mobile.profile.cpuSlowdown}×
+                    CPU slowdown.
+                  </p>
+                  <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {(
+                      [
+                        ["First response", mobile.load.responseStartMs],
+                        ["Main HTML parsed", mobile.load.domContentLoadedMs],
+                        ["First content painted", mobile.load.firstContentfulPaintMs],
+                        ["Largest content paint observed", mobile.load.largestContentfulPaintMs],
+                        ["Longest interaction event observed", mobile.interactions?.longestEventMs],
+                      ] as const
+                    ).map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="text-muted-foreground">{label}</dt>
+                        <dd className="tabular-nums">
+                          {typeof value === "number" ? `${value} ms` : "Unmeasured"}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
+              )}
               {findings.length === 0 ? (
                 <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                   This view has no findings. Review all observations and the report’s limits before

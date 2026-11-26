@@ -6,7 +6,7 @@ Use Node 22.12 or newer and an installed Chromium browser. The default executabl
 
 ```sh
 npm run audit:browser -- --file north-star-kit/fixtures/good.html --out artifacts/north-star/good
-npm run audit:browser -- --url http://localhost:3000 --out artifacts/north-star/app
+npm run audit:browser -- --url http://localhost:3000 --mobile-profile --out artifacts/north-star/app
 npm run test:audit
 ```
 
@@ -18,6 +18,7 @@ Other options:
 | --- | --- |
 | `--settle-ms 1500` | Observation delay after navigation and, if supplied, after the interaction walk; 0–10000 ms. |
 | `--timeout-ms 15000` | Per-navigation, action, and screenshot timeout; 1000–60000 ms. |
+| `--mobile-profile` | Measure the 320px phone visit with 150 ms latency, 1.6 Mbps download, 750 kbps upload and a fourfold CPU slowdown. |
 | `--actions path.json` | A validated declarative interaction walk; no JavaScript expressions. |
 | `--out artifacts/north-star-audit` | Output directory; rerunning there replaces that run's files. |
 | `--help` | Print all CLI options. |
@@ -33,11 +34,17 @@ Each run opens six independent visits:
 5. 768px with forced colors active.
 6. 320px with line height 1.5, paragraph spacing 2em, letter spacing 0.12em, and word spacing 0.16em.
 
+After the desktop screenshot, the runner resizes that same document from 1440px down to 320px. The sweep pauses 100 ms at each sampled width. It includes ten common widths plus the neighbors of up to twelve simple pixel media-query boundaries found in readable stylesheets. The receipt lists all planned and measured widths. It records page overflow in CSS pixels and possible crossing elements. If the focused control disappears, the report identifies the width and the control. The first failing width gets a separate viewport screenshot. A failed task or a move to a different document leaves the relevant widths unmeasured. The sweep resizes the current document without replaying any click or submit actions.
+
+For example, a page can fit at 768px and still overflow at 765px. Inspect **1440px desktop** in the imported receipt to find the exact failing samples and the screenshot filename. A keyboard focus comparison needs a walk ending on a focused control. Other units, unreadable stylesheets, container queries, transitions that settle later, and unsampled widths still merit manual inspection.
+
+With `--mobile-profile`, the phone visit records initial response, DOM readiness, first content paint, and the largest content paint observed in the initial window. A walk on the same document can also supply interaction event timings for events that Chromium reports at or above 16 ms. Open **Phone loading and interaction timings** in the phone scenario. These lab measurements vary with the machine and connection and cover only observed events. Missing measurements remain visible.
+
 The ten kit functions run against each rendered page. A TypeScript AST selects their actual declarations and erases types to ES2022. Each function is injected separately, without importing app code into the page.
 
 Additional observations use `browser-` rule IDs. They record horizontal overflow, text overflow inside clipped boxes, running animations, controls that disappear relative to the same-width baseline, uncaught page errors, blocked resources, and the outcomes of supplied interaction steps. Each scenario has a full-page screenshot when capture succeeds.
 
-A `PerformanceObserver` starts before page scripts. The runner records layout-shift entries during the bounded visit, excludes entries marked `hadRecentInput`, and reports the largest session sum using a one-second gap and five-second session limit. It reads this result before applying audit text-spacing overrides, so the inspector's changes do not become page-load defects. A nonzero score fails the kit's strict “no observed shift” craft target; this is not a claim about a particular external grading threshold.
+A `PerformanceObserver` starts before page scripts. The runner records layout-shift entries during the bounded visit, excludes entries marked `hadRecentInput`, and reports the largest session sum using a one-second gap and five-second session limit. For up to five moved boxes per entry, the receipt records the element and before-and-after geometry. These identify what moved, while the cause may be elsewhere on the page. It reads this result before applying audit text-spacing overrides, so the inspector's changes do not become page-load defects. A nonzero score fails the kit's strict “no observed shift” craft target; this is not a claim about a particular external grading threshold.
 
 ## Interaction walks
 
@@ -61,7 +68,9 @@ The tested example is `scripts/audit/fixtures/runtime-actions.json`. Its HTML fi
 
 ## Outputs and interpretation
 
-`report.json` follows the `north-star-browser-audit` version 1 contract and can be imported into the app's Quality lab. It includes the target, timestamps, browser version, settings, scenario findings and observations, screenshot filenames, counts, and limitations. `README.md` summarizes the artifact directory. Screenshot paths are relative to that directory.
+`report.json` follows the `north-star-browser-audit` version 1 contract and can be imported into the app's Quality lab. It includes the target, timestamps, browser version, settings, scenario findings and observations, screenshot filenames, counts, and limitations. A local `--file` receipt carries the SHA-256 and size of the exact entry HTML bytes that the temporary server served throughout the run. In Quality Lab, open **Compare your HTML file with this receipt** and select the customer's copy. Linked assets, subsequent navigations, and live services require their own checks. Older receipts and URL runs remain readable without an entry fingerprint.
+
+`README.md` summarizes the artifact directory. Screenshot paths are relative to that directory.
 
 Counts include repeated findings across scenarios. A zero failure count does not mean that everything passed: unknown findings and the report's limitations remain part of the result. No bounded visit establishes content truth, complete keyboard operation, screen-reader behavior, or suitability for the intended users.
 

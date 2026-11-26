@@ -28,7 +28,7 @@ export type GalleryDraft = Omit<GalleryItem, "direction"> & {
   direction: Omit<Direction, "tokens"> & { tokens: unknown };
 };
 
-const raw: GalleryDraft[] = [
+export const MADE_FOR_YOU_DRAFTS: readonly GalleryDraft[] = [
   {
     id: "summertime-sadness",
     inspiration: "Lana Del Rey",
@@ -271,23 +271,25 @@ const raw: GalleryDraft[] = [
   ...STORY_STARTERS,
 ];
 
-const made: GalleryItem[] = raw.map((g) => ({
-  ...g,
-  group: MADE_FOR_YOU,
-  direction: {
-    ...g.direction,
-    tokens: normalizeTokens({ ...(g.direction.tokens as object), ...extraTokens(g.extras) }),
-  },
-}));
+function normalizeGalleryItem(item: GalleryDraft): GalleryItem {
+  return {
+    ...item,
+    direction: {
+      ...item.direction,
+      tokens: normalizeTokens({
+        ...(item.direction.tokens as object),
+        ...extraTokens(item.extras),
+      }),
+    },
+  };
+}
+
+const made = MADE_FOR_YOU_DRAFTS.map((item) =>
+  normalizeGalleryItem({ ...item, group: MADE_FOR_YOU }),
+);
 
 // Blake's 38 original Directions, extracted from DESIGN-DIRECTIONS.md (engine output, Advise contrast).
-export const ORIGINALS: GalleryItem[] = (originals as unknown as GalleryItem[]).map((g) => ({
-  ...g,
-  direction: {
-    ...g.direction,
-    tokens: normalizeTokens({ ...(g.direction.tokens as object), ...extraTokens(g.extras) }),
-  },
-}));
+export const ORIGINALS = originals.map(normalizeGalleryItem);
 export const GALLERY: GalleryItem[] = [...made, ...ORIGINALS];
 export const GALLERY_GROUPS = [
   MADE_FOR_YOU,

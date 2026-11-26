@@ -3,22 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppHeader } from "@/components/AppHeader";
 import { ownerCounts } from "@/lib/northstar.functions";
+import { socialHead } from "../-social-head";
 
 export const Route = createFileRoute("/_authenticated/owner")({
-  head: () => ({
-    meta: [
-      { title: "North Star counts — Focus" },
-      {
-        name: "description",
-        content: "Visions completed each week and badge results, for the Focus owner.",
-      },
-      { property: "og:title", content: "North Star counts — Focus" },
-      { property: "og:description", content: "Owner-only counts for Focus." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "North Star counts — Focus",
+      description: "Visions completed each week and badge results, for the Focus owner.",
+      ogDescription: "Owner-only counts for Focus.",
+      robots: "noindex",
+    }),
   component: Owner,
 });
 

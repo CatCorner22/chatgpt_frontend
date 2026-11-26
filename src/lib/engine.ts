@@ -1,6 +1,6 @@
 // Decision engine: how earlier answers narrow, re-rank and warn about later options.
 // Rules only point from earlier layers to later ones (no loops), see AGENTS.md.
-import { STEPS, contrast, formatContrast, type Tokens } from "./design";
+import { STEPS, contrast, formatContrast, type DesignSettingCheck, type Tokens } from "./design";
 
 export const AUDIENCES = [
   "general public",
@@ -252,34 +252,36 @@ export function fixContrast(t: Tokens): Tokens {
   };
 }
 
-// Measured checks from tokens (code facts, not opinions). Grades follow the knowledge cards.
-export function measuredChecks(t: Tokens) {
-  const em = 0.5; // approx. average character width in em for Latin text
-  const lineChars = Math.round(34 / em); // reading block max width is 34em
+// The evidence grade belongs to the guideline. The basis describes what Focus actually checked.
+export function measuredChecks(t: Tokens): DesignSettingCheck[] {
   const levels = [1, Math.pow(t.scale, 1.4), Math.pow(t.scale, 4.4)];
   const distinct = levels.every((v, i) => i === 0 || v / levels[i - 1]! >= 1.15);
   const btnHeight = 16 * (t.buttonStyle === "underline" ? 1.2 + 0.6 : 1.2 + 1.7); // line height + vertical padding, at 16px
   return [
     {
       name: "Line length",
-      value: `~${lineChars} characters`,
-      ok: lineChars >= 45 && lineChars <= 75,
+      basis: "Reading guideline",
+      value: "Aim for 45–75 characters",
+      ok: null,
       grade: "A",
     },
     {
       name: "Clear text levels",
+      basis: "Type scale guideline",
       value: distinct ? "3 distinct" : "too close",
       ok: distinct,
       grade: "B",
     },
     {
       name: "Main button height",
+      basis: "Layout estimate",
       value: `~${Math.round(btnHeight)}px`,
       ok: btnHeight >= 44,
       grade: "A",
     },
     {
       name: "Uppercase headings",
+      basis: "Case guideline",
       value: t.headingCase,
       ok: !(t.headingCase === "uppercase" && t.scale > 1.45),
       grade: "B",
@@ -287,16 +289,18 @@ export function measuredChecks(t: Tokens) {
     ...contrastChecks(t),
   ];
 }
-function contrastChecks(t: Tokens) {
+function contrastChecks(t: Tokens): DesignSettingCheck[] {
   return [
     {
       name: "Text contrast",
+      basis: "Calculated color ratio",
       value: `${formatContrast(contrast(t.ink, t.bg))}:1`,
       ok: contrast(t.ink, t.bg) >= 4.5,
       grade: "A",
     },
     {
       name: "Button text contrast",
+      basis: "Calculated color ratio",
       value: `${formatContrast(contrast(t.accentInk, t.accent))}:1`,
       ok: contrast(t.accentInk, t.accent) >= 4.5,
       grade: "A",
@@ -306,28 +310,40 @@ function contrastChecks(t: Tokens) {
 
 // Quality scale. Honest by design: measurements can prove a floor, never taste.
 export type Grade = { level: 0 | 1 | 2; name: string; summary: string; missing: string[] };
-export function qualityGrade(checks: { name: string; ok: boolean; grade: string }[]): Grade {
-  const missingA = checks.filter((c) => c.grade === "A" && !c.ok).map((c) => c.name);
-  const missingAll = checks.filter((c) => !c.ok).map((c) => c.name);
+export function qualityGrade(
+  checks: Pick<DesignSettingCheck, "name" | "ok" | "grade" | "basis">[],
+): Grade {
+  const assessed = checks.filter((check) => check.ok !== null && check.basis !== "Layout estimate");
+  if (assessed.length === 0)
+    return {
+      level: 0,
+      name: "Awaiting checks",
+      summary: "Check the finished page in a browser.",
+      missing: [],
+    };
+  const missingA = assessed.filter((c) => c.grade === "A" && !c.ok).map((c) => c.name);
+  const missingAll = assessed.filter((c) => !c.ok).map((c) => c.name);
   if (missingA.length)
     return {
       level: 0,
-      name: "Below the floor",
-      summary: "Some hard rules (contrast, size, reading comfort) fail. Fix these before building.",
+      name: "Review these settings",
+      summary:
+        "One or more settings fall outside the recommended range. Check the flagged values on your page.",
       missing: missingA,
     };
   if (missingAll.length)
     return {
       level: 1,
-      name: "Meets the floor",
-      summary: "Every hard rule passes. A few craft guidelines could be tighter.",
+      name: "Review the typography",
+      summary:
+        "The priority settings are within range. Review the remaining type guidelines in your preview.",
       missing: missingAll,
     };
   return {
     level: 2,
-    name: "Crafted",
+    name: "Settings within range",
     summary:
-      "Every measured rule and craft guideline passes. What's left is taste — and that's yours.",
+      "The selected settings meet these guidelines. Check the rendered layout and try the main task with a visitor.",
     missing: [],
   };
 }

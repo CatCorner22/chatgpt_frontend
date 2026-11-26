@@ -1,4 +1,14 @@
 # Roadmap (approved plan: .lovable/plan/refraction-detailed-improvement-plan-2026-11-16.md)
+
+## North Star research follow-up
+
+- [x] Package a working two-page booking study and record optional preference after primary answers are exported.
+- [ ] Trace each owner requirement from the Garden brief into the handoff and its observed acceptance evidence.
+- [ ] Calibrate craft and copy warnings on held-out, permissioned human examples. Record false positives and counterexamples.
+- [ ] Collect matched expert builds and blinded human observations. Report task success, preference and attribution separately. [Research review and sources](docs/NORTH-STAR-REVIEW-2026-11-25.md)
+
+## Earlier work
+
 - [x] Reliability pass: 54 tests pass; Critic validates redirect hops and bounds streaming downloads; failed copies stay unsaved; updates require a returned project row; storage/export failures handled; profile-trigger execution restricted (database linter clear); focused lint checks and desktop/phone public Critic workflow pass. Final studio checks verified both failed-copy buttons, markdown and five-file ZIP contents, remembered-design reload and New design; fixed Prescription phone overflow and checked light/dark at desktop/phone sizes. Signed-in save/open remains separately unverified below.
 - [x] Phase 1 guided exam (brief, directions, 8 Lenses, Prescription)
 - [x] Detailed plan with research, decision map, sources, techniques, stages

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/hooks/useSession";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { critiqueUrl } from "@/lib/critic.functions";
 import { compareToPrescription, fitterBrief, safeUrl } from "@/lib/critic";
 import {
@@ -15,18 +16,25 @@ import {
   launchBlocker,
   launchFingerprint,
   markLaunched,
-  readProgress,
+  launchDetailsSchema,
   repairPack,
   upsertProgress,
   writeProgress,
   type ProgressRecord,
   type ReviewEvidence,
 } from "@/lib/launch";
+import { readHorizonProgress } from "@/lib/horizon";
 import { saveProgress } from "@/lib/launch.functions";
 import type { Tokens } from "@/lib/design";
 import { FixList } from "@/components/FixList";
 import { ShotReview } from "@/components/ShotReview";
 import { downloadBlob } from "@/lib/exportPack";
+
+function readWritableProgress() {
+  const { records, issue } = readHorizonProgress();
+  if (issue) throw new Error("Could not read the complete launch history in this browser.");
+  return records;
+}
 
 export function LaunchPanel({
   id,
@@ -43,6 +51,12 @@ export function LaunchPanel({
 }) {
   const [record, setRecord] = useState<ProgressRecord | null>(null);
   const [url, setUrl] = useState("");
+  const pendingAddress = useRef<{
+    id: string;
+    fingerprint: string;
+    original: string;
+    value: string;
+  } | null>(null);
   const currentPageUrl = useRef(url);
   currentPageUrl.current = url;
   const [busy, setBusy] = useState(false);
@@ -65,42 +79,111 @@ export function LaunchPanel({
     setBusy(false);
     setAccountSaved(false);
     try {
-      const next = upsertProgress(
-        readProgress(),
-        id,
-        title,
-        tokens,
-        new Date().toISOString(),
-        artifact,
-      );
-      writeProgress(next);
+      const all = readWritableProgress();
+      const next = upsertProgress(all, id, title, tokens, new Date().toISOString(), artifact);
+      if (JSON.stringify(next) !== JSON.stringify(all)) writeProgress(next);
       const current = next.find((r) => r.id === id);
       setRecord(current ?? null);
       setUrl(current?.details.url ?? "");
       setError("");
     } catch {
-      setError("Could not remember launch progress. Your design is unchanged.");
+      setRecord(null);
+      setError(
+        "Could not open the complete launch history. Keep your saved browser data and reopen this design to retry.",
+      );
     }
   }, [id, title, fingerprint]);
+  const currentRecords = (expected: ProgressRecord) => {
+    const all = readWritableProgress();
+    const saved = all.find((entry) => entry.id === expected.id);
+    if (JSON.stringify(saved) !== JSON.stringify(expected)) {
+      setAccountSaved(false);
+      if (saved?.fingerprint === expected.fingerprint) {
+        setRecord(saved);
+        if (!pendingAddress.current) setUrl(saved.details.url);
+        throw new Error(
+          "Launch progress changed. Review the updated checklist before trying again.",
+        );
+      }
+      throw new Error(
+        "The saved design changed. Reopen its current version in My designs before continuing.",
+      );
+    }
+    return all;
+  };
   const persist = (next: ProgressRecord) => {
-    // A request started for an earlier build must never restore its old confirmations.
     if (
       !mounted.current ||
+      !record ||
       next.id !== currentBuild.current.id ||
       next.fingerprint !== currentBuild.current.fingerprint
     )
       return;
     try {
-      const all = readProgress();
-      writeProgress(
-        all.some((r) => r.id === id) ? all.map((r) => (r.id === id ? next : r)) : [...all, next],
-      );
-      setRecord(next);
+      const all = currentRecords(record);
+      // A fresh read normalizes historical data and optional review fields in this same order.
+      const saved = { ...next, details: launchDetailsSchema.parse(next.details) };
+      writeProgress(all.map((entry) => (entry.id === saved.id ? saved : entry)));
+      setRecord(saved);
+      if (!pendingAddress.current) setUrl(saved.details.url);
       setAccountSaved(false);
-    } catch {
-      setError("Could not save this progress. Download the review before leaving.");
+      setError("");
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not save this progress. Download the review before leaving.",
+      );
     }
   };
+  const flushAddress = () => {
+    const pending = pendingAddress.current;
+    if (!pending) return true;
+    try {
+      const all = readWritableProgress();
+      const latest = all.find((entry) => entry.id === pending.id);
+      if (
+        !latest ||
+        latest.fingerprint !== pending.fingerprint ||
+        (latest.details.url !== pending.original && latest.details.url !== pending.value)
+      ) {
+        setError(
+          "This design or its address changed in another tab. Copy your address before leaving.",
+        );
+        return false;
+      }
+      let saved = latest;
+      if (latest.details.url !== pending.value) {
+        saved = {
+          ...latest,
+          details: {
+            ...latest.details,
+            url: pending.value,
+            tasks: [],
+            launchedAt: null,
+            status: "built",
+          },
+        };
+        writeProgress(all.map((entry) => (entry.id === saved.id ? saved : entry)));
+      }
+      pendingAddress.current = null;
+      if (
+        saved.id === currentBuild.current.id &&
+        saved.fingerprint === currentBuild.current.fingerprint
+      ) {
+        setRecord(saved);
+        setAccountSaved(false);
+        setError("");
+      }
+      return true;
+    } catch {
+      setError(
+        "Your page address could not be saved in this browser. Copy it before leaving, or retry.",
+      );
+      return false;
+    }
+  };
+  useDraftExitSave(flushAddress);
   const keepReview = (evidence: ReviewEvidence) => {
     if (record) persist({ ...record, details: addEvidence(record.details, evidence) });
   };
@@ -227,17 +310,23 @@ export function LaunchPanel({
           aria-label="Built page address"
           className="mt-1"
           value={url}
+          maxLength={500}
           onChange={(e) => {
-            setUrl(e.target.value);
+            const value = e.target.value;
+            pendingAddress.current =
+              value === record.details.url
+                ? null
+                : {
+                    id: record.id,
+                    fingerprint: record.fingerprint,
+                    original: record.details.url,
+                    value,
+                  };
+            currentPageUrl.current = value;
+            setUrl(value);
             setAccountSaved(false);
           }}
-          onBlur={() => {
-            if (url !== record.details.url)
-              persist({
-                ...record,
-                details: { ...record.details, url, tasks: [], launchedAt: null, status: "built" },
-              });
-          }}
+          onBlur={flushAddress}
           placeholder="https://your-site.com/page"
         />
       </label>
@@ -398,6 +487,13 @@ export function LaunchPanel({
             onClick={async () => {
               setBusy(true);
               try {
+                if (pendingAddress.current) {
+                  setError(
+                    "Finish saving the page address before saving evidence to your account.",
+                  );
+                  return;
+                }
+                currentRecords(record);
                 await save({ data: record });
                 if (
                   !mounted.current ||
@@ -405,6 +501,8 @@ export function LaunchPanel({
                   record.fingerprint !== currentBuild.current.fingerprint
                 )
                   return;
+                if (pendingAddress.current) return;
+                currentRecords(record);
                 setAccountSaved(true);
                 toast.success("Launch evidence saved to your account");
               } catch (e) {

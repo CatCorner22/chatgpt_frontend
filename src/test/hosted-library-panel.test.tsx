@@ -5,9 +5,10 @@ import { useHostedSession } from "@/components/HostedBoundary";
 import { readLibrarySnapshot, type LibraryEntry } from "@/lib/library";
 import { createLibraryBackup, restoreLibraryBackup } from "@/lib/transfer";
 import { HostedClientError, readOnlineLibrary, saveOnlineLibrary } from "@/lib/hosted-client";
+import { deferred } from "./deferred";
 
 vi.mock("@/components/HostedBoundary", () => ({ useHostedSession: vi.fn() }));
-vi.mock("@/lib/browser-storage", () => ({ focusLocalStorage: {} }));
+vi.mock("@/lib/browser-storage", () => ({ focusLocalStorage: window.localStorage }));
 vi.mock("@/lib/library", () => ({ readLibrarySnapshot: vi.fn() }));
 vi.mock("@/lib/transfer", () => ({ createLibraryBackup: vi.fn(), restoreLibraryBackup: vi.fn() }));
 vi.mock("@/lib/hosted-client", async (original) => ({
@@ -16,6 +17,7 @@ vi.mock("@/lib/hosted-client", async (original) => ({
   saveOnlineLibrary: vi.fn(),
 }));
 
+const savePendingEdits = vi.fn<() => boolean>();
 const entry: LibraryEntry = {
   id: "design-a",
   title: "A",
@@ -35,18 +37,14 @@ const restored = {
   conflicts: 0,
   imageCount: 1,
   imagesAdded: 1,
+  journeysAdded: 0,
   legacy: false,
   designCount: 1,
 };
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
 beforeEach(() => {
   vi.clearAllMocks();
+  savePendingEdits.mockReturnValue(true);
+  window.localStorage.clear();
   vi.mocked(useHostedSession).mockReturnValue({
     user: { id: "owner-a", email: "a@example.test" },
     storageAvailable: true,
@@ -62,24 +60,38 @@ beforeEach(() => {
 describe("explicit online library handoff", () => {
   it("does not fetch or display a hosted library in the portable app", () => {
     vi.mocked(useHostedSession).mockReturnValue(null);
-    const { container } = render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    const { container } = render(
+      <HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />,
+    );
     expect(container).toBeEmptyDOMElement();
     expect(readOnlineLibrary).not.toHaveBeenCalled();
   });
   it("reads an existing online revision without importing or overwriting browser work", async () => {
     vi.mocked(readOnlineLibrary).mockResolvedValue(remote);
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     expect(await screen.findByText(/An online copy is available/)).toBeInTheDocument();
     expect(restoreLibraryBackup).not.toHaveBeenCalled();
     expect(saveOnlineLibrary).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save library online" })).toBeDisabled();
   });
+  it("detects a Garden brief edited in another tab while the online save is in flight", async () => {
+    const { gardenJourneyKey } = await import("@/lib/garden-journey");
+    const pending = deferred<string>();
+    vi.mocked(saveOnlineLibrary).mockReturnValue(pending.promise);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
+    await screen.findByText(/no online library yet/);
+    fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
+    await waitFor(() => expect(saveOnlineLibrary).toHaveBeenCalledOnce());
+    window.localStorage.setItem(gardenJourneyKey(entry.id), "edited while saving");
+    await act(async () => pending.resolve('"revision-2"'));
+    expect(await screen.findByRole("status")).toHaveTextContent(/changed during the save/);
+  });
   it("saves the validated image-complete backup with the checked creation precondition", async () => {
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "Saved 1 design online with their images and saved history",
+      "Saved 1 design online with their images, Garden briefs, and saved history",
     );
     expect(createLibraryBackup).toHaveBeenCalledWith([entry], expect.any(Object));
     expect(saveOnlineLibrary).toHaveBeenCalledWith(
@@ -95,7 +107,7 @@ describe("explicit online library handoff", () => {
   it("requires a safe restore before updating an existing online copy", async () => {
     vi.mocked(readOnlineLibrary).mockResolvedValue(remote);
     const refresh = vi.fn();
-    render(<HostedLibraryPanel onRestored={refresh} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={refresh} />);
     await screen.findByText(/An online copy is available/);
     fireEvent.click(screen.getByRole("button", { name: "Restore online library" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
@@ -114,7 +126,7 @@ describe("explicit online library handoff", () => {
     vi.mocked(saveOnlineLibrary).mockRejectedValue(
       new HostedClientError("Online copy changed; restore it first.", "conflict", 409),
     );
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Online copy changed");
@@ -131,7 +143,7 @@ describe("explicit online library handoff", () => {
     vi.mocked(createLibraryBackup).mockRejectedValue(
       new Error("A saved design has a missing image."),
     );
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("missing image");
@@ -140,18 +152,32 @@ describe("explicit online library handoff", () => {
   });
   it("does not publish an empty browser library over any online copy", async () => {
     vi.mocked(readLibrarySnapshot).mockReturnValue({ ...snapshot, entries: [] });
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("no saved designs");
     expect(createLibraryBackup).not.toHaveBeenCalled();
     expect(saveOnlineLibrary).not.toHaveBeenCalled();
   });
+  it("keeps an online restore pending until the local name or collection can be saved", async () => {
+    vi.mocked(readOnlineLibrary).mockResolvedValue(remote);
+    savePendingEdits.mockReturnValueOnce(false);
+    const refresh = vi.fn();
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={refresh} />);
+    await screen.findByText(/An online copy is available/);
+    const restore = screen.getByRole("button", { name: "Restore online library" });
+    fireEvent.click(restore);
+    expect(restoreLibraryBackup).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save library online" })).toBeDisabled();
+    fireEvent.click(restore);
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+  });
   it("does not mark a rejected restore as reviewed or refresh the browser library", async () => {
     vi.mocked(readOnlineLibrary).mockResolvedValue(remote);
     vi.mocked(restoreLibraryBackup).mockRejectedValue(new Error("An image could not be decoded."));
     const refresh = vi.fn();
-    render(<HostedLibraryPanel onRestored={refresh} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={refresh} />);
     await screen.findByText(/An online copy is available/);
     fireEvent.click(screen.getByRole("button", { name: "Restore online library" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("could not be decoded");
@@ -162,7 +188,7 @@ describe("explicit online library handoff", () => {
     vi.mocked(readOnlineLibrary).mockRejectedValue(
       new HostedClientError("Account changed. Reload.", "account_changed", 409),
     );
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByRole("alert");
     expect(screen.getByRole("button", { name: "Check online library" })).toBeDisabled();
     expect(screen.getByRole("link", { name: "Reload and verify your account" })).toHaveAttribute(
@@ -174,7 +200,7 @@ describe("explicit online library handoff", () => {
     vi.mocked(readOnlineLibrary).mockRejectedValueOnce(
       new HostedClientError("Retry account verification.", "session_unverified", 409),
     );
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByRole("alert");
     expect(screen.getByRole("button", { name: "Check online library" })).toBeEnabled();
     expect(
@@ -187,7 +213,9 @@ describe("explicit online library handoff", () => {
   it("does not start an upload after the panel unmounts during backup preparation", async () => {
     const pending = deferred<string>();
     vi.mocked(createLibraryBackup).mockReturnValue(pending.promise);
-    const view = render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    const view = render(
+      <HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />,
+    );
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     await waitFor(() => expect(createLibraryBackup).toHaveBeenCalledOnce());
@@ -198,7 +226,7 @@ describe("explicit online library handoff", () => {
   it("acknowledges only the submitted snapshot when the local library changes during save", async () => {
     const pending = deferred<string>();
     vi.mocked(saveOnlineLibrary).mockReturnValue(pending.promise);
-    render(<HostedLibraryPanel onRestored={vi.fn()} />);
+    render(<HostedLibraryPanel savePendingEdits={savePendingEdits} onRestored={vi.fn()} />);
     await screen.findByText(/no online library yet/);
     fireEvent.click(screen.getByRole("button", { name: "Save library online" }));
     await waitFor(() => expect(saveOnlineLibrary).toHaveBeenCalledOnce());

@@ -2,17 +2,9 @@ import { focusLocalStorage } from "@/lib/browser-storage";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { fitterBrief } from "@/lib/critic";
+import { fitterBrief, safeUrl } from "@/lib/critic";
 import { findByDesignId } from "@/lib/brands";
 import { readLibrary } from "@/lib/library";
-
-function readLibraryQuiet() {
-  try {
-    return typeof window === "undefined" ? [] : readLibrary();
-  } catch {
-    return [];
-  }
-}
 import { STUDIO_KEY } from "@/lib/projects";
 import { normalizeTokens, type Tokens } from "@/lib/design";
 import { Button } from "@/components/ui/button";
@@ -23,7 +15,6 @@ import { useCancellable, useCopied, useWait } from "@/hooks/useUx";
 import { WaitLine } from "@/components/WaitLine";
 import { WholeSiteCheck } from "@/components/WholeSiteCheck";
 import { CHECK_CARD } from "@/lib/ux";
-import { safeUrl } from "@/lib/critic";
 import { critiqueUrl } from "@/lib/critic.functions";
 import {
   HISTORY_KEY,
@@ -51,29 +42,30 @@ import {
 } from "@/lib/transfer";
 import { useUser } from "@/hooks/useSession";
 import { useHostedSession } from "@/components/HostedBoundary";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/critic")({
   validateSearch: (s: Record<string, unknown>): { mode?: "makeover" | "check" } => ({
     mode: s["mode"] === "makeover" ? "makeover" : "check",
   }),
-  head: () => ({
-    meta: [
-      { title: "Check a site — Focus" },
-      {
-        name: "description",
-        content: "Paste a public website address for measured design findings and practical fixes.",
-      },
-      { property: "og:title", content: "Check a site — Focus" },
-      {
-        property: "og:description",
-        content: "Measured findings and practical fixes for a public web page.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Check a site — Focus",
+      description:
+        "Paste a public website address for measured design findings and practical fixes.",
+      ogDescription: "Measured findings and practical fixes for a public web page.",
+      card: "summary_large_image",
+    }),
   component: Critic,
 });
+
+function readLibraryQuiet() {
+  try {
+    return typeof window === "undefined" ? [] : readLibrary();
+  } catch {
+    return [];
+  }
+}
 
 type R = Awaited<ReturnType<typeof critiqueUrl>>;
 

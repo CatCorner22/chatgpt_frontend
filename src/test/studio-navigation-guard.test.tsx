@@ -16,7 +16,7 @@ import {
 } from "@/hooks/useStudioNavigationGuard";
 import { parseGardenSearch } from "@/lib/garden-navigation";
 
-const SAVED: StudioNavigationRisk = { persistenceFailed: false, busy: false };
+const SAVED: StudioNavigationRisk = { flush: () => true, busy: false };
 const histories: ReturnType<typeof createMemoryHistory>[] = [];
 
 async function mountStudio(initial: Partial<StudioNavigationRisk> = {}, browser = false) {
@@ -82,7 +82,7 @@ afterEach(() => {
 
 describe("Studio SPA navigation guard with the real router", () => {
   it("keeps work mounted when Home would discard changes after persistence failed", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     await app.home();
     expect(window.confirm).toHaveBeenCalledOnce();
     expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/could not be saved/i));
@@ -91,7 +91,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("leaves only after the owner accepts, and removes the blocker on unmount", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     vi.mocked(window.confirm).mockReturnValue(true);
     await app.home();
     expect(await screen.findByText("Garden home")).toBeInTheDocument();
@@ -111,7 +111,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("protects unpersisted design decisions when leaving for another tool", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     await act(async () => {
       void app.router.navigate({ to: "/library" });
     });
@@ -127,7 +127,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("allows search and hash changes that keep the same Studio mounted", async () => {
-    const app = await mountStudio({ persistenceFailed: true, busy: true });
+    const app = await mountStudio({ flush: () => false, busy: true });
     await act(async () => {
       app.history.push("/?view=studio&lesson=palette#preview");
     });
@@ -137,7 +137,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("keeps Studio mounted through workshop group links and Back while guarding Your journey", async () => {
-    const app = await mountStudio({ persistenceFailed: true, busy: true });
+    const app = await mountStudio({ flush: () => false, busy: true });
     for (const group of ["palette", "fonts", "spacing"]) {
       await act(async () => {
         app.history.push(`/?view=studio&panel=stratosphere&group=${group}`);
@@ -158,7 +158,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("does not treat a studio query on another route as staying in the editor", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     await act(async () => {
       app.history.push("/library?view=studio");
     });
@@ -167,7 +167,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("guards browser Back from the Studio query view to Garden", async () => {
-    const app = await mountStudio({ persistenceFailed: true }, true);
+    const app = await mountStudio({ flush: () => false }, true);
     await act(async () => {
       app.history.back();
     });
@@ -192,7 +192,7 @@ describe("Studio SPA navigation guard with the real router", () => {
       app.history.back();
     });
     expect(await screen.findByText("Studio work remains mounted")).toBeInTheDocument();
-    await app.update({ persistenceFailed: true });
+    await app.update({ flush: () => false });
     await act(async () => {
       app.history.forward();
     });
@@ -202,7 +202,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("uses current risk after saving recovers, without an obsolete warning", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     await app.update({});
     await app.home();
     expect(await screen.findByText("Garden home")).toBeInTheDocument();
@@ -211,14 +211,14 @@ describe("Studio SPA navigation guard with the real router", () => {
 
   it("reacts when persistence fails after the editor mounted", async () => {
     const app = await mountStudio();
-    await app.update({ persistenceFailed: true });
+    await app.update({ flush: () => false });
     await app.home();
     expect(window.confirm).toHaveBeenCalledOnce();
     expect(screen.getByText("Studio work remains mounted")).toBeInTheDocument();
   });
 
   it("adds no duplicate beforeunload warning", async () => {
-    const app = await mountStudio({ persistenceFailed: true, busy: true });
+    const app = await mountStudio({ flush: () => false, busy: true });
     const unload = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(unload);
     expect(unload.defaultPrevented).toBe(false);
@@ -227,7 +227,7 @@ describe("Studio SPA navigation guard with the real router", () => {
   });
 
   it("fails closed if the browser cannot show confirmation", async () => {
-    const app = await mountStudio({ persistenceFailed: true });
+    const app = await mountStudio({ flush: () => false });
     vi.mocked(window.confirm).mockImplementation(() => {
       throw new Error("Dialog unavailable");
     });

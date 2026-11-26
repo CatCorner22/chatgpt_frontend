@@ -12,6 +12,7 @@ export type TasteProfile = {
   avoid: string;
   portrait: Portrait | null;
   votes: DuelVote[];
+  draftReasons?: { id: string; text: string }[];
 };
 export const EMPTY_PROFILE: TasteProfile = {
   version: 1,
@@ -134,8 +135,20 @@ export function parseProfile(raw: string | null): TasteProfile {
         votes.push({ id: x.id, choice: x.choice, reason: String(x.reason ?? "").slice(0, 300) });
       }
     }
+    const draftReasons: NonNullable<TasteProfile["draftReasons"]> = [];
+    if (Array.isArray(v.draftReasons)) {
+      for (const draft of v.draftReasons.slice(-DUELS.length)) {
+        if (
+          DUELS.some((duel) => duel.id === draft?.id) &&
+          typeof draft.text === "string" &&
+          !draftReasons.some((item) => item.id === draft.id)
+        )
+          draftReasons.push({ id: draft.id, text: draft.text.slice(0, 300) });
+      }
+    }
     return {
       version: 1,
+      ...(draftReasons.length ? { draftReasons } : {}),
       inspiration: String(v.inspiration ?? "").slice(0, 2000),
       avoid: String(v.avoid ?? "").slice(0, 500),
       portrait,

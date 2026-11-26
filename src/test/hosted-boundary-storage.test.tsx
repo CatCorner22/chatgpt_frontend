@@ -10,6 +10,7 @@ import {
   initializeBrowserOwner,
   resumeBrowserOwner,
 } from "@/lib/browser-storage";
+import { deferred } from "./deferred";
 
 function Work() {
   const [note, setNote] = useState("");
@@ -30,13 +31,6 @@ const response = (id: string) =>
     }),
     { headers: { "Content-Type": "application/json" } },
   );
-function pending() {
-  let resolve!: (value: Response) => void;
-  const promise = new Promise<Response>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
 const events = {
   focus: () => window.dispatchEvent(new Event("focus")),
   visibility: () => document.dispatchEvent(new Event("visibilitychange")),
@@ -77,10 +71,106 @@ afterEach(() => {
 });
 
 describe("protective hosted checks with real owner storage", () => {
+  it("locks on successive native window switches from a preview without a DOM focus event", async () => {
+    vi.useFakeTimers();
+    const inFlight = deferred<Response>();
+    const returned = deferred<Response>();
+    const nextReturn = deferred<Response>();
+    const finalReturn = deferred<Response>();
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(response("A"))
+      .mockReturnValueOnce(inFlight.promise)
+      .mockReturnValueOnce(returned.promise)
+      .mockReturnValueOnce(nextReturn.promise)
+      .mockReturnValueOnce(finalReturn.promise);
+    const foreground = vi.spyOn(document, "hasFocus").mockReturnValue(true);
+    vi.stubGlobal("fetch", fetcher);
+    await act(async () => {
+      render(
+        <HostedBoundary queryClient={new QueryClient()}>
+          <iframe title="Authored preview" data-focus-authored-preview="" />
+          <Work />
+        </HostedBoundary>,
+      );
+    });
+    screen.getByTitle("Authored preview").focus();
+    window.dispatchEvent(new Event("blur"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(45_000);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expectLocked();
+    await act(async () => inFlight.resolve(response("A")));
+    expect(screen.getByLabelText("Unpersisted draft")).not.toBeVisible();
+    expectLocked();
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expectLocked();
+    await act(async () => returned.resolve(response("A")));
+    expect(screen.getByLabelText("Unpersisted draft")).toBeVisible();
+    expect(document.activeElement).toBe(screen.getByTitle("Authored preview"));
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expectLocked();
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    // Leaving and reentering while a check is pending must invalidate that response, too.
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(5);
+    await act(async () => nextReturn.resolve(response("A")));
+    expectLocked();
+    await act(async () => finalReturn.resolve(response("B")));
+    expect(screen.getByRole("link", { name: "Reload securely" })).toBeVisible();
+    expectLocked();
+  });
+
+  it("still locks when a focused authored preview has no trusted internal pointer transfer", async () => {
+    const check = deferred<Response>();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce(response("A")).mockReturnValueOnce(check.promise),
+    );
+    render(
+      <HostedBoundary queryClient={new QueryClient()}>
+        <iframe title="Authored preview" data-focus-authored-preview="" />
+        <Work />
+      </HostedBoundary>,
+    );
+    const preview = await screen.findByTitle("Authored preview");
+    preview.focus();
+    expect(document.activeElement).toBe(preview);
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    await act(async () => events.focus());
+    expectLocked();
+    expect(screen.getByLabelText("Unpersisted draft")).not.toBeVisible();
+    await act(async () => check.resolve(response("B")));
+    expect(await screen.findByRole("link", { name: "Reload securely" })).toBeVisible();
+  });
+
   it.each(["focus", "visibility", "pageshow"] as const)(
     "locks synchronously before a %s request and resumes the same owner's intact draft",
     async (event) => {
-      const check = pending();
+      const check = deferred<Response>();
       const fetcher = vi
         .fn()
         .mockResolvedValueOnce(response("A"))
@@ -109,7 +199,7 @@ describe("protective hosted checks with real owner storage", () => {
   );
 
   it("keeps owner access blocked when a protective response identifies another account", async () => {
-    const check = pending();
+    const check = deferred<Response>();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValueOnce(response("A")).mockReturnValueOnce(check.promise),
@@ -128,7 +218,7 @@ describe("protective hosted checks with real owner storage", () => {
   });
 
   it("keeps explicit retry locked until its same-owner response succeeds", async () => {
-    const retry = pending();
+    const retry = deferred<Response>();
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce(response("A"))
@@ -154,8 +244,8 @@ describe("protective hosted checks with real owner storage", () => {
   });
 
   it("can finish an initial check protected by focus when this document already owns the same account", async () => {
-    const initial = pending(),
-      protective = pending();
+    const initial = deferred<Response>(),
+      protective = deferred<Response>();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockReturnValueOnce(initial.promise).mockReturnValueOnce(protective.promise),
@@ -174,8 +264,8 @@ describe("protective hosted checks with real owner storage", () => {
   });
 
   it("cannot initialize a different account through the locked-document resume fallback", async () => {
-    const initial = pending(),
-      protective = pending();
+    const initial = deferred<Response>(),
+      protective = deferred<Response>();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockReturnValueOnce(initial.promise).mockReturnValueOnce(protective.promise),
@@ -195,8 +285,8 @@ describe("protective hosted checks with real owner storage", () => {
   });
 
   it("does not let an older successful response unlock a newer protective request", async () => {
-    const first = pending(),
-      second = pending();
+    const first = deferred<Response>(),
+      second = deferred<Response>();
     vi.stubGlobal(
       "fetch",
       vi
@@ -222,7 +312,7 @@ describe("protective hosted checks with real owner storage", () => {
 
   it("preserves normal background checks without hiding or locking the active draft", async () => {
     vi.useFakeTimers();
-    const background = pending();
+    const background = deferred<Response>();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValueOnce(response("A")).mockReturnValueOnce(background.promise),

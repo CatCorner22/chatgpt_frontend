@@ -1,3 +1,4 @@
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -113,7 +114,7 @@ try {
       [...selectedIds].sort(),
       item.id + " downloaded unexpected font chunks",
     );
-    const preview = await frame.getAttribute("srcdoc");
+    const preview = await readPreviewDocument(frame);
     const download = async (name) => {
       const pending = studio.waitForEvent("download");
       await studio.getByRole("button", { name, exact: true }).click();

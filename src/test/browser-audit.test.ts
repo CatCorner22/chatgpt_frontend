@@ -3,6 +3,7 @@ import {
   auditScreenshotName,
   MAX_BROWSER_AUDIT_BYTES,
   parseBrowserAudit,
+  phoneLabObservations,
 } from "@/lib/browser-audit";
 
 const example = () => ({
@@ -36,6 +37,33 @@ describe("imported browser audit data", () => {
     const report = parseBrowserAudit(JSON.stringify(example()));
     expect(report.summary).toEqual({ failureCount: 1, unknownCount: 1, scenarioCount: 1 });
     expect(report.scenarios[0]?.observations).toHaveProperty("layout");
+  });
+  it("retains bounded entry HTML identity when supplied and reads legacy receipts", () => {
+    expect(parseBrowserAudit(JSON.stringify(example())).entryHtml).toBeUndefined();
+    const entry = { bytes: 200, sha256: "c".repeat(64) };
+    expect(parseBrowserAudit(JSON.stringify({ ...example(), entryHtml: entry })).entryHtml).toEqual(
+      entry,
+    );
+    expect(() =>
+      parseBrowserAudit(
+        JSON.stringify({ ...example(), entryHtml: { ...entry, bytes: 20_000_000 } }),
+      ),
+    ).toThrow("entryHtml.bytes");
+    expect(() =>
+      parseBrowserAudit(
+        JSON.stringify({ ...example(), entryHtml: { ...entry, sha256: "file name" } }),
+      ),
+    ).toThrow("entryHtml.sha256");
+  });
+  it("omits absent or malformed optional phone timing details", () => {
+    const scenario = parseBrowserAudit(JSON.stringify(example())).scenarios[0]!;
+    expect(phoneLabObservations(scenario)).toBeNull();
+    expect(
+      phoneLabObservations({
+        ...scenario,
+        observations: { mobileTiming: { profile: { latencyMs: "bad" } } },
+      }),
+    ).toBeNull();
   });
   it("rejects malformed JSON, the wrong format and invalid finding statuses", () => {
     expect(() => parseBrowserAudit("{")).toThrow("not valid JSON");

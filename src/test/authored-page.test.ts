@@ -63,6 +63,38 @@ describe("authored page export", () => {
     },
   );
 
+  it("shows each option with all its own details before the destination in both authored formats", () => {
+    const features = [
+      { title: "Wheel <basics>", body: "10 am · $48\nIncludes tools & firing." },
+      { title: "釉薬のクラス", body: "2 pm · $56" },
+      { title: "Open studio", body: "" },
+    ];
+    const built = buildAuthoredPage(
+      tokens,
+      { ...content, features },
+      { ...options, composition: "comparison", language: "ja" },
+    );
+    for (const html of [built.html, built.files["index.html"]!]) {
+      const doc = parse(html);
+      const section = doc.querySelector(".option-comparison")!;
+      expect(section.querySelector("h2")?.textContent).toBe("選択肢を比較");
+      expect(
+        [...section.querySelectorAll("li")].map((row) => ({
+          title: row.querySelector("h3")?.textContent,
+          body: row.querySelector("p")?.textContent ?? "",
+        })),
+      ).toEqual(features);
+      expect(section.querySelector("basics, details, input, button")).toBeNull();
+      expect(section.lastElementChild?.getAttribute("href")).toBe(options.actionUrl);
+      expect(doc.querySelector("a[href^='https']")?.parentElement).toBe(section);
+    }
+    const withoutDestination = parse(
+      buildAuthoredPage(tokens, content, { ...options, composition: "comparison", actionUrl: "" })
+        .html,
+    );
+    expect(withoutDestination.querySelector(".option-comparison a")).toBeNull();
+  });
+
   it("keeps a contained image centered regardless of dormant anchors or viewport", () => {
     const result = buildAuthoredPage(tokens, content, {
       ...options,
@@ -291,6 +323,42 @@ describe("authored page export", () => {
   });
 
   it.each([
+    "https://book.example.com/?access_token=private-test-value",
+    "https://book.example.com/#/view?X-Amz-Signature=private-test-value",
+    "https://book.example.com/oauth/callback?code=private-test-value",
+    "https://book.example.com/classes?code=private-test-value",
+  ])("omits private primary and related links from the page and every publishable file", (url) => {
+    const result = buildAuthoredPage(tokens, content, {
+      ...options,
+      actionUrl: url,
+      relatedStory: { title: "Read more", url, placement: "after-article" },
+    });
+    for (const output of [result.html, ...Object.values(result.files)]) {
+      expect(output).not.toContain("private-test-value");
+    }
+    expect(result.readiness.map((item) => item.id)).toEqual(
+      expect.arrayContaining(["action-private", "story-link"]),
+    );
+  });
+
+  it("uses the owner's exact public-code confirmation for each link independently", () => {
+    const url = "https://book.example.com/classes?code=PUBLIC";
+    const result = buildAuthoredPage(tokens, content, {
+      ...options,
+      actionUrl: url,
+      publicCodeUrl: url,
+      relatedStory: {
+        title: "Read more",
+        url,
+        publicCodeUrl: url + "-old",
+        placement: "after-article",
+      },
+    });
+    expect(parse(result.html).querySelector(".action")?.getAttribute("href")).toBe(url);
+    expect(result.readiness.map((item) => item.id)).toContain("story-link");
+  });
+
+  it.each([
     "javascript:alert(1)",
     "data:text/html,hello",
     "//example.com",
@@ -309,6 +377,8 @@ describe("authored page export", () => {
 
   it.each([
     "https://example.com/book?x=1&y=2",
+    "https://Bookings.Example.org:443?slot=am&slot=pm",
+    "https://classes.example.org:8443/artist/O'Brien/book?time=am",
     "http://example.com/about",
     "mailto:hello@example.com",
     "tel:+14155550100",

@@ -11,8 +11,10 @@ import type { Purpose } from "./engine";
 import { NAV_PATTERNS, type NavId } from "./nav";
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, type PageSettings } from "./page-settings";
 import { assertRestorableStudioState } from "./studio-recovery";
+import type { ExamOptionDraft } from "./exam-option-draft";
 
-type Opt = { label: string; why: string; tokens: Tokens };
+// Preview choices live with their question's options. The cache is browser-workspace only.
+type Opt = { label: string; why: string; tokens: Tokens; draft?: ExamOptionDraft };
 export type State = {
   stage: "brief" | "directions" | "exam" | "review" | "rx";
   brief: string;
@@ -67,6 +69,15 @@ export const EMPTY: State = {
   future: [],
 };
 export const snap = ({ past: _p, future: _f, cache: _c, ...rest }: State): Snap => rest;
+/** Only an untouched workspace may adopt a Garden start without asking. */
+export function isEmptyStudioDraft(state: State): boolean {
+  return (Object.keys(state) as (keyof State)[]).every(
+    (key) =>
+      Object.hasOwn(EMPTY, key) &&
+      (key === "integration" || JSON.stringify(state[key]) === JSON.stringify(EMPTY[key])),
+  );
+}
+
 // Older saves pass through the same correction step as AI output.
 export function migrate(raw: Partial<State>): State {
   assertRestorableStudioState(raw);

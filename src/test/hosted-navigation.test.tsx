@@ -28,6 +28,31 @@ beforeEach(() => {
   });
 });
 describe("hosted account navigation", () => {
+  it("dismisses a header menu when focus or a pointer moves outside it, leaving the next control usable", () => {
+    render(
+      <>
+        <AppHeader />
+        <main>
+          <button>Continue the draft</button>
+        </main>
+      </>,
+    );
+    const summary = screen.getByText("Tools").closest("summary")!;
+    const menu = summary.parentElement!;
+    fireEvent.click(summary);
+    const link = screen.getByRole("link", { name: "Quality lab" });
+    link.focus();
+    fireEvent.pointerDown(link);
+    expect(menu).toHaveAttribute("open");
+    const next = screen.getByRole("button", { name: "Continue the draft" });
+    next.focus();
+    expect(menu).not.toHaveAttribute("open");
+    expect(next).toHaveFocus();
+    fireEvent.click(summary);
+    fireEvent.pointerDown(screen.getByRole("main"));
+    expect(menu).not.toHaveAttribute("open");
+  });
+
   it("opens only one header disclosure at a time, including the account menu", () => {
     const { container } = render(<AppHeader />);
     const tools = screen.getByText("Tools").closest("summary")!;

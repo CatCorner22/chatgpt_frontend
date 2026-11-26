@@ -1,18 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, PanelsTopLeft } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { GardenJourneyBrief } from "@/components/GardenJourneyBrief";
+import { GardenStudioAction } from "@/components/GardenStudioAction";
 import { GardenDecisionGuide } from "@/components/GardenDecisionGuide";
 import { focusLocalStorage } from "@/lib/browser-storage";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import { GARDEN_STEPS, getGardenStep, type GardenStepId } from "@/lib/garden-content";
 import { GARDEN_FORMULA } from "@/lib/garden-formula";
-import { stratosphereSearch } from "@/lib/garden-navigation";
 import {
   GARDEN_DEFAULTS,
   readGardenPreferences,
   writeGardenPreferences,
   type GardenPreferences,
 } from "@/lib/garden-preferences";
+
+type PreferencePatch = Partial<Omit<GardenPreferences, "version">>;
 
 const stops = [60, 34, 64, 34, 64, 34, 64, 34, 60].map((left, index) => ({
   left: `${left}%`,
@@ -31,11 +35,13 @@ const destinations = {
 export function GardenHome() {
   const [preferences, setPreferences] = useState<GardenPreferences>({ ...GARDEN_DEFAULTS });
   const [ready, setReady] = useState(false);
+  const [openBriefDesign, setOpenBriefDesign] = useState<string | null>(null);
   const [issue, setIssue] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const lessonSummary = useRef<HTMLElement>(null);
   const focusOnStep = useRef(false);
-  const pendingPreferences = useRef<Partial<Omit<GardenPreferences, "version">>>({});
+  const pendingPreferences = useRef<PreferencePatch>({});
+  const preferenceBase = useRef<PreferencePatch>({});
   useEffect(() => {
     const restored = readGardenPreferences(focusLocalStorage);
     setPreferences(restored.value);
@@ -49,20 +55,61 @@ export function GardenHome() {
     }
   }, [preferences.step]);
 
-  const change = (patch: Partial<Omit<GardenPreferences, "version">>) => {
-    if (!ready) return;
-    const pending = { ...pendingPreferences.current, ...patch };
-    const latest = readGardenPreferences(focusLocalStorage);
-    const next = { ...(latest.issue ? preferences : latest.value), ...pending };
-    // Preserve other tabs' saved fields without moving this tab merely because
-    // the user toggled a lesson. An explicit path selection owns its new stop.
-    setPreferences({ ...next, step: patch.step ?? preferences.step });
-    const saveIssue = writeGardenPreferences(focusLocalStorage, next);
-    pendingPreferences.current = saveIssue ? pending : {};
+  function flushPreferences(snapshot?: ReturnType<typeof readGardenPreferences>) {
+    const pending = pendingPreferences.current;
+    const keys = Object.keys(pending) as (keyof PreferencePatch)[];
+    if (!keys.length) return true;
+    const latest = snapshot ?? readGardenPreferences(focusLocalStorage);
+    if (latest.issue) {
+      setIssue(
+        "Garden preferences could not be confirmed as saved. Your choices remain in this tab.",
+      );
+      return false;
+    }
+    // Only retry fields that still match their original value or this edit.
+    if (
+      keys.some(
+        (key) =>
+          latest.value[key] !== preferenceBase.current[key] && latest.value[key] !== pending[key],
+      )
+    ) {
+      setIssue(
+        "Another tab changed a Garden choice. Revisit that choice here or reload to use the saved version.",
+      );
+      return false;
+    }
+    const saveIssue = keys.every((key) => latest.value[key] === pending[key])
+      ? ""
+      : writeGardenPreferences(focusLocalStorage, { ...latest.value, ...pending });
+    if (!saveIssue) {
+      pendingPreferences.current = {};
+      preferenceBase.current = {};
+    }
     setIssue(saveIssue);
+    return !saveIssue;
+  }
+
+  useDraftExitSave(() => flushPreferences());
+
+  const change = (patch: PreferencePatch) => {
+    if (!ready) return;
+    const latest = readGardenPreferences(focusLocalStorage);
+    const base = latest.issue ? preferences : latest.value;
+    for (const key of Object.keys(patch) as (keyof PreferencePatch)[])
+      Object.assign(preferenceBase.current, { [key]: base[key] });
+    pendingPreferences.current = { ...pendingPreferences.current, ...patch };
+    const next = { ...base, ...pendingPreferences.current };
+    // Keep this tab on the route and starting point it shows while merging unrelated saved choices.
+    setPreferences({
+      ...next,
+      step: patch.step ?? preferences.step,
+      goal: patch.goal ?? preferences.goal,
+    });
+    flushPreferences(latest);
   };
   const visit = (step: GardenStepId) => {
     focusOnStep.current = step !== preferences.step;
+    if (!focusOnStep.current) heading.current?.focus();
     change({ step });
   };
   const index = GARDEN_STEPS.findIndex((step) => step.id === preferences.step);
@@ -72,16 +119,107 @@ export function GardenHome() {
   const isGoal = step.id === "goal";
   const studio = step.action === "studio" || step.action === "gallery";
 
+  const introduction = (
+    <>
+      <div className="garden-work-top">
+        <div className="garden-step-navigation">
+          <p className="eyebrow">
+            Step {index + 1} of {GARDEN_STEPS.length}
+          </p>
+          {!isGoal && (
+            <button type="button" className="garden-text-action" onClick={() => visit("goal")}>
+              Change starting point
+            </button>
+          )}
+        </div>
+        <label className="garden-brief-toggle">
+          <input
+            type="checkbox"
+            checked={preferences.brief}
+            disabled={!ready}
+            onChange={(event) => change({ brief: event.target.checked })}
+            aria-describedby="garden-brief-help"
+          />
+          Keep it brief
+        </label>
+      </div>
+      <span id="garden-brief-help" className="sr-only">
+        Hide the longer lessons. Your preference is saved in this browser when storage is available.
+      </span>
+      {issue && (
+        <p role="status" className="garden-storage-note">
+          {issue} You can keep exploring in this tab.
+        </p>
+      )}
+      <h1 ref={heading} id="garden-heading" tabIndex={-1}>
+        {isGoal ? "Where do we start?" : step.title}
+      </h1>
+      <p className="garden-intro">{isGoal ? "I’m Reverie, your design guide." : step.intro}</p>
+    </>
+  );
+
   return (
     <div className="garden-page">
       <AppHeader />
-      <main id="main-content" className="garden-layout" aria-busy={!ready}>
+      <main
+        id="main-content"
+        className={isGoal ? "garden-layout garden-entry-layout" : "garden-layout"}
+        aria-busy={!ready}
+      >
+        {isGoal && (
+          <section className="garden-work garden-entry" aria-labelledby="garden-heading">
+            {introduction}
+            <fieldset className="garden-goals garden-entry-choices" disabled={!ready}>
+              <legend className="sr-only">Choose a starting point</legend>
+              {step.choices.map((choice) => (
+                <label key={choice.id} className="garden-goal">
+                  <input
+                    type="radio"
+                    name="garden-goal"
+                    value={choice.id}
+                    checked={preferences.goal === choice.id}
+                    onChange={() => change({ goal: choice.id === "existing" ? "existing" : "new" })}
+                    aria-labelledby={`garden-choice-${choice.id}`}
+                    aria-describedby={`garden-choice-help-${choice.id}`}
+                  />
+                  <span>
+                    <strong id={`garden-choice-${choice.id}`}>{choice.title}</strong>
+                    <span id={`garden-choice-help-${choice.id}`}>{choice.benefit}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            <div className="garden-actions">
+              <button
+                className="garden-primary"
+                type="button"
+                disabled={!ready}
+                onClick={() => visit("content")}
+              >
+                Continue <ArrowRight size={18} aria-hidden="true" />
+              </button>
+              <Link
+                to="/layouts"
+                className="garden-layout-shortcut"
+                aria-labelledby="garden-layout-title"
+                aria-describedby="garden-layout-help"
+              >
+                <PanelsTopLeft size={22} aria-hidden="true" />
+                <span>
+                  <strong id="garden-layout-title">Browse designer layouts</strong>
+                  <span id="garden-layout-help">Preview six ways to arrange a page.</span>
+                </span>
+                <ArrowRight size={17} aria-hidden="true" />
+              </Link>
+            </div>
+          </section>
+        )}
         <aside className="garden-landscape" aria-label="Your journey with Reverie">
           <p className="garden-motto">A little clarity. A calmer path.</p>
           <div className="garden-map">
             <img
               className="garden-river"
-              src="/brand/garden-river.png"
+              src="/brand/garden-river.webp"
               width="1024"
               height="1536"
               alt=""
@@ -89,7 +227,7 @@ export function GardenHome() {
             />
             <img
               className="garden-reverie"
-              src="/brand/reverie-kite.png"
+              src="/brand/reverie-kite.webp"
               width="1254"
               height="1254"
               alt="Reverie walking with her kite"
@@ -127,37 +265,12 @@ export function GardenHome() {
           </p>
         </aside>
 
-        <section className="garden-work" aria-labelledby="garden-heading">
-          <div className="garden-work-top">
-            <p className="eyebrow">
-              Step {index + 1} of {GARDEN_STEPS.length}
-            </p>
-            <label className="garden-brief-toggle">
-              <input
-                type="checkbox"
-                checked={preferences.brief}
-                disabled={!ready}
-                onChange={(event) => change({ brief: event.target.checked })}
-                aria-describedby="garden-brief-help"
-              />
-              Keep it brief
-            </label>
-          </div>
-          <span id="garden-brief-help" className="sr-only">
-            Hide the longer lessons. Your preference is saved in this browser when storage is
-            available.
-          </span>
-          {issue && (
-            <p role="status" className="garden-storage-note">
-              {issue} You can keep exploring in this tab.
-            </p>
-          )}
-          <h1 ref={heading} id="garden-heading" tabIndex={-1}>
-            {isGoal ? "What are we working on?" : step.title}
-          </h1>
-          <p className="garden-intro">
-            {isGoal ? "I’m Reverie. We’ll take this one thoughtful step at a time." : step.intro}
-          </p>
+        <section
+          className="garden-work garden-step-body"
+          aria-label={isGoal ? "Planning your project" : undefined}
+          aria-labelledby={isGoal ? undefined : "garden-heading"}
+        >
+          {!isGoal && introduction}
           <div className="garden-formula-row">
             <dl className="garden-formula" aria-label="Your next small step">
               <div>
@@ -175,9 +288,9 @@ export function GardenHome() {
             </dl>
             <figure className="garden-map-guide">
               <img
-                src="/brand/reverie-map-guide.png"
-                width="1280"
-                height="1280"
+                src="/brand/reverie-map-guide.webp"
+                width="1254"
+                height="1254"
                 loading="lazy"
                 alt="Reverie reading a map"
                 decoding="async"
@@ -186,35 +299,18 @@ export function GardenHome() {
             </figure>
           </div>
           {isGoal && (
+            <p className="garden-scope-note">
+              {step.choices.find((choice) => choice.id === preferences.goal)?.tradeoff}
+            </p>
+          )}
+          {isGoal && (
             <Link to="/field-guide" className="garden-text-action garden-field-guide-link">
               <BookOpen size={18} aria-hidden="true" />
               New to this? Learn the words and try a practice trail.
             </Link>
           )}
 
-          {isGoal ? (
-            <fieldset className="garden-goals" disabled={!ready}>
-              <legend className="sr-only">Choose a starting point</legend>
-              {step.choices.map((choice) => (
-                <label key={choice.id} className="garden-goal">
-                  <input
-                    type="radio"
-                    name="garden-goal"
-                    value={choice.id}
-                    checked={preferences.goal === choice.id}
-                    onChange={() => change({ goal: choice.id === "existing" ? "existing" : "new" })}
-                  />
-                  <span>
-                    <strong>
-                      {choice.id === "existing" ? "An existing app or website" : "A new page"}
-                    </strong>
-                    <span>{choice.benefit}</span>
-                    <span className="garden-tradeoff">{choice.tradeoff}</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          ) : (
+          {!isGoal && (
             <div className="garden-task">
               <p className="garden-purpose">{step.purpose}</p>
               <ul>
@@ -226,7 +322,7 @@ export function GardenHome() {
                 <p className="garden-context">
                   {preferences.goal === "existing"
                     ? "Your starting point: an existing app or website. Keep its useful features as you explore."
-                    : "Your starting point: a new page. Make room for real content as you explore."}
+                    : "Your starting point: a new app or website. Make room for real content as you explore."}
                 </p>
               )}
               <details className="garden-options">
@@ -247,62 +343,60 @@ export function GardenHome() {
             </div>
           )}
 
+          <GardenJourneyBrief
+            step={step}
+            goal={preferences.goal}
+            onOpenDesignChange={setOpenBriefDesign}
+          />
+
           <p className="garden-evidence">
             {isGoal ? "Your live site stays unchanged while you plan." : step.evidenceNote}
           </p>
           {formula.scopeNote && <p className="garden-scope-note">{formula.scopeNote}</p>}
-          <div className="garden-actions">
-            {isGoal ? (
-              <button
-                className="garden-primary"
-                type="button"
-                disabled={!ready}
-                onClick={() => visit("content")}
-              >
-                Continue <ArrowRight size={18} aria-hidden="true" />
-              </button>
-            ) : formula.primaryGroup ? (
-              <Link
-                to="/"
-                search={stratosphereSearch(formula.primaryGroup)}
-                className="garden-primary"
-              >
-                {formula.primaryLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            ) : studio ? (
-              <Link to="/" search={{ view: "studio" }} className="garden-primary">
-                {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            ) : (
-              <Link
-                to={destinations[step.action as keyof typeof destinations]}
-                className="garden-primary"
-              >
-                {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            )}
-            {!isGoal && index < GARDEN_STEPS.length - 1 && (
-              <button
-                className="garden-text-action"
-                type="button"
-                onClick={() => visit(GARDEN_STEPS[index + 1]!.id)}
-              >
-                Visit next stop <ArrowRight size={16} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          {!isGoal && (
+            <div className="garden-actions">
+              {formula.primaryGroup || studio ? (
+                <GardenStudioAction
+                  key={openBriefDesign ?? step.id}
+                  designId={openBriefDesign}
+                  group={formula.primaryGroup}
+                  start={preferences.goal}
+                  className="garden-primary"
+                >
+                  {formula.primaryLabel ?? step.actionLabel}{" "}
+                  <ArrowRight size={18} aria-hidden="true" />
+                </GardenStudioAction>
+              ) : (
+                <Link
+                  to={destinations[step.action as keyof typeof destinations]}
+                  className="garden-primary"
+                >
+                  {step.actionLabel} <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              )}
+              {index < GARDEN_STEPS.length - 1 && (
+                <button
+                  className="garden-text-action"
+                  type="button"
+                  onClick={() => visit(GARDEN_STEPS[index + 1]!.id)}
+                >
+                  Visit next stop <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          )}
           {formula.details && (
             <nav className="garden-detail-links" aria-label="Other craft details">
               <span>Then explore</span>
               {formula.details.map((detail) => (
-                <Link
+                <GardenStudioAction
                   key={detail.group}
-                  to="/"
-                  search={stratosphereSearch(detail.group)}
+                  designId={openBriefDesign}
+                  group={detail.group}
                   className="garden-text-action"
                 >
                   {detail.label}
-                </Link>
+                </GardenStudioAction>
               ))}
             </nav>
           )}

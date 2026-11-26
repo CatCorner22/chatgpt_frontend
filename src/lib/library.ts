@@ -1,5 +1,5 @@
 import { focusLocalStorage } from "@/lib/browser-storage";
-import { normalizeTokens, type Tokens, type Content } from "./design";
+import { normalizeTokens, questionCount, type Tokens, type Content } from "./design";
 import { assertRestorableStudioState, readStudioRecoveries } from "./studio-recovery";
 import { migrate as migrateStudioState, type State as StudioState } from "./studio-state";
 
@@ -191,6 +191,11 @@ export function writeLibrary(
   if (storage.getItem(LIBRARY_KEY) !== raw)
     throw new Error("Your saved library changed. Try saving again; no designs were replaced.");
   storage.setItem(LIBRARY_KEY, next);
+  const retained = storage.getItem(LIBRARY_KEY);
+  if (retained !== next) {
+    if (retained !== raw) throw new LibraryChangedError();
+    throw new Error("The library change could not be saved in this browser.");
+  }
   return next;
 }
 
@@ -210,7 +215,7 @@ export function undoLibraryChange(
 
 /** Plain "where you left off" wording for a saved design, honoring the short version. */
 export function resumeLabel(state: Record<string, unknown>): string {
-  const total = state["quick"] === true ? 3 : 8;
+  const total = questionCount(state["quick"] === true);
   const picks = Array.isArray(state["picks"]) ? state["picks"].length : 0;
   if (state["stage"] === "rx") return "Open its Vision";
   if (state["stage"] === "review" || picks >= total) return "Review its answers";
@@ -218,6 +223,17 @@ export function resumeLabel(state: Record<string, unknown>): string {
   return `Continue at question ${at} of ${total}`;
 }
 
+function sortFields(_key: string, value: unknown): unknown {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+    : value;
+}
+
+/** An independently edited library original must survive a layout change or checkpoint restore. */
+export function libraryMatchesDraft(entry: LibraryEntry, draft: StudioState): boolean {
+  const saved = migrateStudioState({ ...entry.state, libraryId: entry.id });
+  return JSON.stringify(saved, sortFields) === JSON.stringify({ ...draft, cache: {} }, sortFields);
+}
 const look = (state: LibraryState) => {
   // Opening an older save adds defaults without editing the page. Compare the
   // same migrated state that the Studio renders before creating a revision.
@@ -233,10 +249,7 @@ const look = (state: LibraryState) => {
       s["direction"],
       s.integration,
     ],
-    (_key, value: unknown) =>
-      value && typeof value === "object" && !Array.isArray(value)
-        ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
-        : value,
+    sortFields,
   );
 };
 const answersOf = (s: LibraryState) => (Array.isArray(s["picks"]) ? s["picks"].length : 0);
@@ -248,8 +261,10 @@ function nextVersions(prior: LibraryEntry | undefined, _at: string): LibraryVers
 export function withVersion(list: LibraryEntry[], state: LibraryState, at: string): LibraryEntry[] {
   const prior = list.find((e) => e.id === state.libraryId);
   const next = archiveDesign(list, state, at);
-  if (!prior || look(prior.state) === look(state)) return next;
-  const wordsOnly = look({ ...state, content: prior.state.content }) === look(prior.state);
+  if (!prior) return next;
+  const previousLook = look(prior.state);
+  if (previousLook === look(state)) return next;
+  const wordsOnly = look({ ...state, content: prior.state.content }) === previousLook;
   const elapsed = Date.parse(at) - Date.parse(prior.updated);
   // Keep the start of a typing burst rather than evicting useful versions per keystroke.
   if (
@@ -275,6 +290,63 @@ export function withVersion(list: LibraryEntry[], state: LibraryState, at: strin
       : e,
   );
 }
+/** Opening one library entry keeps edits and autosave within the selected design.
+ * Older duplicates can have source-project identities in their Studio timeline.
+ * An ordinary live workspace can still undo a switch between designs.
+ */
+export function openLibraryDesign(entry: LibraryEntry): StudioState {
+  const current = migrateStudioState({ ...entry.state, libraryId: entry.id });
+  const ownStep = (step: StudioState["past"][number]) => {
+    if (step.libraryId === entry.id && step.projectId === current.projectId) return step;
+    if (!step.libraryId && !step.tokens && !step.content && !step.projectId && !step.savedHash)
+      return step;
+    return { ...step, libraryId: entry.id, projectId: current.projectId, savedHash: null };
+  };
+  return { ...current, past: current.past.map(ownStep), future: current.future.map(ownStep) };
+}
+
+function detachedState(input: Record<string, unknown>, id: string): Record<string, unknown> {
+  return {
+    ...input,
+    libraryId: id,
+    projectId: null,
+    savedHash: null,
+    cache: {},
+    ...(Array.isArray(input["past"])
+      ? { past: input["past"].map((item) => detachedState(item, id)) }
+      : {}),
+    ...(Array.isArray(input["future"])
+      ? { future: input["future"].map((item) => detachedState(item, id)) }
+      : {}),
+  };
+}
+
+/** Preserve both branches when the active workspace and its saved design have independently changed. */
+export function retainDraftIdentity(state: StudioState, entries: LibraryEntry[]): StudioState {
+  const saved = entries.find((entry) => entry.id === state.libraryId);
+  if (!saved || libraryMatchesDraft(saved, state)) return state;
+  const id = crypto.randomUUID();
+  if (entries.some((entry) => entry.id === id))
+    throw new Error("A saved design already uses this identifier.");
+  return migrateStudioState({ ...detachedState(state, id), cache: state.cache });
+}
+
+/** Detach a copied design and its histories from the source account and export receipts. */
+export function detachedLibraryEntry(entry: LibraryEntry, id = entry.id): LibraryEntry {
+  return {
+    ...entry,
+    id,
+    state: detachedState(entry.state, id) as LibraryState,
+    ...(entry.versions
+      ? {
+          versions: entry.versions.map((version) => ({
+            ...version,
+            state: detachedState(version.state, id) as LibraryState,
+          })),
+        }
+      : {}),
+  };
+}
 export function duplicateDesign(
   list: LibraryEntry[],
   id: string,
@@ -286,14 +358,11 @@ export function duplicateDesign(
   return [
     ...list,
     {
-      ...src,
-      id: newId,
+      ...detachedLibraryEntry({ ...src, versions: [] }, newId),
       title: `Copy of ${src.title}`.slice(0, 120),
       favorite: false,
       created: at,
       updated: at,
-      versions: [],
-      state: { ...src.state, libraryId: newId, projectId: null, savedHash: null },
     },
   ];
 }
@@ -311,7 +380,12 @@ export function restoreVersion(
     ...(e.versions ?? []).filter((_, i) => i !== index),
     { at: e.updated, label: "Before restoring", state: e.state },
   ].slice(-VERSION_LIMIT);
-  return list.map((x) =>
-    x.id === id ? { ...x, updated: at, state: { ...v.state, libraryId: id }, versions } : x,
-  );
+  // A version restores design work. Its old account link and receipt may belong to a parent copy.
+  const state = {
+    ...v.state,
+    libraryId: id,
+    projectId: e.state["projectId"] ?? null,
+    savedHash: null,
+  };
+  return list.map((x) => (x.id === id ? { ...x, updated: at, state, versions } : x));
 }

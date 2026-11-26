@@ -55,6 +55,22 @@ export const qualityDimensions = [
 ] as const;
 
 const id = z.string().trim().min(1).max(120);
+export const bookingProtocol = "river-kiln-lost-confirmation-v1" as const;
+export const bookingObservationSchema = z
+  .object({
+    firstResponse: z
+      .enum(["lost-confirmation", "confirmed", "blocked", "no-submission"])
+      .nullable(),
+    firstClass: z.enum(["wheel", "glaze", "no-submission"]).nullable(),
+    statedDollars: z.number().min(0).max(1_000_000).multipleOf(0.01).nullable(),
+    helpUsed: z.boolean().nullable(),
+    elapsedSeconds: z.number().int().min(0).max(86_400).nullable(),
+    recovery: z.enum(["recovered", "blocked", "not-seen"]).nullable(),
+    savedReservations: z.number().int().min(0).max(250).nullable(),
+  })
+  .strict();
+export type BookingObservation = z.infer<typeof bookingObservationSchema>;
+
 export const benchmarkTaskSchema = z
   .object({
     id,
@@ -63,6 +79,7 @@ export const benchmarkTaskSchema = z
     brief: z.string().min(1).max(8000),
     task: z.string().min(1).max(2000),
     successCriterion: z.string().min(1).max(2000),
+    observationProtocol: z.literal(bookingProtocol).optional(),
     viewport: z
       .object({
         width: z.number().int().min(320).max(3840),
@@ -131,7 +148,14 @@ export const reviewerPacketSchema = z
         } catch {
           /* Keep malformed text as data. */
         }
-        if (sourceCue.test(visible))
+        const bookingCue =
+          packet.tasks.some(
+            (task) => task.id === sample.taskId && task.observationProtocol === bookingProtocol,
+          ) &&
+          /(?:^|[^a-z])(?:one[-_ ]?shot|guided|expert|original|redesigned)(?:$|[^a-z])/i.test(
+            visible,
+          );
+        if (sourceCue.test(visible) || bookingCue)
           ctx.addIssue({
             code: "custom",
             path: ["samples", index, field],
@@ -162,6 +186,7 @@ export const blindEvaluationSchema = z
       })
       .strict(),
     note: z.string().max(4000).default(""),
+    bookingObservation: bookingObservationSchema.optional(),
   })
   .strict();
 export type BlindEvaluation = z.infer<typeof blindEvaluationSchema>;

@@ -6,18 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { hasCloudBackend } from "@/lib/runtime-config";
+import { socialHead } from "./-social-head";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({
-    meta: [
-      { title: "Choose a new password — Focus" },
-      { name: "description", content: "Set a new password for your Focus account." },
-      { property: "og:title", content: "Choose a new password — Focus" },
-      { property: "og:description", content: "Set a new password for your Focus account." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    socialHead({
+      title: "Choose a new password — Focus",
+      description: "Set a new password for your Focus account.",
+    }),
   component: Reset,
 });
 

@@ -28,16 +28,12 @@ import {
   type ProgressRecord,
   type ReviewEvidence,
 } from "@/lib/launch";
+import { pngAsset, stubImageDecode } from "./image-asset.fixture";
 
 const defaultFraming = { fit: "cover", position: "center", narrowPosition: "same" } as const;
 const leftFraming = { fit: "cover", position: "left", narrowPosition: "top" } as const;
 const rightFraming = { fit: "contain", position: "bottom-right", narrowPosition: "right" } as const;
-const imageBytes = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6XD8AAAAASUVORK5CYII=",
-  "base64",
-);
-const imageId = createHash("sha256").update(imageBytes).digest("hex");
-const imageData = `data:image/png;base64,${imageBytes.toString("base64")}`;
+const { id: imageId, src: imageData } = pngAsset();
 const imageKey = `focus:page-image:${imageId}`;
 const tokens = normalizeTokens({ bg: "#f7fbff", accent: "#245cd6" });
 const content = {
@@ -99,19 +95,7 @@ function memoryStore(initial: Record<string, string> = {}) {
 
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
-  // Transfer runs real MIME/hash validation. Raster decode is stubbed in this persistence test.
-  vi.stubGlobal(
-    "Image",
-    class {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      naturalWidth = 1;
-      naturalHeight = 1;
-      set src(_value: string) {
-        queueMicrotask(() => this.onload?.());
-      }
-    },
-  );
+  stubImageDecode();
 });
 afterEach(() => vi.unstubAllGlobals());
 

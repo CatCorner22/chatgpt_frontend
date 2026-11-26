@@ -332,6 +332,34 @@ describe("Stratosphere transitions", () => {
 });
 
 describe("Stratosphere graph and output boundaries", () => {
+  it("traces a Japanese language selection only to authored website output", () => {
+    const current = input();
+    const languageOutput = (graph: ReturnType<typeof deriveStratosphereGraph>) =>
+      graph.nodes.find((node) => node.id === "output:page-language");
+    expect(languageOutput(deriveStratosphereGraph(current))).toBeUndefined();
+
+    current.page.language = "ja";
+    const website = deriveStratosphereGraph(current);
+    expect(website.snapshot.page.language).toBe("ja");
+    expect(languageOutput(website)).toMatchObject({
+      available: true,
+      value: expect.stringContaining("Japanese (ja)"),
+    });
+    expect(website.edges.find((edge) => edge.id === "profile-page-language")).toMatchObject({
+      to: "output:page-language",
+      fields: expect.arrayContaining(["page.language"]),
+      blocked: false,
+    });
+    for (const other of [
+      { ...current, integration: "existing" as const },
+      { ...current, purpose: { ...current.purpose, experience: "app" as const } },
+    ]) {
+      const graph = deriveStratosphereGraph(other);
+      expect(languageOutput(graph)?.available).toBe(false);
+      expect(graph.edges.find((edge) => edge.id === "profile-page-language")?.blocked).toBe(true);
+    }
+  });
+
   it("describes default authored image framing without treating an image reference as verified bytes", () => {
     const current = input();
     current.page.imageId = "a".repeat(64);

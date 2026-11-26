@@ -198,7 +198,10 @@ export function readProgress() {
   return parseProgress(focusLocalStorage.getItem(PROGRESS_KEY));
 }
 export function writeProgress(records: ProgressRecord[]) {
-  focusLocalStorage.setItem(PROGRESS_KEY, JSON.stringify({ version: 1, records }));
+  const raw = JSON.stringify({ version: 1, records });
+  focusLocalStorage.setItem(PROGRESS_KEY, raw);
+  if (focusLocalStorage.getItem(PROGRESS_KEY) !== raw)
+    throw new Error("Could not confirm the saved launch progress.");
 }
 export function weeklyTotals(records: ProgressRecord[], now: string) {
   const date = new Date(now);

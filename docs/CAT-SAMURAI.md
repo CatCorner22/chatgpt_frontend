@@ -10,7 +10,8 @@ The experience should be playful and fun, cute and engaging, calm and magnetic. 
 
 - Keep Reverie and the Garden Path. Let a clear next action, useful feedback, and a predictable sequence make the experience intuitive.
 - Use crisp white, cool mist, forest green, coral accents, and a blue-green river. Preserve Reverie’s approved cream-and-ginger identity. Open space should organize meaningful content, not replace personality.
-- Put essential instructions first. Make deeper explanations and tradeoffs easy to reveal and reliably hide. Remember preferences without risking project data.
+- Keep both reading choices. “Keep it brief” gives the next action. Turning it off reveals the lessons, examples and tradeoffs. Remember the choice across visits and preserve the same design and export in either mode.
+- Protect Blake’s gallery originals, including Smoky Mountain Autumn with its warm mountain palette and literary typefaces. The gallery can grow. A customer can make and change a personal copy.
 - Keep advanced capabilities accessible without making every tool compete for attention.
 - Preserve customer behavior, data, and existing work. Validate inputs, contain failures, verify saves, keep changes reviewable, and demonstrate recovery before customer release.
 - Test actual user tasks and failure states. Be precise about what was measured, what was inspected in a browser, and what remains unverified. A visited step or exported file is not a tested or deployed redesign.

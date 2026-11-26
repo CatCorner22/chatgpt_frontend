@@ -1,15 +1,20 @@
 import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { BookingRehearsalDownload } from "@/components/BookingRehearsalDownload";
 import { BrandLogo } from "@/components/BrandArt";
 import { LazySourceTrialPanel } from "@/components/LazySourceTrialPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { downloadBlob } from "@/lib/exportPack";
+import { GardenJourneySummary } from "@/components/GardenJourneySummary";
+import { readGardenJourney, type GardenJourney } from "@/lib/garden-journey";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { useDraftExitSave } from "@/hooks/useDraftExitSave";
 import type { LibraryEntry } from "@/lib/library";
+import { savedDesignOptions } from "@/lib/saved-design-options";
 import {
   EMPTY_TARGET_DRAFT,
   TARGET_LIMITS,
@@ -52,6 +57,8 @@ const PLATFORM_LABELS = {
 const fieldClass =
   "mt-2 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base leading-relaxed shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+class TargetDraftChangedError extends Error {}
+
 export function Target() {
   const [draft, setDraft] = useState<TargetDraft>({ ...EMPTY_TARGET_DRAFT });
   const [entries, setEntries] = useState<LibraryEntry[]>([]);
@@ -60,8 +67,10 @@ export function Target() {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<TargetStep>(0);
   const [furthest, setFurthest] = useState(0);
-  const [savedContent, setSavedContent] = useState("");
+  const [unsaved, setUnsaved] = useState(false);
+  const latestDraft = useRef({ value: EMPTY_TARGET_DRAFT, pending: false });
   const [saveError, setSaveError] = useState("");
+  const [draftChanged, setDraftChanged] = useState(false);
   const [issues, setIssues] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [prepared, setPrepared] = useState(false);
@@ -73,6 +82,11 @@ export function Target() {
   const [pendingRestore, setPendingRestore] = useState<ReturnType<typeof readTargetDraft> | null>(
     null,
   );
+  const [attachedJourney, setAttachedJourney] = useState<{
+    brief: GardenJourney;
+    raw: string;
+  } | null>(null);
+  const [journeyMessage, setJourneyMessage] = useState("");
   const [sourceOpen, setSourceOpen] = useState(false);
   const sourceEpoch = useRef(0);
   const savedRaw = useRef<string | null>(null);
@@ -82,24 +96,27 @@ export function Target() {
   const generation = useRef(0);
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const errorSummary = useRef<HTMLDivElement>(null);
-  const content = JSON.stringify(draft);
   const moveToStep = (nextStep: TargetStep) => {
+    if (nextStep === step) return;
+    // Leaving review clears the optional brief and ends the download it was attached to.
+    generation.current++;
+    setBusy(false);
+    setPrepared(false);
+    setStatus("");
     sourceEpoch.current++;
     setSourceOpen(false);
     setStep(nextStep);
+    setAttachedJourney(null);
+    setJourneyMessage("");
   };
-  const unsaved = ready && content !== savedContent;
-  const blocker = useBlocker({
-    shouldBlockFn: () => unsaved,
-    enableBeforeUnload: unsaved,
-    withResolver: true,
-  });
   const invalidatePendingWork = useCallback(() => {
     generation.current++;
     revision.current++;
   }, []);
 
   const loadLibrary = useCallback(() => {
+    setAttachedJourney(null);
+    setJourneyMessage("");
     const result = readTargetLibrary();
     if (result.issue === null || result.entries.length > 0) setEntries(result.entries);
     setLibraryIssue(result.issue);
@@ -116,7 +133,8 @@ export function Target() {
     const snapshot = readTargetDraft();
     const initial = snapshot.draft ?? { ...EMPTY_TARGET_DRAFT };
     setDraft(initial);
-    setSavedContent(JSON.stringify(initial));
+    latestDraft.current = { value: initial, pending: false };
+    setUnsaved(false);
     savedRaw.current = snapshot.raw;
     damagedRaw.current = snapshot.issue === "invalid" ? snapshot.raw : null;
     setDraftIssue(snapshot.issue);
@@ -128,20 +146,28 @@ export function Target() {
   }, [loadLibrary, invalidatePendingWork]);
 
   const saveDraft = useCallback(() => {
-    if (!ready || draftIssue) return;
+    if (!latestDraft.current.pending) return true;
+    if (!ready || draftIssue) return false;
     try {
-      savedRaw.current = writeTargetDraft(draft, savedRaw.current);
-      setSavedContent(JSON.stringify(draft));
+      savedRaw.current = writeTargetDraft(latestDraft.current.value, savedRaw.current);
+      latestDraft.current.pending = false;
+      setUnsaved(false);
       setSaveError("");
+      return true;
     } catch (cause) {
+      setUnsaved(true);
       setSaveError(
         cause instanceof Error ? cause.message : "Your answers could not be saved in this browser.",
       );
+      return false;
     }
-  }, [draft, draftIssue, ready]);
-  useEffect(() => {
-    if (unsaved && !draftIssue) saveDraft();
-  }, [unsaved, draftIssue, saveDraft]);
+  }, [draftIssue, ready]);
+  useDraftExitSave(saveDraft, { handlesRouter: true });
+  const blocker = useBlocker({
+    shouldBlockFn: () => !saveDraft(),
+    enableBeforeUnload: false,
+    withResolver: true,
+  });
   useEffect(() => {
     if (ready) stepHeading.current?.focus();
   }, [step, ready]);
@@ -149,10 +175,14 @@ export function Target() {
     if (issues.length) errorSummary.current?.focus();
   }, [issues]);
 
-  const change = <K extends keyof TargetDraft>(key: K, value: TargetDraft[K]) => {
+  const change = (patch: Partial<TargetDraft>) => {
     revision.current++;
     generation.current++;
-    setDraft((current) => ({ ...current, [key]: value }));
+    const next = { ...latestDraft.current.value, ...patch };
+    latestDraft.current = { value: next, pending: true };
+    setDraft(next);
+    setUnsaved(true);
+    saveDraft();
     setBusy(false);
     setPrepared(false);
     setStatus("");
@@ -160,6 +190,8 @@ export function Target() {
     setCopied("");
     setIssues([]);
   };
+  const designOptions = useMemo(() => savedDesignOptions(entries), [entries]);
+  const selectedLabel = designOptions.find(({ id }) => id === draft.designId)?.title;
   const selected = entries.find((entry) => entry.id === draft.designId);
   const allIssues = targetStepIssues(draft, 3, entries);
   const prompts = selected && allIssues.length === 0 ? targetPrompts(draft, selected) : [];
@@ -170,7 +202,12 @@ export function Target() {
   const capturePreparationContext = () => {
     if (!selected || allIssues.length)
       throw new Error("Complete the trial plan and choose a saved design before preparing files.");
-    const owner = getBrowserOwnerId();
+    let owner: string | null;
+    try {
+      owner = getBrowserOwnerId();
+    } catch {
+      throw new Error("Your session needs verification. Reload before preparing the handoff.");
+    }
     const entrySnapshot = JSON.stringify(selected);
     const expectedDraft = savedRaw.current;
     const expectedRevision = revision.current;
@@ -201,7 +238,7 @@ export function Target() {
           "Your session or saved answers could not be rechecked. Keep this tab open and retry after access is restored.",
         );
       if (savedRaw.current !== expectedDraft || currentDraft.raw !== expectedDraft)
-        throw new Error(
+        throw new TargetDraftChangedError(
           "Saved Target answers changed in another tab. Reload the saved answers or keep a copy of your current answers before retrying.",
         );
     };
@@ -257,11 +294,17 @@ export function Target() {
     revision.current++;
     generation.current++;
     const restored = snapshot.draft ?? { ...EMPTY_TARGET_DRAFT };
+    setAttachedJourney(null);
+    setJourneyMessage("");
     setDraft(restored);
     savedRaw.current = snapshot.raw;
-    setSavedContent(JSON.stringify(restored));
+    latestDraft.current = { value: restored, pending: false };
+    setUnsaved(false);
     damagedRaw.current = null;
     setDraftIssue(null);
+    setDraftChanged(false);
+    setCopied("");
+    setCopyStatus("");
     setSaveError("");
     setPendingRestore(null);
     setBusy(false);
@@ -292,60 +335,34 @@ export function Target() {
   };
   const copyPrompt = async (id: string, text: string) => {
     if (!mounted.current || copyPending.current) return;
-    let owner: string | null;
-    try {
-      owner = getBrowserOwnerId();
-    } catch {
-      setCopied("");
-      setCopyStatus("Your session needs verification. Reload before copying a prompt.");
-      return;
-    }
     copyPending.current = true;
     const current = revision.current;
-    const expectedPreparation = preparationKey;
-    const expectedEntry = JSON.stringify(selected);
-    const contextMatches = () => {
-      try {
-        const library = readTargetLibrary();
-        return (
-          getBrowserOwnerId() === owner &&
-          latestPreparation.current === expectedPreparation &&
-          library.issue !== "unavailable" &&
-          !!selected &&
-          JSON.stringify(library.entries.find((entry) => entry.id === selected.id)) ===
-            expectedEntry
-        );
-      } catch {
-        return false;
-      }
-    };
     setCopied("");
     setCopying(id);
     setCopyStatus("Copying prompt… You can also select the prompt text and copy it manually.");
+    let clipboardWritten = false;
     try {
-      if (!contextMatches()) {
-        setCopyStatus(
-          "The selected design changed or could not be checked. Reload designs and review the plan before copying.",
-        );
+      const verify = capturePreparationContext();
+      try {
+        await navigator.clipboard.writeText(text);
+        clipboardWritten = true;
+      } catch {
+        if (mounted.current && revision.current === current)
+          setCopyStatus(
+            "Could not copy automatically. Select the prompt text below and copy it yourself.",
+          );
         return;
       }
-      await navigator.clipboard.writeText(text);
-      if (mounted.current && revision.current === current) {
-        if (!contextMatches()) {
-          setCopyStatus(
-            "Your account or selected design changed or could not be checked. Do not use the copied prompt. Reload designs and review the plan before copying again.",
-          );
-          return;
-        }
-        setCopied(id);
-        setCopyStatus("Prompt copied. Paste it into your own developer tool when you are ready.");
-      }
-    } catch {
-      if (mounted.current && revision.current === current) {
-        setCopied("");
-        setCopyStatus(
-          "Could not copy automatically. Select the prompt text below and copy it yourself.",
-        );
+      if (!mounted.current) return;
+      verify();
+      setCopied(id);
+      setCopyStatus("Prompt copied. Paste it into your own developer tool when you are ready.");
+    } catch (cause) {
+      if (mounted.current) {
+        if (cause instanceof TargetDraftChangedError) setDraftChanged(true);
+        const message =
+          cause instanceof Error ? cause.message : "Review the plan before copying again.";
+        setCopyStatus(clipboardWritten ? `Do not use the copied prompt. ${message}` : message);
       }
     } finally {
       copyPending.current = false;
@@ -367,10 +384,20 @@ export function Target() {
     setIssues([]);
     try {
       const verifySources = capturePreparationContext();
-      const blob = await prepareTargetPack(draftSnapshot, selected);
+      const verifyJourney = () => {
+        if (attachedJourney && readGardenJourney(selected.id).raw !== attachedJourney.raw)
+          throw new Error(
+            "Your Garden brief changed. Remove it and add the current copy before preparing this ZIP.",
+          );
+      };
+      verifyJourney();
+      const blob = attachedJourney
+        ? await prepareTargetPack(draftSnapshot, selected, attachedJourney.brief)
+        : await prepareTargetPack(draftSnapshot, selected);
       if (!mounted.current || generation.current !== job || revision.current !== draftRevision)
         return;
       verifySources();
+      verifyJourney();
       downloadBlob(
         blob,
         draftSnapshot.integration === "existing"
@@ -383,6 +410,7 @@ export function Target() {
       );
     } catch (cause) {
       if (mounted.current && generation.current === job) {
+        if (cause instanceof TargetDraftChangedError) setDraftChanged(true);
         setIssues([
           cause instanceof Error
             ? cause.message
@@ -413,6 +441,7 @@ export function Target() {
           </div>
           <BrandLogo variant="target" decorative />
         </header>
+        <BookingRehearsalDownload />
 
         {!ready ? (
           <p role="status" className="py-8">
@@ -543,11 +572,11 @@ export function Target() {
                         id="target-design"
                         value={draft.designId}
                         className={fieldClass}
-                        onChange={(event) => change("designId", event.target.value)}
+                        onChange={(event) => change({ designId: event.target.value })}
                         required
                       >
                         <option value="">Choose a saved design</option>
-                        {entries.map((entry) => (
+                        {designOptions.map((entry) => (
                           <option key={entry.id} value={entry.id}>
                             {entry.title}
                           </option>
@@ -608,7 +637,7 @@ export function Target() {
                             name="target-integration"
                             checked={draft.integration === value}
                             value={value}
-                            onChange={() => change("integration", value)}
+                            onChange={() => change({ integration: value })}
                             className="mt-1"
                           />
                           <span>
@@ -627,7 +656,7 @@ export function Target() {
                         className={fieldClass}
                         value={draft.platform}
                         onChange={(event) =>
-                          change("platform", event.target.value as TargetDraft["platform"])
+                          change({ platform: event.target.value as TargetDraft["platform"] })
                         }
                       >
                         {Object.entries(PLATFORM_LABELS).map(([value, label]) => (
@@ -653,6 +682,48 @@ export function Target() {
                       A small, specific trial is easier to compare, test and undo. Describe the
                       intended result in your own words.
                     </p>
+                    {selected && (!draft.improvement || !draft.tasks) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            const { brief } = readGardenJourney(selected.id);
+                            if (!brief || brief.goal !== draft.integration)
+                              throw new Error(
+                                "Open a Garden brief for this design and starting point, or enter your answers below.",
+                              );
+                            const copyGoal = !draft.improvement && !!brief.task.trim();
+                            const copyPreserve = !draft.tasks && !!brief.preserve.trim();
+                            if (!copyGoal && !copyPreserve)
+                              throw new Error(
+                                "This brief has no answers to add to the empty fields.",
+                              );
+                            if (copyGoal || copyPreserve)
+                              change({
+                                ...(copyGoal ? { improvement: brief.task } : {}),
+                                ...(copyPreserve ? { tasks: brief.preserve } : {}),
+                              });
+                            setJourneyMessage(
+                              "Garden answers added. Review them here before continuing.",
+                            );
+                          } catch (cause) {
+                            setJourneyMessage(
+                              cause instanceof Error
+                                ? cause.message
+                                : "Your Garden brief could not be read.",
+                            );
+                          }
+                        }}
+                      >
+                        Fill empty answers from my Garden brief
+                      </Button>
+                    )}
+                    {journeyMessage && (
+                      <p role="status" className="text-sm">
+                        {journeyMessage}
+                      </p>
+                    )}
                     <div>
                       <label htmlFor="target-page" className="font-medium">
                         Which page or screen will you start with?
@@ -662,7 +733,7 @@ export function Target() {
                         className="mt-2"
                         value={draft.page}
                         maxLength={TARGET_LIMITS.page}
-                        onChange={(event) => change("page", event.target.value)}
+                        onChange={(event) => change({ page: event.target.value })}
                         placeholder="For example: the appointment booking page"
                         required
                       />
@@ -677,7 +748,7 @@ export function Target() {
                         rows={3}
                         value={draft.improvement}
                         maxLength={TARGET_LIMITS.improvement}
-                        onChange={(event) => change("improvement", event.target.value)}
+                        onChange={(event) => change({ improvement: event.target.value })}
                         placeholder="For example: make the available times easier to scan without changing how booking works."
                         required
                       />
@@ -692,7 +763,7 @@ export function Target() {
                         rows={4}
                         value={draft.tasks}
                         maxLength={TARGET_LIMITS.tasks}
-                        onChange={(event) => change("tasks", event.target.value)}
+                        onChange={(event) => change({ tasks: event.target.value })}
                         placeholder="List the important journeys, such as choosing a time, correcting an error and receiving a booking confirmation."
                         required
                       />
@@ -722,7 +793,7 @@ export function Target() {
                         rows={3}
                         value={draft.backup}
                         maxLength={TARGET_LIMITS.backup}
-                        onChange={(event) => change("backup", event.target.value)}
+                        onChange={(event) => change({ backup: event.target.value })}
                         required
                       />
                       <p className="mt-2 text-sm text-muted-foreground">
@@ -741,7 +812,7 @@ export function Target() {
                         rows={3}
                         value={draft.preview}
                         maxLength={TARGET_LIMITS.preview}
-                        onChange={(event) => change("preview", event.target.value)}
+                        onChange={(event) => change({ preview: event.target.value })}
                         placeholder="Name the separate branch or copy and the local or staging preview. Use test data and sandbox services."
                         required
                       />
@@ -761,7 +832,7 @@ export function Target() {
                         rows={3}
                         value={draft.rollback}
                         maxLength={TARGET_LIMITS.rollback}
-                        onChange={(event) => change("rollback", event.target.value)}
+                        onChange={(event) => change({ rollback: event.target.value })}
                         placeholder="For example: remove only the trial stylesheet imports and restore only the styling changes from the protected revision."
                         required
                       />
@@ -791,6 +862,58 @@ export function Target() {
                           : "Your ZIP is a design specification and starter styling for a new, empty project. It is not a finished app; behavior, data, accessibility and deployment still need implementation and testing."}
                       </p>
                     </div>
+                    {selected && (
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => {
+                            setPrepared(false);
+                            setStatus("");
+                            setIssues([]);
+                            if (attachedJourney) {
+                              setAttachedJourney(null);
+                              setJourneyMessage("Journey brief removed from this ZIP.");
+                              return;
+                            }
+                            try {
+                              const { brief, raw } = readGardenJourney(selected.id);
+                              if (!brief || raw === null)
+                                throw new Error(
+                                  "This design has no saved Garden brief. Open My journey brief on the Garden Path, then select this design.",
+                                );
+                              if (brief.goal !== draft.integration)
+                                throw new Error(
+                                  "This brief uses a different project starting point. Check the design and starting point first.",
+                                );
+                              setAttachedJourney({ brief, raw });
+                              setJourneyMessage(
+                                "Your Garden choices and checks will be included in DESIGN.md.",
+                              );
+                            } catch (cause) {
+                              setJourneyMessage(
+                                cause instanceof Error
+                                  ? cause.message
+                                  : "Your Garden brief could not be read.",
+                              );
+                            }
+                          }}
+                        >
+                          {attachedJourney ? "Remove Garden brief" : "Include my Garden brief"}
+                        </Button>
+                        {journeyMessage && (
+                          <p role="status" className="text-sm">
+                            {journeyMessage}
+                          </p>
+                        )}
+                        {attachedJourney && (
+                          <details className="text-sm">
+                            <summary>Review the included brief</summary>
+                            <GardenJourneySummary brief={attachedJourney.brief} />
+                          </details>
+                        )}
+                      </div>
+                    )}
                     <dl className="space-y-4 border-y border-border py-5 text-sm">
                       {[
                         ["Trial page", draft.page],
@@ -825,6 +948,11 @@ export function Target() {
                       {!draftIssue && !saveError && (
                         <Button variant="outline" onClick={() => downloadAnswers()}>
                           Download these answers
+                        </Button>
+                      )}
+                      {draftChanged && !draftIssue && !saveError && (
+                        <Button variant="outline" onClick={reloadDraft}>
+                          Reload saved answers
                         </Button>
                       )}
                       {busy && (
@@ -869,6 +997,10 @@ export function Target() {
                               design={{ id: selected.id, tokens: selected.state.tokens }}
                               designTitle={selected.title}
                               draft={draft}
+                              gardenComparison={
+                                attachedJourney?.brief.decisions["plan"]?.choice ===
+                                "compare-options"
+                              }
                               captureContext={captureSourceContext}
                             />
                           )}
@@ -956,7 +1088,7 @@ export function Target() {
               >
                 <p className="eyebrow">Your trial</p>
                 <p className="font-display text-2xl break-words">
-                  {selected?.title || "Choose your Vision"}
+                  {selectedLabel || "Choose your Vision"}
                 </p>
                 {selected && (
                   <div

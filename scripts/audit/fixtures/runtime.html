@@ -16,6 +16,10 @@
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
     #moving-marker { width: 24px; height: 24px; margin: 20px; border-radius: 50%; background: #264c40; animation: move 2s linear infinite; }
     @keyframes move { to { transform: translateX(40px); } }
+    @media (min-width: 761px) and (max-width: 765px) {
+      #details { width: 1200px; }
+      #toggle { display: none; }
+    }
     @media (forced-colors: active) { #forced-color-defect { display: none; } }
   </style>
 </head>

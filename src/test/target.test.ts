@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { normalizeTokens, type Content } from "@/lib/design";
+import { newGardenJourney } from "@/lib/garden-journey";
 import { createOwnerStorage } from "@/lib/browser-storage";
 import { LIBRARY_KEY, type LibraryEntry } from "@/lib/library";
 import {
@@ -219,6 +223,87 @@ describe("Target prepares a truthful trial handoff", () => {
     expect(localStorage.getItem(LIBRARY_KEY)).toBe(raw);
   });
 
+  it("carries the applied Comparison into new website guides and keeps existing-project controls", async () => {
+    const website = {
+      ...entry,
+      state: {
+        ...entry.state,
+        page: { composition: "comparison" },
+        purpose: { experience: "website" },
+        content: {
+          ...content,
+          features: [
+            { title: "Early class", body: "9 am · $29" },
+            { title: "Evening class", body: "7 pm · $34" },
+          ],
+        },
+      },
+    };
+    const next = complete({ integration: "new" });
+    const zip = await JSZip.loadAsync(await prepareTargetPack(next, website));
+    const guide = await zip.file("DESIGN.md")!.async("string");
+    expect(guide).toContain("Selected website layout: **Comparison**");
+    expect(guide).toContain("7 pm · $34");
+    expect(guide).toContain("use a single navigation link after the list");
+    expect(guide).not.toMatch(
+      /Main action visible on a 390x700 screen|one clear action per card|navigation and one action on the end side|First screen arrangement:/,
+    );
+    expect(
+      targetPrompts(next, website).find((prompt) => prompt.id === "implement")?.text,
+    ).toContain("Show the options together before the primary action");
+    const existing = complete({ integration: "existing" });
+    const restyle = await JSZip.loadAsync(await prepareTargetPack(existing, website));
+    const styleGuide = await restyle.file("focus-restyle/DESIGN.md")!.async("string");
+    expect(styleGuide).not.toContain("7 pm · $34");
+    expect(styleGuide).not.toContain("Selected website layout: **Comparison**");
+    expect(
+      targetPrompts(existing, website).find((prompt) => prompt.id === "implement")?.text,
+    ).toContain("Keep every existing word, image, route, link destination, control");
+  });
+
+  it("places the included restyle folder where the reminder and styles can be opened", async () => {
+    const draft = complete();
+    const zip = await JSZip.loadAsync(await prepareTargetPack(draft, entry));
+    const guides = await Promise.all(
+      ["START-HERE.md", "DESIGN.md", "FOCUS-RULES.md", "PROMPT-SHORT.md"].map((name) =>
+        zip.file(`focus-restyle/${name}`)!.async("string"),
+      ),
+    );
+    const implementation = targetPrompts(draft, entry).find((prompt) => prompt.id === "implement")!;
+    for (const guidance of [...guides, implementation.text]) {
+      expect(guidance).toContain("Extract the ZIP into an empty folder outside the project.");
+      expect(guidance).toContain(
+        "Copy the included focus-restyle folder into the isolated project root",
+      );
+    }
+
+    const temporary = await mkdtemp(join(tmpdir(), "focus-target-placement-"));
+    const staging = join(temporary, "unpacked");
+    const project = join(temporary, "customer");
+    try {
+      await mkdir(project);
+      for (const file of Object.values(zip.files).filter((file) => !file.dir)) {
+        const path = join(staging, file.name);
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, await file.async("nodebuffer"));
+      }
+      await cp(join(staging, "focus-restyle"), join(project, "focus-restyle"), { recursive: true });
+      const reminder = await readFile(join(project, "focus-restyle/ADD-TO-YOUR-RULES.md"), "utf8");
+      const documents = reminder.match(/focus-restyle\/[A-Z-]+\.md/g);
+      expect(documents).toEqual(["focus-restyle/FOCUS-RULES.md", "focus-restyle/DESIGN.md"]);
+      for (const path of [
+        ...documents!,
+        "focus-restyle/focus-tokens.css",
+        "focus-restyle/focus-bridge.css",
+      ])
+        expect(await readFile(join(project, path), "utf8")).toBe(
+          await zip.file(path)!.async("string"),
+        );
+    } finally {
+      await rm(temporary, { force: true, recursive: true });
+    }
+  });
+
   it("keeps owner-supplied HTML and Markdown as literal context", async () => {
     const zip = await JSZip.loadAsync(
       await prepareTargetPack(
@@ -278,6 +363,33 @@ describe("Target prepares a truthful trial handoff", () => {
     expect(zip.file("tokens.css")).not.toBeNull();
     expect(zip.file("focus-restyle/focus-tokens.css")).toBeNull();
   });
+
+  it.each(["react", "lovable", "wordpress", "choose"] as const)(
+    "lets a recipient follow a new %s handoff from an empty starting point through rollback",
+    async (platform) => {
+      const draft = complete({
+        integration: "new",
+        platform,
+        page: "First booking page",
+        improvement: "Make available dates easy to find",
+        tasks: "Select a date",
+        backup: "Empty separate trial project",
+        rollback: "Restore the empty baseline and keep later work",
+      });
+      const zip = await JSZip.loadAsync(await prepareTargetPack(draft, entry));
+      const guide = await zip.file("DESIGN.md")!.async("string");
+      const plan = guide.split("## Target — prepared trial plan")[1]!;
+      const prompts = targetPrompts(draft, entry);
+      for (const prompt of prompts) expect(plan).toContain(prompt.text);
+      expect(plan).not.toMatch(
+        /inspect the repository|a duplicate or isolated branch|use a staging copy|its existing styling and test setup|record the original page|use the existing project tooling|rerun the original visitor tasks/i,
+      );
+      expect(prompts.find(({ id }) => id === "rollback")?.text).toMatch(
+        /compare.*saved.*baseline/i,
+      );
+      expect(prompts.find(({ id }) => id === "test")?.text).toContain(draft.tasks);
+    },
+  );
 
   it("keeps the existing pack safety validator in the preparation path", async () => {
     const unreadable = {
@@ -341,5 +453,28 @@ describe("Target prepares a truthful trial handoff", () => {
     });
     expect(targetStepIssues(expanded, 3, [entry])).toEqual([]);
     await expect(prepareTargetPack(expanded, entry)).rejects.toThrow(/too long/);
+  });
+});
+
+describe("Target includes owner-selected Garden decisions", () => {
+  it("binds the brief to the exact saved design and goal, and preserves it inside the received ZIP", async () => {
+    const journey = {
+      ...newGardenJourney(entry.id, "existing"),
+      audience: "A new visitor",
+      task: "See <prices> & book",
+      decisions: {
+        plan: { choice: "scannable-sections", note: "Price and duration go together." },
+      },
+    };
+    const zip = await JSZip.loadAsync(await prepareTargetPack(complete(), entry, journey));
+    const md = await zip.file("focus-restyle/DESIGN.md")!.async("string");
+    const json = md.split("## Garden journey brief")[1]!.split("```json")[1]!.split("```")[0]!;
+    expect(JSON.parse(json).brief).toEqual(journey);
+    await expect(
+      prepareTargetPack(complete(), entry, { ...journey, designId: "other" }),
+    ).rejects.toThrow(/different design/);
+    await expect(prepareTargetPack(complete(), entry, { ...journey, goal: "new" })).rejects.toThrow(
+      /different design/,
+    );
   });
 });

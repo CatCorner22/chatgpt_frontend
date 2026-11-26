@@ -12,6 +12,12 @@ Open the private URL supplied by the workspace owner and sign in with your ChatG
 
 An online library is a saved copy, not live automatic synchronization. An unfinished studio draft, taste preferences, review sessions and unrelated browser settings are not included. Changes made after an online save need another save. Image upload, validation, or storage failure must be resolved before a complete backup can be saved.
 
+## Return to an unfinished draft
+
+Use Back or a navigation link when you need to leave. Focus retries outstanding draft writes when you leave and when the tab moves into the background. Open the same workspace in the same browser to resume. If storage is full or another tab has saved a conflicting change, stay on the page and keep a copy of your text before reloading. Use the online library backup to move saved designs to another device.
+
+The private study organizer and pasted Quality Lab source stay in their tab. Keep the source or download the organizer draft before closing. Participants using the offline review kit should download their answers before closing their tab.
+
 ## Continue on another device
 
 Sign in to the same account, open **My designs**, and choose **Restore online library**. This adds saved work to that browser and keeps its existing designs. Different versions sharing an identity become separate copies; an identical repeat restore does not duplicate designs. Open the restored design and check its words, image, composition and action destination.
@@ -45,7 +51,7 @@ Target prepares one validated ZIP containing your selected design's actual token
 
 Target has no writable GitHub or hosting connection. **Prepared for a trial** means the pack is ready to be tried; it does not mean a change was applied, a task passed, or a release was approved. Target answers remain in this browser and are not included in online library copies. Download the pack and keep your project test evidence separately.
 
-Use **Telescope** for a local built-file inventory and an exact-file receipt. Its files stay in the tab and are never executed or uploaded. Download its task plan before leaving. Use **Horizon** for previously recorded project progress; historical records do not certify the current app.
+Use **Telescope** for a local built-file inventory and an exact-file receipt. Its files stay in the tab and are never executed or uploaded. Telescope saves your written task and expected outcomes in this browser. To share a plan for a particular build, select its files, review the task and download the plan. Use **Horizon** for previously recorded project progress; historical records do not certify the current app.
 
 ## Account and storage behavior
 

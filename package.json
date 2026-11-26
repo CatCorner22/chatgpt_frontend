@@ -13,13 +13,20 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:autosave": "node scripts/test-autosave-navigation.mjs",
     "audit:browser": "node scripts/north-star-audit.mjs",
     "test:audit": "node --test scripts/audit/*.test.mjs",
     "test:authored": "node scripts/test-authored-pages.mjs",
+    "test:product-print": "node scripts/test-product-print.mjs",
+    "test:booking": "node scripts/test-booking-rehearsal.mjs",
+    "test:pilot": "node scripts/test-pilot-organizer.mjs",
+    "build:booking-pilot": "node scripts/build-booking-pilot.mjs",
+    "test:booking-pilot": "node --test scripts/river-kiln-pilot-server.test.mjs && node scripts/test-portable-booking-pilot.mjs public/examples/river-kiln-booking-pilot.zip",
     "benchmark": "node scripts/north-star-benchmark.mjs",
     "test:benchmark": "node --test scripts/benchmark/*.test.mjs",
     "build:sites": "node scripts/build-sites.mjs",
-    "test:sites-build": "node --test scripts/sites/build-sites.test.mjs"
+    "test:sites-build": "node --test scripts/sites/build-sites.test.mjs",
+    "test:protected-release": "sh scripts/check-protected-release.sh"
   },
   "overrides": {
     "rolldown": "1.2.18",
@@ -116,7 +123,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.3.8",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "4.164.0"
   },
   "engines": {
     "node": ">=22.12.0"

@@ -1,4 +1,5 @@
 /** Exercise the actual customer ZIP, extracted and opened offline in a fresh browser. */
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -132,7 +133,7 @@ try {
     await writeFile(join(folder, "standalone.html"), standalone);
     assert.equal(
       standalone.toString(),
-      await source.locator('iframe[title="Working page preview"]').getAttribute("srcdoc"),
+      await readPreviewDocument(source.getByTitle("Working page preview")),
     );
 
     // No Focus storage, app server or previously installed assets. Firefox opens

@@ -8,6 +8,7 @@ test("parses a local URL with deterministic defaults", () => {
     file: null,
     out: "artifacts/north-star-audit",
     allowRemote: false,
+    mobileProfile: false,
     settleMs: 1500,
     timeoutMs: 15000,
     actions: null,
@@ -34,6 +35,11 @@ test("preserves file paths and accepts both value forms without file-system read
   assert.equal(result.executable, "/usr/bin/chromium");
   assert.equal(result.settleMs, 0);
   assert.equal(result.timeoutMs, 60000);
+});
+
+test("phone timing profile requires an explicit flag", () => {
+  assert.equal(parseArgs(["--file", "a.html", "--mobile-profile"]).mobileProfile, true);
+  assert.throws(() => parseArgs(["--file", "a.html", "--mobile-profile=false"]), /does not take/);
 });
 
 test("requires exactly one target except standalone help", () => {

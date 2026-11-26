@@ -1,6 +1,9 @@
 import { STRATOSPHERE_GROUPS, type StratosphereGroupId } from "@/lib/stratosphere";
 
+import type { GardenGoal } from "./garden-content";
+
 export type GardenSearch = {
+  start?: GardenGoal;
   view?: "studio";
   panel?: "stratosphere";
   group?: StratosphereGroupId;
@@ -13,7 +16,10 @@ export function isStratosphereGroupId(value: unknown): value is StratosphereGrou
 /** Navigation only: a group has meaning within the existing Studio workshop. */
 export function parseGardenSearch(search: Record<string, unknown>): GardenSearch {
   if (search["view"] !== "studio") return {};
-  if (search["panel"] !== "stratosphere") return { view: "studio" };
+  if (search["panel"] !== "stratosphere") {
+    const start = search["start"];
+    return start === "new" || start === "existing" ? { view: "studio", start } : { view: "studio" };
+  }
   return {
     view: "studio",
     panel: "stratosphere",

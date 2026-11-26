@@ -6,6 +6,7 @@ import {
   pageInventory,
   preservationComparison,
   readBaselines,
+  saveBaseline,
   styleEvidence,
 } from "@/lib/transfer";
 import { normalizeTokens } from "@/lib/design";
@@ -204,8 +205,55 @@ describe("transfer hardening round 3", () => {
       readBaselines('[{"url":"https://a.example/","links":[],"forms":[],"fields":[]}]')[0]?.buttons,
     ).toEqual([]);
   });
-  it("returns false instead of throwing when storage fails", async () => {
-    const { saveBaseline } = await import("@/lib/transfer");
+  it("retains the final encoded address of a Japanese page alongside existing originals", () => {
+    const url = new URL("https://store.example/" + "猫".repeat(70)).href;
+    expect(url.length).toBeGreaterThan(500);
+    const older = pageInventory(two, "https://old.example");
+    let raw = JSON.stringify([older]);
+    const store = {
+      getItem: () => raw,
+      setItem: (_key: string, next: string) => {
+        raw = next;
+      },
+    };
+    const scanned = pageInventory(two, url);
+    expect(saveBaseline(scanned, store)).toBe(true);
+    expect(readBaselines(raw)).toEqual([older, scanned]);
+  });
+  it("keeps the original comparison data if a new inventory cannot be read back by Focus", () => {
+    const saved = pageInventory(two, "https://old.example");
+    let raw = JSON.stringify([saved]);
+    const store = {
+      getItem: () => raw,
+      setItem: (_key: string, next: string) => {
+        raw = next;
+      },
+    };
+    const invalid = { ...saved, url: "https://new.example/" + "a".repeat(8193) };
+    expect(saveBaseline(invalid, store)).toBe(false);
+    expect(readBaselines(raw)).toEqual([saved]);
+    raw = "{unreadable original data";
+    expect(saveBaseline(saved, store)).toBe(false);
+    expect(raw).toBe("{unreadable original data");
+  });
+  it("refuses an unretained write or an original list that changes before the write", () => {
+    const saved = pageInventory(two, "https://old.example");
+    const next = pageInventory(two, "https://new.example");
+    const concurrent = JSON.stringify([saved]);
+    expect(saveBaseline(next, { getItem: () => null, setItem: () => {} })).toBe(false);
+    let writes = 0;
+    let reads = 0;
+    expect(
+      saveBaseline(next, {
+        getItem: () => (reads++ === 0 ? null : concurrent),
+        setItem: () => {
+          writes++;
+        },
+      }),
+    ).toBe(false);
+    expect(writes).toBe(0);
+  });
+  it("returns false instead of throwing when storage fails", () => {
     const broken = {
       getItem: () => null,
       setItem: () => {

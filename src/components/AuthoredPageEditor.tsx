@@ -1,3 +1,4 @@
+import { AuthoredPreviewFrame } from "./AuthoredPreviewFrame";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Download,
@@ -11,11 +12,22 @@ import {
 import JSZip from "jszip";
 import { Link } from "@tanstack/react-router";
 import type { Content, Tokens } from "@/lib/design";
+import { pageOptionsWithImages } from "@/lib/page-options-with-images";
 import { renderAuthoredPage } from "@/lib/render-authored-page";
 import type { BundledFamily } from "@/lib/authored-font-styles";
-import { readPageImage, savePageImage, type PageSettings } from "@/lib/page-settings";
-import { validatePageImageAsset } from "@/lib/page-image-asset";
+import {
+  EMPTY_RELATED_STORY,
+  normalizePageSettings,
+  type RelatedStory,
+  type PageSettings,
+} from "@/lib/page-settings";
+import { usePageImage } from "@/hooks/usePageImage";
+import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
+import { sharedPageSourceValue, websiteActionForHandoff } from "@/lib/action-destination";
+import { PublicCodeConfirmation } from "./PublicCodeConfirmation";
+import { ComparisonPhoneCheck } from "@/components/ComparisonPhoneCheck";
+import { CompositionComparison } from "@/components/CompositionComparison";
 import { ImageFramingControls } from "@/components/ImageFramingControls";
 import { compactImageFraming } from "@/lib/image-framing";
 import { ContentEditor } from "@/components/ContentEditor";
@@ -60,6 +72,7 @@ export function AuthoredPageEditor({
   onExport,
   projectState,
   decisionRecord,
+  layoutWorkshop,
   compact = false,
 }: {
   families: readonly BundledFamily[];
@@ -71,21 +84,39 @@ export function AuthoredPageEditor({
   onExport: () => void;
   projectState: Record<string, unknown>;
   decisionRecord?: string;
+  layoutWorkshop?: { choose: (id: PageSettings["composition"]) => void; blocked: boolean };
   compact?: boolean;
 }) {
-  const [imageSnapshot, setImageSnapshot] = useState<{ id: string | null; src: string | null }>({
-    id: null,
-    src: null,
+  const imageIdentity = JSON.stringify([projectState["libraryId"], projectState["projectId"]]);
+  const leadImage = usePageImage(settings.imageId, imageIdentity, (id) => {
+    const next = { ...settings, imageId: id };
+    if (id !== settings.imageId) {
+      delete next.imageFraming;
+      delete next.imageCredit;
+    }
+    onSettings(next);
   });
-  const image = imageSnapshot.id === settings.imageId ? imageSnapshot.src : null;
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageHydrating, setImageHydrating] = useState(false);
-  const imageLoading = imageUploading || imageHydrating;
-  const [imageError, setImageError] = useState("");
+  const story = settings.relatedStory;
+  const storyImage = usePageImage(
+    story?.imageId ?? null,
+    JSON.stringify([imageIdentity, !!story]),
+    (id) => {
+      if (!story) return;
+      const next = { ...story, imageId: id };
+      if (id !== story.imageId) {
+        next.imageAlt = "";
+        delete next.imageFraming;
+        delete next.imageCredit;
+      }
+      onSettings({ ...settings, relatedStory: next });
+    },
+  );
+  const image = leadImage.src;
+  const imageLoading = leadImage.loading;
+  const imageError = leadImage.error;
   const [previewSize, setPreviewSize] = useState<"fit" | "wide" | "phone">("fit");
   const [packing, setPacking] = useState(false);
   const [editor, setEditor] = useState(false);
-  const imageRequest = useRef(0);
   const mounted = useRef(false);
   const packingNow = useRef(false);
   const exportSnapshot = JSON.stringify([
@@ -96,115 +127,39 @@ export function AuthoredPageEditor({
     decisionRecord,
     image,
     imageLoading,
+    storyImage.src,
+    storyImage.loading,
   ]);
   const user = useUser();
   const receipt = useExportReceipt(exportSnapshot, user?.id ?? null);
-  const imageIdentity = JSON.stringify([projectState["libraryId"], projectState["projectId"]]);
-  const latestImageIdentity = useRef(imageIdentity);
-  latestImageIdentity.current = imageIdentity;
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
     };
   }, []);
-  const latestSettings = useRef(settings);
-  latestSettings.current = settings;
-  useEffect(() => {
-    let current = true;
-    const id = settings.imageId;
-    // A restored image or a different project supersedes any earlier upload,
-    // even if the owner later returns to the old selection before it finishes.
-    imageRequest.current++;
-    setImageUploading(false);
-    setImageError("");
-    if (!id) {
-      setImageSnapshot({ id: null, src: null });
-      setImageHydrating(false);
-      return;
-    }
-    setImageHydrating(true);
-    void (async () => {
-      const owner = getBrowserOwnerId();
-      const src = await validatePageImageAsset(id, readPageImage(id));
-      if (!current || !mounted.current) return;
-      checkOwner(owner);
-      setImageSnapshot({ id, src });
-    })()
-      .catch((error: unknown) => {
-        if (!current) return;
-        setImageSnapshot({ id, src: null });
-        setImageError(
-          error instanceof Error
-            ? error.message
-            : "This saved image could not be checked. Choose the file again or remove it to export.",
-        );
-      })
-      .finally(() => {
-        if (current) setImageHydrating(false);
-      });
-    return () => {
-      current = false;
-    };
-  }, [settings.imageId, imageIdentity]);
-  const built = useMemo(
-    () =>
-      renderAuthoredPage(
-        tokens,
-        content,
-        {
-          composition: settings.composition,
-          actionUrl: settings.actionUrl,
-          ...(settings.imageFraming ? { imageFraming: settings.imageFraming } : {}),
-          ...(image ? { image: { src: image, alt: settings.imageAlt } } : {}),
-        },
-        families,
-      ),
-    [
-      families,
-      tokens,
-      content,
-      settings.composition,
-      settings.actionUrl,
-      settings.imageAlt,
-      settings.imageFraming,
-      image,
-    ],
+  const pageOptions = useMemo(
+    () => pageOptionsWithImages(settings, image, storyImage.src),
+    [settings, image, storyImage.src],
   );
-
-  async function chooseImage(file: File | undefined) {
-    if (!file) return;
-    const request = ++imageRequest.current;
-    const originalImageId = settings.imageId;
-    const currentRequest = () => mounted.current && request === imageRequest.current;
-    const sameSelection = () =>
-      currentRequest() &&
-      latestImageIdentity.current === imageIdentity &&
-      latestSettings.current.imageId === originalImageId;
-    setImageUploading(true);
-    setImageError("");
-    try {
-      const owner = getBrowserOwnerId();
-      const id = await savePageImage(file);
-      if (!sameSelection()) return;
-      checkOwner(owner);
-      const src = await validatePageImageAsset(id, readPageImage(id));
-      if (!sameSelection()) return;
-      checkOwner(owner);
-      setImageError("");
-      setImageSnapshot({ id, src });
-      const next = { ...latestSettings.current, imageId: id };
-      if (id !== latestSettings.current.imageId) delete next.imageFraming;
-      onSettings(next);
-    } catch (error) {
-      if (sameSelection())
-        setImageError(error instanceof Error ? error.message : "This image could not be added.");
-    } finally {
-      if (currentRequest()) setImageUploading(false);
-    }
-  }
+  const built = useMemo(
+    () => renderAuthoredPage(tokens, content, pageOptions, families),
+    [tokens, content, pageOptions, families],
+  );
+  const missingImage = settings.imageId && !image;
+  const needsImageDescription = !!image && !settings.imageAlt.trim();
+  const linkOrStoryIssue = built.readiness.find(
+    (item) => item.id === "action-private" || item.id === "story-link" || item.id === "story-image",
+  );
+  const comparisonAssetsBlocked =
+    imageLoading ||
+    !!missingImage ||
+    needsImageDescription ||
+    storyImage.loading ||
+    !!(story?.imageId && !storyImage.src) ||
+    !!linkOrStoryIssue;
   const downloadPage = () => {
-    if (imageLoading || missingImage || needsImageDescription) return;
+    if (comparisonAssetsBlocked) return;
     try {
       receipt.begin();
       downloadBlob(new Blob([built.html], { type: "text/html" }), "index.html");
@@ -216,7 +171,7 @@ export function AuthoredPageEditor({
     }
   };
   const downloadZip = async () => {
-    if (packingNow.current || imageLoading || missingImage || needsImageDescription) return;
+    if (packingNow.current || comparisonAssetsBlocked) return;
     packingNow.current = true;
     setPacking(true);
     try {
@@ -240,10 +195,25 @@ export function AuthoredPageEditor({
             version: 1,
             studio: projectState,
             embeddedImage: image
-              ? { id: settings.imageId, src: image, alt: settings.imageAlt }
+              ? {
+                  id: settings.imageId,
+                  src: image,
+                  alt: settings.imageAlt,
+                  ...(settings.imageCredit ? { credit: settings.imageCredit } : {}),
+                }
               : null,
+            ...(storyImage.src && story
+              ? {
+                  embeddedStoryImage: {
+                    id: story.imageId,
+                    src: storyImage.src,
+                    alt: story.imageAlt,
+                    credit: story.imageCredit,
+                  },
+                }
+              : {}),
           },
-          null,
+          sharedPageSourceValue,
           2,
         ),
       );
@@ -268,24 +238,72 @@ export function AuthoredPageEditor({
       if (mounted.current) setPacking(false);
     }
   };
-  const missingImage = settings.imageId && !image;
-  const needsImageDescription = !!image && !settings.imageAlt.trim();
-
+  function changeStory(nextStory?: RelatedStory) {
+    const next = { ...settings };
+    if (nextStory) next.relatedStory = nextStory;
+    else {
+      storyImage.cancel();
+      delete next.relatedStory;
+    }
+    onSettings(next);
+  }
   const supportingControls = (
     <>
+      <div className="space-y-2">
+        <Label htmlFor="page-language">Page language</Label>
+        <select
+          id="page-language"
+          className="block min-h-11 w-full rounded-md border border-input bg-background px-3"
+          value={settings.language ?? "en"}
+          aria-describedby="page-language-help"
+          onChange={(event) => {
+            onSettings(normalizePageSettings({ ...settings, language: event.target.value }));
+          }}
+        >
+          <option value="en">English</option>
+          <option value="ja">Japanese (日本語)</option>
+        </select>
+        <p id="page-language-help" className="text-xs leading-relaxed text-muted-foreground">
+          Choose the language your visitors will read. Focus sets the built-in labels and tells
+          screen readers which language to use. Your own wording stays as you wrote it.
+        </p>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="page-action-url">Where should the main action lead?</Label>
         <Input
           id="page-action-url"
           value={settings.actionUrl}
           maxLength={2000}
-          onChange={(e) => onSettings({ ...settings, actionUrl: e.target.value })}
+          onChange={(e) =>
+            onSettings(
+              normalizePageSettings({
+                ...settings,
+                actionUrl: e.target.value,
+                publicCodeUrl: undefined,
+              }),
+            )
+          }
           placeholder="https://… or mailto:hello@…"
           aria-describedby="page-action-help"
+        />
+        <PublicCodeConfirmation
+          url={settings.actionUrl}
+          confirmed={settings.publicCodeUrl === settings.actionUrl}
+          onChange={(checked) =>
+            onSettings(
+              normalizePageSettings({
+                ...settings,
+                publicCodeUrl: checked ? settings.actionUrl : undefined,
+              }),
+            )
+          }
         />
         <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
           Use your actual booking page, contact address, or destination. Without a valid address,
           the page links to supplied feature details; when there are none, no main action is shown.
+          {settings.actionUrl && !websiteActionForHandoff(settings)
+            ? " This address is omitted from developer guides."
+            : " Developer guides include the full web address. Use a link you can share."}
         </p>
       </div>
       <details className="border-y border-border py-2">
@@ -300,7 +318,7 @@ export function AuthoredPageEditor({
             type="file"
             accept="image/png,image/jpeg,image/webp"
             onChange={(e) => {
-              void chooseImage(e.target.files?.[0]);
+              void leadImage.choose(e.target.files?.[0]);
               e.target.value = "";
             }}
             className="block w-full min-w-0 text-xs file:mr-2 file:rounded file:border file:border-border file:bg-card file:px-3 file:py-2"
@@ -322,6 +340,22 @@ export function AuthoredPageEditor({
             Required to include your image. Describe its subject or what it adds to the page.
           </p>
           {settings.imageId && (
+            <>
+              <Label htmlFor="lead-credit">Public image credit or license</Label>
+              <Input
+                id="lead-credit"
+                value={settings.imageCredit ?? ""}
+                maxLength={500}
+                onChange={(e) => {
+                  const next = { ...settings };
+                  if (e.target.value) next.imageCredit = e.target.value;
+                  else delete next.imageCredit;
+                  onSettings(next);
+                }}
+              />
+            </>
+          )}
+          {settings.imageId && (
             <ImageFramingControls
               value={settings.imageFraming}
               disabled={imageLoading || !!missingImage || needsImageDescription}
@@ -339,10 +373,9 @@ export function AuthoredPageEditor({
               size="sm"
               variant="ghost"
               onClick={() => {
-                imageRequest.current++;
-                setImageUploading(false);
-                setImageSnapshot({ id: null, src: null });
+                leadImage.cancel();
                 const next = { ...settings, imageId: null };
+                delete next.imageCredit;
                 delete next.imageFraming;
                 onSettings(next);
               }}
@@ -366,6 +399,28 @@ export function AuthoredPageEditor({
             publish.
           </p>
         </div>
+      </details>
+      <RelatedReadingEditor
+        story={story}
+        onChange={changeStory}
+        onAdd={() => changeStory({ ...EMPTY_RELATED_STORY })}
+        image={storyImage}
+      />
+      <details className="text-sm">
+        <summary className="min-h-11 cursor-pointer py-3">
+          Study a two-image editorial example
+        </summary>
+        <p className="leading-relaxed text-muted-foreground">
+          Looking Room pairs two Hokusai prints from The Met’s Open Access collection. Download the
+          example, then choose My designs → Restore backup to open your own editable copy.
+        </p>
+        <a
+          className="inline-flex min-h-11 items-center underline"
+          download="looking-room.focus.json"
+          href={`${import.meta.env.BASE_URL}examples/looking-room.focus.json`}
+        >
+          Download Looking Room
+        </a>
       </details>
       <button
         type="button"
@@ -401,22 +456,39 @@ export function AuthoredPageEditor({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={downloadPage}
-            disabled={imageLoading || !!missingImage || needsImageDescription}
-          >
+          <Button onClick={downloadPage} disabled={comparisonAssetsBlocked}>
             <Download size={16} /> Download working HTML
           </Button>
           <Button
             variant="outline"
             onClick={() => void downloadZip()}
-            disabled={packing || imageLoading || !!missingImage || needsImageDescription}
+            disabled={packing || comparisonAssetsBlocked}
           >
             {packing ? "Preparing…" : "Download page ZIP"}
           </Button>
         </div>
       </div>
       <ExportReceipt receipt={receipt.pending} />
+      {linkOrStoryIssue && (
+        <p role="status" className="text-sm">
+          {linkOrStoryIssue.message}
+        </p>
+      )}
+      {(!compact || layoutWorkshop) && (
+        <CompositionComparison
+          key={imageIdentity}
+          tokens={tokens}
+          content={content}
+          options={pageOptions}
+          families={families}
+          assetsBlocked={comparisonAssetsBlocked}
+          applyBlocked={layoutWorkshop?.blocked ?? false}
+          onChoose={(id) => {
+            if (layoutWorkshop) layoutWorkshop.choose(id);
+            else onSettings({ ...settings, composition: id });
+          }}
+        />
+      )}
       <div className="authored-layout">
         <aside className="authored-controls">
           {!compact && (
@@ -469,6 +541,12 @@ export function AuthoredPageEditor({
                 {needsImageDescription && (
                   <li>Add an image description to include it in the preview and download.</li>
                 )}
+                {story?.imageId && !storyImage.loading && !storyImage.src && (
+                  <li>
+                    The related story image is missing or unreadable. Choose the original photo
+                    again, or remove it to download your page.
+                  </li>
+                )}
                 {missingImage && !imageLoading && (
                   <li>
                     Your chosen image is missing or unreadable. Add it again, or remove it under
@@ -494,7 +572,7 @@ export function AuthoredPageEditor({
           <div className="authored-preview-toolbar">
             <span className="inline-flex items-center gap-2">
               <Check size={14} />
-              Exact export preview
+              Export preview
             </span>
             <div className="flex gap-1">
               <button
@@ -529,15 +607,16 @@ export function AuthoredPageEditor({
             aria-label="Page preview canvas"
             tabIndex={previewSize === "fit" ? undefined : 0}
           >
-            <iframe
+            <AuthoredPreviewFrame
               key={`${settings.imageId ?? "none"}:${image ? "loaded" : "empty"}`}
               title="Working page preview"
-              srcDoc={built.html}
-              sandbox="allow-popups allow-popups-to-escape-sandbox"
-              referrerPolicy="no-referrer"
+              html={built.html}
               className={`authored-frame${previewSize === "fit" ? "" : ` is-${previewSize}`}`}
             />
           </div>
+          {settings.composition === "comparison" && (
+            <ComparisonPhoneCheck key={built.html} html={built.html} />
+          )}
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             Fit uses the available space. The fixed 1024 px and 320 px previews may scroll sideways
             inside the canvas. Section links work here. Test contact and booking destinations in the

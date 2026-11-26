@@ -1,4 +1,4 @@
-> **Current checkpoint:** See [finalization status and remaining release checks](docs/FINALIZATION-CHECKPOINT.md). The resumed changes are saved locally and are not deployed. The historical release notes below describe their own versions, not final acceptance of this checkout.
+> **Garden Path and delivery.** Use the [customer walkthrough](docs/GARDEN-TO-DELIVERY.md) to carry decisions into an exported website or a reversible change to an existing React/Vite project. Earlier checkpoints describe their own versions.
 >
 > **Hosted edition:** This checkout publishes Focus to a private Sites workspace with ChatGPT sign-in, per-user browser storage, and complete online library copies. Start with [HOSTED-HANDOFF.md](docs/HOSTED-HANDOFF.md) and the actual limits in [HOSTED-VERIFICATION.md](docs/HOSTED-VERIFICATION.md). The portable release remains a separate preserved deliverable.
 >
@@ -21,16 +21,32 @@ The **Made for you** gallery includes six new original starters: Purr & Paper, V
 
 The project's defined **North Star** is frontend UI and UX as good as the best human coders. See [the current review and priorities](docs/NORTH-STAR-REVIEW.md) for the evidence, remaining gaps and next acceptance criteria.
 
+Three proposed studies cover whether visitors understand prices, whether owners resume the right draft, and whether a developer handoff preserves a design’s character. The first study includes two offline pages and a blank tally. [Study guide and pilot](docs/NORTH-STAR-RELIABILITY-REVIEW.md)
+
 ## Run locally
 
-Use Node 22.12 or newer and npm. No environment file or account is required for the local studio.
+Use Node 22.12 or newer and npm. The local fixtures below supply a test session for this Sites checkout, without an environment file or real account.
 
 ```sh
 npm ci
 npm run dev -- --host 127.0.0.1 --port 3000
 ```
 
-Open http://localhost:3000. The npm lockfile is authoritative; the original Bun lockfile is retained only as part of the supplied project history.
+The preview runs at http://127.0.0.1:3000. The npm lockfile is authoritative. The original Bun lockfile records the supplied project's dependencies.
+
+## Finding your way through the code
+
+| When you're working on… | Start here |
+| --- | --- |
+| Studio navigation, project state and the active stage | [Studio route](src/routes/index.tsx) |
+| The Brief, Directions, Exam or Vision screen | [Studio stages](src/routes/-studio/) |
+| A design template, its visual tokens or its developer instructions | [Gallery](src/lib/gallery.ts) · [Design specification](src/lib/design.ts) |
+| A reusable interface component or its shadcn configuration | [UI components](src/components/ui/) · [Component aliases](components.json) |
+| The HTML and styles a website owner downloads | [Authored page renderer](src/lib/render-authored-page.ts) |
+| A developer handoff or reversible source change | [Pack builder](src/lib/exportPack.ts) · [Source trial](src/lib/source-trial.ts) |
+| Browser verification or the independent design checker | [Browser and handoff checks](scripts/) · [Portable North Star kit](north-star-kit/) |
+
+Tailwind scans the component folder when building the stylesheet. The shadcn alias also makes these components available to template authors and coding assistants. Before retiring a primitive, check both uses and confirm the removal with Blake. [Code review and template dependencies](docs/CODEBASE-REVIEW.md)
 
 ## What works without a backend
 
@@ -38,7 +54,7 @@ Open http://localhost:3000. The npm lockfile is authoritative; the original Bun 
 - Choose and refine colors, fonts, scale, spacing, shape, layout, and detail using deterministic local options.
 - Edit your actual business name, headline, services, call to action, and optional customer quote.
 - Save designs automatically in this browser, resume them, and use the existing library and undo controls.
-- Build a working page in Studio, Editorial, Product, Showcase, or Journal; download the same HTML seen in the preview and editable linked CSS.
+- Build a working page in Studio, Editorial, Product, Showcase, Journal, or Comparison. The preview lets you follow section links inside Focus. Download the HTML or editable ZIP to try the page’s public links.
 - Back up and restore your design library with the actual image files, saved versions, and retained history.
 - Download the original design brief and specification ZIP for your coding tool.
 - Choose **Restyle my existing site or app** at the start or at handoff. Download a scoped trial pack with preservation and undo guides; no public URL or source upload is needed.
@@ -62,13 +78,13 @@ npm test --prefix north-star-kit
 npm run typecheck --prefix north-star-kit
 ```
 
-With the development server running and Chromium installed:
+To check navigation and autosave, start the packaged Worker as described below. Run the Chromium fixture in another terminal. [Local Worker setup](#this-sites-checkout)
 
 ```sh
-CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
+CHROMIUM_PATH=/usr/bin/chromium FOCUS_TEST_URL=http://127.0.0.1:4173 npm run test:autosave
 ```
 
-Use `FOCUS_TEST_URL` to test another local port. Browser smoke tests exercise the local creation flow, real copy editing, Markdown/ZIP downloads, persistence, skipped-question resume, keyboard skip link, mobile reflow, and quality receipts. They write evidence and screenshots to `artifacts/`.
+Use `FOCUS_TEST_URL` to select another loopback port. The autosave fixture opens the Studio with a simulated local account and checks edits across navigation and reload.
 
 ## Optional cloud features
 
@@ -98,33 +114,48 @@ Quality lab imports rendered browser receipts. The Review room (`/review-room`, 
 
 ## Verify the built app locally
 
-The release checks run the generated Cloudflare Worker locally, without deploying it or signing in:
+### This Sites checkout
+
+Build the Sites package and serve its Worker locally. Run these commands from the project root.
 
 ```sh
-npm run build
-WRANGLER_SEND_METRICS=false npx --yes wrangler@4.164.0 dev --config .output/server/wrangler.json --local --port 4173
+npm run build:sites
+WRANGLER_SEND_METRICS=false npx --yes wrangler@4.164.0 dev --config dist/server/wrangler.json --local --ip 127.0.0.1 --port 4173
 ```
 
-Stop this preview before rebuilding, then restart it against the new build. Keeping an old Worker process alive while replacing its hashed assets can leave the local preview requesting files from the previous build.
-
-With that preview running, the same browser harnesses accept `FOCUS_TEST_URL=http://localhost:4173`:
+Restart the preview after rebuilding so the Worker and its hashed assets come from the same build. In another terminal, run the browser checks against that local preview. The fixtures supply a local test identity for the private Studio.
 
 ```sh
-FOCUS_TEST_URL=http://localhost:4173 node scripts/browser-smoke.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-authored-pages.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-reference-editor.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-library-transfer.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-studio-recovery.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-history-transfer.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-local-taste.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-customer-handoff.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-integration-mode.mjs
-FOCUS_TEST_URL=http://localhost:4173 node scripts/test-existing-transfer.mjs
+export FOCUS_TEST_URL=http://127.0.0.1:4173
+npm run test:browser
+npm run test:autosave
+node scripts/test-garden-journey.mjs
+node scripts/test-hosted-journey.mjs
+node scripts/test-authored-pages.mjs
+node scripts/test-reference-editor.mjs
+node scripts/test-local-taste.mjs
+node scripts/test-existing-transfer.mjs
 ```
 
-The editor harness uses the screenshots generated by `test-authored-pages.mjs`. The library/recovery harnesses create their own fixtures. Core smoke, authored-page, library-transfer, studio-recovery and customer-handoff harnesses also accept `FOCUS_BROWSER=firefox` after `npx playwright-core install firefox`. The customer-handoff harness extracts actual UI downloads and opens them in a fresh browser context. The audit runner itself uses Chromium's isolated execution world. In managed environments, follow the available browser/preview capability instructions; do not use these harnesses to bypass unavailable browser infrastructure. See the launch report for covered browsers and remaining external-service checks.
+The hosted journey uses local in-memory object storage to exercise owner separation and online library copies. The reference editor creates its own image fixture. The authored-page check and existing-project transfer check write their results to `artifacts/`.
 
-The latest Lovable kit and Devin's judge report were compared against this code rather than copied over it. Findings and dispositions are in [the kit comparison](docs/LOVABLE-KIT-COMPARISON.md) and [browser triage](docs/DEVIN-BROWSER-TRIAGE.md). Neither automated checks nor the Audi/Firehouse references establish human indistinguishability.
+### Preserved portable release
+
+The following checks exercise the portable release's Studio entry and browser storage. Run them from that release with its own local preview running on the specified port. On the Sites Worker a browser without a verified session opens the private sign-in screen.
+
+```sh
+export FOCUS_TEST_URL=http://localhost:4173
+npm run test:browser
+node scripts/test-library-transfer.mjs
+node scripts/test-studio-recovery.mjs
+node scripts/test-history-transfer.mjs
+node scripts/test-customer-handoff.mjs
+node scripts/test-integration-mode.mjs
+```
+
+The portable smoke check covers creation, copy editing, Markdown and ZIP downloads, persistence, keyboard navigation, mobile reflow and quality receipts. The library and recovery checks create their own fixtures. The customer-handoff check opens UI downloads in a fresh recipient browser context. Core smoke, authored-page, library-transfer, studio-recovery and customer-handoff checks support `FOCUS_BROWSER=firefox` after `npx playwright-core install firefox`. The audit runner uses Chromium's isolated execution world. In managed environments, follow the available browser and preview capability instructions. For the exact release and browser coverage, see the [launch verification report](docs/LAUNCH-READINESS.md).
+
+The original Lovable kit comparison and Devin browser findings are recorded in the [kit comparison](docs/LOVABLE-KIT-COMPARISON.md) and [browser triage](docs/DEVIN-BROWSER-TRIAGE.md).
 
 ## Garden Path and Cat Samurai
 
@@ -136,7 +167,7 @@ Ten optional lessons explain the choices and tradeoffs. “Keep it brief” hide
 
 ## Stratosphere and the decision map
 
-`/stratosphere` opens a workshop inside the existing Studio state. Six decision groups change composition, paired colors, fonts, hierarchy, spacing and control form through the same Undo and recovery system. A deterministic registry supplies controls, constraints and the live dependency map; it distinguishes measured constraints from recommendations and unknowns. New-website output shares the authored HTML preview/export renderer. Existing-site and app modes remain style specifications pending scoped implementation in the actual project.
+`/stratosphere` opens a workshop inside the existing Studio state. Six decision groups change composition, paired colors, fonts, hierarchy, spacing and control form through the same Undo and recovery system. A deterministic registry supplies controls, constraints and the live dependency map. New-website output shares the authored HTML preview/export renderer. Target can turn a saved direction into a scoped trial on a supported React/Vite page. It can package licensed fonts and offer a compact or comparative class picker on the recognized River Kiln form. Other structures use the developer-guided handoff. [Walk through a working redesign](docs/GARDEN-TO-DELIVERY.md)
 
 An optional local interaction lab exercises buttons, form validation, a tooltip and feedback states. It does not install those components or certify a customer's app. An authored ZIP can include the current decision map; private source records are not public deploy files. Asynchronous exports reject a changed design or locked owner before delivery. See [Stratosphere release evidence](docs/STRATOSPHERE-RELEASE.md) and [field-guide sources](docs/FIELD-GUIDE-SOURCES.md).
 

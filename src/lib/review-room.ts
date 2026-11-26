@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { reviewerPacketSchema } from "../../north-star-kit/blind-test/reviewer";
+import {
+  bookingObservationSchema,
+  bookingProtocol,
+  reviewerPacketSchema,
+  type BookingObservation,
+} from "../../north-star-kit/blind-test/reviewer";
 
 export const REVIEW_ROOM_KEY = "focus:review-room:v1";
 export const MAX_REVIEW_PACKET_BYTES = 2 * 1024 * 1024;
@@ -25,8 +30,44 @@ const qualitySchema = z
     content: ratingSchema,
   })
   .strict();
+// Keep unfinished numeric inputs across reloads. Only valid observed numbers enter an export.
+const bookingDraftSchema = bookingObservationSchema.extend({
+  statedDollars: z.string(),
+  elapsedSeconds: z.string(),
+  savedReservations: z.string(),
+});
+export type BookingDraft = z.infer<typeof bookingDraftSchema>;
+export function emptyBookingDraft(): BookingDraft {
+  return {
+    firstResponse: null,
+    firstClass: null,
+    statedDollars: "",
+    helpUsed: null,
+    elapsedSeconds: "",
+    recovery: null,
+    savedReservations: "",
+  };
+}
+function parseBookingDraft(draft: BookingDraft) {
+  const toNumber = (value: string, decimalPlaces: number) => {
+    const text = value.trim();
+    if (!text) return null;
+    if (text.length > 32 || !/^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/.test(text)) return NaN;
+    // Validate the entered units before converting: Number can round a fraction to a whole cent or count.
+    const fraction = text.split(".")[1] ?? "";
+    return /[1-9]/.test(fraction.slice(decimalPlaces)) ? NaN : Number(text);
+  };
+  return bookingObservationSchema.safeParse({
+    ...draft,
+    statedDollars: toNumber(draft.statedDollars, 2),
+    elapsedSeconds: toNumber(draft.elapsedSeconds, 0),
+    savedReservations: toNumber(draft.savedReservations, 0),
+  });
+}
 const draftSchema = z
   .object({
+    bookingObservation: bookingDraftSchema.optional(),
+    pausedBookingObservation: bookingDraftSchema.optional(),
     taskOutcome: z.enum(["completed", "blocked", "not-tested"]).nullable(),
     judgedOrigin: z.enum(["person", "generated", "unsure"]).nullable(),
     quality: qualitySchema,
@@ -46,6 +87,7 @@ const sessionSchema = z
   .strict();
 export type ReviewSession = z.infer<typeof sessionSchema>;
 export type ReviewEvaluation = {
+  bookingObservation?: BookingObservation;
   benchmarkId: string;
   reviewerCode: string;
   sampleId: string;
@@ -201,6 +243,16 @@ export function parseReviewSession(text: string): ReviewSession {
     throw new Error("The saved answers do not match this packet.");
   for (const sample of session.packet.samples) {
     const draft = session.drafts[sample.id];
+    if (draft?.bookingObservation || draft?.pausedBookingObservation) {
+      const task = session.packet.tasks.find((task) => task.id === sample.taskId);
+      if (
+        sample.kind !== "interactive" ||
+        task?.observationProtocol !== bookingProtocol ||
+        (draft.bookingObservation && draft.taskOutcome === "not-tested") ||
+        (draft.pausedBookingObservation && draft.taskOutcome !== "not-tested")
+      )
+        throw new Error("The saved booking observations do not match this interactive task.");
+    }
     if (
       !draft ||
       (sample.kind === "image" &&
@@ -217,6 +269,8 @@ export function missingReviewAnswers(
   reviewerCode: string,
 ): string[] {
   const missing: string[] = [];
+  if (draft.bookingObservation && !parseBookingDraft(draft.bookingObservation).success)
+    missing.push("bookingObservation");
   if (!reviewerCode.trim()) missing.push("reviewerCode");
   if (draft.taskOutcome === null) missing.push("taskOutcome");
   if (draft.judgedOrigin === null) missing.push("judgedOrigin");
@@ -240,7 +294,11 @@ export function reviewAnswerBundle(session: ReviewSession, allowPartial = false)
     const sample = validated.packet.samples.find((item) => item.id === sampleId)!;
     const draft = validated.drafts[sampleId]!;
     if (missingReviewAnswers(draft, sample, validated.reviewerCode).length) continue;
+    const observation = draft.bookingObservation && parseBookingDraft(draft.bookingObservation);
     evaluations.push({
+      ...(observation?.success && Object.values(observation.data).some((v) => v !== null)
+        ? { bookingObservation: observation.data }
+        : {}),
       benchmarkId: validated.packet.benchmarkId,
       reviewerCode: validated.reviewerCode.trim(),
       sampleId,

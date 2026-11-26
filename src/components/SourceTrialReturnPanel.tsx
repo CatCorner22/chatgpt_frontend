@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getBrowserOwnerId } from "@/lib/browser-storage";
+import { readFileBytes } from "@/lib/read-file-bytes";
 import type { PreparedSourceTrial } from "@/lib/source-trial";
 import {
   compareSourceTrialReturn,
@@ -42,21 +43,6 @@ const conclusions = {
     next: "At least one file matches neither expected snapshot. Keep these files and ask your coding assistant or developer to review the differences. Do not overwrite them to force a match.",
   },
 };
-
-async function readBytes(file: File): Promise<ArrayBuffer> {
-  if (typeof file.arrayBuffer === "function") return file.arrayBuffer();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () =>
-      reader.result instanceof ArrayBuffer
-        ? resolve(reader.result)
-        : reject(new Error("The returned file could not be read. Choose it again."));
-    reader.onerror = () =>
-      reject(new Error("The returned file could not be read. Choose it again."));
-    reader.onabort = () => reject(new Error("The returned file read was cancelled."));
-    reader.readAsArrayBuffer(file);
-  });
-}
 
 /** An optional, ephemeral comparison of selected files, never a customer-project execution. */
 export function SourceTrialReturnPanel({ prepared, captureContext }: SourceTrialReturnPanelProps) {
@@ -200,7 +186,10 @@ function ReturnedFiles({
         throw new Error(
           `This returned file is too large. The byte limit for ${basename} is ${limit}. Keep the file and ask for a review of its differences.`,
         );
-      const buffer = await readBytes(selected);
+      const buffer = await readFileBytes(selected, {
+        failed: "The returned file could not be read. Choose it again.",
+        cancelled: "The returned file read was cancelled.",
+      });
       if (!current()) return;
       verify();
       if (
@@ -263,6 +252,13 @@ function ReturnedFiles({
         project’s current state. Choose them in their matching slots below. Focus compares bytes
         with this proposal; it does not connect to or change the project.
       </p>
+      {prepared.contract.version === 2 && prepared.contract.assets.length > 0 && (
+        <p className="text-sm">
+          This check covers the page and stylesheet only. Ask your developer to run the ZIP’s
+          verifier on the project to check the font and license files, then confirm which fonts the
+          browser renders.
+        </p>
+      )}
       <p className="text-sm text-muted-foreground">
         Use the exact filenames shown. Your browser cannot confirm the project folder, so check the
         full paths with the sender. Selecting a file does not show that it is running on the site.

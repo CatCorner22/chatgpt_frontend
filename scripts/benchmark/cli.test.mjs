@@ -132,3 +132,111 @@ test("packet refuses unsupported asset schemes before creating a review file", a
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("a three-way pilot masks sources and compares matches on each task with explicit missing results", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "focus-matched-"));
+  try {
+    const org = join(dir, "organizer.json"),
+      out = join(dir, "reviewer.json");
+    await run("init-pilot", org);
+    const plan = JSON.parse(await readFile(org, "utf8"));
+    assert.equal(plan.samples.length, 0);
+    await assert.rejects(run("packet", org, out), /three groups/);
+    plan.tasks = plan.tasks.slice(0, 1);
+    const groups = ["one-shot", "guided", "expert"];
+    plan.samples = groups.map((group, index) => ({
+      id: "item-" + index,
+      taskId: plan.tasks[0].id,
+      assetRef: "https://example.org/sample/" + index,
+      kind: "interactive",
+      group,
+      creatorCode: "participant-" + index,
+      provenance: "Synthetic regression fixture",
+      artifactSha256: String(index).repeat(64),
+      inputsSha256: "a".repeat(64),
+      work: { tools: "Recorded fixture", minutes: 90, revisionPasses: 0 },
+    }));
+    await save(org, plan);
+    await run("packet", org, out);
+    const packet = JSON.parse(await readFile(out, "utf8"));
+    assert.equal(packet.samples.length, 3);
+    for (const sample of packet.samples)
+      for (const k of ["group", "work", "creatorCode", "artifactSha256", "inputsSha256"])
+        assert.equal(k in sample, false);
+    function answer(index, reviewerCode) {
+      return {
+        benchmarkId: plan.id,
+        reviewerCode,
+        sampleId: plan.samples[index].id,
+        taskOutcome: ["blocked", "completed", "not-tested"][index],
+        judgedOrigin: "unsure",
+        note: "",
+        quality: Object.fromEntries(packet.dimensions.map(({ id }) => [id, 3 + index])),
+      };
+    }
+    const answers = join(dir, "answers.json"),
+      report = join(dir, "report.json");
+    await save(answers, {
+      version: 1,
+      benchmarkId: plan.id,
+      evaluations: [answer(0, "A"), answer(1, "A"), answer(2, "A"), answer(1, "B")],
+    });
+    await run("score", org, report, answers);
+    const result = JSON.parse(await readFile(report, "utf8"));
+    assert.equal(result.state, "descriptive-pilot");
+    assert.equal(result.counts.completeReviewers, 1);
+    assert.deepEqual(result.tasks[0].quality.hierarchy, {
+      reviewers: 1,
+      oneShot: 3,
+      guided: 4,
+      expert: 5,
+      gainOverOneShot: 1,
+      remainingExpertGap: 1,
+    });
+    assert.equal(result.tasks[0].taskCompletion.reviewers, 0);
+    assert.equal(result.tasks[0].taskCompletion.remainingExpertGap, null);
+    plan.samples[2].inputsSha256 = "b".repeat(64);
+    await save(org, plan);
+    await assert.rejects(
+      run("packet", org, join(dir, "bad.json")),
+      /same presentation kind and frozen input/,
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("the booking pair command writes a masked, answerable original/redesign task without an expert", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "focus-booking-pair-"));
+  try {
+    const organizer = join(dir, "research.json"),
+      packet = join(dir, "reader.json");
+    await run("init-booking-pair", organizer);
+    const plan = JSON.parse(await readFile(organizer, "utf8"));
+    assert.equal(plan.protocol, "booking-pair-v1");
+    assert.equal(plan.tasks.length, 1);
+    assert.equal(plan.tasks[0].observationProtocol, "river-kiln-lost-confirmation-v1");
+    plan.samples = ["original", "guided"].map((group, i) => ({
+      id: `sample-${i}`,
+      taskId: plan.tasks[0].id,
+      assetRef: `https://samples.test/${i}`,
+      kind: "interactive",
+      group,
+      creatorCode: "same-team",
+      provenance: "Private test fixture",
+      artifactSha256: String(i).repeat(64),
+      inputsSha256: "a".repeat(64),
+      work: i ? { tools: "fixture", minutes: 30, revisionPasses: 1 } : null,
+    }));
+    await save(organizer, plan);
+    await run("packet", organizer, packet);
+    const masked = JSON.parse(await readFile(packet, "utf8"));
+    assert.equal(masked.samples.length, 2);
+    assert.doesNotMatch(
+      JSON.stringify(masked),
+      /"original"|"guided"|same-team|Private test fixture|Sha256/i,
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

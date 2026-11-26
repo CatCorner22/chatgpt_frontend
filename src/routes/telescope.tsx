@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { BrandLogo } from "@/components/BrandArt";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
+import { useTelescopePlan } from "@/hooks/useTelescopePlan";
 import { downloadBlob } from "@/lib/exportPack";
 import {
   TELESCOPE_LIMITS,
@@ -15,7 +16,6 @@ import {
   parseTelescopeReceipt,
   telescopeTestPlan,
   type TelescopeReceipt,
-  type TelescopeState,
 } from "@/lib/telescope";
 
 export const Route = createFileRoute("/telescope")({
@@ -40,18 +40,19 @@ export function Telescope() {
   const [error, setError] = useState("");
   const [importError, setImportError] = useState("");
   const [status, setStatus] = useState("");
-  const [task, setTask] = useState("");
-  const [expectations, setExpectations] = useState<Partial<Record<TelescopeState, string>>>({});
+  const draft = useTelescopePlan();
+  const { task, expectations } = draft.plan;
   const [showAll, setShowAll] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"clear" | "reload" | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const receiptInput = useRef<HTMLInputElement>(null);
   const inspectionId = useRef(0);
   const importId = useRef(0);
-  const hasPlan = !!task.trim() || Object.keys(expectations).length > 0;
+  const hasPlan =
+    !!task.length || Object.keys(expectations).length > 0 || draft.stored || !!draft.issue;
   const blocker = useBlocker({
-    shouldBlockFn: () => hasPlan,
-    enableBeforeUnload: hasPlan,
+    shouldBlockFn: () => !draft.flush(),
+    enableBeforeUnload: false,
     withResolver: true,
   });
 
@@ -106,6 +107,7 @@ export function Telescope() {
     }
   };
   const clear = () => {
+    if (hasPlan && !draft.clear()) return;
     inspectionId.current++;
     importId.current++;
     setReceipt(null);
@@ -115,8 +117,6 @@ export function Telescope() {
     setError("");
     setImportError("");
     setStatus("");
-    setTask("");
-    setExpectations({});
     if (fileInput.current) fileInput.current.value = "";
     if (receiptInput.current) receiptInput.current.value = "";
   };
@@ -207,7 +207,7 @@ export function Telescope() {
             <Button
               variant="ghost"
               className="min-h-11"
-              onClick={() => (hasPlan ? setConfirmClear(true) : clear())}
+              onClick={() => (hasPlan ? setConfirmAction("clear") : clear())}
             >
               <X size={16} />
               Clear this session
@@ -415,7 +415,8 @@ export function Telescope() {
             maxLength={1000}
             rows={2}
             value={task}
-            onChange={(event) => setTask(event.target.value)}
+            disabled={!draft.ready}
+            onChange={(event) => draft.change({ ...draft.plan, task: event.target.value })}
             placeholder="For example: find an available appointment, book it, and correct an invalid email without losing the selected time."
             className="mt-2 block w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed"
           />
@@ -432,8 +433,12 @@ export function Telescope() {
                   maxLength={1000}
                   aria-label={`${state} expected outcome`}
                   value={expectations[state] ?? TELESCOPE_STATE_HINTS[state]}
+                  disabled={!draft.ready}
                   onChange={(event) =>
-                    setExpectations({ ...expectations, [state]: event.target.value })
+                    draft.change({
+                      ...draft.plan,
+                      expectations: { ...expectations, [state]: event.target.value },
+                    })
                   }
                   className="mt-3 block w-full rounded-md border border-input bg-background p-2.5 text-sm leading-relaxed"
                 />
@@ -455,9 +460,29 @@ export function Telescope() {
             </p>
           )}
           <p className="mt-3 text-xs text-muted-foreground">
-            Your inputs stay in this tab and disappear when you leave, reload, or clear this
-            session. Download the plan to keep them.
+            Your task and edited expectations save in this browser. When you return, reselect the
+            build and review the plan before downloading it.
           </p>
+          {draft.issue && (
+            <div className="mt-3">
+              <p role="alert" className="text-sm text-destructive">
+                {draft.issue}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {draft.unsaved && (
+                  <Button variant="outline" onClick={draft.flush}>
+                    Retry saving
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => (draft.unsaved ? setConfirmAction("reload") : draft.reload())}
+                >
+                  Reload saved plan
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
         <aside className="mt-9 border-t border-border pt-6">
           <h2 className="font-display text-xl">Continue the review</h2>
@@ -483,12 +508,18 @@ export function Telescope() {
         </aside>
       </main>
       <ConfirmDialog
-        open={confirmClear}
-        onOpenChange={setConfirmClear}
-        title="Clear your task plan?"
-        body="Your task and edited state expectations will be removed from this tab. Download your plan first if you want to keep it."
-        confirmLabel="Clear this session"
-        onConfirm={clear}
+        open={confirmAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null);
+        }}
+        title={confirmAction === "reload" ? "Reopen the saved plan?" : "Clear your task plan?"}
+        body={
+          confirmAction === "reload"
+            ? "This replaces the edits in this tab with the saved task and expectations."
+            : "This removes the saved task and expectations from this browser and clears the current inspection from this tab."
+        }
+        confirmLabel={confirmAction === "reload" ? "Reopen saved plan" : "Clear this session"}
+        onConfirm={() => (confirmAction === "reload" ? draft.reload() : clear())}
       />
       <ConfirmDialog
         open={blocker.status === "blocked"}
@@ -496,7 +527,7 @@ export function Telescope() {
           if (!open && blocker.status === "blocked") blocker.reset();
         }}
         title="Leave your task plan?"
-        body="Your task and edited state expectations will be lost when you leave Telescope. Stay here to download the plan first."
+        body="Focus couldn’t save your latest task plan. Keep this tab open to retry or copy your edits before leaving."
         confirmLabel="Leave Telescope"
         onConfirm={() => {
           if (blocker.status === "blocked") blocker.proceed();

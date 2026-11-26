@@ -86,6 +86,58 @@ async function openHeadlineEditor(page, isApp) {
   return page.getByRole("textbox", { name: "Headline", exact: true });
 }
 
+async function restoreWhileEditing(context, page, child, parent) {
+  const library = await context.newPage();
+  const cardFor = (tab, title) =>
+    tab
+      .getByRole("article")
+      .filter({ has: tab.getByRole("textbox", { name: "Name for " + title, exact: true }) });
+  await library.goto(origin + "/library");
+  const card = cardFor(library, child.title);
+  await card.getByRole("button", { name: /^Earlier versions/ }).click();
+  await card
+    .getByRole("listitem")
+    .filter({ hasText: "Initial" })
+    .getByRole("button", { name: "Restore", exact: true })
+    .click();
+  const restored = (await readEntries(library)).find((entry) => entry.id === child.id);
+  assert.equal(restored.state.content.headline, earlier.content.headline);
+  assert.equal(restored.state.projectId, child.state.projectId);
+  assert.equal(restored.state.savedHash, null);
+  await library.close();
+
+  const newHeadline = "Fresh Studio edit after the Library restore";
+  await page.getByRole("textbox", { name: "Headline", exact: true }).fill(newHeadline);
+  await page.getByRole("alert").filter({ hasText: "My designs changed" }).waitFor();
+  const beforeReload = await readEntries(page);
+  assert.deepEqual(
+    beforeReload.find((entry) => entry.id === child.id),
+    restored,
+  );
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.reload();
+  assert.equal(await (await openHeadlineEditor(page, false)).inputValue(), newHeadline);
+  const entries = await readEntries(page);
+  const separate = entries.find((entry) => entry.state.content.headline === newHeadline);
+  assert.ok(separate && separate.id !== child.id && separate.id !== parent.id);
+  assert.equal(separate.state.projectId, null);
+  assertParent(entries, parent, "Recovering a divergent Studio draft");
+
+  for (const design of [restored, separate]) {
+    await page.goto(origin + "/library");
+    await cardFor(page, design.title).getByRole("button", { name: "Open its Vision" }).click();
+    await page.getByRole("button", { name: "Open design", exact: true }).click();
+    assert.equal(
+      await (await openHeadlineEditor(page, false)).inputValue(),
+      design.state.content.headline,
+    );
+    const active = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), draftKey);
+    assert.equal(active.libraryId, design.id);
+    assert.equal(active.projectId, design.state.projectId);
+    assertParent(await readEntries(page), parent, "Reopening both saved versions");
+  }
+}
+
 async function exerciseCopy(browser, route, age, journey) {
   const context = await browser.newContext({ serviceWorkers: "block" });
   context.setDefaultTimeout(10_000);
@@ -186,6 +238,8 @@ async function exerciseCopy(browser, route, age, journey) {
       await redo.click();
       await checkSaved(edited, "Redo edit");
       assert.equal(await restored.inputValue(), edited);
+      if (route === "library" && age === "legacy")
+        await restoreWhileEditing(context, page, child, before);
     } else {
       // Fresh edits clear the future stack. Use a pristine copy to exercise both inherited branches.
       await undo.click();

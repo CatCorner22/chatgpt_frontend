@@ -37,7 +37,12 @@ import {
 import { toast } from "sonner";
 import { readExamOptionDraft } from "@/lib/exam-option-draft";
 import { takeLibraryOpenId } from "@/lib/library-open";
-import { openLibraryDesign, readLibrarySnapshot, restoreLayoutCheckpoint } from "@/lib/library";
+import {
+  openLibraryDesign,
+  readLibrarySnapshot,
+  retainDraftIdentity,
+  type LibraryEntry,
+} from "@/lib/library";
 import { Button } from "@/components/ui/button";
 import { questionCount, type Integration } from "@/lib/design";
 import { Brief, Directions } from "./-studio/StartDesign";
@@ -144,11 +149,23 @@ function Studio({
       // Recovered originals stay available on later visits, including after new work is saved.
       const savedCopies = readStudioRecoveries(focusLocalStorage, KEY);
       setRecoveries(savedCopies);
-      const prior = { ...result.state };
+      let prior = { ...result.state };
       if (gardenStart && isEmptyStudioDraft(prior)) prior.integration = gardenStart;
       if (prior.tokens && prior.content && !prior.libraryId) prior.libraryId = crypto.randomUUID();
+      let priorEntry: LibraryEntry | undefined;
       try {
-        restoreState(prior, original);
+        if (prior.libraryId && prior.tokens && prior.content) {
+          const { entries } = readLibrarySnapshot();
+          const resumed = retainDraftIdentity(prior, entries);
+          if (resumed !== prior) {
+            setHandoffIssue(
+              "Your draft and My designs had different versions. Your draft is now a separate design. You can open the other version in My designs.",
+            );
+            prior = resumed;
+          }
+          priorEntry = entries.find((entry) => entry.id === prior.libraryId);
+        }
+        restoreState(prior, original, priorEntry);
       } catch {
         setRecoveryError({
           raw: focusLocalStorage.getItem(KEY),
@@ -171,9 +188,10 @@ function Studio({
             : focusSessionStorage.getItem("refraction:pending-rescue");
         if (libraryId || pending) {
           let next: State;
+          let selected: LibraryEntry | undefined;
           if (libraryId) {
             const library = readLibrarySnapshot();
-            const selected = library.entries.find((entry) => entry.id === libraryId);
+            selected = library.entries.find((entry) => entry.id === libraryId);
             if (!selected || library.needsRecovery) throw new Error("Saved design needs review.");
             next = openLibraryDesign(selected);
           } else {
@@ -189,13 +207,23 @@ function Studio({
             !savedCopies.some((copy) => copy.raw === originalDraft)
           )
             keepDraftCopy(originalDraft);
-          archiveStudioDraft(prior);
-          restoreState(next, previousDraft);
+          archiveStudioDraft(prior, priorEntry);
+          restoreState(next, previousDraft, selected);
           if (pending) focusSessionStorage.removeItem("refraction:pending-rescue");
           if (prior.tokens || needsCopy)
             toast("Opened redesign", {
               duration: 15000,
-              action: { label: "Undo", onClick: () => setS(prior) },
+              action: {
+                label: "Undo",
+                onClick: () =>
+                  setS((current) => {
+                    if (current === next) return prior;
+                    toast(
+                      "This design has changed since it opened. Your later edits are still here.",
+                    );
+                    return current;
+                  }),
+              },
             });
         }
       } catch {
@@ -311,7 +339,7 @@ function Studio({
       const recovered = migrate(parsed);
       const library = readLibrarySnapshot();
       if (library.needsRecovery) throw new Error();
-      const next = restoreLayoutCheckpoint(recovered, library.entries);
+      const next = retainDraftIdentity(recovered, library.entries);
       if (hasLocalOnlyDraft(s)) keepDraftCopy(raw, true);
       restoreState(next, raw);
       setHandoffIssue("");

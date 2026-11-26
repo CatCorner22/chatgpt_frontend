@@ -65,6 +65,21 @@ describe("undo across questions", () => {
 
 describe("saved design copies and versions", () => {
   afterEach(() => localStorage.clear());
+  it.each(["child-account", null])(
+    "keeps the copy's account association %s when restoring a legacy version",
+    (projectId) => {
+      const copy = { ...st("#aa0000", "copy"), projectId, savedHash: null };
+      const foreign = { ...copy, projectId: "parent-account", savedHash: "parent-receipt" };
+      const before = withVersion([], copy, "1");
+      before[0]!.versions = [
+        { at: "0", label: "Initial", state: { ...foreign, past: [foreign], future: [foreign] } },
+      ];
+      const [restored] = restoreVersion(before, "copy", 0, "2");
+      const opened = openLibraryDesign(restored!);
+      for (const state of [restored!.state, opened, opened.past[0], opened.future[0]])
+        expect(state).toMatchObject({ libraryId: "copy", projectId, savedHash: null });
+    },
+  );
   it("keeps the pre-edit words through a typing burst, then records a new editing session", () => {
     const initial = st("#aa0000");
     let list = withVersion([], initial, "2026-11-18T13:00:00.000Z");

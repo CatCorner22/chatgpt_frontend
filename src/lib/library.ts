@@ -297,7 +297,7 @@ export function withVersion(list: LibraryEntry[], state: LibraryState, at: strin
 export function openLibraryDesign(entry: LibraryEntry): StudioState {
   const current = migrateStudioState({ ...entry.state, libraryId: entry.id });
   const ownStep = (step: StudioState["past"][number]) => {
-    if (step.libraryId === entry.id) return step;
+    if (step.libraryId === entry.id && step.projectId === current.projectId) return step;
     if (!step.libraryId && !step.tokens && !step.content && !step.projectId && !step.savedHash)
       return step;
     return { ...step, libraryId: entry.id, projectId: current.projectId, savedHash: null };
@@ -321,7 +321,8 @@ function detachedState(input: Record<string, unknown>, id: string): Record<strin
   };
 }
 
-export function restoreLayoutCheckpoint(state: StudioState, entries: LibraryEntry[]): StudioState {
+/** Preserve both branches when the active workspace and its saved design have independently changed. */
+export function retainDraftIdentity(state: StudioState, entries: LibraryEntry[]): StudioState {
   const saved = entries.find((entry) => entry.id === state.libraryId);
   if (!saved || libraryMatchesDraft(saved, state)) return state;
   const id = crypto.randomUUID();
@@ -379,7 +380,12 @@ export function restoreVersion(
     ...(e.versions ?? []).filter((_, i) => i !== index),
     { at: e.updated, label: "Before restoring", state: e.state },
   ].slice(-VERSION_LIMIT);
-  return list.map((x) =>
-    x.id === id ? { ...x, updated: at, state: { ...v.state, libraryId: id }, versions } : x,
-  );
+  // A version restores design work. Its old account link and receipt may belong to a parent copy.
+  const state = {
+    ...v.state,
+    libraryId: id,
+    projectId: e.state["projectId"] ?? null,
+    savedHash: null,
+  };
+  return list.map((x) => (x.id === id ? { ...x, updated: at, state, versions } : x));
 }

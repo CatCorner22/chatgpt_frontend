@@ -1,11 +1,12 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { StrictMode } from "react";
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Toaster } from "sonner";
 import { EMPTY, type State } from "@/lib/studio-state";
 import { normalizeTokens, STEPS, type Tokens } from "@/lib/design";
 import { buildLocalOptions } from "@/lib/local-design";
-import { readLibrary } from "@/lib/library";
+import { readLibrary, restoreVersion, writeLibrary } from "@/lib/library";
 import { readLayoutDraft, commitLayoutDraft } from "@/lib/layout-draft";
 import { deferred } from "./deferred";
 
@@ -170,6 +171,78 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+describe("Studio and My designs version ownership", () => {
+  async function editThenRestore(whileOpen: boolean) {
+    const original = { ...makeState(), projectId: "saved-account-project" };
+    const app = mount(original);
+    fireEvent.click(await screen.findByRole("button", { name: "Choose workshop page" }));
+    expect(saved().page.composition).toBe("journal");
+    if (!whileOpen) app.unmount();
+    const restored = restoreVersion(
+      readLibrary(),
+      original.libraryId!,
+      0,
+      new Date().toISOString(),
+    );
+    expect(restored[0]!.state["page"]).toMatchObject({ composition: "studio" });
+    writeLibrary(restored);
+    return { app, original };
+  }
+
+  it("preserves the restored library version when its different active draft reopens", async () => {
+    const { original } = await editThenRestore(false);
+    render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    const draft = saved();
+    expect(
+      readLibrary().find((entry) => entry.id === original.libraryId)?.state["page"],
+    ).toMatchObject({
+      composition: "studio",
+    });
+    expect(draft.page.composition).toBe("journal");
+    expect(draft.libraryId).not.toBe(original.libraryId);
+    expect(draft.projectId).toBeNull();
+    expect(readLibrary().some((entry) => entry.id === draft.libraryId)).toBe(true);
+  });
+
+  it("keeps editing the same design after renaming or favoriting it in My designs", async () => {
+    const original = makeState();
+    const editor = mount(original);
+    await screen.findByTestId("workshop-accent");
+    writeLibrary(
+      readLibrary().map((entry) => ({ ...entry, title: "Blake’s workshop", favorite: true })),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Choose workshop crimson" }));
+    editor.unmount();
+    render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    expect(saved().libraryId).toBe(original.libraryId);
+    expect(readLibrary()).toHaveLength(1);
+    expect(readLibrary()[0]).toMatchObject({
+      title: "Blake’s workshop",
+      favorite: true,
+      state: { tokens: { accent: "#b51f41" } },
+    });
+  });
+
+  it("keeps a concurrent library restore intact while saving an active Studio edit for reload", async () => {
+    const { app, original } = await editThenRestore(true);
+    const libraryBefore = readLibrary();
+    fireEvent.click(screen.getByRole("button", { name: "Choose workshop crimson" }));
+    expect(saved().tokens!.accent).toBe("#b51f41");
+    expect(readLibrary()).toEqual(libraryBefore);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/My designs/);
+    app.unmount();
+    render(<FocusHome />);
+    await screen.findByTestId("workshop-accent");
+    expect(saved()).toMatchObject({ projectId: null, tokens: { accent: "#b51f41" } });
+    expect(saved().libraryId).not.toBe(original.libraryId);
+    expect(readLibrary().find((entry) => entry.id === original.libraryId)).toEqual(
+      libraryBefore[0],
+    );
+  });
+});
+
 describe("Garden-directed Studio start", () => {
   it("lets an untouched saved workspace adopt either project type without a recovery copy", async () => {
     operations.search = { view: "studio", start: "existing" };
@@ -284,6 +357,32 @@ describe("Opening an explicitly chosen layout", () => {
 describe("Incoming Studio handoff with a brief in progress", () => {
   afterEach(() => vi.restoreAllMocks());
   const pendingKey = "refraction:pending-rescue";
+
+  it.each([false, true])(
+    "undoes the handoff notification only while its opened design is untouched (edited = %s)",
+    async (edited) => {
+      localStorage.setItem(key, JSON.stringify({ ...EMPTY, brief: "Original working brief" }));
+      const next = makeState();
+      sessionStorage.setItem(pendingKey, JSON.stringify(next));
+      render(
+        <>
+          <FocusHome />
+          <Toaster />
+        </>,
+      );
+      const notice = (await screen.findByText("Opened redesign")).closest("li")!;
+      if (edited) fireEvent.click(screen.getByRole("button", { name: "Choose workshop crimson" }));
+      fireEvent.click(within(notice).getByRole("button", { name: "Undo" }));
+      if (edited)
+        expect(saved()).toMatchObject({ libraryId: next.libraryId, tokens: { accent: "#b51f41" } });
+      else
+        expect(saved()).toMatchObject({
+          brief: "Original working brief",
+          libraryId: null,
+          tokens: null,
+        });
+    },
+  );
   const previous = { ...EMPTY, brief: "Keep the venue’s wheelchair entrance in the redesign." };
 
   it("keeps the original draft bytes available after the replacement and a reload", async () => {

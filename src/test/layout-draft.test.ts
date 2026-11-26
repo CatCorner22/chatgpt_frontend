@@ -7,12 +7,7 @@ import {
   LAYOUT_SAMPLE,
   readLayoutDraft,
 } from "@/lib/layout-draft";
-import {
-  LIBRARY_KEY,
-  openLibraryDesign,
-  readLibrary,
-  restoreLayoutCheckpoint,
-} from "@/lib/library";
+import { LIBRARY_KEY, openLibraryDesign, readLibrary, retainDraftIdentity } from "@/lib/library";
 import { PAGE_COMPOSITIONS } from "@/lib/page-compositions";
 import { isLayoutCheckpoint, STUDIO_KEY } from "@/lib/studio-draft-storage";
 import { readStudioRecoveries } from "@/lib/studio-recovery";
@@ -208,14 +203,14 @@ describe("layout selection and durable handoff", () => {
       expect(localStorage.getItem(STUDIO_KEY)).toBe(raw);
       expect(localStorage.getItem(LIBRARY_KEY)).toBe(entries);
     }
-    const recovered = restoreLayoutCheckpoint(snapshot.state, readLibrary());
+    const recovered = retainDraftIdentity(snapshot.state, readLibrary());
     expect(recovered.libraryId).not.toBe(first.libraryId);
     expect(recovered).toMatchObject({
       brief: "The owner's newer thought",
       projectId: null,
       savedHash: null,
     });
-    expect(restoreLayoutCheckpoint(first, readLibrary())).toBe(first);
+    expect(retainDraftIdentity(first, readLibrary())).toBe(first);
   });
 
   it("keeps browsing available for invalid palettes and stops at the same measured constraint as Studio", () => {

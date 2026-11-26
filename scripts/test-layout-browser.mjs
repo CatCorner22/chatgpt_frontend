@@ -220,7 +220,12 @@ try {
   await button("Phone").click();
   await checkJournalLinks(frame("Journal", "phone"));
   await checkPreviewTabExit(phone, 'footer a[href="#top"]', "Tab", button("Apply to my design"));
-  await checkPreviewTabExit(phone, 'a.skip[href="#main"]', "Shift+Tab", button("Try tricky content"));
+  await checkPreviewTabExit(
+    phone,
+    'a.skip[href="#main"]',
+    "Shift+Tab",
+    button("Try tricky content"),
+  );
   await button("Desktop").click();
   assert.deepEqual(await snapshot(), source, "Trying preview links changed saved work.");
   await layout("Comparison").check();

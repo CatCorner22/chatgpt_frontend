@@ -71,6 +71,73 @@ afterEach(() => {
 });
 
 describe("protective hosted checks with real owner storage", () => {
+  it("locks on a native window switch from a preview even when no visibility or focus event arrives", async () => {
+    vi.useFakeTimers();
+    const inFlight = deferred<Response>();
+    const returned = deferred<Response>();
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(response("A"))
+      .mockReturnValueOnce(inFlight.promise)
+      .mockReturnValueOnce(returned.promise);
+    const foreground = vi.spyOn(document, "hasFocus").mockReturnValue(true);
+    vi.stubGlobal("fetch", fetcher);
+    await act(async () => {
+      render(
+        <HostedBoundary queryClient={new QueryClient()}>
+          <iframe title="Authored preview" data-focus-authored-preview="" />
+          <Work />
+        </HostedBoundary>,
+      );
+    });
+    screen.getByTitle("Authored preview").focus();
+    window.dispatchEvent(new Event("blur"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(45_000);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expectLocked();
+    await act(async () => inFlight.resolve(response("A")));
+    expect(screen.getByLabelText("Unpersisted draft")).not.toBeVisible();
+    expectLocked();
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expectLocked();
+    await act(async () => returned.resolve(response("B")));
+    expect(screen.getByRole("link", { name: "Reload securely" })).toBeVisible();
+    expectLocked();
+  });
+
+  it("still locks when a focused authored preview has no trusted internal pointer transfer", async () => {
+    const check = deferred<Response>();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce(response("A")).mockReturnValueOnce(check.promise),
+    );
+    render(
+      <HostedBoundary queryClient={new QueryClient()}>
+        <iframe title="Authored preview" data-focus-authored-preview="" />
+        <Work />
+      </HostedBoundary>,
+    );
+    const preview = await screen.findByTitle("Authored preview");
+    preview.focus();
+    expect(document.activeElement).toBe(preview);
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    await act(async () => events.focus());
+    expectLocked();
+    expect(screen.getByLabelText("Unpersisted draft")).not.toBeVisible();
+    await act(async () => check.resolve(response("B")));
+    expect(await screen.findByRole("link", { name: "Reload securely" })).toBeVisible();
+  });
+
   it.each(["focus", "visibility", "pageshow"] as const)(
     "locks synchronously before a %s request and resumes the same owner's intact draft",
     async (event) => {

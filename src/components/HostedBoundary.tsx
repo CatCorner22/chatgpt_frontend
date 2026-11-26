@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   initializeBrowserOwner,
@@ -6,6 +14,8 @@ import {
   lockBrowserOwner,
   resumeBrowserOwner,
 } from "@/lib/browser-storage";
+
+import { restorePreviewTab, type PreviewTabReturn } from "@/lib/preview-keyboard";
 
 export type HostedSession = {
   user: { id: string; email: string | null } | null;
@@ -108,6 +118,10 @@ function VerifiedHostedBoundary({
     signIn: false,
   });
   const retry = useRef<() => void>(() => {});
+  const pendingTab = useRef<PreviewTabReturn | null>(null);
+  useLayoutEffect(() => {
+    if (state.kind === "ready") restorePreviewTab(pendingTab.current);
+  }, [state]);
   useEffect(() => {
     let active = true;
     let generation = 0;
@@ -117,8 +131,18 @@ function VerifiedHostedBoundary({
     let lastSession: HostedSession | null = null;
     let request: AbortController | undefined;
     let deadline: number | undefined;
+    let previewPointerTurn: number | undefined;
+    let previewFocusTimer: number | undefined;
+    let awaitingPreviewReturn = false;
+
+    let enteredFrame: HTMLIFrameElement | null = null;
+    function clearPreviewKeyboard() {
+      enteredFrame = null;
+      pendingTab.current = null;
+    }
 
     function block(message: string, signIn = false) {
+      clearPreviewKeyboard();
       terminal = true;
       lockBrowserOwner();
       void queryClient.cancelQueries();
@@ -127,6 +151,7 @@ function VerifiedHostedBoundary({
     }
 
     function pause() {
+      clearPreviewKeyboard();
       paused = true;
       lockBrowserOwner();
       void queryClient.cancelQueries();
@@ -140,7 +165,7 @@ function VerifiedHostedBoundary({
     }
 
     async function verify(explicitRetry = false, protect = false) {
-      if (terminal || (paused && !explicitRetry)) return;
+      if (terminal || awaitingPreviewReturn || (paused && !explicitRetry)) return;
       if (protect || explicitRetry) {
         // Hidden children remain mounted to preserve drafts. Lock their storage
         // and export callbacks before a protective request can yield control.
@@ -188,6 +213,7 @@ function VerifiedHostedBoundary({
             resumeBrowserOwner(nextOwner);
           }
         } else resumeBrowserOwner(nextOwner);
+        if (owner === nextOwner && pendingTab.current) pendingTab.current.verified = true;
         owner = nextOwner;
         paused = false;
         lastSession = session;
@@ -200,19 +226,114 @@ function VerifiedHostedBoundary({
       }
     }
 
+    function clearPreviewPointer() {
+      window.clearTimeout(previewPointerTurn);
+      previewPointerTurn = undefined;
+    }
+    function observePreviewFocus() {
+      window.clearTimeout(previewFocusTimer);
+      if (!active || terminal || paused) return;
+      const foreground = document.visibilityState === "visible" && document.hasFocus();
+      if (awaitingPreviewReturn) {
+        if (foreground) {
+          awaitingPreviewReturn = false;
+          void verify(false, true);
+          return;
+        }
+      } else {
+        const frame = document.activeElement;
+        if (!(
+          frame instanceof HTMLIFrameElement && frame.hasAttribute("data-focus-authored-preview")
+        ))
+          return;
+        if (foreground) enteredFrame = frame;
+        else {
+          // An OS window switch inside an opaque frame can emit no DOM event.
+          // Discard any earlier account check and keep storage locked across the return.
+          clearPreviewKeyboard();
+          awaitingPreviewReturn = true;
+          generation++;
+          request?.abort();
+          window.clearTimeout(deadline);
+          clearPreviewPointer();
+          lockBrowserOwner();
+          void queryClient.cancelQueries();
+          setState((previous) => ({ ...previous, kind: "checking" }));
+        }
+      }
+      previewFocusTimer = window.setTimeout(observePreviewFocus, 100);
+    }
+    function onWindowBlur() {
+      clearPreviewKeyboard();
+      const frame = document.activeElement;
+      if (
+        document.hasFocus() &&
+        frame instanceof HTMLIFrameElement &&
+        frame.hasAttribute("data-focus-authored-preview")
+      )
+        enteredFrame = frame;
+      clearPreviewPointer();
+      window.clearTimeout(previewFocusTimer);
+      // Firefox assigns activeElement to the child after the parent's blur event.
+      previewFocusTimer = window.setTimeout(observePreviewFocus, 0);
+    }
+    function trackPreviewExit(event: PointerEvent) {
+      clearPreviewKeyboard();
+      clearPreviewPointer();
+      const frame = document.activeElement;
+      if (
+        event.isTrusted &&
+        document.visibilityState === "visible" &&
+        document.hasFocus() &&
+        frame instanceof HTMLIFrameElement &&
+        frame.hasAttribute("data-focus-authored-preview")
+      ) {
+        // Browsers emit window focus during this click, before the editor gets pointerup.
+        // Only this same-turn transfer originated in the already focused Studio.
+        previewPointerTurn = window.setTimeout(clearPreviewPointer, 0);
+      }
+    }
     const checkVisible = () => {
-      if (document.visibilityState === "visible") void verify(false, true);
+      clearPreviewKeyboard();
+      clearPreviewPointer();
+      if (awaitingPreviewReturn) observePreviewFocus();
+      else if (document.visibilityState === "visible") void verify(false, true);
     };
     const checkFocus = () => {
+      if (awaitingPreviewReturn) {
+        observePreviewFocus();
+        return;
+      }
+      if (previewPointerTurn !== undefined) {
+        clearPreviewPointer();
+        return;
+      }
+      if (enteredFrame && document.hasFocus() && document.visibilityState === "visible") {
+        pendingTab.current = { frame: enteredFrame, verified: false };
+      }
+      enteredFrame = null;
       void verify(false, true);
     };
+    function recordTabRelease(event: KeyboardEvent) {
+      const pending = pendingTab.current;
+      if (!pending || !event.isTrusted || event.key !== "Tab" || event.target !== document.body)
+        return;
+      pending.backwards = event.shiftKey;
+      restorePreviewTab(pending);
+    }
     const checkRestored = (event: PageTransitionEvent) => {
+      clearPreviewKeyboard();
+      clearPreviewPointer();
       if (event.persisted) void verify(false, true);
     };
     retry.current = () => {
       void verify(true, true);
     };
     void verify();
+    document.addEventListener("keydown", clearPreviewKeyboard, true);
+    document.addEventListener("keyup", recordTabRelease, true);
+    document.addEventListener("pointerdown", trackPreviewExit, true);
+    window.addEventListener("blur", onWindowBlur);
     window.addEventListener("focus", checkFocus);
     window.addEventListener("pageshow", checkRestored);
     document.addEventListener("visibilitychange", checkVisible);
@@ -225,6 +346,13 @@ function VerifiedHostedBoundary({
       request?.abort();
       window.clearTimeout(deadline);
       window.clearInterval(interval);
+      window.clearTimeout(previewFocusTimer);
+      clearPreviewPointer();
+      clearPreviewKeyboard();
+      document.removeEventListener("keydown", clearPreviewKeyboard, true);
+      document.removeEventListener("keyup", recordTabRelease, true);
+      document.removeEventListener("pointerdown", trackPreviewExit, true);
+      window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", checkFocus);
       window.removeEventListener("pageshow", checkRestored);
       document.removeEventListener("visibilitychange", checkVisible);
@@ -269,7 +397,11 @@ function VerifiedHostedBoundary({
         </main>
       )}
       {state.session && (
-        <div hidden={state.kind !== "ready"} inert={state.kind !== "ready"}>
+        <div
+          data-focus-hosted-studio=""
+          hidden={state.kind !== "ready"}
+          inert={state.kind !== "ready"}
+        >
           <HostedContext.Provider value={state.session}>
             {state.session.mode === "preview" && (
               <div

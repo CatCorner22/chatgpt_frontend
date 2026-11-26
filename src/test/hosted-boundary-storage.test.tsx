@@ -71,15 +71,19 @@ afterEach(() => {
 });
 
 describe("protective hosted checks with real owner storage", () => {
-  it("locks on a native window switch from a preview even when no visibility or focus event arrives", async () => {
+  it("locks on successive native window switches from a preview without a DOM focus event", async () => {
     vi.useFakeTimers();
     const inFlight = deferred<Response>();
     const returned = deferred<Response>();
+    const nextReturn = deferred<Response>();
+    const finalReturn = deferred<Response>();
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce(response("A"))
       .mockReturnValueOnce(inFlight.promise)
-      .mockReturnValueOnce(returned.promise);
+      .mockReturnValueOnce(returned.promise)
+      .mockReturnValueOnce(nextReturn.promise)
+      .mockReturnValueOnce(finalReturn.promise);
     const foreground = vi.spyOn(document, "hasFocus").mockReturnValue(true);
     vi.stubGlobal("fetch", fetcher);
     await act(async () => {
@@ -110,7 +114,32 @@ describe("protective hosted checks with real owner storage", () => {
     });
     expect(fetcher).toHaveBeenCalledTimes(3);
     expectLocked();
-    await act(async () => returned.resolve(response("B")));
+    await act(async () => returned.resolve(response("A")));
+    expect(screen.getByLabelText("Unpersisted draft")).toBeVisible();
+    expect(document.activeElement).toBe(screen.getByTitle("Authored preview"));
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expectLocked();
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    // Leaving and reentering while a check is pending must invalidate that response, too.
+    foreground.mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    foreground.mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(5);
+    await act(async () => nextReturn.resolve(response("A")));
+    expectLocked();
+    await act(async () => finalReturn.resolve(response("B")));
     expect(screen.getByRole("link", { name: "Reload securely" })).toBeVisible();
     expectLocked();
   });

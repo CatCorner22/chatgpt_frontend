@@ -15,7 +15,7 @@ import {
   resumeBrowserOwner,
 } from "@/lib/browser-storage";
 
-import { restorePreviewTab, type PreviewTabReturn } from "@/lib/preview-keyboard";
+import { capturePreviewReturn } from "@/lib/preview-keyboard";
 
 export type HostedSession = {
   user: { id: string; email: string | null } | null;
@@ -118,9 +118,12 @@ function VerifiedHostedBoundary({
     signIn: false,
   });
   const retry = useRef<() => void>(() => {});
-  const pendingTab = useRef<PreviewTabReturn | null>(null);
+  const pendingTab = useRef<ReturnType<typeof capturePreviewReturn>>(null);
   useLayoutEffect(() => {
-    if (state.kind === "ready") restorePreviewTab(pendingTab.current);
+    if (state.kind !== "checking" && pendingTab.current) {
+      pendingTab.current.release();
+      pendingTab.current = null;
+    }
   }, [state]);
   useEffect(() => {
     let active = true;
@@ -134,11 +137,13 @@ function VerifiedHostedBoundary({
     let previewPointerTurn: number | undefined;
     let previewFocusTimer: number | undefined;
     let awaitingPreviewReturn = false;
+    let confirmForeground = false;
 
     let enteredFrame: HTMLIFrameElement | null = null;
+    let returnTurn: number | undefined;
     function clearPreviewKeyboard() {
       enteredFrame = null;
-      pendingTab.current = null;
+      pendingTab.current?.forget();
     }
 
     function block(message: string, signIn = false) {
@@ -204,6 +209,13 @@ function VerifiedHostedBoundary({
           block("Your account changed. Reload to open the correct account's designs.");
           return;
         }
+        if (confirmForeground && !(document.visibilityState === "visible" && document.hasFocus())) {
+          // The owner may have left again while this check was in flight. Keep the
+          // existing lock and recheck on their next return before showing the draft.
+          awaitingPreviewReturn = true;
+          observePreviewFocus();
+          return;
+        }
         if (owner === null) {
           try {
             initializeBrowserOwner(nextOwner);
@@ -215,9 +227,14 @@ function VerifiedHostedBoundary({
         } else resumeBrowserOwner(nextOwner);
         if (owner === nextOwner && pendingTab.current) pendingTab.current.verified = true;
         owner = nextOwner;
+        confirmForeground = false;
         paused = false;
         lastSession = session;
         setState({ kind: "ready", session, message: "", signIn: false });
+        // Some browsers retain frame focus while the verified subtree is hidden.
+        // A second native window switch then produces no new parent blur to arm the monitor.
+        window.clearTimeout(previewFocusTimer);
+        previewFocusTimer = window.setTimeout(observePreviewFocus, 0);
       } catch {
         if (!active || attempt !== generation) return;
         pause();
@@ -238,20 +255,21 @@ function VerifiedHostedBoundary({
         if (foreground) {
           awaitingPreviewReturn = false;
           void verify(false, true);
-          return;
         }
       } else {
         const frame = document.activeElement;
-        if (!(
-          frame instanceof HTMLIFrameElement && frame.hasAttribute("data-focus-authored-preview")
-        ))
-          return;
-        if (foreground) enteredFrame = frame;
-        else {
+        const inPreview =
+          frame instanceof HTMLIFrameElement && frame.hasAttribute("data-focus-authored-preview");
+        // Keep observing a held foreground check even if hiding the frame moved focus to body.
+        if (!inPreview && !confirmForeground) return;
+        if (foreground) {
+          if (inPreview) enteredFrame = frame;
+        } else {
           // An OS window switch inside an opaque frame can emit no DOM event.
           // Discard any earlier account check and keep storage locked across the return.
           clearPreviewKeyboard();
           awaitingPreviewReturn = true;
+          confirmForeground = true;
           generation++;
           request?.abort();
           window.clearTimeout(deadline);
@@ -308,19 +326,31 @@ function VerifiedHostedBoundary({
         clearPreviewPointer();
         return;
       }
-      if (enteredFrame && document.hasFocus() && document.visibilityState === "visible") {
-        pendingTab.current = { frame: enteredFrame, verified: false };
-      }
+      const frame = enteredFrame;
       enteredFrame = null;
+      if (
+        frame &&
+        !pendingTab.current &&
+        document.hasFocus() &&
+        document.visibilityState === "visible"
+      ) {
+        const transfer = capturePreviewReturn(frame);
+        if (transfer) {
+          lockBrowserOwner();
+          generation++;
+          request?.abort();
+          window.clearTimeout(deadline);
+          pendingTab.current = transfer;
+          // The next native focus event follows this window-focus event in the same turn.
+          returnTurn = window.setTimeout(() => {
+            transfer.seal();
+            void verify(false, true);
+          }, 0);
+          return;
+        }
+      }
       void verify(false, true);
     };
-    function recordTabRelease(event: KeyboardEvent) {
-      const pending = pendingTab.current;
-      if (!pending || !event.isTrusted || event.key !== "Tab" || event.target !== document.body)
-        return;
-      pending.backwards = event.shiftKey;
-      restorePreviewTab(pending);
-    }
     const checkRestored = (event: PageTransitionEvent) => {
       clearPreviewKeyboard();
       clearPreviewPointer();
@@ -330,8 +360,6 @@ function VerifiedHostedBoundary({
       void verify(true, true);
     };
     void verify();
-    document.addEventListener("keydown", clearPreviewKeyboard, true);
-    document.addEventListener("keyup", recordTabRelease, true);
     document.addEventListener("pointerdown", trackPreviewExit, true);
     window.addEventListener("blur", onWindowBlur);
     window.addEventListener("focus", checkFocus);
@@ -349,8 +377,9 @@ function VerifiedHostedBoundary({
       window.clearTimeout(previewFocusTimer);
       clearPreviewPointer();
       clearPreviewKeyboard();
-      document.removeEventListener("keydown", clearPreviewKeyboard, true);
-      document.removeEventListener("keyup", recordTabRelease, true);
+      window.clearTimeout(returnTurn);
+      pendingTab.current?.release();
+      pendingTab.current = null;
       document.removeEventListener("pointerdown", trackPreviewExit, true);
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", checkFocus);

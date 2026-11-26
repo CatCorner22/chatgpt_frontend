@@ -120,8 +120,9 @@ function VerifiedHostedBoundary({
   const retry = useRef<() => void>(() => {});
   const pendingTab = useRef<ReturnType<typeof capturePreviewReturn>>(null);
   useLayoutEffect(() => {
-    if (state.kind !== "checking" && pendingTab.current) {
-      pendingTab.current.release();
+    const pending = pendingTab.current;
+    if (pending && state.kind !== "checking" && (state.kind !== "ready" || pending.verified)) {
+      pending.release();
       pendingTab.current = null;
     }
   }, [state]);

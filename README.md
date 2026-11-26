@@ -21,6 +21,8 @@ The **Made for you** gallery includes six new original starters: Purr & Paper, V
 
 The project's defined **North Star** is frontend UI and UX as good as the best human coders. See [the current review and priorities](docs/NORTH-STAR-REVIEW.md) for the evidence, remaining gaps and next acceptance criteria.
 
+Three proposed studies cover whether visitors understand prices, whether owners resume the right draft, and whether a developer handoff preserves a design’s character. The first study includes two offline pages and a blank tally. [Study guide and pilot](docs/NORTH-STAR-RELIABILITY-REVIEW.md)
+
 ## Run locally
 
 Use Node 22.12 or newer and npm. The local fixtures below supply a test session for this Sites checkout, without an environment file or real account.
@@ -52,7 +54,7 @@ Tailwind scans the component folder when building the stylesheet. The shadcn ali
 - Choose and refine colors, fonts, scale, spacing, shape, layout, and detail using deterministic local options.
 - Edit your actual business name, headline, services, call to action, and optional customer quote.
 - Save designs automatically in this browser, resume them, and use the existing library and undo controls.
-- Build a working page in Studio, Editorial, Product, Showcase, or Journal; download the same HTML seen in the preview and editable linked CSS.
+- Build a working page in Studio, Editorial, Product, Showcase, Journal, or Comparison. The preview lets you follow section links inside Focus. Download the HTML or editable ZIP to try the page’s public links.
 - Back up and restore your design library with the actual image files, saved versions, and retained history.
 - Download the original design brief and specification ZIP for your coding tool.
 - Choose **Restyle my existing site or app** at the start or at handoff. Download a scoped trial pack with preservation and undo guides; no public URL or source upload is needed.

@@ -323,6 +323,42 @@ describe("authored page export", () => {
   });
 
   it.each([
+    "https://book.example.com/?access_token=private-test-value",
+    "https://book.example.com/#/view?X-Amz-Signature=private-test-value",
+    "https://book.example.com/oauth/callback?code=private-test-value",
+    "https://book.example.com/classes?code=private-test-value",
+  ])("omits private primary and related links from the page and every publishable file", (url) => {
+    const result = buildAuthoredPage(tokens, content, {
+      ...options,
+      actionUrl: url,
+      relatedStory: { title: "Read more", url, placement: "after-article" },
+    });
+    for (const output of [result.html, ...Object.values(result.files)]) {
+      expect(output).not.toContain("private-test-value");
+    }
+    expect(result.readiness.map((item) => item.id)).toEqual(
+      expect.arrayContaining(["action-private", "story-link"]),
+    );
+  });
+
+  it("uses the owner's exact public-code confirmation for each link independently", () => {
+    const url = "https://book.example.com/classes?code=PUBLIC";
+    const result = buildAuthoredPage(tokens, content, {
+      ...options,
+      actionUrl: url,
+      publicCodeUrl: url,
+      relatedStory: {
+        title: "Read more",
+        url,
+        publicCodeUrl: url + "-old",
+        placement: "after-article",
+      },
+    });
+    expect(parse(result.html).querySelector(".action")?.getAttribute("href")).toBe(url);
+    expect(result.readiness.map((item) => item.id)).toContain("story-link");
+  });
+
+  it.each([
     "javascript:alert(1)",
     "data:text/html,hello",
     "//example.com",

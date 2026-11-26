@@ -1,4 +1,4 @@
-import { changesPreviousActionMarkup } from "./action-destination";
+import { changesPreviousActionMarkup, isPrivatePageDestination } from "./action-destination";
 import { usesNewGalleryTypeface } from "./authored-font-availability";
 import type { State } from "./studio-state";
 import {
@@ -41,6 +41,14 @@ export function buildStudioLaunchArtifact(state: LaunchState) {
       ? { authoredActionRevision: "action-url-v1" as const }
       : {}),
     ...(authoredOutputRevision ? { authoredOutputRevision } : {}),
+    ...(isAuthoredPage &&
+    (isPrivatePageDestination(state.page.actionUrl, state.page.publicCodeUrl) ||
+      isPrivatePageDestination(
+        state.page.relatedStory?.url,
+        state.page.relatedStory?.publicCodeUrl,
+      ))
+      ? { authoredPrivateLinkRevision: "public-links-v1" as const }
+      : {}),
     ...(isAuthoredPage &&
     state.page.composition === "product" &&
     features.some(hasAuthoredFeatureDescription)

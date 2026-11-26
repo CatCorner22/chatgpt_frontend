@@ -13,6 +13,7 @@ export type PageImageSettings = {
 export type RelatedStory = PageImageSettings & {
   title: string;
   url: string;
+  publicCodeUrl?: string;
   placement: "after-intro" | "after-article";
 };
 export const EMPTY_RELATED_STORY: RelatedStory = {
@@ -38,18 +39,22 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
 const ASSET_PREFIX = "focus:page-image:";
 export const MAX_PAGE_IMAGE_BYTES = 750_000;
 
+function confirmedCode(address: unknown, confirmation: unknown) {
+  return typeof address === "string" &&
+    address.length > 0 &&
+    address.length <= 2000 &&
+    confirmation === address
+    ? { publicCodeUrl: address }
+    : {};
+}
+
 export function normalizePageSettings(input: unknown): PageSettings {
   const value = input && typeof input === "object" ? (input as Partial<PageSettings>) : {};
   const story = value.relatedStory;
   return {
     composition: isPageComposition(value.composition) ? value.composition : "studio",
     actionUrl: typeof value.actionUrl === "string" ? value.actionUrl.slice(0, 2000) : "",
-    ...(typeof value.actionUrl === "string" &&
-    value.actionUrl.length > 0 &&
-    value.actionUrl.length <= 2000 &&
-    value.publicCodeUrl === value.actionUrl
-      ? { publicCodeUrl: value.actionUrl }
-      : {}),
+    ...confirmedCode(value.actionUrl, value.publicCodeUrl),
     ...(value.language === "ja" ? { language: value.language } : {}),
     ...normalizeImageSettings(value),
     ...(story && typeof story === "object" && !Array.isArray(story)
@@ -57,6 +62,7 @@ export function normalizePageSettings(input: unknown): PageSettings {
           relatedStory: {
             title: typeof story.title === "string" ? story.title.slice(0, 240) : "",
             url: typeof story.url === "string" ? story.url.slice(0, 2000) : "",
+            ...confirmedCode(story.url, story.publicCodeUrl),
             placement: story.placement === "after-intro" ? "after-intro" : "after-article",
             ...normalizeImageSettings(story),
           },

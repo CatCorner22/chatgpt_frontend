@@ -32,10 +32,14 @@ describe("layout preview", () => {
     const ordinary = await screen.findByTitle("Studio layout preview on phone");
     const original = ordinary.getAttribute("srcdoc");
     expect(original).toContain(content.headline);
-    expect(original).toContain('href="https://example.test/gather"');
+    const previewDoc = new DOMParser().parseFromString(original!, "text/html");
+    expect(previewDoc.querySelector("base")?.getAttribute("href")).toBe("about:srcdoc");
+    expect(previewDoc.querySelector('a[href="#main"]')?.getAttribute("target")).toBeNull();
+    expect(
+      previewDoc.querySelector('a[href="https://example.test/gather"]')?.getAttribute("target"),
+    ).toBe("_blank");
     expect(ordinary).toHaveAttribute("sandbox", "");
-    fireEvent.load(ordinary);
-    expect(onReady).toHaveBeenLastCalledWith(true);
+    await waitFor(() => expect(onReady).toHaveBeenLastCalledWith(true));
 
     fireEvent.click(screen.getByRole("button", { name: "Try tricky content" }));
     expect(onReady).toHaveBeenLastCalledWith(false);
@@ -51,8 +55,7 @@ describe("layout preview", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try tricky content" }));
     const restored = screen.getByTitle("Studio layout preview on desktop");
     expect(restored.getAttribute("srcdoc")).toBe(original);
-    fireEvent.load(restored);
-    expect(onReady).toHaveBeenLastCalledWith(true);
+    await waitFor(() => expect(onReady).toHaveBeenLastCalledWith(true));
     expect(Object.entries(localStorage)).toEqual(saved);
   });
 
@@ -141,14 +144,23 @@ describe("layout preview", () => {
       const link = doc.createElement("a");
       link.className = "action";
       link.innerHTML = "<span>Reserve a place for your whole group</span>";
+      // The renderer can put a visible action in the hero and repeat it in a clipped closing section.
+      main.append(link.cloneNode(true));
       link.setAttribute("data-hidden", "true");
-      main.append(link);
+      const closing = doc.createElement("section");
+      closing.className = "closing";
+      closing.append(link);
+      main.append(closing);
       doc.querySelector("#feature-3")!.remove();
       const issues = measureTrickyLayout(doc);
-      expect(issues).toHaveLength(3);
+      expect(issues).toHaveLength(4);
+      expect(issues.join(" ")).toMatch(/headline/);
       expect(issues.join(" ")).toMatch(/scrolls sideways/);
       expect(issues.join(" ")).toMatch(/Family table/);
-      expect(issues.join(" ")).toMatch(/booking button label/);
+      expect(issues.join(" ")).toMatch(/booking button label in the closing section/);
+      link.removeAttribute("data-hidden");
+      link.replaceChildren();
+      expect(measureTrickyLayout(doc)).toEqual(issues);
     } finally {
       frame.remove();
     }

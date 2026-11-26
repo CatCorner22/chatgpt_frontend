@@ -1,3 +1,4 @@
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { browserName, launchTestBrowser } from "./browser-engine.mjs";
@@ -64,7 +65,7 @@ try {
   assert.equal(await check.count(), 0);
   await editor.getByRole("radio", { name: /^Comparison/ }).check();
   await rendered.getByRole("heading", { name: first, exact: true }).waitFor();
-  const html = await preview.getAttribute("srcdoc");
+  const html = await readPreviewDocument(preview);
   const stored = () => page.evaluate(() => Object.entries(localStorage).sort());
   const before = await stored();
 
@@ -108,7 +109,7 @@ try {
   assert.equal(page.url(), studioUrl);
   assert.deepEqual(externalActions, []);
   assert.deepEqual(await stored(), before, "The phone check changed saved browser state.");
-  assert.equal(await preview.getAttribute("srcdoc"), html);
+  assert.equal(await readPreviewDocument(preview), html);
 
   // Simulate a future stylesheet regression in the test browser only. The second card remains
   // measurable, so this distinguishes clipping inside one card from horizontal page overflow.

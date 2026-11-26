@@ -1,4 +1,5 @@
 /** Run against a local packaged Focus Worker with npm run test:browser. */
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import JSZip from "jszip";
@@ -94,7 +95,7 @@ try {
   await heading.waitFor();
   assert.equal(
     (await downloaded(page, "Download working HTML")).toString(),
-    await preview.getAttribute("srcdoc"),
+    await readPreviewDocument(preview),
   );
   await page.reload();
   await heading.waitFor();
@@ -124,11 +125,27 @@ try {
   }));
   assert.equal(mobileWidths.viewport, mobileWidths.document);
   await mobile.screenshot({ path: "artifacts/home-mobile.png", fullPage: true });
-  await mobile
+  const toolsMenu = mobile
     .getByRole("navigation", { name: "Main" })
-    .getByText("Tools", { exact: true })
-    .click();
-  await mobile.getByRole("link", { name: "Quality lab", exact: true }).click();
+    .getByText("Tools", { exact: true });
+  const qualityLink = mobile.getByRole("link", { name: "Quality lab", exact: true });
+  await toolsMenu.click();
+  await mobile.getByRole("link", { name: "Before & after", exact: true }).focus();
+  await mobile.keyboard.press("Tab");
+  assert.equal(await qualityLink.isVisible(), false);
+  assert.equal(await mobile.locator("summary:focus").innerText(), "Help");
+  await toolsMenu.click();
+  // The open menu covers the page heading at 320 px. Click the visible page beneath it.
+  const outside = await mobile.locator("details[open]").evaluate((menu) => {
+    const x = 4;
+    const y = innerHeight - 4;
+    return menu.contains(document.elementFromPoint(x, y)) ? null : { x, y };
+  });
+  assert.ok(outside, "The phone menu must leave room to dismiss it by touching the page.");
+  await mobile.mouse.click(outside.x, outside.y);
+  assert.equal(await qualityLink.isVisible(), false);
+  await toolsMenu.click();
+  await qualityLink.click();
   const editor = mobile.getByLabel("Page HTML");
   const ownPage = "<main><h1>Saturday pottery classes</h1></main>";
   await editor.fill(ownPage);
@@ -153,7 +170,7 @@ try {
       "Garden first visit to new website Studio",
       "local brief to three directions and three choices",
       "edited brand and headline in downloaded Markdown and design ZIP",
-      "exported HTML identical to working preview",
+      "exported HTML matches authored preview content with preview-only navigation removed",
       "edited headline after reload and returning through the Garden",
       "skipped choices resumed from My designs",
       "keyboard skip link",

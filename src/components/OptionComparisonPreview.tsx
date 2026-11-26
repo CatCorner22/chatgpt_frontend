@@ -1,3 +1,4 @@
+import { AuthoredPreviewFrame } from "./AuthoredPreviewFrame";
 import { useEffect, useState } from "react";
 import { getAuthoredFeatures } from "@/lib/authored-content";
 import type { Content, Tokens } from "@/lib/design";
@@ -44,13 +45,11 @@ function OptionPreviewFrame({ content, tokens, settings }: Props) {
     return <p role="status">Preparing your option preview…</p>;
   if (!result.html) return <p role="alert">The preview could not load. Close it and try again.</p>;
   return (
-    <iframe
+    <AuthoredPreviewFrame
       className="w-full min-w-0 rounded-md border border-border"
       height={350}
       title="Your option comparison preview"
-      sandbox=""
-      referrerPolicy="no-referrer"
-      srcDoc={result.html}
+      html={result.html}
     />
   );
 }
@@ -74,7 +73,12 @@ export function OptionComparisonPreview(props: Props) {
       >
         {open ? "Close option preview" : "Preview my options together"}
       </button>
-      {open && <OptionPreviewFrame {...props} />}
+      {open && (
+        <>
+          <OptionPreviewFrame {...props} />
+          {props.settings.actionUrl && <p>Open the downloaded page to try the destination.</p>}
+        </>
+      )}
     </div>
   );
 }

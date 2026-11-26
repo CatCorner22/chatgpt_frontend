@@ -1,3 +1,4 @@
+import { AuthoredPreviewFrame } from "./AuthoredPreviewFrame";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Download,
@@ -23,7 +24,8 @@ import {
 import { usePageImage } from "@/hooks/usePageImage";
 import { RelatedReadingEditor } from "./RelatedReadingEditor";
 import { downloadBlob } from "@/lib/exportPack";
-import { needsPublicCodeConfirmation, websiteActionForHandoff } from "@/lib/action-destination";
+import { sharedPageSourceValue, websiteActionForHandoff } from "@/lib/action-destination";
+import { PublicCodeConfirmation } from "./PublicCodeConfirmation";
 import { ComparisonPhoneCheck } from "@/components/ComparisonPhoneCheck";
 import { CompositionComparison } from "@/components/CompositionComparison";
 import { ImageFramingControls } from "@/components/ImageFramingControls";
@@ -146,8 +148,8 @@ export function AuthoredPageEditor({
   );
   const missingImage = settings.imageId && !image;
   const needsImageDescription = !!image && !settings.imageAlt.trim();
-  const storyIssue = built.readiness.find(
-    (item) => item.id === "story-link" || item.id === "story-image",
+  const linkOrStoryIssue = built.readiness.find(
+    (item) => item.id === "action-private" || item.id === "story-link" || item.id === "story-image",
   );
   const comparisonAssetsBlocked =
     imageLoading ||
@@ -155,7 +157,7 @@ export function AuthoredPageEditor({
     needsImageDescription ||
     storyImage.loading ||
     !!(story?.imageId && !storyImage.src) ||
-    !!storyIssue;
+    !!linkOrStoryIssue;
   const downloadPage = () => {
     if (comparisonAssetsBlocked) return;
     try {
@@ -211,7 +213,7 @@ export function AuthoredPageEditor({
                 }
               : {}),
           },
-          null,
+          sharedPageSourceValue,
           2,
         ),
       );
@@ -284,29 +286,23 @@ export function AuthoredPageEditor({
           placeholder="https://… or mailto:hello@…"
           aria-describedby="page-action-help"
         />
-        {needsPublicCodeConfirmation(settings.actionUrl) && (
-          <label className="flex items-start gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="mt-1"
-              checked={settings.publicCodeUrl === settings.actionUrl}
-              onChange={(event) =>
-                onSettings(
-                  normalizePageSettings({
-                    ...settings,
-                    publicCodeUrl: event.target.checked ? settings.actionUrl : undefined,
-                  }),
-                )
-              }
-            />
-            This code is public, like a coupon. Include this link in my developer guides.
-          </label>
-        )}
+        <PublicCodeConfirmation
+          url={settings.actionUrl}
+          confirmed={settings.publicCodeUrl === settings.actionUrl}
+          onChange={(checked) =>
+            onSettings(
+              normalizePageSettings({
+                ...settings,
+                publicCodeUrl: checked ? settings.actionUrl : undefined,
+              }),
+            )
+          }
+        />
         <p id="page-action-help" className="text-xs leading-relaxed text-muted-foreground">
           Use your actual booking page, contact address, or destination. Without a valid address,
           the page links to supplied feature details; when there are none, no main action is shown.
           {settings.actionUrl && !websiteActionForHandoff(settings)
-            ? " Give your developer the destination separately. This address is omitted from developer guides."
+            ? " This address is omitted from developer guides."
             : " Developer guides include the full web address. Use a link you can share."}
         </p>
       </div>
@@ -473,6 +469,11 @@ export function AuthoredPageEditor({
         </div>
       </div>
       <ExportReceipt receipt={receipt.pending} />
+      {linkOrStoryIssue && (
+        <p role="status" className="text-sm">
+          {linkOrStoryIssue.message}
+        </p>
+      )}
       {(!compact || layoutWorkshop) && (
         <CompositionComparison
           key={imageIdentity}
@@ -571,7 +572,7 @@ export function AuthoredPageEditor({
           <div className="authored-preview-toolbar">
             <span className="inline-flex items-center gap-2">
               <Check size={14} />
-              Exact export preview
+              Export preview
             </span>
             <div className="flex gap-1">
               <button
@@ -606,12 +607,10 @@ export function AuthoredPageEditor({
             aria-label="Page preview canvas"
             tabIndex={previewSize === "fit" ? undefined : 0}
           >
-            <iframe
+            <AuthoredPreviewFrame
               key={`${settings.imageId ?? "none"}:${image ? "loaded" : "empty"}`}
               title="Working page preview"
-              srcDoc={built.html}
-              sandbox="allow-popups allow-popups-to-escape-sandbox"
-              referrerPolicy="no-referrer"
+              html={built.html}
               className={`authored-frame${previewSize === "fit" ? "" : ` is-${previewSize}`}`}
             />
           </div>

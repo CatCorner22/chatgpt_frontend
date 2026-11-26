@@ -36,8 +36,16 @@ export function ImageFramingControls({
     </option>
   ));
   return (
-    <fieldset disabled={disabled} className="min-w-0 space-y-4 border-t border-border pt-4">
+    <fieldset
+      disabled={disabled}
+      aria-describedby={`${id}-export-help`}
+      className="min-w-0 space-y-4 border-t border-border pt-4"
+    >
       <legend className="text-sm font-medium">Image framing</legend>
+      <p id={`${id}-export-help`} className="text-sm leading-relaxed text-muted-foreground">
+        The HTML and ZIP include the full image file and any embedded location data. To keep part of
+        a photo or its location private, crop it or remove location data before uploading.
+      </p>
       <fieldset aria-describedby={`${id}-fit-help`}>
         <legend className="mb-2 text-sm font-medium">How should the image fit?</legend>
         <div className="grid gap-2">

@@ -1,4 +1,5 @@
 // Exercise the Garden shortcut, real layout previews, and downloaded pages in a disposable browser.
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
@@ -40,6 +41,66 @@ const frame = (name, viewport = "desktop") =>
 const store = (name) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), keys[name]);
 const snapshot = () =>
   page.evaluate((keys) => Object.values(keys).map((key) => localStorage.getItem(key)), keys);
+const booking = "https://booking.example.test/owner-preview";
+
+async function checkJournalLinks(frame) {
+  const outer = page.url();
+  const opened = [];
+  const requests = [];
+  const onPage = (tab) => opened.push(tab);
+  const onRequest = (request) => {
+    if (request.url() === booking) requests.push(request.url());
+  };
+  context.on("page", onPage);
+  context.on("request", onRequest);
+  try {
+    await frame.locator('.journal-index a[href="#feature-1"]').press("Enter");
+    await frame.locator("#feature-1:target").waitFor();
+    assert.equal(
+      await frame.locator("body").evaluate(() => document.activeElement?.id),
+      "feature-1",
+    );
+    await frame.locator('footer a[href="#top"]').click();
+    await frame.locator("#top:target").waitFor();
+    await page.evaluate(() => history.back());
+    await frame.locator("#feature-1:target").waitFor();
+
+    // Activate the actual owner link, then make another local jump in the same document.
+    await frame.locator(`.hero-actions a[href="${booking}"]`).press("Enter");
+    await frame.locator('.journal-index a[href="#feature-2"]').click();
+    await frame.locator("#feature-2:target").waitFor();
+    assert.equal(page.url(), outer);
+    assert.equal(opened.length, 0, "The preview opened another tab.");
+    assert.deepEqual(requests, [], "The preview requested its owner's live destination.");
+  } finally {
+    context.off("page", onPage);
+    context.off("request", onRequest);
+  }
+}
+
+async function checkPreviewTabExit(frame, link, key, destination) {
+  const session = new URL("/api/hosted/session", origin).href;
+  const { promise, resolve } = Promise.withResolvers();
+  const holdVerification = async (route) => {
+    await promise;
+    await route.fallback();
+  };
+  await frame.locator(link).focus();
+  await page.route(session, holdVerification);
+  try {
+    await Promise.all([page.waitForRequest(session), page.keyboard.press(key)]);
+    const checking = page.getByRole("heading", { name: "Opening your studio" });
+    await checking.waitFor();
+    assert.equal(await destination.isVisible(), false, "The editor must wait for its owner.");
+    resolve();
+    await checking.waitFor({ state: "hidden" });
+    await destination.and(page.locator(":focus")).waitFor();
+  } finally {
+    resolve();
+    await page.unroute(session, holdVerification);
+  }
+}
+
 async function download(name) {
   const downloading = page.waitForEvent("download");
   await button(name).click();
@@ -52,7 +113,7 @@ async function assertExport(name, headline, chosenPreview) {
     .contentFrame()
     .locator("body." + name.toLowerCase())
     .waitFor();
-  const rendered = await editor.getAttribute("srcdoc");
+  const rendered = await readPreviewDocument(editor);
   const html = (await download("Download working HTML")).toString();
   assert.equal(html, rendered, name + " export diverged from Studio");
   if (chosenPreview)
@@ -119,10 +180,12 @@ try {
   await phone.getByRole("heading", { name: sampleHeadline, exact: true }).waitFor();
   assert.deepEqual(await snapshot(), before, "Browsing changed stored work");
   await page.setViewportSize({ width: 1280, height: 900 });
-  const firstPreview = await phone.owner().getAttribute("srcdoc");
+  const firstPreview = await readPreviewDocument(phone.owner());
   await button("Use this layout").click();
   await page.waitForURL(studio);
   await assertExport("Journal", sampleHeadline, firstPreview);
+  await page.getByLabel("Where should the main action lead?").fill(booking);
+  await checkJournalLinks(page.getByTitle("Working page preview").contentFrame());
 
   // Put actual owner copy into the editor; every subsequent preview and file must preserve it.
   const mine = "Handmade notebooks at the riverside bindery";
@@ -154,6 +217,12 @@ try {
   assert.equal(original.page.composition, "journal");
   assert.ok(original.libraryId);
   const source = await snapshot();
+  await button("Phone").click();
+  await checkJournalLinks(frame("Journal", "phone"));
+  await checkPreviewTabExit(phone, 'footer a[href="#top"]', "Tab", button("Apply to my design"));
+  await checkPreviewTabExit(phone, 'a.skip[href="#main"]', "Shift+Tab", button("Try tricky content"));
+  await button("Desktop").click();
+  assert.deepEqual(await snapshot(), source, "Trying preview links changed saved work.");
   await layout("Comparison").check();
   await frame("Comparison").getByRole("heading", { name: mine }).waitFor();
   await frame("Comparison").getByRole("img", { name: photoAlt }).waitFor();
@@ -167,7 +236,7 @@ try {
   assert.equal(await button("Start a separate copy").isDisabled(), true);
   await button("Try tricky content").click();
   await frame("Comparison").getByRole("img", { name: photoAlt }).waitFor();
-  const copyPreview = await frame("Comparison").owner().getAttribute("srcdoc");
+  const copyPreview = await readPreviewDocument(frame("Comparison").owner());
   await button("Start a separate copy").click();
   await page.waitForURL(studio);
   await page
@@ -196,7 +265,7 @@ try {
     await page.goto(layouts);
     await layout(name).check();
     await frame(name).getByRole("heading", { name: mine }).waitFor();
-    const selectedPreview = await frame(name).owner().getAttribute("srcdoc");
+    const selectedPreview = await readPreviewDocument(frame(name).owner());
     await button("Apply to my design").click();
     await page.waitForURL(studio);
     await page

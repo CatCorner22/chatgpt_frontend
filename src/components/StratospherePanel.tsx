@@ -1,3 +1,4 @@
+import { sharedPageSourceValue } from "@/lib/action-destination";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, Download, Network } from "lucide-react";
@@ -160,7 +161,7 @@ export function StratospherePanel({
             status: "not-run",
           })),
         },
-        null,
+        sharedPageSourceValue,
         2,
       ),
     [input, graph, authored],

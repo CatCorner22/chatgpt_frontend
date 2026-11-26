@@ -1,3 +1,4 @@
+import { exportSourceFromPreview } from "../../scripts/fixtures/preview-source.mjs";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -172,6 +173,90 @@ describe("authored page delivery lifetime", () => {
     await act(async () => job.resolve(new Blob(["next zip"])));
     expect(screen.queryByRole("button", { name: "I’ve saved the file" })).toBeNull();
     expect(current.onExport).not.toHaveBeenCalled();
+  });
+
+  it("keeps a private address editable, blocks downloads, and removes its old value from the repaired ZIP", async () => {
+    const current = props();
+    const privateUrl = "https://booking.example.com/visit?token=private-test-value";
+    const publicUrl = "https://booking.example.com/calendar";
+    const relatedStory = {
+      title: "Classes",
+      url: privateUrl,
+      placement: "after-intro" as const,
+      imageId: null,
+      imageAlt: "",
+    };
+    const privateSettings = { ...current.settings, actionUrl: privateUrl, relatedStory };
+    const userInfo = "https://fixture:private-userinfo-value@booking.example.com";
+    const view = render(<AuthoredPagePanel {...current} settings={privateSettings} />);
+    const htmlButton = screen.getByRole("button", { name: "Download working HTML" });
+    const zipButton = screen.getByRole("button", { name: "Download page ZIP" });
+    expect(screen.getByLabelText("Where should the main action lead?")).toHaveValue(privateUrl);
+    const renderPage = (settings: PageSettings) =>
+      view.rerender(
+        <AuthoredPagePanel
+          {...current}
+          settings={settings}
+          projectState={{
+            ...current.projectState,
+            page: settings,
+            past: [{ page: privateSettings }],
+            future: [
+              {
+                page: {
+                  ...privateSettings,
+                  actionUrl: userInfo,
+                  publicCodeUrl: userInfo,
+                  relatedStory: { ...relatedStory, url: userInfo },
+                },
+              },
+            ],
+          }}
+        />,
+      );
+    renderPage({ ...privateSettings, relatedStory: { ...relatedStory, url: publicUrl } });
+    expect(htmlButton).toBeDisabled();
+    expect(zipButton).toBeDisabled();
+    renderPage({ ...privateSettings, actionUrl: publicUrl });
+    expect(htmlButton).toBeDisabled();
+    expect(zipButton).toBeDisabled();
+    startZip();
+    expect(calls.download).not.toHaveBeenCalled();
+    renderPage({ ...current.settings, actionUrl: publicUrl });
+    startZip();
+    await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
+    const files = calls.files[0]!;
+    expect(files["index.html"]).toContain(publicUrl);
+    expect(Object.values(files).join("\n")).not.toContain("private-test-value");
+    expect(Object.values(files).join("\n")).not.toContain("private-userinfo-value");
+    expect(privateSettings.relatedStory.url).toBe(privateUrl);
+  });
+
+  it("remembers a public coupon for exactly the confirmed related-story address", () => {
+    const url = "https://shop.example.com/collection?code=SUMMER";
+    function CouponStory() {
+      const [settings, setSettings] = useState<PageSettings>({
+        ...DEFAULT_PAGE_SETTINGS,
+        relatedStory: {
+          title: "Summer collection",
+          url,
+          placement: "after-intro",
+          imageId: null,
+          imageAlt: "",
+        },
+      });
+      return <AuthoredPagePanel {...props()} settings={settings} onSettings={setSettings} />;
+    }
+    render(<CouponStory />);
+    const download = screen.getByRole("button", { name: "Download working HTML" });
+    expect(download).toBeDisabled();
+    fireEvent.click(screen.getByLabelText(/This code is public/));
+    expect(download).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Story website address"), {
+      target: { value: url + "2" },
+    });
+    expect(screen.getByLabelText(/This code is public/)).not.toBeChecked();
+    expect(download).toBeDisabled();
   });
 
   it("exports the current source and valid decision record under a fixed filename", async () => {
@@ -451,7 +536,7 @@ describe("Product descriptions in the editor and delivered source", () => {
     }
     const preview = () =>
       new DOMParser().parseFromString(
-        screen.getByTitle("Working page preview").getAttribute("srcdoc")!,
+        exportSourceFromPreview(screen.getByTitle("Working page preview").getAttribute("srcdoc")!),
         "text/html",
       );
     render(<EditableProduct />);
@@ -502,7 +587,9 @@ describe("framing export consistency", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Download page ZIP" })).toBeEnabled(),
     );
-    const preview = screen.getByTitle("Working page preview").getAttribute("srcdoc")!;
+    const preview = exportSourceFromPreview(
+      screen.getByTitle("Working page preview").getAttribute("srcdoc")!,
+    );
     startZip();
     await waitFor(() => expect(calls.download).toHaveBeenCalledOnce());
     const files = calls.files[0]!;

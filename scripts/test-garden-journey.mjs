@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
 import { browserName, launchTestBrowser } from "./browser-engine.mjs";
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 
 const origin = new URL(process.env.FOCUS_TEST_URL || "http://127.0.0.1:3000");
 assert.equal(origin.hostname, "127.0.0.1");
@@ -176,6 +177,14 @@ try {
   }
   assert.deepEqual(await readOptions(preview), expectedOptions);
   const section = await preview.locator(".option-comparison").evaluate((node) => node.outerHTML);
+  const extractSection = (html) =>
+    page.evaluate(
+      (source) =>
+        new DOMParser().parseFromString(source, "text/html").querySelector(".option-comparison")
+          .outerHTML,
+      html,
+    );
+  const portableSection = await extractSection(await readPreviewDocument(preview.owner()));
   await button("Review and apply in Studio").click();
   const currentPage = page.frameLocator('iframe[title="Working page preview"]');
   await currentPage.locator("body.journal").waitFor();
@@ -214,13 +223,7 @@ try {
   const editable = await JSZip.loadAsync(await download("Download page ZIP"));
   const editableHtml = await editable.file("index.html").async("string");
   for (const delivered of [workingHtml, editableHtml]) {
-    const outputSection = await page.evaluate(
-      (html) =>
-        new DOMParser().parseFromString(html, "text/html").querySelector(".option-comparison")
-          .outerHTML,
-      delivered,
-    );
-    assert.equal(outputSection, section);
+    assert.equal(await extractSection(delivered), portableSection);
   }
   assert.equal(
     JSON.parse(await editable.file("focus-project.json").async("string")).studio.page.composition,

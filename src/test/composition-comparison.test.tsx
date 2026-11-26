@@ -1,3 +1,4 @@
+import { exportSourceFromPreview } from "../../scripts/fixtures/preview-source.mjs";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +27,7 @@ const words: Content = {
 const options = { ...DEFAULT_PAGE_SETTINGS, actionUrl: "https://example.org/field" };
 const tokens = normalizeTokens({});
 function html(title: string) {
-  return (screen.getByTitle(title) as HTMLIFrameElement).srcdoc;
+  return exportSourceFromPreview((screen.getByTitle(title) as HTMLIFrameElement).srcdoc);
 }
 function open() {
   fireEvent.click(screen.getByRole("button", { name: "Compare layouts with your content" }));

@@ -1,3 +1,4 @@
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -81,7 +82,7 @@ try {
     const html = (await download("Download working HTML")).toString();
     assert.equal(
       digest(html),
-      digest(await frame.getAttribute("srcdoc")),
+      digest(await readPreviewDocument(frame)),
       "HTML download differs from the Studio preview.",
     );
     const zip = await JSZip.loadAsync(await download("Download page ZIP"));

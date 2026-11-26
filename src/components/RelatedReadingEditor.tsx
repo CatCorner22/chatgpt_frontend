@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageFramingControls } from "./ImageFramingControls";
+import { PublicCodeConfirmation } from "./PublicCodeConfirmation";
 import { compactImageFraming } from "@/lib/image-framing";
 import type { RelatedStory } from "@/lib/page-settings";
 import type { usePageImage } from "@/hooks/usePageImage";
@@ -43,7 +44,20 @@ export function RelatedReadingEditor({
         value={story.url}
         maxLength={2000}
         placeholder="https://…"
-        onChange={(e) => onChange({ ...story, url: e.target.value })}
+        onChange={(e) => {
+          const { publicCodeUrl: _confirmation, ...previous } = story;
+          onChange({ ...previous, url: e.target.value });
+        }}
+      />
+      <PublicCodeConfirmation
+        url={story.url}
+        confirmed={story.publicCodeUrl === story.url}
+        onChange={(checked) => {
+          const next = { ...story };
+          if (checked) next.publicCodeUrl = story.url;
+          else delete next.publicCodeUrl;
+          onChange(next);
+        }}
       />
       <Label htmlFor="related-placement">When do readers see this story?</Label>
       <select

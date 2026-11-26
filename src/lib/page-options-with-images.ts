@@ -26,6 +26,7 @@ export function pageOptionsWithImages(
   return {
     composition: settings.composition,
     actionUrl: settings.actionUrl,
+    ...(settings.publicCodeUrl ? { publicCodeUrl: settings.publicCodeUrl } : {}),
     ...(settings.language ? { language: settings.language } : {}),
     ...imageOption(settings, leadSrc),
     ...(story
@@ -33,6 +34,7 @@ export function pageOptionsWithImages(
           relatedStory: {
             title: story.title,
             url: story.url,
+            ...(story.publicCodeUrl ? { publicCodeUrl: story.publicCodeUrl } : {}),
             placement: story.placement,
             ...imageOption(story, storySrc),
           },

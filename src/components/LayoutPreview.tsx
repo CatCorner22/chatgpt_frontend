@@ -204,6 +204,11 @@ export function LayoutPreview({ tokens, content, page, onReady }: Props) {
             </p>
           )}
           {tricky && <TrickyContentCheck html={built.html} size={size} />}
+          {!tricky && (page.actionUrl || page.relatedStory?.url) && (
+            <p className="layout-preview-note">
+              Section links work here. Open the downloaded page to try outside destinations.
+            </p>
+          )}
           <ComparisonFrame
             html={built.html}
             title={`${title} layout preview on ${size}`}

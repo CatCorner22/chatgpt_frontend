@@ -1,3 +1,4 @@
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import { openSavedStudio } from "./fixtures/saved-studio.mjs";
 import { launchTestBrowser, browserName } from "./browser-engine.mjs";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
@@ -53,7 +54,20 @@ try {
     libraryId: "authored-browser-fixture",
   });
   await page.getByRole("heading", { name: "See it. Use it. Take it with you." }).waitFor();
-  await page.getByLabel("Where should the main action lead?").fill("https://example.com/studio");
+  const mainAction = page.getByLabel("Where should the main action lead?");
+  const privateMarker = "focus-browser-private-fixture";
+  const privateLink = `https://example.com/studio?access_token=${privateMarker}`;
+  await mainAction.fill(privateLink);
+  await page
+    .getByRole("button", { name: "Download working HTML" })
+    .and(page.locator(":disabled"))
+    .waitFor();
+  assert.equal(await page.getByRole("button", { name: "Download page ZIP" }).isDisabled(), true);
+  assert.equal(await mainAction.inputValue(), privateLink);
+  assert.ok(
+    !(await readPreviewDocument(page.getByTitle("Working page preview"))).includes(privateMarker),
+  );
+  await mainAction.fill("https://example.com/studio");
   const compare = page.getByRole("button", { name: "Compare layouts with your content" });
   await compare.click();
   await page.getByLabel("What does your visitor want to do?").selectOption("read");
@@ -86,14 +100,14 @@ try {
   await page.waitForFunction(() => document.documentElement.scrollWidth <= 320);
   assert.equal(await journalDesktop.locator("body").evaluate(() => innerWidth), 1024);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const compared = await page.getByTitle("Journal comparison on desktop").getAttribute("srcdoc");
+  const compared = await readPreviewDocument(page.getByTitle("Journal comparison on desktop"));
   await page.getByRole("button", { name: "Use Journal layout" }).click();
   await page.getByRole("button", { name: "Using Journal" }).waitFor();
   await compare.click();
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("radio", { name: /^Journal/ }).waitFor();
   assert.equal(await page.getByRole("radio", { name: /^Journal/ }).isChecked(), true);
-  assert.equal(await page.getByTitle("Working page preview").getAttribute("srcdoc"), compared);
+  assert.equal(await readPreviewDocument(page.getByTitle("Working page preview")), compared);
   const results = [];
   for (const composition of ["Studio", "Editorial", "Product", "Showcase", "Journal"]) {
     await page.getByRole("radio", { name: new RegExp("^" + composition) }).check();
@@ -101,9 +115,7 @@ try {
     await page.getByRole("button", { name: "Download working HTML", exact: true }).click();
     const downloaded = await ready;
     const html = await readFile(await downloaded.path(), "utf8");
-    const iframeHtml = await page
-      .locator('iframe[title="Working page preview"]')
-      .getAttribute("srcdoc");
+    const iframeHtml = await readPreviewDocument(page.getByTitle("Working page preview"));
     assert.equal(html, iframeHtml, "Preview and download must contain the same document.");
     if (composition === "Journal")
       assert.equal(html, compared, "The chosen comparative preview must travel intact.");
@@ -194,6 +206,13 @@ try {
   assert.ok(zip.file("fonts/PROVENANCE.txt"));
   const zipCss = await zip.file("styles.css").async("string");
   const finalHtml = await readFile(`${dir}/journal.html`, "utf8");
+  assert.ok(!finalHtml.includes(privateMarker));
+  for (const file of Object.values(zip.files).filter((entry) => !entry.dir)) {
+    assert.ok(
+      !(await file.async("string")).includes(privateMarker),
+      `Private link remained in ${file.name}`,
+    );
+  }
   assert.ok(finalHtml.includes(`<style>${zipCss}</style>`), "ZIP and HTML must use the same CSS.");
   const project = JSON.parse(await zip.file("focus-project.json").async("string"));
   assert.equal(project.studio.page.actionUrl, "https://example.com/studio");
@@ -218,7 +237,7 @@ try {
   assert.equal(await language.inputValue(), "ja", "The page language must survive a reload.");
   const preview = page.frameLocator('iframe[title="Working page preview"]');
   await preview.getByRole("navigation", { name: "目次", exact: true }).waitFor();
-  const japanesePreview = await page.getByTitle("Working page preview").getAttribute("srcdoc");
+  const japanesePreview = await readPreviewDocument(page.getByTitle("Working page preview"));
   await compare.click();
   await page.getByLabel("Compare", { exact: true }).selectOption("second");
   for (const [frame, width] of [
@@ -368,6 +387,7 @@ try {
       "exact preview/download parity",
       "embedded font faces loaded and licenses retained",
       "valid source ZIP",
+      "private link held for repair and omitted from preview, downloaded HTML and every ZIP member",
       "native disclosure and section-link keyboard operation",
       "320px page and workspace reflow",
       "text spacing override",

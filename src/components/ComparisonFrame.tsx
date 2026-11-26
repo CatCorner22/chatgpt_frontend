@@ -1,3 +1,4 @@
+import { AuthoredPreviewFrame } from "./AuthoredPreviewFrame";
 import { useEffect, useRef, useState } from "react";
 import "./composition-comparison.css";
 
@@ -29,13 +30,11 @@ export function ComparisonFrame({
   return (
     <div className="layout-comparison-stage" ref={stage} style={{ height: height * scale }}>
       <div style={{ width: width * scale, height: height * scale, marginInline: "auto" }}>
-        <iframe
+        <AuthoredPreviewFrame
           key={html}
           title={title}
           onLoad={onLoad}
-          srcDoc={html}
-          sandbox=""
-          referrerPolicy="no-referrer"
+          html={html}
           style={{ width, height, transform: `scale(${scale})` }}
         />
       </div>

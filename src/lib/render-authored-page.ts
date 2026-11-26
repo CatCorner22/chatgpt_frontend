@@ -1,4 +1,4 @@
-import { actionDestination } from "./action-destination";
+import { actionDestination, isPrivatePageDestination } from "./action-destination";
 import { contrast, normalizeTokens, type Content, type Tokens } from "./design";
 import { fixContrast } from "./engine";
 import { PRODUCT_PRINT_CSS } from "./authored-product-print";
@@ -25,10 +25,12 @@ export type PageOptions = {
   composition: PageComposition;
   language?: "en" | "ja";
   actionUrl: string;
+  publicCodeUrl?: string;
   image?: PageImage;
   relatedStory?: {
     title: string;
     url: string;
+    publicCodeUrl?: string;
     placement: "after-intro" | "after-article";
     image?: PageImage;
     imageFraming?: ImageFraming;
@@ -196,7 +198,14 @@ export function renderAuthoredPage(
       message:
         "Text on the surface color uses a separate readable color. The original background and surface colors are preserved.",
     });
-  const action = actionDestination(options.actionUrl);
+  const actionPrivate = isPrivatePageDestination(options.actionUrl, options.publicCodeUrl);
+  const action = actionPrivate ? null : actionDestination(options.actionUrl);
+  if (actionPrivate)
+    readiness.push({
+      id: "action-private",
+      message:
+        "The main action needs a public address. Replace or clear its private link before downloading. For a public coupon code, confirm it beside the address.",
+    });
   const image = rasterImage(options.image);
   if (options.image && !image)
     readiness.push({
@@ -205,7 +214,8 @@ export function renderAuthoredPage(
         "The image was omitted. Use an embedded PNG, JPEG, or WebP under 2 MiB with a meaningful description.",
     });
   const story = options.relatedStory;
-  const storyDestination = actionDestination(story?.url);
+  const storyPrivate = isPrivatePageDestination(story?.url, story?.publicCodeUrl);
+  const storyDestination = storyPrivate ? null : actionDestination(story?.url);
   const storyTitle = text(story?.title);
   const storyReady = !!(storyTitle && storyDestination && /^https?:/i.test(storyDestination));
   const storyImage = rasterImage(story?.image);
@@ -213,7 +223,9 @@ export function renderAuthoredPage(
   if (story && !storyReady)
     readiness.push({
       id: "story-link",
-      message: "Give the related story a title and its full website address, or remove the story.",
+      message: storyPrivate
+        ? "The related story needs a public address. Replace the private link or remove the story before downloading. For a public coupon code, confirm it beside the address."
+        : "Give the related story a title and its full website address, or remove the story.",
     });
   if (story?.image && (!storyImage || !storyCredit))
     readiness.push({
@@ -633,8 +645,9 @@ FILES AND CUSTOMER HANDOFF
 - index.html: the editable page, including the supplied copy and embedded image.
 - styles.css: the page's appearance; keep it beside index.html.${fonts.includedFamilies.length ? "\n- fonts/: source details and license notices for the fonts embedded in styles.css." : ""}
 - focus-project.json: an archival studio snapshot for a developer. It is not an
-  importable library backup. It may include earlier studio inputs and history;
-  keep it private rather than uploading it to the public website.
+  importable library backup. Focus omits recognized private page links from this
+  snapshot and its history. Earlier inputs and owner-written notes may still be
+  sensitive. Keep the snapshot private. Your saved local draft keeps the original links.
 - README.txt: these instructions.
 
 Extract the whole ZIP before opening index.html. Send the ZIP for an editable

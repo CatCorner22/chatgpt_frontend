@@ -544,6 +544,36 @@ describe("Stratosphere workshop", () => {
     expect(writes).not.toHaveBeenCalled();
   });
 
+  it("keeps private page links editable while removing both copies from a downloaded map", async () => {
+    const base = makeState();
+    const initial = makeState({
+      page: {
+        ...base.page,
+        actionUrl: "booking.example.com/visit?token=private-map-fixture",
+        relatedStory: {
+          title: "A local story",
+          placement: "after-article",
+          imageId: null,
+          imageAlt: "",
+          url: "https://private-map-fixture:pass@example.com/read",
+        },
+      },
+    });
+    mount(initial);
+    await screen.findByTestId("authored-preview");
+    fireEvent.click(screen.getByRole("button", { name: "Download decision map" }));
+    const downloaded = await readBlob(operations.download.mock.calls[0]![0] as Blob);
+    expect(downloaded).not.toContain("private-map-fixture");
+    expect(downloaded).toBe(authoredProps().decisionRecord);
+    const record = JSON.parse(downloaded);
+    for (const page of [record.source.page, record.graph.snapshot.page]) {
+      expect(page.actionUrl).toBe("");
+      expect(page.relatedStory.title).toBe("A local story");
+      expect(page.relatedStory.url).toBe("");
+    }
+    expect(currentState().page).toEqual(initial.page);
+  });
+
   it.each(["browser download", "owner lock"] as const)(
     "reports a failed %s without an export or design mutation",
     (failure) => {

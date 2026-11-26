@@ -104,6 +104,26 @@ describe("authored content-flow evidence boundary", () => {
     imageAlt: "",
   };
 
+  it("invalidates prior launch reviews for authored pages with a private primary or related link", () => {
+    const ticket = "https://booking.example.org/reserve?token=test-only";
+    for (const page of [
+      { ...state.page, actionUrl: ticket },
+      { ...state.page, relatedStory: { ...relatedStory, url: ticket } },
+    ]) {
+      const input = { ...state, page };
+      const artifact = buildStudioLaunchArtifact(input);
+      const { authoredPrivateLinkRevision, ...prior } = artifact;
+      expect(authoredPrivateLinkRevision).toBe("public-links-v1");
+      expect(revisit(reviewed(prior), artifact).details).toEqual(EMPTY_LAUNCH);
+      expect(buildStudioLaunchArtifact({ ...input, integration: "existing" })).not.toHaveProperty(
+        "authoredPrivateLinkRevision",
+      );
+    }
+    expect(
+      buildStudioLaunchArtifact({ ...state, page: { ...state.page, relatedStory } }),
+    ).not.toHaveProperty("authoredPrivateLinkRevision");
+  });
+
   it.each(["studio", "editorial", "product", "showcase", "journal"] as const)(
     "requires fresh launch evidence when %s starts publishing a previously omitted related link",
     (composition) => {

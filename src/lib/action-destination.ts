@@ -108,21 +108,8 @@ function isShareableHost(host: string): boolean {
   );
 }
 
-function publicWebAction(value: unknown) {
-  if (typeof value !== "string" || value.length > 2000) return null;
-  const href = actionDestination(value);
-  if (!href || !/^https?:\/\//i.test(href)) return null;
-  const url = new URL(href);
-  const host = url.hostname.toLowerCase().replace(/\.$/, "");
-  // A developer will render this link. No Critic fetch or port check is required.
-  if (
-    !isShareableHost(host) ||
-    host.endsWith(".localhost") ||
-    host === "home.arpa" ||
-    host.endsWith(".home.arpa") ||
-    containsUrlCredentials(url, SIGNED_LINK_PARAMETERS)
-  )
-    return null;
+function webLinkPrivacy(url: URL): "private" | "code" | "public" {
+  if (containsUrlCredentials(url, SIGNED_LINK_PARAMETERS)) return "private";
   const params = [
     ...url.searchParams,
     ...new URLSearchParams(url.hash.slice(1)),
@@ -137,8 +124,56 @@ function publicWebAction(value: unknown) {
       has("client_id") ||
       /(?:oauth|authorize|callback|signin|login)/i.test(url.pathname))
   )
+    return "private";
+  return hasCode ? "code" : "public";
+}
+
+/** Page links and developer guides share the same credential and one-time-code checks. */
+export function isPrivatePageDestination(value: unknown, confirmedPublicCode?: unknown): boolean {
+  if (typeof value !== "string" || !value.trim()) return false;
+  try {
+    // A partially entered link can still contain a credential in the editable source or undo history.
+    const url = new URL(value, "https://example.invalid/");
+    if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+    const privacy = webLinkPrivacy(url);
+    return privacy === "private" || (privacy === "code" && confirmedPublicCode !== value);
+  } catch {
+    return false;
+  }
+}
+
+/** JSON replacer for shareable studio archives and decision maps. Keeps owner drafts intact. */
+export function sharedPageSourceValue(key: string, value: unknown) {
+  if (key !== "page" || !value || typeof value !== "object" || Array.isArray(value)) return value;
+  const page = { ...value } as Record<string, unknown>;
+  if (isPrivatePageDestination(page["actionUrl"], page["publicCodeUrl"])) page["actionUrl"] = "";
+  if (page["publicCodeUrl"] !== page["actionUrl"]) delete page["publicCodeUrl"];
+  const related = page["relatedStory"];
+  if (related && typeof related === "object" && !Array.isArray(related)) {
+    const story = { ...related } as Record<string, unknown>;
+    if (isPrivatePageDestination(story["url"], story["publicCodeUrl"])) story["url"] = "";
+    if (story["publicCodeUrl"] !== story["url"]) delete story["publicCodeUrl"];
+    page["relatedStory"] = story;
+  }
+  return page;
+}
+
+function publicWebAction(value: unknown) {
+  if (typeof value !== "string" || value.length > 2000) return null;
+  const href = actionDestination(value);
+  if (!href || !/^https?:\/\//i.test(href)) return null;
+  const url = new URL(href);
+  const host = url.hostname.toLowerCase().replace(/\.$/, "");
+  // A developer will render this link. No Critic fetch or port check is required.
+  if (
+    !isShareableHost(host) ||
+    host.endsWith(".localhost") ||
+    host === "home.arpa" ||
+    host.endsWith(".home.arpa")
+  )
     return null;
-  return { href, hasCode };
+  const privacy = webLinkPrivacy(url);
+  return privacy === "private" ? null : { href, hasCode: privacy === "code" };
 }
 
 export function needsPublicCodeConfirmation(value: unknown): boolean {

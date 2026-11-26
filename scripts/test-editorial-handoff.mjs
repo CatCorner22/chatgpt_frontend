@@ -1,4 +1,5 @@
 /** Restore the supplied art study through Focus, edit it, and open both downloads on a fresh device. */
+import { readPreviewDocument } from "./fixtures/preview-source.mjs";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -81,7 +82,7 @@ try {
     const css = await zip.file("styles.css").async("string");
     assert.equal(
       html.toString(),
-      await source.getByTitle("Working page preview").getAttribute("srcdoc"),
+      await readPreviewDocument(source.getByTitle("Working page preview")),
     );
     assert.equal(
       linked.replace(

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useUser } from "@/hooks/useSession";
 import { hasCloudBackend } from "@/lib/runtime-config";
 import { useHostedSession } from "@/components/HostedBoundary";
@@ -9,23 +9,43 @@ import { BrandLogo } from "@/components/BrandArt";
 export function AppHeader({ children }: { children?: ReactNode }) {
   const user = useUser();
   const hosted = useHostedSession();
+  const header = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const dismissOutside = (event: Event) => {
+      const menu = header.current?.querySelector<HTMLDetailsElement>(".studio-more[open]");
+      if (menu && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+    };
+    document.addEventListener("focusin", dismissOutside, true);
+    document.addEventListener("pointerdown", dismissOutside, true);
+    return () => {
+      document.removeEventListener("focusin", dismissOutside, true);
+      document.removeEventListener("pointerdown", dismissOutside, true);
+    };
+  }, []);
   const active = { "aria-current": "page" as const };
   return (
     <header
+      ref={header}
       className="studio-header"
       onClickCapture={(event) => {
         const summary = event.target instanceof Element ? event.target.closest("summary") : null;
         const opening = summary?.parentElement;
-        if (!(opening instanceof HTMLDetailsElement) || opening.open) return;
+        if (
+          !(opening instanceof HTMLDetailsElement) ||
+          !opening.matches(".studio-more") ||
+          opening.open
+        )
+          return;
         for (const menu of event.currentTarget.querySelectorAll<HTMLDetailsElement>(
-          "details[open]",
+          ".studio-more[open]",
         )) {
           if (menu !== opening) menu.open = false;
         }
       }}
       onKeyDown={(event) => {
         if (event.key !== "Escape") return;
-        const menu = event.target instanceof Element ? event.target.closest("details[open]") : null;
+        const menu =
+          event.target instanceof Element ? event.target.closest(".studio-more[open]") : null;
         if (menu instanceof HTMLDetailsElement) {
           menu.open = false;
           menu.querySelector("summary")?.focus();
